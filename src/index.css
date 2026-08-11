@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    background-color: #050505;
+    color: #d1d1d1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.25), inset 0 0 10px rgba(0, 255, 65, 0.1);
+    border-left-color: #00FF41;
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5), inset 0 0 15px rgba(0, 255, 65, 0.2);
+    border-left-color: #FF3E00;
+  }
+}
+
+@keyframes chordPop {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px #00FF41;
+  }
+  50% {
+    transform: scale(1.12);
+    box-shadow: 0 0 18px #00FF41, 0 0 30px rgba(0, 255, 65, 0.8);
+  }
+}
+
+@keyframes lineBeam {
+  0% { opacity: 0.3; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.3; }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.animate-chord-pop {
+  animation: chordPop 1.2s infinite ease-in-out;
+}
+
+.animate-line-beam {
+  animation: lineBeam 1.5s infinite ease-in-out;
+}
+
+.animate-marquee {
+  display: flex;
+  width: 200%;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Custom crisp technical scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border: 1px solid #333333;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #ff3e00;
+}

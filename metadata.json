@@ -1,0 +1,6 @@
+{
+  "name": "Guitar & Band Hub",
+  "description": "Hudební portál pro kytaristy a kapely se sdílením akordů, ladičkou, virtuálními nástroji, tréninkem stupnic a QR přístupem.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
