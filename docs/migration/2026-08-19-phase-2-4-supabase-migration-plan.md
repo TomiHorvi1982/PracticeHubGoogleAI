@@ -1,27 +1,29 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: **Phase 1–6 hotovo.** Phase 1–5 smergováno do `main`; Phase 6 (Asset Library API) hotová na branchi `asset-library`, čeká na merge.
+Status: **Phase 1–7 hotovo.** Phase 1–6 v `main`; Phase 7 (data migrace) hotová na branchi `data-migration`, čeká na merge.
 
 ## NEXT SESSION START HERE (2026-08-19)
 
 Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase projektu (ne jen naplánováno):
 
-- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety, Asset Library backend.
-- `main` branch: smergovaná Phase 1–5 (Supabase Auth, `requireAuth`/`requireRole`, `/api/users*`, Storage buckety).
-- Branch `asset-library` (worktree `.worktrees/asset-library`): Phase 6 — `POST /api/assets/upload-url`, `POST /api/assets/:id/complete`, `GET /api/assets`, `GET /api/assets/:id`, `PATCH /api/assets/:id`, `DELETE /api/assets/:id`. Všechny za `requireAuth`, vlastnictví (owner_id = volající, nebo admin pro `owner_id IS NULL` globální assety) ověřované ručně v kódu (server běží pod service-role klientem, který obchází RLS, takže RLS pravidla musí kopírovat).
-  - Ověřeno: všech 6 endpointů vrací `401` bez tokenu; datový tvar insertu odpovídá `assets` tabulce (ověřeno testovacím INSERT/UPDATE/DELETE přímo v Supabase, úklid proveden).
-  - **Oprava schématu při ověřování**: `assets.status` CHECK povoloval jen `active`/`deleted`, upload flow ale potřebuje mezistav `pending` — rozšířeno migrací `phase6_assets_status_pending`.
-  - **Neprovedeno**: plný end-to-end test s reálným přihlášeným uživatelem (vyžadovalo by buď zadat heslo za uživatele, nebo založit testovací účet — obojí jsem záměrně nedělal, viz bezpečnostní pravidla o heslech/účtech). Doporučuju při příští příležitosti ručně vyzkoušet upload v prohlížeči (zatím není na co klikat — chybí frontend UI, viz níže).
+- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety, Asset Library backend, data migrovaná.
+- `main` branch: Phase 1–6 (Supabase Auth, `requireAuth`/`requireRole`, `/api/users*`, Storage buckety, `/api/assets*`).
+- Branch `data-migration` (worktree `.worktrees/data-migration`): Phase 7 — `scripts/migrate-data.ts`, jednorázový idempotentní backfill `data/*.json` → Supabase.
+  - **Skutečně spuštěno** (ne jen napsáno): `users.json` → 1 nový uživatel zmigrován (`test-clen@kapela.cz`, role `musician`, status `invited`, **bez hesla** — nikdo ho nikdy nezadával), admin správně přeskočen (už existoval, spárováno podle e-mailu). Ověřena idempotence druhým spuštěním (0 migrováno, 2 přeskočeno).
+  - `songs.json`, `playlist.json`, `photos.json`, `stems.json` **v repu momentálně neexistují** (vznikají, jen když starý kód appky běžel a vygeneroval je) — skript je bezpečně přeskočil. Kód pro jejich migraci je napsaný a otestovaný na schématu, ale **nikdy neběžel na reálných datech**, protože žádná nejsou. Až/pokud se tyhle soubory objeví (např. po dalším běhu appky, nebo z produkčního nasazení), stačí skript znovu spustit — je idempotentní.
+  - **Oprava schématu při psaní**: `songs` neměla kam uložit bohatý obsah (text, akordy, tónina, BPM, YouTube odkazy) — přidán `metadata jsonb` sloupec (migrace `phase7_songs_metadata`). `songs`/`playlists`/`stem_sets` dostaly `legacy_id text unique` sloupec a `assets` unikátní index na `metadata->>'legacy_id'` — bez toho by skript nebyl idempotentní (migrace `phase7_legacy_id_tracking`).
+  - **Zjištěná nesrovnalost s původním plánem**: `playlist.json` není sada pojmenovaných playlistů, ale plochá fronta naposledy přehraných YouTube videí. Skript to migruje do jednoho playlistu `"Migrovaný playlist"`; položky bez `songId` (čistě video, žádná vazba na píseň) loguje a přeskakuje, nevymýšlí si náhradní písně.
+  - `stems.json` by migroval jen `stem_sets` (fakt "tahle píseň měla pokus o separaci"), záměrně **ne** `stems` řádky — dnešní stem soubory jsou syntetické (viz audit), takže by ukazovaly na neexistující reálné audio.
 - **Reálný fungující admin účet**: `hortom82@gmail.com`, role `admin`, status `active`.
 - **Storage buckety `audio` a `assets`** — private, RLS storage policies pro `global/...` a `users/{user_id}/...`.
 - Drobný nekritický Supabase advisor nález (nesouvisí s naší prací): `auth_leaked_password_protection` — doporučuje zapnout HaveIBeenPwned kontrolu hesel v Auth nastavení. Rychlé, ale záměrně nechané na později.
 
 **Až budete pokračovat:**
 
-1. Smergovat `asset-library` do `main` (pokud ještě nebylo) přes `finishing-a-development-branch` postup.
-2. Další krok je **"My Library" frontend UI** (žádný backend endpoint zatím nemá UI, kterým by se dal zavolat) — nová sekce v appce s uploadem/výpisem/mazáním souborů přes `/api/assets*`. Sekce 8/N v původním zadání ("MY LIBRARY").
-3. Nebo Phase 7 — migrace `data/*.json` do Postgres (`scripts/migrate-data.ts`, viz sekce PHASE 7 níže) — teprve tahle fáze skutečně přestane appka spoléhat na JSON soubory.
+1. Smergovat `data-migration` do `main` (pokud ještě nebylo) přes `finishing-a-development-branch` postup.
+2. Zbývá: **"My Library" frontend UI** (backend `/api/assets*` z Phase 6 zatím nemá žádnou obrazovku, která by ho volala) — to je teď nejužitečnější další krok, appka pořád vypadá navenek stejně jako před celou migrací.
+3. Testovacího uživatele `test-clen@kapela.cz` je potřeba někdy v budoucnu buď skutečně pozvat (real invite e-mail), nebo smazat — zůstává v `invited` stavu bez možnosti přihlášení, dokud se nerozhodnete.
 4. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
 
 ## Phase 4 — Auth & Authorization (dokončeno)
