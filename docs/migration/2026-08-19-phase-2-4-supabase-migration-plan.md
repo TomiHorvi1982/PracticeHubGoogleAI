@@ -1,7 +1,27 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: **Phase 1–4 provedeno a ověřeno** (Supabase projekt `tpbkizrrizjvhzzxzfuu`, region eu-central-1; branch `supabase-auth-migration`).
+Status: **Phase 1–4 hotovo, smergováno do `main`** (commit `ba0f61c`). **Phase 5 částečně hotovo** (buckety + policies v Supabase, kód v appce ještě ne). Viz "NEXT SESSION START HERE" úplně dole.
+
+## NEXT SESSION START HERE (2026-08-19, konec této session)
+
+Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase projektu (ne jen naplánováno):
+
+- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety.
+- `main` branch v repu obsahuje smergovanou Phase 1–4 (real Supabase Auth, `requireAuth`/`requireRole` middleware, `/api/users*` přepsané). Worktree `supabase-auth-migration` smazán, branch smazána.
+- **Reálný fungující admin účet**: `hortom82@gmail.com`, role `admin`, status `active`, heslo nastaveno (ověřeno v `auth.users.encrypted_password`). Přihlašování přes `/` → tlačítko "Přihlásit" funguje s Supabase Auth.
+- **Storage buckety `audio` a `assets`** vytvořené (private) + RLS storage policies pro `global/...` (sdílené) a `users/{user_id}/...` (soukromé) cesty — viz sekce Phase 5 níže. **Ještě nic do nich nikdo needítá ani nezapisuje z appky** — buckety existují, ale žádný kód v `server.ts`/frontendu je zatím nepoužívá.
+- Drobný nový Supabase advisor nález (nekritický, INFO/WARN, nesouvisí s naší prací): `auth_leaked_password_protection` — doporučuje zapnout HaveIBeenPwned kontrolu hesel v Auth nastavení. Rychlé, ale záměrně jsem to nechal na později (mimo scope téhle session).
+
+**Další krok (Phase 6 — Asset Library API) NENÍ začatý.** Až budete pokračovat:
+
+1. Přečíst tenhle dokument celý (sekce PHASE 6 níže má už navržené API).
+2. Založit nový worktree (`git worktree add .worktrees/asset-library -b asset-library`), stejně jako u předchozích fází — **nedělat změny přímo v `main`**.
+3. Implementovat `POST/GET/PATCH/DELETE /api/assets*` v `server.ts` + signed-URL upload flow (viz sekce PHASE 6).
+4. Nezapomenout: `.env` (se `SUPABASE_SERVICE_ROLE_KEY`) se do worktree needítá automaticky (git ho ignoruje) — je potřeba ho tam zkopírovat ručně (`cp ../../.env .env` z worktree adresáře) pro lokální testování.
+5. Na konci zase: `npm run lint`, ruční test v prohlížeči, merge přes `finishing-a-development-branch` postup.
+
+Credentials (Supabase Auth token pro `requireAuth`) fungují stejně jako dosud — nic nového vytvářet netřeba.
 
 ## Phase 4 — Auth & Authorization (dokončeno)
 
@@ -268,7 +288,9 @@ Aplikuje se na: `/api/users*`, `/api/songs*` (mutace), `/api/assets*`, `/api/pro
 
 ## PHASE 5 — Storage struktura
 
-Dva buckety: `audio` (WAV/MP3/OGG — stems, samply, nahrávky, backing tracky), `assets` (MIDI, Guitar Pro, PDF, obrázky, presety).
+**Status: buckety + RLS policies hotové v Supabase (migrace `phase5_storage_buckets`). Appka je ještě nepoužívá — žádný upload/download kód zatím nevznikl.**
+
+Dva buckety: `audio` (WAV/MP3/OGG — stems, samply, nahrávky, backing tracky), `assets` (MIDI, Guitar Pro, PDF, obrázky, presety). Oba `private` (ne veřejně čitelné bez session). RLS: `global/...` cesta čitelná všem přihlášeným, `users/{user_id}/...` jen vlastníkovi nebo adminovi; zápis obdobně (do `global/` smí jen admin).
 
 ```
 audio/
