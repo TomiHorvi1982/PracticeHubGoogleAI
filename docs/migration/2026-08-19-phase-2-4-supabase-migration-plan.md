@@ -1,7 +1,15 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: Připraveno k provedení — **čeká na Supabase credentials** (viz konec dokumentu).
+Status: **Phase 1–3 provedeno a ověřeno** (Supabase projekt `tpbkizrrizjvhzzxzfuu`, region eu-central-1). Phase 4+ čeká na rozhodnutí, zda pokračovat přímo do kódu `server.ts`/`authService.ts`.
+
+## Průběh (co je hotovo)
+
+- **Phase 1**: `.env.example` doplněn o `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`. Skutečné (veřejné) URL a anon klíč jsou i v lokálním `.env` (negitovaný). Service role key a DB connection string zatím chybí — doplní je uživatel přímo do `.env`, nikdy neprocházejí chatem.
+- **Phase 2**: schéma vytvořeno přes Supabase MCP (`apply_migration`) — `profiles, projects, songs, playlists, playlist_songs, assets, stem_sets, stems, jobs` + indexy na všech cizích klíčích + trigger `on_auth_user_created` (auto-vytvoření `profiles` řádku při signupu, role vždy `'user'`, admin se povyšuje ručně přes SQL, nikdy self-service).
+- **Phase 3**: RLS zapnuto na všech 9 tabulkách, žádná `allow all`/`using (true)` policy. Pomocná funkce `private.is_admin()` schválně mimo `public` schema (nejde zavolat přímo přes REST API, jen z policies). Bezpečnostní i výkonnostní Supabase advisor běží čistě (0 nálezů) po doladění (`(select auth.uid())` místo `auth.uid()` v policies, rozdělení překrývajících se `for all`/`for select` policies).
+
+Migrace provedené (v pořadí): `phase2_core_schema`, `phase3_row_level_security`, `phase3b_harden_is_admin_function`, `phase2b_missing_fk_indexes`, `phase3c_optimize_rls_initplan`, `phase3d_split_all_policies_to_avoid_overlap`, `phase3e_merge_profiles_update_policy`, `phase2c_auto_create_profile_on_signup`, `phase2d_revoke_direct_execute_on_trigger_function`.
 Vychází z: [docs/audit/2026-08-19-technical-audit.md](../audit/2026-08-19-technical-audit.md) a implementačního promptu navrženého ChatGPT, sloučeno a opraveno.
 
 ## Co se mění oproti ChatGPT návrhu
