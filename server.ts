@@ -825,6 +825,218 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
     res.json({ success: true });
   });
 
+  // --- Asset Library API (Phase 6) ---
+  // Metadata lives in Postgres `assets`; binary files live in Supabase
+  // Storage (`audio` / `assets` buckets). Server uses the service-role
+  // client (bypasses RLS), so every route below re-implements the same
+  // ownership rule RLS already enforces at the DB layer: an authenticated
+  // user may act on their own rows (owner_id = their id); only an admin may
+  // act on global rows (owner_id IS NULL). See
+  // docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md (Phase 6).
+
+  const ASSET_BUCKET_BY_TYPE: Record<string, 'audio' | 'assets'> = {
+    audio: 'audio',
+    stem: 'audio',
+    sample: 'audio',
+    recording: 'audio',
+    midi: 'assets',
+    guitar_pro: 'assets',
+    pdf: 'assets',
+    image: 'assets',
+    preset: 'assets',
+  };
+
+  function slugifyFilename(name: string): string {
+    return name
+      .normalize('NFKD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-zA-Z0-9._-]/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 120);
+  }
+
+  async function isProfileAdmin(userId: string): Promise<boolean> {
+    const { data } = await getSupabaseAdmin().from('profiles').select('role').eq('user_id', userId).single();
+    return data?.role === 'admin';
+  }
+
+  // Step 1: client asks for a place to upload a file. Server creates the
+  // `assets` metadata row (status='pending') and a short-lived signed
+  // upload URL/token — the actual bytes never pass through this server.
+  app.post('/api/assets/upload-url', requireAuth, async (req, res) => {
+    const { name, mime_type, category, asset_type, size_bytes, visibility } = req.body;
+    if (!name || !category || !asset_type) {
+      return res.status(400).json({ error: 'name, category a asset_type jsou povinné.' });
+    }
+
+    const bucket = ASSET_BUCKET_BY_TYPE[asset_type];
+    if (!bucket) {
+      return res.status(400).json({ error: `Neznámý asset_type: ${asset_type}` });
+    }
+
+    const wantsGlobal = visibility === 'global';
+    if (wantsGlobal && !(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Jen admin může nahrávat do globální knihovny.' });
+    }
+
+    const admin = getSupabaseAdmin();
+    const assetId = crypto.randomUUID();
+    const ownerId = wantsGlobal ? null : req.user!.id;
+    const pathPrefix = wantsGlobal ? 'global' : `users/${req.user!.id}`;
+    const storagePath = `${pathPrefix}/${category}/${assetId}-${slugifyFilename(name)}`;
+
+    const { data: insertedAsset, error: insertError } = await admin
+      .from('assets')
+      .insert({
+        id: assetId,
+        owner_id: ownerId,
+        name,
+        original_filename: name,
+        mime_type: mime_type || null,
+        size_bytes: size_bytes || null,
+        storage_bucket: bucket,
+        storage_path: storagePath,
+        asset_type,
+        category,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (insertError || !insertedAsset) {
+      return res.status(500).json({ error: 'Nepodařilo se založit asset.', details: insertError?.message });
+    }
+
+    const { data: signed, error: signError } = await admin.storage.from(bucket).createSignedUploadUrl(storagePath);
+    if (signError || !signed) {
+      await admin.from('assets').delete().eq('id', assetId);
+      return res.status(500).json({ error: 'Nepodařilo se vytvořit upload URL.', details: signError?.message });
+    }
+
+    res.json({
+      asset: insertedAsset,
+      signed_upload_url: signed.signedUrl,
+      upload_token: signed.token,
+      storage_path: storagePath,
+      bucket,
+    });
+  });
+
+  // Step 2: client finished uploading the bytes to Storage — flip status to active.
+  app.post('/api/assets/:id/complete', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: asset } = await admin.from('assets').select('*').eq('id', req.params.id).single();
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset nenalezen.' });
+    }
+    const isOwner = asset.owner_id === req.user!.id;
+    const isAdmin = await isProfileAdmin(req.user!.id);
+    if (!isOwner && !(asset.owner_id === null && isAdmin)) {
+      return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+    }
+
+    const { data: updated, error } = await admin
+      .from('assets')
+      .update({ status: 'active', size_bytes: req.body?.size_bytes ?? asset.size_bytes, mime_type: req.body?.mime_type ?? asset.mime_type })
+      .eq('id', req.params.id)
+      .select()
+      .single();
+
+    if (error || !updated) {
+      return res.status(500).json({ error: 'Nepodařilo se dokončit upload.', details: error?.message });
+    }
+    res.json({ success: true, asset: updated });
+  });
+
+  // List assets visible to the caller: their own + all global ones, optionally filtered.
+  app.get('/api/assets', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const ownerFilter = req.query.owner as string | undefined; // 'mine' | 'global' | undefined (both)
+    const category = req.query.category as string | undefined;
+
+    let query = admin.from('assets').select('*').eq('status', 'active').order('created_at', { ascending: false });
+
+    if (ownerFilter === 'mine') {
+      query = query.eq('owner_id', req.user!.id);
+    } else if (ownerFilter === 'global') {
+      query = query.is('owner_id', null);
+    } else {
+      query = query.or(`owner_id.eq.${req.user!.id},owner_id.is.null`);
+    }
+
+    if (category) {
+      query = query.eq('category', category);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      return res.status(500).json({ error: 'Nepodařilo se načíst assety.', details: error.message });
+    }
+    res.json({ assets: data });
+  });
+
+  // Get one asset's metadata + a short-lived signed download URL.
+  app.get('/api/assets/:id', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: asset } = await admin.from('assets').select('*').eq('id', req.params.id).single();
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset nenalezen.' });
+    }
+    const canView = asset.owner_id === null || asset.owner_id === req.user!.id || (await isProfileAdmin(req.user!.id));
+    if (!canView) {
+      return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+    }
+
+    const { data: signed } = await admin.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 3600);
+    res.json({ asset, download_url: signed?.signedUrl || null });
+  });
+
+  // Update an asset's display metadata (never storage_path/owner_id/bucket).
+  app.patch('/api/assets/:id', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: asset } = await admin.from('assets').select('*').eq('id', req.params.id).single();
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset nenalezen.' });
+    }
+    const isOwner = asset.owner_id === req.user!.id;
+    const isAdmin = await isProfileAdmin(req.user!.id);
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+    }
+
+    const allowedUpdates: Record<string, unknown> = {};
+    for (const key of ['name', 'metadata', 'category'] as const) {
+      if (req.body[key] !== undefined) allowedUpdates[key] = req.body[key];
+    }
+
+    const { data: updated, error } = await admin.from('assets').update(allowedUpdates).eq('id', req.params.id).select().single();
+    if (error || !updated) {
+      return res.status(500).json({ error: 'Nepodařilo se upravit asset.', details: error?.message });
+    }
+    res.json({ success: true, asset: updated });
+  });
+
+  // Delete an asset: removes both the Storage object and the metadata row.
+  app.delete('/api/assets/:id', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: asset } = await admin.from('assets').select('*').eq('id', req.params.id).single();
+    if (!asset) {
+      return res.status(404).json({ error: 'Asset nenalezen.' });
+    }
+    const isOwner = asset.owner_id === req.user!.id;
+    const isAdmin = await isProfileAdmin(req.user!.id);
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+    }
+
+    await admin.storage.from(asset.storage_bucket).remove([asset.storage_path]);
+    const { error } = await admin.from('assets').delete().eq('id', req.params.id);
+    if (error) {
+      return res.status(500).json({ error: 'Nepodařilo se smazat asset.', details: error.message });
+    }
+    res.json({ success: true });
+  });
+
   // In-Memory Cloud Band Room Session Store
   interface ServerSessionMember {
     id: string;

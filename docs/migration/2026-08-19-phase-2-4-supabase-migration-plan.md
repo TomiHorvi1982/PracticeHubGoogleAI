@@ -1,27 +1,28 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: **Phase 1–4 hotovo, smergováno do `main`** (commit `ba0f61c`). **Phase 5 částečně hotovo** (buckety + policies v Supabase, kód v appce ještě ne). Viz "NEXT SESSION START HERE" úplně dole.
+Status: **Phase 1–6 hotovo.** Phase 1–5 smergováno do `main`; Phase 6 (Asset Library API) hotová na branchi `asset-library`, čeká na merge.
 
-## NEXT SESSION START HERE (2026-08-19, konec této session)
+## NEXT SESSION START HERE (2026-08-19)
 
 Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase projektu (ne jen naplánováno):
 
-- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety.
-- `main` branch v repu obsahuje smergovanou Phase 1–4 (real Supabase Auth, `requireAuth`/`requireRole` middleware, `/api/users*` přepsané). Worktree `supabase-auth-migration` smazán, branch smazána.
-- **Reálný fungující admin účet**: `hortom82@gmail.com`, role `admin`, status `active`, heslo nastaveno (ověřeno v `auth.users.encrypted_password`). Přihlašování přes `/` → tlačítko "Přihlásit" funguje s Supabase Auth.
-- **Storage buckety `audio` a `assets`** vytvořené (private) + RLS storage policies pro `global/...` (sdílené) a `users/{user_id}/...` (soukromé) cesty — viz sekce Phase 5 níže. **Ještě nic do nich nikdo needítá ani nezapisuje z appky** — buckety existují, ale žádný kód v `server.ts`/frontendu je zatím nepoužívá.
-- Drobný nový Supabase advisor nález (nekritický, INFO/WARN, nesouvisí s naší prací): `auth_leaked_password_protection` — doporučuje zapnout HaveIBeenPwned kontrolu hesel v Auth nastavení. Rychlé, ale záměrně jsem to nechal na později (mimo scope téhle session).
+- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety, Asset Library backend.
+- `main` branch: smergovaná Phase 1–5 (Supabase Auth, `requireAuth`/`requireRole`, `/api/users*`, Storage buckety).
+- Branch `asset-library` (worktree `.worktrees/asset-library`): Phase 6 — `POST /api/assets/upload-url`, `POST /api/assets/:id/complete`, `GET /api/assets`, `GET /api/assets/:id`, `PATCH /api/assets/:id`, `DELETE /api/assets/:id`. Všechny za `requireAuth`, vlastnictví (owner_id = volající, nebo admin pro `owner_id IS NULL` globální assety) ověřované ručně v kódu (server běží pod service-role klientem, který obchází RLS, takže RLS pravidla musí kopírovat).
+  - Ověřeno: všech 6 endpointů vrací `401` bez tokenu; datový tvar insertu odpovídá `assets` tabulce (ověřeno testovacím INSERT/UPDATE/DELETE přímo v Supabase, úklid proveden).
+  - **Oprava schématu při ověřování**: `assets.status` CHECK povoloval jen `active`/`deleted`, upload flow ale potřebuje mezistav `pending` — rozšířeno migrací `phase6_assets_status_pending`.
+  - **Neprovedeno**: plný end-to-end test s reálným přihlášeným uživatelem (vyžadovalo by buď zadat heslo za uživatele, nebo založit testovací účet — obojí jsem záměrně nedělal, viz bezpečnostní pravidla o heslech/účtech). Doporučuju při příští příležitosti ručně vyzkoušet upload v prohlížeči (zatím není na co klikat — chybí frontend UI, viz níže).
+- **Reálný fungující admin účet**: `hortom82@gmail.com`, role `admin`, status `active`.
+- **Storage buckety `audio` a `assets`** — private, RLS storage policies pro `global/...` a `users/{user_id}/...`.
+- Drobný nekritický Supabase advisor nález (nesouvisí s naší prací): `auth_leaked_password_protection` — doporučuje zapnout HaveIBeenPwned kontrolu hesel v Auth nastavení. Rychlé, ale záměrně nechané na později.
 
-**Další krok (Phase 6 — Asset Library API) NENÍ začatý.** Až budete pokračovat:
+**Až budete pokračovat:**
 
-1. Přečíst tenhle dokument celý (sekce PHASE 6 níže má už navržené API).
-2. Založit nový worktree (`git worktree add .worktrees/asset-library -b asset-library`), stejně jako u předchozích fází — **nedělat změny přímo v `main`**.
-3. Implementovat `POST/GET/PATCH/DELETE /api/assets*` v `server.ts` + signed-URL upload flow (viz sekce PHASE 6).
-4. Nezapomenout: `.env` (se `SUPABASE_SERVICE_ROLE_KEY`) se do worktree needítá automaticky (git ho ignoruje) — je potřeba ho tam zkopírovat ručně (`cp ../../.env .env` z worktree adresáře) pro lokální testování.
-5. Na konci zase: `npm run lint`, ruční test v prohlížeči, merge přes `finishing-a-development-branch` postup.
-
-Credentials (Supabase Auth token pro `requireAuth`) fungují stejně jako dosud — nic nového vytvářet netřeba.
+1. Smergovat `asset-library` do `main` (pokud ještě nebylo) přes `finishing-a-development-branch` postup.
+2. Další krok je **"My Library" frontend UI** (žádný backend endpoint zatím nemá UI, kterým by se dal zavolat) — nová sekce v appce s uploadem/výpisem/mazáním souborů přes `/api/assets*`. Sekce 8/N v původním zadání ("MY LIBRARY").
+3. Nebo Phase 7 — migrace `data/*.json` do Postgres (`scripts/migrate-data.ts`, viz sekce PHASE 7 níže) — teprve tahle fáze skutečně přestane appka spoléhat na JSON soubory.
+4. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
 
 ## Phase 4 — Auth & Authorization (dokončeno)
 
