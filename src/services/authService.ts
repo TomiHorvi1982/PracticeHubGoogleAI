@@ -104,18 +104,28 @@ function profileToUserAccount(profile: ProfileRow): UserAccount {
 class AuthService {
   private currentSession: AuthSession | null = null;
   private subscribers: Array<(session: AuthSession | null) => void> = [];
+  private passwordRecoverySubscribers: Array<(pending: boolean) => void> = [];
+  private passwordRecoveryPending = false;
 
   constructor() {
     this.init();
   }
 
   private async init() {
-    const { data } = await supabase.auth.getSession();
-    if (data.session) {
-      await this.hydrateFromSupabaseSession(data.session);
-    }
+    // IMPORTANT: register the listener BEFORE calling getSession(). If a
+    // recovery/invite URL is present, getSession() itself waits on the same
+    // internal initialization that parses it and fires PASSWORD_RECOVERY —
+    // registering the listener after that await would miss the event.
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      // Supabase fires this distinct event when the session came from an
+      // invite/recovery email link — the account has no usable password yet
+      // (or the user asked to reset it), so the UI must force a "set a new
+      // password" screen before letting them use the app normally.
+      if (event === 'PASSWORD_RECOVERY') {
+        this.passwordRecoveryPending = true;
+        this.notifyPasswordRecoverySubscribers();
+      }
 
-    supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session) {
         await this.hydrateFromSupabaseSession(session);
       } else {
@@ -123,6 +133,24 @@ class AuthService {
         this.notifySubscribers();
       }
     });
+
+    const { data } = await supabase.auth.getSession();
+    if (data.session && !this.passwordRecoveryPending) {
+      await this.hydrateFromSupabaseSession(data.session);
+    }
+  }
+
+  /** True right after an invite/recovery email link is opened, until setPasswordFromInvite succeeds. */
+  public subscribePasswordRecovery(cb: (pending: boolean) => void) {
+    this.passwordRecoverySubscribers.push(cb);
+    cb(this.passwordRecoveryPending);
+    return () => {
+      this.passwordRecoverySubscribers = this.passwordRecoverySubscribers.filter((s) => s !== cb);
+    };
+  }
+
+  private notifyPasswordRecoverySubscribers() {
+    this.passwordRecoverySubscribers.forEach((cb) => cb(this.passwordRecoveryPending));
   }
 
   private async hydrateFromSupabaseSession(session: Session): Promise<void> {
@@ -225,8 +253,16 @@ class AuthService {
     if (error) {
       return { success: false, message: error.message };
     }
+    this.passwordRecoveryPending = false;
+    this.notifyPasswordRecoverySubscribers();
     const { data } = await supabase.auth.getSession();
-    if (data.session) await this.hydrateFromSupabaseSession(data.session);
+    if (data.session) {
+      // First real login after an invite: flip the profile out of "invited".
+      // Allowed by RLS (users may update their own row) even without an
+      // admin role — no need to go through the admin-only server API.
+      await supabase.from('profiles').update({ status: 'active' }).eq('user_id', data.session.user.id).eq('status', 'invited');
+      await this.hydrateFromSupabaseSession(data.session);
+    }
     return { success: true };
   }
 

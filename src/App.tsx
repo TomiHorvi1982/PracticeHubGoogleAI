@@ -43,6 +43,7 @@ function AppContent() {
   // Authentication state
   const [authSession, setAuthSession] = useState<AuthSession | null>(() => authService.getCurrentSession());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [passwordSetupRequired, setPasswordSetupRequired] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isOnlineMembersModalOpen, setIsOnlineMembersModalOpen] = useState(false);
@@ -104,6 +105,19 @@ function AppContent() {
       setAuthSession(currentAuth);
     });
     return unsubAuth;
+  }, []);
+
+  // Force the "set a new password" screen open when the user arrived via an
+  // invite/recovery email link — even though Supabase already signed them
+  // in, they don't have a usable password yet.
+  useEffect(() => {
+    const unsubRecovery = authService.subscribePasswordRecovery((pending) => {
+      if (pending) {
+        setIsLoginModalOpen(true);
+        setPasswordSetupRequired(true);
+      }
+    });
+    return unsubRecovery;
   }, []);
 
   // Subscribe to Song Database changes
@@ -415,9 +429,11 @@ function AppContent() {
         }}
         onLoginSuccess={(s) => {
           setAuthSession(s);
+          setPasswordSetupRequired(false);
         }}
         initialInviteToken={inviteTokenParam}
         initialEmail={inviteEmailParam}
+        forceInviteTab={passwordSetupRequired}
       />
 
       {currentUser && (

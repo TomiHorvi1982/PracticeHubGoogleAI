@@ -9,6 +9,10 @@ interface LoginModalProps {
   onLoginSuccess: (session: AuthSession) => void;
   initialInviteToken?: string;
   initialEmail?: string;
+  /** True when the app detected a Supabase PASSWORD_RECOVERY session (the
+   * user opened an invite/reset-password email link) — locks the modal to
+   * the "set a new password" tab instead of the normal login form. */
+  forceInviteTab?: boolean;
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -17,9 +21,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   onLoginSuccess,
   initialInviteToken,
   initialEmail,
+  forceInviteTab,
 }) => {
   const [mode, setMode] = useState<'login' | 'invite'>('login');
-  
+
   // Login form states
   const [identifier, setIdentifier] = useState(initialEmail || '');
   const [password, setPassword] = useState('');
@@ -41,6 +46,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setIdentifier(initialEmail);
     }
   }, [initialInviteToken, initialEmail]);
+
+  useEffect(() => {
+    if (forceInviteTab) {
+      setMode('invite');
+    }
+  }, [forceInviteTab]);
 
   if (!isOpen) return null;
 
