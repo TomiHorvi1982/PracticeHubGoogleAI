@@ -379,6 +379,71 @@ export async function parseGuitarProFile(file: File): Promise<ImportResult> {
 }
 
 /**
+ * Parses Image files (.png, .jpg, .jpeg, .webp, .svg, .gif)
+ */
+export async function parseImageFile(file: File): Promise<ImportResult> {
+  const filename = file.name.replace(/\.[^/.]+$/, '');
+  let title = filename;
+  let artist = 'Foto / Obrázek not';
+
+  if (filename.includes('-')) {
+    const parts = filename.split('-');
+    artist = parts[0].trim();
+    title = parts.slice(1).join('-').trim();
+  }
+
+  const dataUrl = await fileToDataUrl(file);
+
+  const content = `[C]Obrázek notového zápisu / akordů: ${title}\n` +
+    `Soubor: ${file.name}\n` +
+    `[G]Zobrazte fotografii nebo diagram v plné velikosti v záložce příloh nebo v Knihovně souborů.`;
+
+  const attachment: SongAttachment = {
+    id: 'att_' + Math.random().toString(36).substring(2, 9),
+    name: file.name,
+    type: 'image',
+    dataUrl,
+    size: file.size,
+    uploadedAt: Date.now(),
+    parsedData: {
+      title,
+      artist,
+    },
+  };
+
+  return {
+    song: {
+      title,
+      artist,
+      key: 'C',
+      bpm: 120,
+      content,
+    },
+    attachment,
+  };
+}
+
+/**
+ * Universal dispatcher that parses any supported file format
+ */
+export async function parseAnyFile(file: File): Promise<ImportResult> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+
+  if (['gp', 'gp3', 'gp4', 'gp5', 'gpx', 'gtp'].includes(ext)) {
+    return parseGuitarProFile(file);
+  } else if (ext === 'pdf') {
+    return parsePdfFile(file);
+  } else if (['mid', 'midi'].includes(ext)) {
+    return parseMidiFile(file);
+  } else if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'bmp'].includes(ext)) {
+    return parseImageFile(file);
+  } else {
+    // Default to text / ChordPro
+    return parseTextFile(file);
+  }
+}
+
+/**
  * Helper to convert File to Base64 DataURL
  */
 export function fileToDataUrl(file: File): Promise<string> {

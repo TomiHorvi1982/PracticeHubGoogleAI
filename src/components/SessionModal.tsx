@@ -108,35 +108,38 @@ export const SessionModal: React.FC<SessionModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-mono">
-      <div className="bg-[#0F0F0F] border-2 border-[#333] text-[#D1D1D1] max-w-lg w-full p-5 relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md font-sans">
+      <div className="bg-[#16161A]/95 border border-white/[0.1] text-white max-w-lg w-full p-6 rounded-3xl shadow-2xl relative">
         
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 p-1 text-[#888] hover:text-white hover:bg-[#222]"
+          className="absolute top-5 right-5 p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-xl transition-all cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex items-center gap-2 mb-4 border-b border-[#222] pb-2">
-          <span className="bg-[#FF3E00] text-black font-black px-2 py-0.5 text-[10px] uppercase">
-            QR_LINK
-          </span>
+        <div className="flex items-center gap-3 mb-5 border-b border-white/5 pb-4">
+          <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+            <QrCode className="w-5 h-5" />
+          </div>
           <div>
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              SDÍLENÁ ZKUŠEBNA & QR KÓD
+            <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase">
+              Zkouška
+            </span>
+            <h2 className="text-base font-bold text-white tracking-tight mt-0.5">
+              Sdílená zkušebna &amp; QR kód
             </h2>
           </div>
         </div>
 
         {/* QR Code Invitation Banner */}
         {joinCode && !session && (
-          <div className="bg-[#00220A] border border-[#00FF41] p-2.5 mb-4 text-xs text-[#00FF41] font-bold uppercase flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-[#00FF41] shrink-0" />
+          <div className="bg-[#30D158]/10 border border-[#30D158]/30 p-3.5 rounded-2xl mb-4 text-xs text-[#30D158] font-semibold flex items-center gap-3">
+            <QrCode className="w-5 h-5 text-[#30D158] shrink-0" />
             <div>
-              <span className="block font-black">⚡ NAČTENO Z QR KÓDU ZKUŠEBNY: {joinCode}</span>
-              <span className="text-[10px] text-[#A0FFA0] font-normal block mt-0.5">
+              <span className="block font-bold">⚡ Načteno z QR kódu: {joinCode}</span>
+              <span className="text-[11px] text-neutral-300 font-normal block mt-0.5">
                 Zadejte vaše jméno a nástroj níže pro automatické připojení a načtení seznamu písní!
               </span>
             </div>
@@ -147,65 +150,65 @@ export const SessionModal: React.FC<SessionModalProps> = ({
           <div className="space-y-4">
             
             {/* Active Session QR & Details */}
-            <div className="bg-[#050505] p-4 border border-[#222] flex flex-col items-center text-center gap-3">
-              <div className="bg-white p-3 border-2 border-[#FF3E00]">
+            <div className="bg-black/40 p-5 rounded-2xl border border-white/5 flex flex-col items-center text-center gap-3.5">
+              <div className="bg-white p-3.5 rounded-2xl shadow-md">
                 <QRCodeSVG value={shareUrl} size={150} level="M" />
               </div>
 
               <div>
-                <span className="text-[10px] font-bold text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40 uppercase">
-                  KÓD MÍSTNOSTI
+                <span className="text-[10px] font-bold text-[#30D158] bg-[#30D158]/10 px-2.5 py-0.5 rounded-md border border-[#30D158]/30 uppercase">
+                  Kód místnosti
                 </span>
-                <p className="text-xl font-black tracking-widest text-white mt-1 font-mono uppercase">
+                <p className="text-xl font-bold tracking-widest text-white mt-1.5 font-mono uppercase">
                   {session.roomId}
                 </p>
-                <p className="text-[10px] text-[#666] mt-0.5">
-                  NASKENUJTE PRO ZOBRAZENÍ AKORDŮ V REÁLNÉM ČASE
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  Naskenujte pro zobrazení akordů v reálném čase
                 </p>
               </div>
 
-              <div className="w-full flex items-center gap-1.5">
+              <div className="w-full flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
                   value={shareUrl}
-                  className="bg-[#111] border border-[#333] px-2.5 py-1 text-[11px] text-[#D1D1D1] font-mono flex-1 outline-none truncate"
+                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 font-mono flex-1 outline-none truncate"
                 />
                 <button
                   onClick={copyInvite}
-                  className="flex items-center gap-1 px-3 py-1 bg-[#FF3E00] hover:bg-white text-black font-bold text-xs uppercase"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-[#FF9F0A] hover:bg-[#ffb03a] text-black font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer active:scale-95 shrink-0"
                 >
                   {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'ZKOPÍROVÁNO' : 'KOPÍROVAT'}</span>
+                  <span>{copied ? 'Zkopírováno' : 'Kopírovat'}</span>
                 </button>
               </div>
             </div>
 
             {/* Connected Band Members */}
-            <div>
-              <h3 className="text-xs font-bold text-white uppercase flex items-center gap-1.5 mb-2">
-                <Users className="w-3.5 h-3.5 text-[#00FF41]" />
-                PŘIPOJENÍ ČLENOVÉ KAPELY ({session.members.length})
+            <div className="space-y-2">
+              <h3 className="text-xs font-semibold text-neutral-300 uppercase flex items-center gap-2">
+                <Users className="w-3.5 h-3.5 text-[#30D158]" />
+                Připojení členové kapely ({session.members.length})
               </h3>
 
-              <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+              <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                 {session.members.map((member) => (
                   <div
                     key={member.id}
-                    className="flex items-center justify-between bg-[#050505] p-2 border border-[#222]"
+                    className="flex items-center justify-between bg-white/[0.03] p-2.5 rounded-xl border border-white/5"
                   >
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 bg-[#FF3E00] text-black font-extrabold flex items-center justify-center text-xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-[#FF9F0A]/20 text-[#FF9F0A] font-bold flex items-center justify-center text-xs">
                         {member.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-white uppercase">
-                          {member.name} {member.isHost && <span className="text-[9px] text-[#FF3E00] font-normal">(HOST)</span>}
+                        <p className="text-xs font-semibold text-white">
+                          {member.name} {member.isHost && <span className="text-[10px] text-[#FF9F0A] font-normal">(Host)</span>}
                         </p>
-                        <p className="text-[9px] text-[#666] uppercase">{member.instrument}</p>
+                        <p className="text-[10px] text-neutral-400">{member.instrument}</p>
                       </div>
                     </div>
-                    <span className="w-2 h-2 bg-[#00FF41]"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#30D158]"></span>
                   </div>
                 ))}
               </div>
@@ -215,10 +218,10 @@ export const SessionModal: React.FC<SessionModalProps> = ({
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => onSessionChange(null)}
-                className="flex items-center gap-1 text-xs text-[#FF3E00] hover:underline font-bold uppercase"
+                className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 font-semibold cursor-pointer transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
-                OPUSTIT MÍSTNOST
+                Opustit místnost
               </button>
             </div>
 
@@ -226,27 +229,27 @@ export const SessionModal: React.FC<SessionModalProps> = ({
         ) : (
           /* Join or Create Form */
           <div className="space-y-4 text-xs">
-            <div>
-              <label className="block text-[10px] text-[#666] mb-1 uppercase font-bold">
-                VAŠE JMÉNO / PŘEZDÍVKA V KAPELE
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-300">
+                Vaše jméno / přezdívka v kapele
               </label>
               <input
                 type="text"
-                placeholder="NAPŘ. TOMÁŠ (KYTARA)"
+                placeholder="Např. Tomáš (Kytara)"
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
-                className="w-full bg-[#050505] border border-[#222] p-2 text-white focus:border-[#FF3E00] uppercase"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:border-[#FF9F0A] outline-none transition-colors"
               />
             </div>
 
-            <div>
-              <label className="block text-[10px] text-[#666] mb-1 uppercase font-bold">
-                VÁŠ NÁSTROJ
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-neutral-300">
+                Váš nástroj
               </label>
               <select
                 value={instrument}
                 onChange={(e) => setInstrument(e.target.value)}
-                className="w-full bg-[#050505] border border-[#222] p-2 text-white focus:border-[#FF3E00] uppercase"
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-3.5 py-2 text-sm text-white focus:border-[#FF9F0A] outline-none transition-colors cursor-pointer"
               >
                 <option value="Doprovodná Kytara">Doprovodná Kytara</option>
                 <option value="Sólová Kytara">Sólová Kytara</option>
@@ -257,51 +260,51 @@ export const SessionModal: React.FC<SessionModalProps> = ({
               </select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
               
               {/* Create Room */}
-              <form onSubmit={handleCreate} className="bg-[#050505] p-3 border border-[#222] flex flex-col justify-between">
+              <form onSubmit={handleCreate} className="bg-white/[0.03] p-4 rounded-2xl border border-white/10 flex flex-col justify-between space-y-3">
                 <div>
-                  <h3 className="text-xs font-bold text-[#FF3E00] mb-1 uppercase flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> ZALOŽIT ZKUŠEBNU
+                  <h3 className="text-xs font-bold text-[#FF9F0A] mb-1.5 uppercase flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5" /> Založit zkušebnu
                   </h3>
                   <input
                     type="text"
-                    placeholder="NÁZEV ZKUŠEBNY"
+                    placeholder="Název zkušebny"
                     value={roomName}
                     onChange={(e) => setRoomName(e.target.value)}
-                    className="w-full bg-[#111] border border-[#333] p-1.5 text-[11px] text-white mb-3 focus:border-[#FF3E00] uppercase"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-xs text-white mb-1 focus:border-[#FF9F0A] outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !userName.trim()}
-                  className="w-full py-1.5 bg-[#FF3E00] hover:bg-white disabled:opacity-40 text-black font-extrabold text-xs uppercase"
+                  className="w-full py-2 bg-[#FF9F0A] hover:bg-[#ffb03a] disabled:opacity-40 text-black font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer active:scale-95"
                 >
-                  {isLoading ? 'VYTVÁŘÍM...' : 'ZALOŽIT'}
+                  {isLoading ? 'Vytvářím...' : 'Založit'}
                 </button>
               </form>
 
               {/* Join Room */}
-              <form onSubmit={handleJoin} className="bg-[#050505] p-3 border border-[#222] flex flex-col justify-between">
+              <form onSubmit={handleJoin} className="bg-white/[0.03] p-4 rounded-2xl border border-white/10 flex flex-col justify-between space-y-3">
                 <div>
-                  <h3 className="text-xs font-bold text-[#00FF41] mb-1 uppercase flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5 text-[#00FF41]" /> PŘIPOJIT SE
+                  <h3 className="text-xs font-bold text-[#30D158] mb-1.5 uppercase flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-[#30D158]" /> Připojit se
                   </h3>
                   <input
                     type="text"
-                    placeholder="KÓD (NAPŘ. KAPELA-X93K)"
+                    placeholder="Kód (např. KAPELA-X93K)"
                     value={joinCode}
                     onChange={(e) => setJoinCode(e.target.value)}
-                    className="w-full bg-[#111] border border-[#333] p-1.5 text-[11px] text-white mb-3 focus:border-[#00FF41] uppercase"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl p-2 text-xs text-white mb-1 focus:border-[#30D158] outline-none"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={isLoading || !userName.trim() || !joinCode.trim()}
-                  className="w-full py-1.5 bg-[#00FF41] hover:bg-white disabled:opacity-40 text-black font-extrabold text-xs uppercase"
+                  className="w-full py-2 bg-[#30D158] hover:bg-[#34e260] disabled:opacity-40 text-black font-bold text-xs uppercase rounded-xl transition-all shadow-md cursor-pointer active:scale-95"
                 >
-                  {isLoading ? 'PŘIPOJUJI...' : 'PŘIPOJIT SE'}
+                  {isLoading ? 'Připojuji...' : 'Připojit se'}
                 </button>
               </form>
 

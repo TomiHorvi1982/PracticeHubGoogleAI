@@ -1,4 +1,5 @@
 import { BandSession, SessionMember, Song } from '../types';
+import { setFirestoreDoc, subscribeFirestoreCollection, getFirestoreDoc } from './firebase';
 
 const CHANNEL_NAME = 'guitar_band_session_hub';
 
@@ -7,8 +8,7 @@ export class SessionSyncService {
   private currentRoomId: string | null = null;
   private currentMember: SessionMember | null = null;
   private listeners: Array<(session: BandSession) => void> = [];
-  private pollTimer: any = null;
-  private lastSyncedTimestamp = 0;
+  private unsubscribeFirestore: (() => void) | null = null;
 
   constructor() {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -23,42 +23,30 @@ export class SessionSyncService {
       };
     }
 
-    // Fallback/supplementary sync using localStorage event
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', (e) => {
         if (e.key === `band_room_${this.currentRoomId}` && e.newValue) {
           try {
             const session = JSON.parse(e.newValue);
             this.notifyListeners(session);
-          } catch (err) {
-            console.error('Failed to parse room update', err);
-          }
+          } catch (err) {}
         }
       });
     }
   }
 
   private startCloudSync(roomId: string) {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
+    if (this.unsubscribeFirestore) {
+      this.unsubscribeFirestore();
     }
 
-    this.pollTimer = setInterval(() => {
-      if (!this.currentRoomId) return;
-
-      fetch(`/api/rooms/${encodeURIComponent(this.currentRoomId)}/poll?lastUpdated=${this.lastSyncedTimestamp}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data && data.updated && data.room) {
-            const room: BandSession = data.room;
-            this.lastSyncedTimestamp = room.lastUpdated || Date.now();
-            this.saveAndBroadcastLocal(room);
-          }
-        })
-        .catch(() => {
-          // Silent catch for polling
-        });
-    }, 2000);
+    this.unsubscribeFirestore = subscribeFirestoreCollection<BandSession>('sessions', (sessions) => {
+      const room = sessions.find((s) => s.roomId === roomId);
+      if (room) {
+        this.saveAndBroadcastLocal(room);
+        this.notifyListeners(room);
+      }
+    });
   }
 
   public async createRoom(roomName: string, hostName: string, instrument = 'Kytara'): Promise<BandSession> {
@@ -71,55 +59,35 @@ export class SessionSyncService {
       joinedAt: Date.now(),
     };
 
-    // Get host's local songs if present to upload to cloud room
     let initialSongs: Song[] = [];
     try {
       const raw = localStorage.getItem('band_songs_db');
       if (raw) initialSongs = JSON.parse(raw);
     } catch (e) {}
 
-    const localSession: BandSession = {
+    const session: BandSession = {
       roomId,
       roomName: roomName || 'Naše Kapela',
       hostName,
       createdTime: Date.now(),
       members: [hostMember],
       songsList: initialSongs,
+      lastUpdated: Date.now(),
     };
 
     this.currentRoomId = roomId;
     this.currentMember = hostMember;
-    this.saveAndBroadcastLocal(localSession);
+    this.saveAndBroadcastLocal(session);
 
-    // Sync to Cloud Server Store
+    // Persist to Cloud Firestore
     try {
-      const res = await fetch('/api/rooms', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          roomId,
-          roomName,
-          hostName,
-          member: hostMember,
-          songsList: initialSongs,
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.room) {
-          const cloudRoom: BandSession = data.room;
-          this.lastSyncedTimestamp = cloudRoom.lastUpdated || Date.now();
-          this.saveAndBroadcastLocal(cloudRoom);
-          this.startCloudSync(roomId);
-          return cloudRoom;
-        }
-      }
+      await setFirestoreDoc('sessions', roomId, session);
     } catch (err) {
-      console.warn('Failed to register room on cloud server:', err);
+      console.warn('Failed to save session to Firestore:', err);
     }
 
     this.startCloudSync(roomId);
-    return localSession;
+    return session;
   }
 
   public async joinRoom(roomId: string, memberName: string, instrument = 'Kytara'): Promise<BandSession> {
@@ -136,159 +104,131 @@ export class SessionSyncService {
     this.currentRoomId = cleanRoomId;
     this.currentMember = newMember;
 
-    // Call Cloud API to join room and retrieve host's songs!
-    try {
-      const res = await fetch(`/api/rooms/${encodeURIComponent(cleanRoomId)}/join`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ member: newMember }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.room) {
-          const cloudRoom: BandSession = data.room;
-          this.lastSyncedTimestamp = cloudRoom.lastUpdated || Date.now();
-          this.saveAndBroadcastLocal(cloudRoom);
-          this.startCloudSync(cleanRoomId);
-          return cloudRoom;
-        }
+    // Fetch existing room from Firestore
+    let room = await getFirestoreDoc<BandSession>('sessions', cleanRoomId);
+    if (!room) {
+      const savedLocal = localStorage.getItem(`band_room_${cleanRoomId}`);
+      if (savedLocal) {
+        try {
+          room = JSON.parse(savedLocal);
+        } catch (e) {}
       }
-    } catch (err) {
-      console.warn('Cloud room join request failed, falling back to local state:', err);
     }
 
-    // Fallback to local storage state if server unavailable
-    const localSession = this.getRoomState(cleanRoomId);
-    let updatedSession: BandSession;
-
-    if (localSession) {
-      const existing = localSession.members.find((m) => m.name === memberName);
-      if (!existing) localSession.members.push(newMember);
-      updatedSession = localSession;
-    } else {
-      updatedSession = {
+    if (!room) {
+      room = {
         roomId: cleanRoomId,
-        roomName: `Zkušebna ${cleanRoomId}`,
-        hostName: memberName,
+        roomName: 'Zkušebna Kapely',
+        hostName: 'Kapelník',
         createdTime: Date.now(),
         members: [newMember],
+        songsList: [],
+        lastUpdated: Date.now(),
       };
+    } else {
+      const exists = room.members.some((m) => m.name.toLowerCase() === memberName.toLowerCase());
+      if (!exists) {
+        room.members.push(newMember);
+      }
     }
 
-    this.saveAndBroadcastLocal(updatedSession);
-    this.startCloudSync(cleanRoomId);
-    return updatedSession;
-  }
+    room.lastUpdated = Date.now();
+    this.saveAndBroadcastLocal(room);
 
-  public sharePhotoToSession(dataUrl: string, caption = 'Nový list akordů / fotka', author = 'Kytarista') {
-    if (!this.currentRoomId) return;
-    const session = this.getRoomState(this.currentRoomId);
-    const photoData = {
-      dataUrl,
-      caption,
-      timestamp: Date.now(),
-      author: this.currentMember?.name || author,
-    };
-
-    if (session) {
-      session.sharedPhoto = photoData;
-      this.saveAndBroadcastLocal(session);
-    }
-
-    // Sync to Cloud
-    fetch(`/api/rooms/${encodeURIComponent(this.currentRoomId)}/photo`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sharedPhoto: photoData }),
-    }).catch((e) => console.warn('Cloud photo share failed:', e));
-  }
-
-  public setActiveSong(songId: string) {
-    if (!this.currentRoomId) return;
-    const session = this.getRoomState(this.currentRoomId);
-    if (session) {
-      session.activeSongId = songId;
-      this.saveAndBroadcastLocal(session);
-    }
-
-    // Sync to Cloud
-    fetch(`/api/rooms/${encodeURIComponent(this.currentRoomId)}/songs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ activeSongId: songId }),
-    }).catch((e) => console.warn('Cloud active song update failed:', e));
-  }
-
-  public broadcastSongs(songsList: Song[]) {
-    if (!this.currentRoomId) return;
-    const session = this.getRoomState(this.currentRoomId);
-    if (session) {
-      session.songsList = songsList;
-      this.saveAndBroadcastLocal(session);
-    }
-
-    // Sync to Cloud
-    fetch(`/api/rooms/${encodeURIComponent(this.currentRoomId)}/songs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ songsList }),
-    }).catch((e) => console.warn('Cloud songs broadcast failed:', e));
-  }
-
-  public broadcastNewSong(newSong: Song) {
-    if (!this.currentRoomId) return;
-    const session = this.getRoomState(this.currentRoomId);
-    if (session) {
-      const existingList = session.songsList || [];
-      const updatedList = [newSong, ...existingList.filter((s) => s.id !== newSong.id)];
-      session.songsList = updatedList;
-      session.activeSongId = newSong.id;
-      this.saveAndBroadcastLocal(session);
-    }
-
-    // Sync to Cloud
-    fetch(`/api/rooms/${encodeURIComponent(this.currentRoomId)}/songs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ song: newSong, activeSongId: newSong.id }),
-    }).catch((e) => console.warn('Cloud new song broadcast failed:', e));
-  }
-
-  public getRoomState(roomId: string): BandSession | null {
-    if (typeof localStorage === 'undefined') return null;
-    const raw = localStorage.getItem(`band_room_${roomId}`);
-    if (!raw) return null;
     try {
-      return JSON.parse(raw);
-    } catch {
-      return null;
+      await setFirestoreDoc('sessions', cleanRoomId, room);
+    } catch (err) {}
+
+    this.startCloudSync(cleanRoomId);
+    return room;
+  }
+
+  public async updateCurrentSong(song: Song | null, autoScrollSpeed = 0, zoomLevel = 100) {
+    if (!this.currentRoomId) return;
+
+    let currentSession = this.getRoomLocally(this.currentRoomId);
+    if (!currentSession) {
+      currentSession = await getFirestoreDoc<BandSession>('sessions', this.currentRoomId);
     }
+    if (!currentSession) return;
+
+    currentSession.activeSong = song || undefined;
+    currentSession.activeSongId = song?.id || undefined;
+    currentSession.autoScrollSpeed = autoScrollSpeed;
+    currentSession.zoomLevel = zoomLevel;
+    currentSession.lastUpdated = Date.now();
+
+    this.saveAndBroadcastLocal(currentSession);
+    await setFirestoreDoc('sessions', this.currentRoomId, currentSession).catch(() => {});
   }
 
-  public getCurrentSession(): BandSession | null {
-    if (!this.currentRoomId) return null;
-    return this.getRoomState(this.currentRoomId);
+  public async setActiveSong(song: Song | null) {
+    await this.updateCurrentSong(song);
   }
 
-  public leaveRoom() {
-    if (this.pollTimer) {
-      clearInterval(this.pollTimer);
-      this.pollTimer = null;
+  public async broadcastNewSong(song: Song) {
+    if (!this.currentRoomId) return;
+
+    let currentSession = this.getRoomLocally(this.currentRoomId);
+    if (!currentSession) {
+      currentSession = await getFirestoreDoc<BandSession>('sessions', this.currentRoomId);
     }
-    this.currentRoomId = null;
-    this.currentMember = null;
+    if (!currentSession) return;
+
+    const songs = currentSession.songsList || [];
+    const idx = songs.findIndex((s) => s.id === song.id);
+    if (idx >= 0) {
+      songs[idx] = song;
+    } else {
+      songs.unshift(song);
+    }
+    currentSession.songsList = songs;
+    currentSession.lastUpdated = Date.now();
+
+    this.saveAndBroadcastLocal(currentSession);
+    await setFirestoreDoc('sessions', this.currentRoomId, currentSession).catch(() => {});
   }
 
-  public subscribe(callback: (session: BandSession) => void) {
-    this.listeners.push(callback);
+  public async updateMetronome(tempo: number, isPlaying: boolean, timeSignature = '4/4') {
+    if (!this.currentRoomId) return;
+
+    let currentSession = this.getRoomLocally(this.currentRoomId);
+    if (!currentSession) {
+      currentSession = await getFirestoreDoc<BandSession>('sessions', this.currentRoomId);
+    }
+    if (!currentSession) return;
+
+    currentSession.metronome = {
+      tempo,
+      isPlaying,
+      timeSignature,
+    };
+    currentSession.lastUpdated = Date.now();
+
+    this.saveAndBroadcastLocal(currentSession);
+    await setFirestoreDoc('sessions', this.currentRoomId, currentSession).catch(() => {});
+  }
+
+  public getSession(): BandSession | null {
+    if (this.currentRoomId) {
+      return this.getRoomLocally(this.currentRoomId);
+    }
+    return null;
+  }
+
+  public subscribe(cb: (session: BandSession) => void) {
+    this.listeners.push(cb);
+    if (this.currentRoomId) {
+      const current = this.getRoomLocally(this.currentRoomId);
+      if (current) cb(current);
+    }
     return () => {
-      this.listeners = this.listeners.filter((l) => l !== callback);
+      this.listeners = this.listeners.filter((l) => l !== cb);
     };
   }
 
   private notifyListeners(session: BandSession) {
-    this.listeners.forEach((listener) => listener(session));
+    this.listeners.forEach((cb) => cb(session));
   }
 
   private saveAndBroadcastLocal(session: BandSession) {
@@ -301,8 +241,28 @@ export class SessionSyncService {
         session,
       });
     }
-    this.notifyListeners(session);
+  }
+
+  private getRoomLocally(roomId: string): BandSession | null {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(`band_room_${roomId}`);
+    if (raw) {
+      try {
+        return JSON.parse(raw);
+      } catch (e) {}
+    }
+    return null;
+  }
+
+  public leaveRoom() {
+    if (this.unsubscribeFirestore) {
+      this.unsubscribeFirestore();
+      this.unsubscribeFirestore = null;
+    }
+    this.currentRoomId = null;
+    this.currentMember = null;
   }
 }
 
-export const sessionSync = new SessionSyncService();
+export const sessionSyncService = new SessionSyncService();
+export const sessionSync = sessionSyncService;

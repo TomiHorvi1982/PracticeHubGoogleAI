@@ -1,0 +1,24 @@
+[
+  {
+    "id": "inv_inv_fy82d558mst4tdbs",
+    "email": "test-clen@kapela.cz",
+    "displayName": "Test Člen",
+    "role": "musician",
+    "permissions": {
+      "canEditSongs": false,
+      "canDeleteSongs": false,
+      "canImportFiles": false,
+      "canManageUsers": false,
+      "canStartBandSession": true,
+      "canManageSetlists": false,
+      "canAccessTools": true
+    },
+    "temporaryPassword": "Rock-2082!",
+    "token": "inv_fy82d558mst4tdbs",
+    "createdAt": 1786723123384,
+    "expiresAt": 1789315123384,
+    "status": "pending",
+    "instrument": "Baskytara",
+    "notes": ""
+  }
+]

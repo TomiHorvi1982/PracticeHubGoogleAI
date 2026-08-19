@@ -3,6 +3,8 @@ import { Volume2, Zap, Music } from 'lucide-react';
 import { findOrGenerateChord, generateChordVariations } from '../utils/chordUtils';
 import { audioSynth } from '../services/audioSynth';
 import { GuitarChordDiagram } from './GuitarChordDiagram';
+import { useMusicalContext } from '../context/MusicalContext';
+import { eventBus } from '../services/eventBus';
 
 interface ChordHoverPillProps {
   chordName: string;
@@ -22,6 +24,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [popupPos, setPopupPos] = useState<{ top: number; left: number; placeAbove: boolean } | null>(null);
   const pillRef = useRef<HTMLDivElement>(null);
+  const { setActiveChord } = useMusicalContext();
 
   const baseChord = findOrGenerateChord(chordName);
   const variations = generateChordVariations(chordName).slice(0, 3);
@@ -30,12 +33,12 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
     if (!pillRef.current) return;
     const rect = pillRef.current.getBoundingClientRect();
     const placeAbove = rect.top > 230;
-    const popupWidth = 310;
+    const popupWidth = 320;
 
     let left = rect.left + rect.width / 2 - popupWidth / 2;
-    if (left < 10) left = 10;
-    if (left + popupWidth > window.innerWidth - 10) {
-      left = window.innerWidth - popupWidth - 10;
+    if (left < 12) left = 12;
+    if (left + popupWidth > window.innerWidth - 12) {
+      left = window.innerWidth - popupWidth - 12;
     }
 
     const top = placeAbove ? rect.top - 8 : rect.bottom + 8;
@@ -46,6 +49,8 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
     updatePosition();
     setIsHovered(true);
     audioSynth.playGuitarChord(baseChord.frets);
+    setActiveChord(chordName);
+    eventBus.emit('CHORD_SELECTED', { chordName });
   };
 
   const handleMouseLeave = () => {
@@ -57,6 +62,8 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
     updatePosition();
     setIsHovered(true);
     audioSynth.playGuitarChord(baseChord.frets);
+    setActiveChord(chordName);
+    eventBus.emit('CHORD_SELECTED', { chordName });
   };
 
   return (
@@ -68,13 +75,13 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
     >
       <span
         onClick={handleClick}
-        className={`inline-block font-extrabold font-mono px-2 py-0.5 mx-0.5 cursor-pointer border border-black shadow-md transition-all select-none ${
+        className={`inline-block font-semibold px-2.5 py-0.5 mx-0.5 cursor-pointer rounded-lg border transition-all select-none shadow-sm ${
           isActiveLine
-            ? 'bg-[#00FF41] text-black scale-110 animate-chord-pop shadow-[0_0_15px_#00FF41] z-10'
-            : 'bg-[#FF3E00] text-black hover:bg-[#00FF41]'
+            ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] scale-105 shadow-md z-10 font-bold'
+            : 'bg-white/10 text-white hover:bg-[#FF9F0A] hover:text-black border-white/15'
         }`}
-        style={{ fontSize: `${Math.max(12, fontSize * 0.9)}px` }}
-        title="Najetí/kliknutí přehraje akord a zobrazí 3 variace"
+        style={{ fontSize: `${Math.max(13, fontSize * 0.92)}px` }}
+        title="Najetí nebo kliknutí přehraje zvuk akordu a zobrazí varianty hmatů"
       >
         {chordName}
       </span>
@@ -88,30 +95,30 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
             left: `${popupPos.left}px`,
             transform: popupPos.placeAbove ? 'translateY(-100%)' : 'none',
           }}
-          className="bg-[#0A0A0A] border-2 border-[#FF3E00] p-2.5 shadow-[0_0_30px_rgba(255,62,0,0.5)] z-[9999] font-mono w-[310px] rounded-xs animate-in fade-in zoom-in-95 duration-100 pointer-events-auto"
+          className="bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/20 p-3 shadow-2xl z-[9999] w-[320px] rounded-2xl animate-fade-in pointer-events-auto"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Popup Header */}
-          <div className="flex items-center justify-between border-b border-[#222] pb-1.5 mb-2">
-            <span className="text-[10px] font-black uppercase text-[#FF3E00] flex items-center gap-1">
-              <Music className="w-3.5 h-3.5" /> AKORD {chordName} (3 VARIACE)
+          <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2.5">
+            <span className="text-xs font-semibold text-white flex items-center gap-1.5">
+              <Music className="w-4 h-4 text-[#FF9F0A]" /> Akord {chordName}
             </span>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 audioSynth.playGuitarChord(baseChord.frets);
               }}
-              className="text-[9px] bg-[#00FF41] text-black font-black px-1.5 py-0.5 uppercase hover:bg-white flex items-center gap-1 shadow-sm transition-colors"
+              className="text-[11px] bg-white/15 hover:bg-white/25 text-white font-medium px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Přehrát základní hmat"
             >
-              <Volume2 className="w-2.5 h-2.5 text-black" /> PŘEHRÁT
+              <Volume2 className="w-3 h-3 text-[#FF9F0A]" /> Přehrát
             </button>
           </div>
 
           {/* 3 Variations Grid */}
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-3 gap-2">
             {variations.map((v, i) => (
               <div
                 key={v.id || i}
@@ -119,11 +126,11 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                   e.stopPropagation();
                   audioSynth.playGuitarChord(v.chord.frets);
                 }}
-                className="flex flex-col items-center bg-[#111] hover:bg-[#1F1F1F] border border-[#333] hover:border-[#FF3E00] p-1 cursor-pointer transition-all rounded-2xs group"
+                className="flex flex-col items-center bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 p-1.5 cursor-pointer transition-all rounded-xl group"
                 title={`Přehrát ${v.label}`}
               >
-                <span className="text-[8px] font-black uppercase text-[#FFD700] mb-1 text-center truncate w-full">
-                  {i === 0 ? 'Otevřený' : i === 1 ? 'Barre E' : 'Barre A'}
+                <span className="text-[10px] font-medium text-neutral-400 mb-1 text-center truncate w-full group-hover:text-white">
+                  {i === 0 ? 'Základní' : i === 1 ? 'Barre E' : 'Barre A'}
                 </span>
                 <GuitarChordDiagram
                   chord={v.chord}
@@ -131,8 +138,8 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                   showTitle={false}
                   showPlayButton={false}
                 />
-                <span className="text-[8px] text-[#888] group-hover:text-[#00FF41] mt-1 uppercase font-bold text-center flex items-center gap-0.5">
-                  <Volume2 className="w-2 h-2" /> HRA
+                <span className="text-[9px] text-neutral-400 group-hover:text-[#FF9F0A] mt-1 font-medium flex items-center gap-0.5">
+                  <Volume2 className="w-2.5 h-2.5" /> Hrát
                 </span>
               </div>
             ))}
@@ -145,9 +152,10 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
               setIsHovered(false);
               onSelectModalChord(chordName);
             }}
-            className="w-full mt-2 py-1 bg-[#1A1A1A] hover:bg-[#FF3E00] text-[#FF3E00] hover:text-black text-[9px] font-extrabold uppercase flex items-center justify-center gap-1 transition-colors border border-[#333]"
+            className="w-full mt-2.5 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
           >
-            <Zap className="w-2.5 h-2.5 text-[#FFD700]" /> VŠECHNY HMATY &amp; DETAIL 🎸
+            <Zap className="w-3.5 h-3.5 text-[#FF9F0A]" />
+            <span>Všechny varianty a tóny</span>
           </button>
         </div>
       )}

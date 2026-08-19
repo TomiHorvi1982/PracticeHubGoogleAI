@@ -7,6 +7,9 @@ import {
   Check, ChevronRight, Activity, Repeat, Grid
 } from 'lucide-react';
 
+import { parseSongSections, SongSection } from '../utils/songSectionUtils';
+import { useMusicalContext } from '../context/MusicalContext';
+
 const QUICK_CHORDS = ['C', 'G', 'Am', 'F', 'Em', 'D', 'Dm', 'A', 'E', 'B7', 'F#m', 'Cadd9', 'G7'];
 
 const TEMPO_PRESETS = [
@@ -35,9 +38,29 @@ const PICKING_PATTERNS = [
 ];
 
 export const PracticeAssistant: React.FC = () => {
+  const {
+    bpm: globalBpm,
+    setBpm: setGlobalBpm,
+    isMetronomeActive,
+    toggleMetronome,
+    setActiveChord,
+  } = useMusicalContext();
+
   // Metronome State
-  const [bpm, setBpm] = useState(100);
-  const [isPlayingMetro, setIsPlayingMetro] = useState(false);
+  const bpm = globalBpm;
+  const setBpm = (val: number | ((prev: number) => number)) => {
+    if (typeof val === 'function') {
+      setGlobalBpm(val(globalBpm));
+    } else {
+      setGlobalBpm(val);
+    }
+  };
+
+  const isPlayingMetro = isMetronomeActive;
+  const setIsPlayingMetro = (_val?: boolean) => {
+    toggleMetronome();
+  };
+
   const [beatsPerBar, setBeatsPerBar] = useState(4);
   const [currentBeat, setCurrentBeat] = useState(0);
   const [isMetroMuted, setIsMetroMuted] = useState(false);
@@ -247,54 +270,62 @@ export const PracticeAssistant: React.FC = () => {
   };
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-6 font-mono pb-12">
+    <div className="max-w-[1400px] mx-auto space-y-6 font-sans text-white pb-12">
       
       {/* 🥁 VISUAL METRONOME SECTION */}
-      <div className="border border-[#333] bg-[#0F0F0F] p-4 sm:p-5 space-y-5">
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl">
         
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#222] pb-3">
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FF3E00] text-black font-black px-2 py-0.5 text-[10px] uppercase tracking-wider">
-              VIZUÁLNÍ METRONOM
-            </span>
-            <h2 className="text-xs font-bold text-white uppercase tracking-wider">
-              PŘESNÝ BLIKAJÍCÍ METRONOM A NASTAVENÍ DOB V TAKTU
-            </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+                  Vizuální Metronom
+                </span>
+                <span className="text-xs text-neutral-400 font-medium">{bpm} BPM • {beatsPerBar}/4 takt</span>
+              </div>
+              <h2 className="text-lg font-bold text-white tracking-tight mt-0.5">
+                Přesný Metronom s Nastavením Akcentů
+              </h2>
+            </div>
           </div>
 
           {/* Sound / Visual Only Toggle */}
           <button
             onClick={() => setIsMetroMuted(!isMetroMuted)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-extrabold uppercase border transition-none ${
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               isMetroMuted
-                ? 'bg-[#1A0000] text-[#FF3E00] border-[#FF3E00]'
-                : 'bg-[#051A0B] text-[#00FF41] border-[#00FF41]'
+                ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                : 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/30 hover:bg-[#30D158]/20'
             }`}
           >
             {isMetroMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            <span>{isMetroMuted ? 'TICHÝ VIZUÁLNÍ REŽIM (POUZE BLIKÁNÍ)' : 'ZVUK METRONOMU: ZAPNUTO'}</span>
+            <span>{isMetroMuted ? 'Tichý režim (pouze blikání)' : 'Zvuk metronomu: Zapnuto'}</span>
           </button>
         </div>
 
         {/* Central Visual Metronome Stage: Pendulum + Flashing Beacon Light */}
-        <div className="bg-[#050505] border border-[#222] p-6 relative overflow-hidden flex flex-col items-center justify-center space-y-6">
+        <div className="bg-black/40 border border-white/5 rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center space-y-6">
           
           {/* Pendulum Swinging Arm Visual */}
-          <div className="relative w-full max-w-md h-24 flex items-center justify-center border-b border-[#1A1A1A]">
+          <div className="relative w-full max-w-md h-24 flex items-center justify-center border-b border-white/10">
             {/* Arc Scale Markers */}
-            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-[9px] text-[#444] font-bold">
-              <span>◄ 1. DOBA</span>
-              <span>STŘED</span>
-              <span>{beatsPerBar}. DOBA ►</span>
+            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-[10px] text-neutral-500 font-semibold">
+              <span>◄ 1. Doba</span>
+              <span>Střed</span>
+              <span>{beatsPerBar}. Doba ►</span>
             </div>
 
             {/* Pendulum Pivot Point */}
-            <div className="absolute bottom-0 w-4 h-4 bg-[#222] border border-[#444] rounded-full z-10" />
+            <div className="absolute bottom-0 w-3 h-3 bg-neutral-600 rounded-full z-10" />
 
             {/* Pendulum Needle Arm */}
             <div
-              className="absolute bottom-0 w-1 bg-[#FF3E00] origin-bottom transition-all duration-100 ease-out z-20 flex flex-col items-center"
+              className="absolute bottom-0 w-1 bg-[#FF9F0A] origin-bottom transition-all duration-100 ease-out z-20 flex flex-col items-center"
               style={{
                 height: '80px',
                 transform: `rotate(${isPlayingMetro ? (-35 + (currentBeat / Math.max(1, beatsPerBar - 1)) * 70) : 0}deg)`,
@@ -302,11 +333,11 @@ export const PracticeAssistant: React.FC = () => {
             >
               {/* Pendulum Weight Ball */}
               <div
-                className={`w-5 h-5 -mt-2 rounded-full border border-black shadow-lg ${
+                className={`w-5 h-5 -mt-2 rounded-full border border-black shadow-lg transition-all ${
                   flashTick
                     ? accentBeats[currentBeat]
-                      ? 'bg-[#FF3E00] shadow-[0_0_15px_#FF3E00]'
-                      : 'bg-[#00FF41] shadow-[0_0_12px_#00FF41]'
+                      ? 'bg-[#FF453A] shadow-[0_0_15px_#FF453A]'
+                      : 'bg-[#30D158] shadow-[0_0_12px_#30D158]'
                     : 'bg-white'
                 }`}
               />
@@ -316,57 +347,57 @@ export const PracticeAssistant: React.FC = () => {
           {/* Central Flashing Light Beacon Display */}
           <div className="flex flex-col items-center space-y-3">
             <div
-              className={`w-36 h-36 rounded-full border-4 flex flex-col items-center justify-center transition-all duration-75 ${
+              className={`w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center transition-all duration-100 ${
                 isPlayingMetro && flashTick
                   ? accentBeats[currentBeat]
-                    ? 'bg-[#FF3E00] border-white text-black scale-105 shadow-[0_0_40px_rgba(255,62,0,0.95)]'
-                    : 'bg-[#00FF41] border-white text-black scale-105 shadow-[0_0_35px_rgba(0,255,65,0.9)]'
+                    ? 'bg-[#FF453A] border-white text-white scale-105 shadow-[0_0_40px_rgba(255,69,58,0.8)]'
+                    : 'bg-[#30D158] border-white text-black scale-105 shadow-[0_0_35px_rgba(48,209,88,0.8)]'
                   : isPlayingMetro
-                  ? 'bg-[#0F0F0F] border-[#333] text-white'
-                  : 'bg-[#050505] border-[#1C1C1C] text-[#555]'
+                  ? 'bg-white/10 border-white/20 text-white'
+                  : 'bg-white/[0.02] border-white/10 text-neutral-500'
               }`}
             >
-              <span className="text-5xl font-black font-mono tracking-tighter">
+              <span className="text-5xl font-bold font-mono tracking-tighter">
                 {isPlayingMetro ? currentBeat + 1 : '-'}
               </span>
-              <span className="text-[10px] font-black uppercase tracking-wider mt-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider mt-1">
                 {isPlayingMetro
                   ? accentBeats[currentBeat]
-                    ? '⚡ AKCENT'
-                    : 'DOBA'
-                  : 'ZASTAVENO'}
+                    ? '⚡ Akcent'
+                    : 'Doba'
+                  : 'Připraveno'}
               </span>
             </div>
 
             {/* Status description text */}
             <div className="text-center">
-              <span className="text-xs font-mono font-bold text-white block uppercase">
+              <span className="text-xs font-semibold text-white block">
                 {isPlayingMetro
-                  ? `DOBA ${currentBeat + 1} Z ${beatsPerBar} (${accentBeats[currentBeat] ? 'PŘÍZVUK / AKCENT' : 'BĚŽNÁ DOBA'})`
-                  : 'METRONOM JE PRIPRAVEN'}
+                  ? `Doba ${currentBeat + 1} z ${beatsPerBar} (${accentBeats[currentBeat] ? 'Přízvuk / Akcent' : 'Běžná doba'})`
+                  : 'Metronom je připraven ke spuštění'}
               </span>
-              <span className="text-[10px] text-[#888] font-mono block mt-0.5">
-                TEMPO: <strong className="text-[#00FF41]">{bpm} BPM</strong> | TAKT: <strong className="text-white">{beatsPerBar}/4</strong>
+              <span className="text-xs text-neutral-400 block mt-0.5">
+                Tempo: <strong className="text-[#30D158]">{bpm} BPM</strong> | Takt: <strong className="text-white">{beatsPerBar}/4</strong>
               </span>
             </div>
           </div>
 
         </div>
 
-        {/* Beats Per Measure (Počet dob v taktu) Settings & Interactive Beat Cards */}
-        <div className="bg-[#050505] p-4 border border-[#222] space-y-4">
+        {/* Beats Per Measure Settings & Interactive Beat Cards */}
+        <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-4">
           
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1A1A1A] pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
-              <Grid className="w-4 h-4 text-[#FF3E00]" />
-              <span className="text-[10px] font-bold text-white uppercase">
-                NASTAVENÍ POČTU DOB V TAKTU &amp; AKCENTŮ:
+              <Grid className="w-4 h-4 text-[#FF9F0A]" />
+              <span className="text-xs font-bold text-white">
+                Nastavení počtu dob v taktu &amp; akcentů:
               </span>
             </div>
 
             {/* Time Signature Presets */}
-            <div className="flex items-center gap-1 bg-[#111] p-1 border border-[#222]">
-              <span className="text-[10px] text-[#666] font-bold uppercase px-1">TAKTOVÉ PRESETY:</span>
+            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+              <span className="text-[10px] text-neutral-400 font-semibold px-1.5 uppercase">Takt:</span>
               {[
                 { label: '2/4', beats: 2 },
                 { label: '3/4', beats: 3 },
@@ -378,10 +409,10 @@ export const PracticeAssistant: React.FC = () => {
                 <button
                   key={sig.label}
                   onClick={() => handleSelectTimeSignature(sig.beats)}
-                  className={`px-2.5 py-1 text-[10px] font-extrabold uppercase transition-none ${
+                  className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                     beatsPerBar === sig.beats
-                      ? 'bg-[#FF3E00] text-black'
-                      : 'text-[#888] hover:text-white'
+                      ? 'bg-white text-black shadow-md font-bold'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   {sig.label}
@@ -391,32 +422,32 @@ export const PracticeAssistant: React.FC = () => {
           </div>
 
           {/* Stepper for custom beat count */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-[#111] p-3 border border-[#222]">
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-white font-bold uppercase">POČET DOB V TAKTU:</span>
-              <span className="text-lg font-black text-[#00FF41] font-mono px-2">{beatsPerBar} DOB</span>
+              <span className="text-xs text-neutral-400 font-medium">Počet dob v taktu:</span>
+              <span className="text-base font-bold text-[#30D158] px-2">{beatsPerBar} dob</span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setBeatsPerBar((prev) => Math.max(1, prev - 1))}
-                className="px-3 py-1 bg-[#181818] hover:bg-[#222] text-white border border-[#333] font-black text-xs uppercase"
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
               >
-                -1 DOBA
+                -1 doba
               </button>
               <button
                 onClick={() => setBeatsPerBar((prev) => Math.min(12, prev + 1))}
-                className="px-3 py-1 bg-[#181818] hover:bg-[#222] text-white border border-[#333] font-black text-xs uppercase"
+                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
               >
-                +1 DOBA
+                +1 doba
               </button>
             </div>
           </div>
 
           {/* Interactive Beat Cards Grid */}
-          <div className="space-y-1">
-            <span className="text-[10px] text-[#666] font-bold uppercase block">
-              MŘÍŽKA DOB (KLIKNĚTE NA DOBU PRO PŘEPNUTÍ AKCENTU / SILNÉ DOBY):
+          <div className="space-y-1.5">
+            <span className="text-xs text-neutral-400 font-medium block">
+              Mřížka dob (klikněte pro zapnutí/vypnutí akcentu):
             </span>
             <div className="flex flex-wrap items-center gap-2 py-1">
               {Array.from({ length: beatsPerBar }).map((_, i) => {
@@ -427,20 +458,20 @@ export const PracticeAssistant: React.FC = () => {
                   <button
                     key={i}
                     onClick={() => toggleBeatAccent(i)}
-                    className={`flex-1 min-w-[60px] h-16 border p-1 flex flex-col justify-between items-center transition-none font-mono ${
+                    className={`flex-1 min-w-[60px] h-16 rounded-xl border p-1.5 flex flex-col justify-between items-center transition-all cursor-pointer font-sans ${
                       isActive
                         ? isAccented
-                          ? 'bg-[#FF3E00] text-black border-white scale-105 shadow-[0_0_12px_#FF3E00]'
-                          : 'bg-[#00FF41] text-black border-white scale-105 shadow-[0_0_10px_#00FF41]'
+                          ? 'bg-[#FF453A] text-white border-white scale-105 shadow-[0_0_15px_#FF453A]'
+                          : 'bg-[#30D158] text-black border-white scale-105 shadow-[0_0_12px_#30D158]'
                         : isAccented
-                        ? 'bg-[#1A0A00] text-[#FF3E00] border-[#FF3E00]/60'
-                        : 'bg-[#111] text-[#888] border-[#222] hover:border-[#444]'
+                        ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] border-[#FF9F0A]/40 hover:bg-[#FF9F0A]/25'
+                        : 'bg-black/30 text-neutral-400 border-white/5 hover:bg-white/5 hover:text-white'
                     }`}
                   >
-                    <span className="text-[9px] opacity-70 font-bold">DOBA {i + 1}</span>
-                    <span className="text-base font-black">{i + 1}</span>
-                    <span className="text-[8px] font-bold uppercase">
-                      {isAccented ? '⚡ AKCENT' : 'BĚŽNÁ'}
+                    <span className="text-[10px] opacity-70 font-semibold">Doba {i + 1}</span>
+                    <span className="text-base font-bold">{i + 1}</span>
+                    <span className="text-[9px] font-bold uppercase">
+                      {isAccented ? '⚡ Akcent' : 'Běžná'}
                     </span>
                   </button>
                 );
@@ -451,46 +482,46 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* BPM Tempo Controls & Tap Tempo */}
-        <div className="bg-[#050505] p-4 border border-[#222] space-y-4">
+        <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-4">
             
             {/* BPM Display Box */}
-            <div className="bg-[#111] border border-[#333] px-6 py-3 min-w-[180px] text-center">
-              <div className="text-4xl font-black font-mono text-white tracking-tighter">
-                {bpm} <span className="text-xs text-[#888] font-normal">BPM</span>
+            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 min-w-[180px] text-center shadow-inner">
+              <div className="text-4xl font-bold font-mono text-white tracking-tight">
+                {bpm} <span className="text-xs text-neutral-400 font-normal">BPM</span>
               </div>
-              <span className="text-[10px] text-[#00FF41] font-bold uppercase block mt-1">
+              <span className="text-[11px] text-[#30D158] font-semibold block mt-1">
                 {bpm < 60
-                  ? 'LARGO / POMALÉ'
+                  ? 'Largo (Pomalé)'
                   : bpm < 90
-                  ? 'ANDANTE / MÍRNÉ'
+                  ? 'Andante (Mírné)'
                   : bpm < 120
-                  ? 'MODERATO / STŘEDNÍ'
+                  ? 'Moderato (Střední)'
                   : bpm < 150
-                  ? 'ALLEGRO / RYCHLÉ'
-                  : 'PRESTO / VELMI RYCHLÉ'}
+                  ? 'Allegro (Rychlé)'
+                  : 'Presto (Velmi rychlé)'}
               </span>
             </div>
 
             {/* Stepper Buttons & Slider */}
             <div className="flex-1 max-w-md space-y-2">
-              <div className="flex items-center justify-between text-[10px] text-[#666] font-bold uppercase">
+              <div className="flex items-center justify-between text-xs text-neutral-400 font-medium">
                 <span>30 BPM</span>
-                <span>NASTAVENÍ TEMPA</span>
+                <span>Nastavení tempa</span>
                 <span>280 BPM</span>
               </div>
 
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setBpm((prev) => Math.max(30, prev - 5))}
-                  className="px-2.5 py-1.5 bg-[#141414] hover:bg-[#222] text-white border border-[#333] font-bold text-xs"
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
                 >
                   -5
                 </button>
                 <button
                   onClick={() => setBpm((prev) => Math.max(30, prev - 1))}
-                  className="px-2.5 py-1.5 bg-[#141414] hover:bg-[#222] text-white border border-[#333] font-bold text-xs"
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
                 >
                   -1
                 </button>
@@ -501,18 +532,18 @@ export const PracticeAssistant: React.FC = () => {
                   max="280"
                   value={bpm}
                   onChange={(e) => setBpm(Number(e.target.value))}
-                  className="flex-1 accent-[#FF3E00] cursor-pointer"
+                  className="flex-1 accent-[#FF9F0A] cursor-pointer"
                 />
 
                 <button
                   onClick={() => setBpm((prev) => Math.min(280, prev + 1))}
-                  className="px-2.5 py-1.5 bg-[#141414] hover:bg-[#222] text-white border border-[#333] font-bold text-xs"
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
                 >
                   +1
                 </button>
                 <button
                   onClick={() => setBpm((prev) => Math.min(280, prev + 5))}
-                  className="px-2.5 py-1.5 bg-[#141414] hover:bg-[#222] text-white border border-[#333] font-bold text-xs"
+                  className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
                 >
                   +5
                 </button>
@@ -523,39 +554,39 @@ export const PracticeAssistant: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setIsPlayingMetro(!isPlayingMetro)}
-                className={`px-6 py-3 font-black text-xs uppercase flex items-center gap-2 border transition-none shadow-md ${
+                className={`px-5 py-3 rounded-2xl font-bold text-xs uppercase flex items-center gap-2 shadow-lg cursor-pointer transition-all active:scale-95 ${
                   isPlayingMetro
-                    ? 'bg-[#FF3E00] text-black border-black'
-                    : 'bg-[#00FF41] text-black border-black'
+                    ? 'bg-[#FF453A] text-white hover:bg-[#ff5b52]'
+                    : 'bg-[#30D158] text-black hover:bg-[#34e260]'
                 }`}
               >
-                {isPlayingMetro ? <Pause className="w-4 h-4 text-black" /> : <Play className="w-4 h-4 text-black" />}
-                <span>{isPlayingMetro ? 'ZASTAVIT METRONOM' : 'SPUSTIT METRONOM'}</span>
+                {isPlayingMetro ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
+                <span>{isPlayingMetro ? 'Zastavit metronom' : 'Spustit metronom'}</span>
               </button>
 
               <button
                 onClick={handleTapTempo}
-                className="px-4 py-3 bg-[#141414] hover:bg-[#222] text-[#FF3E00] font-extrabold text-xs border border-[#333] uppercase flex items-center gap-1.5"
+                className="px-4 py-3 bg-white/5 hover:bg-white/10 text-[#FF9F0A] font-semibold text-xs border border-white/10 rounded-2xl flex items-center gap-1.5 cursor-pointer transition-all"
                 title="Vyťukejte tempo klikáním"
               >
-                <Zap className="w-4 h-4 text-[#FF3E00]" />
-                <span>TAP TEMPO</span>
+                <Zap className="w-4 h-4 text-[#FF9F0A]" />
+                <span>Tap Tempo</span>
               </button>
             </div>
 
           </div>
 
           {/* Quick Tempo Presets */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#111]">
-            <span className="text-[10px] text-[#666] font-bold uppercase mr-1">TEMPO PRESETY:</span>
+          <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-white/5">
+            <span className="text-xs text-neutral-400 font-medium mr-1">Rychlé tempo:</span>
             {TEMPO_PRESETS.map((preset) => (
               <button
                 key={preset.name}
                 onClick={() => setBpm(preset.bpm)}
-                className={`px-2.5 py-1 text-[10px] font-extrabold uppercase border transition-none ${
+                className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                   bpm === preset.bpm
-                    ? 'bg-[#00FF41] text-black border-black'
-                    : 'bg-[#111] text-[#888] border-[#222] hover:text-white'
+                    ? 'bg-white text-black font-bold shadow-md'
+                    : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
                 }`}
               >
                 {preset.name} ({preset.bpm})
@@ -568,58 +599,61 @@ export const PracticeAssistant: React.FC = () => {
       </div>
 
       {/* 🎸 VLASTNÍ AKORDY A PATERNY DOPROVODU (CHORD PROGRESSION & RHYTHM TRAINER) */}
-      <div className="border border-[#333] bg-[#0F0F0F] p-4 space-y-4">
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
         
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#222] pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-[#00FF41] text-black font-black px-2 py-0.5 text-[10px] uppercase">
-                DOPROVODNÝ TRENÉR
-              </span>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                VLASTNÍ AKORDY &amp; PATERNY STRUMMINGU / VYDRNKÁVÁNÍ
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] rounded-2xl">
+              <Music className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+                  Doprovodný trenér
+                </span>
+                <span className="text-xs text-neutral-400 font-medium">{chordSequence.length} akordů ve smyčce</span>
+              </div>
+              <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
+                Vlastní Akordy &amp; Paterny Strummingu a Vybrnkávání
               </h3>
             </div>
-            <p className="text-[11px] text-[#888] mt-1">
-              Sestavte si vlastní akordovou posloupnost, zvolte rytmus brnkání nebo vybrnkávání strun a cvičte doprovod!
-            </p>
           </div>
 
           <button
             onClick={() => setIsPlayingBacking(!isPlayingBacking)}
-            className={`flex items-center gap-2 px-6 py-2 font-black text-xs uppercase border transition-none shadow-md ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase shadow-lg cursor-pointer transition-all active:scale-95 ${
               isPlayingBacking
-                ? 'bg-[#FF3E00] text-black border-black'
-                : 'bg-[#00FF41] text-black border-black'
+                ? 'bg-[#FF453A] text-white hover:bg-[#ff5b52]'
+                : 'bg-[#30D158] text-black hover:bg-[#34e260]'
             }`}
           >
-            {isPlayingBacking ? <Pause className="w-4 h-4 text-black" /> : <Volume2 className="w-4 h-4 text-black" />}
-            <span>{isPlayingBacking ? 'ZASTAVIT DOPROVOD' : 'SPUSTIT DOPROVOD'}</span>
+            {isPlayingBacking ? <Pause className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            <span>{isPlayingBacking ? 'Zastavit doprovod' : 'Spustit doprovod'}</span>
           </button>
         </div>
 
         {/* 1. CHORD PROGRESSION BUILDER (VLASTNÍ AKORDY) */}
-        <div className="bg-[#050505] p-4 border border-[#222] space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1A1A1A] pb-2">
-            <span className="text-[10px] font-bold text-white uppercase flex items-center gap-1.5">
-              <Music className="w-3.5 h-3.5 text-[#00FF41]" /> 1. AKORDOVÁ POSLOUPNOST (TŘÍDA AKORDŮ):
+        <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-3.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2.5">
+            <span className="text-xs font-bold text-white flex items-center gap-2">
+              <Music className="w-4 h-4 text-[#30D158]" /> 1. Akordová posloupnost:
             </span>
 
             {/* Presets dropdown */}
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-[#666] font-bold uppercase">PRESETY:</span>
+              <span className="text-xs text-neutral-400 font-medium">Presety:</span>
               <select
                 value={backingStyle}
                 onChange={(e) => setBackingStyle(e.target.value as any)}
-                className="bg-[#111] border border-[#333] text-white text-xs font-bold px-2 py-1 outline-none uppercase"
+                className="bg-white/5 border border-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-xl outline-none cursor-pointer"
               >
-                <option value="pop">POP CLASSIC (C - G - Am - F)</option>
-                <option value="blues">12-BAR BLUES (A7 - D7 - A7 - E7)</option>
-                <option value="rock">HARD ROCK (E5 - G5 - A5 - C5)</option>
-                <option value="folk">TÁBORÁK / FOLK (G - Em - C - D)</option>
-                <option value="jazz">JAZZ TURNAROUND (Dm7 - G7 - Cmaj7 - A7)</option>
-                <option value="custom">✏️ VLASTNÍ POSLOUPNOST</option>
+                <option value="pop" className="bg-[#16161A]">Pop Classic (C - G - Am - F)</option>
+                <option value="blues" className="bg-[#16161A]">12-Bar Blues (A7 - D7 - A7 - E7)</option>
+                <option value="rock" className="bg-[#16161A]">Hard Rock (E5 - G5 - A5 - C5)</option>
+                <option value="folk" className="bg-[#16161A]">Folk (G - Em - C - D)</option>
+                <option value="jazz" className="bg-[#16161A]">Jazz Turnaround (Dm7 - G7 - Cmaj7 - A7)</option>
+                <option value="custom" className="bg-[#16161A]">✏️ Vlastní posloupnost</option>
               </select>
             </div>
           </div>
@@ -631,41 +665,41 @@ export const PracticeAssistant: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className={`flex items-center gap-2 px-3 py-1.5 border font-mono font-bold text-xs uppercase transition-none ${
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all ${
                     isActive
-                      ? 'bg-[#FF3E00] text-black border-black scale-105 shadow-[0_0_10px_#FF3E00]'
-                      : 'bg-[#141414] text-white border-[#333]'
+                      ? 'bg-[#0A84FF] text-white border-[#0A84FF] scale-105 shadow-md font-bold'
+                      : 'bg-white/5 text-white border-white/10'
                   }`}
                 >
                   <span className="text-[10px] opacity-60">#{idx + 1}</span>
-                  <span className="text-sm font-black">{chord}</span>
+                  <span className="text-sm font-bold">{chord}</span>
                   <button
                     onClick={() => handleRemoveChord(idx)}
-                    className="hover:text-red-400 text-[#888] ml-1 p-0.5"
+                    className="hover:text-red-400 text-neutral-400 ml-1 p-0.5 cursor-pointer"
                     title="Odebrat akord"
                   >
-                    <Trash2 className="w-3 h-3" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
               );
             })}
 
             {chordSequence.length === 0 && (
-              <span className="text-xs text-[#FF3E00] font-bold uppercase">
-                ŽÁDNÉ AKORDY! Přidejte akord níže.
+              <span className="text-xs text-red-400 font-medium">
+                Žádné akordy! Přidejte akord níže.
               </span>
             )}
           </div>
 
           {/* Quick Chord Selector & Custom Chord Input */}
-          <div className="space-y-2 pt-2 border-t border-[#111]">
+          <div className="space-y-2 pt-3 border-t border-white/5">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] text-[#666] font-bold uppercase mr-1">RYCHLÉ PŘIDÁNÍ:</span>
+              <span className="text-xs text-neutral-400 font-medium mr-1">Rychlé přidání:</span>
               {QUICK_CHORDS.map((qChord) => (
                 <button
                   key={qChord}
                   onClick={() => handleAddCustomChord(qChord)}
-                  className="px-2 py-1 bg-[#141414] hover:bg-[#00FF41] hover:text-black text-[#00FF41] border border-[#222] text-[10px] font-extrabold uppercase transition-none"
+                  className="px-2.5 py-1 bg-white/5 hover:bg-[#30D158] hover:text-black text-[#30D158] border border-white/10 rounded-lg text-xs font-semibold transition-all cursor-pointer"
                 >
                   +{qChord}
                 </button>
@@ -679,133 +713,133 @@ export const PracticeAssistant: React.FC = () => {
                 value={newChordInput}
                 onChange={(e) => setNewChordInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddCustomChord()}
-                className="flex-1 bg-[#111] border border-[#333] text-white px-3 py-1.5 text-xs font-bold uppercase outline-none focus:border-[#00FF41]"
+                className="flex-1 bg-black/40 border border-white/10 text-white px-3 py-2 rounded-xl text-xs font-semibold outline-none focus:border-[#30D158] transition-colors"
               />
               <button
                 onClick={() => handleAddCustomChord()}
-                className="px-3 py-1.5 bg-[#00FF41] hover:bg-white text-black font-extrabold text-xs uppercase flex items-center gap-1 transition-none"
+                className="px-3.5 py-2 bg-[#30D158] hover:bg-[#34e260] text-black font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all shadow-md"
               >
-                <Plus className="w-3.5 h-3.5" /> PŘIDAT
+                <Plus className="w-3.5 h-3.5" /> Přidat
               </button>
             </div>
           </div>
         </div>
 
         {/* 2. MODE & PATTERN SELECTOR (STRUMMING VS VYDRNKÁVÁNÍ VS KLAVÍR) */}
-        <div className="bg-[#050505] p-4 border border-[#222] space-y-4">
+        <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-4">
           
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#1A1A1A] pb-2">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#00FF41]" />
-              <span className="text-[10px] font-bold text-white uppercase">
-                2. TYP DOPROVODU &amp; STRUMMING PATERN:
+              <Sliders className="w-4 h-4 text-[#30D158]" />
+              <span className="text-xs font-bold text-white">
+                2. Typ doprovodu &amp; rytmický patern:
               </span>
             </div>
 
             {/* Mode Selector Tabs */}
-            <div className="flex items-center gap-1 bg-[#111] p-1 border border-[#222]">
+            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
               <button
                 onClick={() => setBackingMode('strum')}
-                className={`px-3 py-1 text-xs font-extrabold uppercase transition-none ${
-                  backingMode === 'strum' ? 'bg-[#FF3E00] text-black' : 'text-[#888] hover:text-white'
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  backingMode === 'strum' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                🎸 STRUMMING (BRNKÁNÍ)
+                🎸 Strumming (Brnkání)
               </button>
               <button
                 onClick={() => setBackingMode('picking')}
-                className={`px-3 py-1 text-xs font-extrabold uppercase transition-none ${
-                  backingMode === 'picking' ? 'bg-[#00FF41] text-black' : 'text-[#888] hover:text-white'
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  backingMode === 'picking' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                🪕 VYDRNKÁVÁNÍ (ARPEGGIO)
+                🪕 Vybrnkávání (Arpeggio)
               </button>
               <button
                 onClick={() => setBackingMode('piano')}
-                className={`px-3 py-1 text-xs font-extrabold uppercase transition-none ${
-                  backingMode === 'piano' ? 'bg-[#00E5FF] text-black' : 'text-[#888] hover:text-white'
+                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
+                  backingMode === 'piano' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
                 }`}
               >
-                🎹 KLAVÍRNÍ DOPROVOD
+                🎹 Klavírní doprovod
               </button>
             </div>
           </div>
 
           {/* Instrument Sound Selection */}
-          <div className="flex items-center gap-3 text-xs bg-[#111] p-2 border border-[#222]">
-            <span className="text-[10px] text-[#888] font-bold uppercase">NÁSTROJOVÝ ZVUK:</span>
-            <label className="flex items-center gap-1.5 cursor-pointer text-white">
+          <div className="flex items-center gap-4 text-xs bg-white/[0.02] p-3 rounded-xl border border-white/5">
+            <span className="text-xs text-neutral-400 font-medium">Zvuk nástroje:</span>
+            <label className="flex items-center gap-2 cursor-pointer text-white">
               <input
                 type="radio"
                 name="inst"
                 checked={selectedInstrument === 'guitar'}
                 onChange={() => setSelectedInstrument('guitar')}
-                className="accent-[#00FF41]"
+                className="accent-[#30D158]"
               />
-              <span>KYTARA</span>
+              <span>Kytara</span>
             </label>
-            <label className="flex items-center gap-1.5 cursor-pointer text-white">
+            <label className="flex items-center gap-2 cursor-pointer text-white">
               <input
                 type="radio"
                 name="inst"
                 checked={selectedInstrument === 'piano'}
                 onChange={() => setSelectedInstrument('piano')}
-                className="accent-[#00FF41]"
+                className="accent-[#30D158]"
               />
-              <span>KLAVÍR (PIANO)</span>
+              <span>Klavír (Piano)</span>
             </label>
-            <label className="flex items-center gap-1.5 cursor-pointer text-white">
+            <label className="flex items-center gap-2 cursor-pointer text-white">
               <input
                 type="radio"
                 name="inst"
                 checked={selectedInstrument === 'both'}
                 onChange={() => setSelectedInstrument('both')}
-                className="accent-[#00FF41]"
+                className="accent-[#30D158]"
               />
-              <span>KYTARA + KLAVÍR</span>
+              <span>Kytara + Klavír</span>
             </label>
           </div>
 
           {/* Mode 1: Strumming Patterns */}
           {backingMode === 'strum' && (
             <div className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {STRUM_PATTERNS.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => setSelectedStrumId(p.id)}
-                    className={`p-3 border text-left font-mono transition-none ${
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                       selectedStrumId === p.id
-                        ? 'bg-[#142618] border-[#00FF41] text-[#00FF41]'
-                        : 'bg-[#111] hover:bg-[#1A1A1A] border-[#222] text-[#888]'
+                        ? 'bg-[#30D158]/15 border-[#30D158]/50 text-[#30D158] shadow-md'
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300'
                     }`}
                   >
-                    <span className="font-extrabold text-xs text-white uppercase block">{p.name}</span>
-                    <span className="text-[11px] font-bold text-[#00FF41] tracking-widest block my-1">
+                    <span className="font-bold text-xs text-white block">{p.name}</span>
+                    <span className="text-xs font-mono font-bold text-[#30D158] tracking-widest block my-1">
                       {p.pattern.join(' ')}
                     </span>
-                    <span className="text-[9px] text-[#666] block">{p.desc}</span>
+                    <span className="text-[11px] text-neutral-400 block">{p.desc}</span>
                   </button>
                 ))}
               </div>
 
               {/* Custom Strum Grid */}
-              <div className="bg-[#111] p-3 border border-[#222] space-y-2">
-                <span className="text-[10px] text-[#AAA] font-bold uppercase block">
-                  INTERAKTIVNÍ MŘÍŽKA BRNKÁNÍ (KLIKNĚTE PRO ZMĚNU ÚDERU: D=DOLŮ, U=NAHORU, M=MUTE, .=PAUZA):
+              <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5 space-y-2">
+                <span className="text-xs text-neutral-400 font-medium block">
+                  Interaktivní mřížka brnkání (klikněte pro změnu: D=dolů, U=nahoru, M=tlumení, .=pauza):
                 </span>
-                <div className="flex items-center gap-1.5 overflow-x-auto py-1">
+                <div className="flex items-center gap-2 overflow-x-auto py-1">
                   {customStrum.map((stroke, sIdx) => (
                     <button
                       key={sIdx}
                       onClick={() => toggleCustomStrumStep(sIdx)}
-                      className={`w-10 h-12 flex flex-col items-center justify-center border font-mono font-black text-sm uppercase transition-none ${
+                      className={`w-10 h-12 flex flex-col items-center justify-center rounded-xl border font-mono font-bold text-sm transition-all cursor-pointer ${
                         selectedStrumId === 'custom'
-                          ? 'border-[#00FF41] bg-[#0A1A0D] text-[#00FF41]'
-                          : 'border-[#333] bg-[#050505] text-white hover:border-[#00FF41]'
+                          ? 'border-[#30D158] bg-[#30D158]/20 text-[#30D158]'
+                          : 'border-white/10 bg-black/40 text-white hover:border-[#30D158]'
                       }`}
                     >
-                      <span className="text-[8px] text-[#666]">#{sIdx + 1}</span>
+                      <span className="text-[9px] text-neutral-500">#{sIdx + 1}</span>
                       <span>{stroke}</span>
                     </button>
                   ))}
@@ -817,22 +851,22 @@ export const PracticeAssistant: React.FC = () => {
           {/* Mode 2: Fingerpicking Patterns */}
           {backingMode === 'picking' && (
             <div className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {PICKING_PATTERNS.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => setSelectedPickingId(p.id)}
-                    className={`p-3 border text-left font-mono transition-none ${
+                    className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                       selectedPickingId === p.id
-                        ? 'bg-[#142618] border-[#00FF41] text-[#00FF41]'
-                        : 'bg-[#111] hover:bg-[#1A1A1A] border-[#222] text-[#888]'
+                        ? 'bg-[#30D158]/15 border-[#30D158]/50 text-[#30D158] shadow-md'
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300'
                     }`}
                   >
-                    <span className="font-extrabold text-xs text-white uppercase block">{p.name}</span>
-                    <span className="text-[11px] font-bold text-[#00FF41] tracking-widest block my-1">
-                      STRUNY: {p.sequence.join('-')}
+                    <span className="font-bold text-xs text-white block">{p.name}</span>
+                    <span className="text-xs font-mono font-bold text-[#30D158] tracking-widest block my-1">
+                      Struny: {p.sequence.join('-')}
                     </span>
-                    <span className="text-[9px] text-[#666] block">{p.desc}</span>
+                    <span className="text-[11px] text-neutral-400 block">{p.desc}</span>
                   </button>
                 ))}
               </div>
@@ -841,11 +875,11 @@ export const PracticeAssistant: React.FC = () => {
 
           {/* Mode 3: Piano Accompaniment */}
           {backingMode === 'piano' && (
-            <div className="bg-[#111] p-4 border border-[#222] text-xs space-y-1">
-              <span className="font-bold text-[#00E5FF] uppercase block">
-                KLAVÍRNÍ DOPROVOD (REÁLNÉ PIANO CHORD VOICING)
+            <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-xs space-y-1">
+              <span className="font-bold text-[#0A84FF] block">
+                Klavírní doprovod (Reálné Piano Chord Voicing)
               </span>
-              <p className="text-[#AAA]">
+              <p className="text-neutral-400">
                 Automaticky přehrává harmonické klavírní akordy ve zvoleném tempu BPM s autentickým akustickým zvukem.
               </p>
             </div>

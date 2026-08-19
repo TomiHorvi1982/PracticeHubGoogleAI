@@ -42,3 +42,19 @@ export async function searchYouTubeForSong(title: string, artist: string): Promi
     return [];
   }
 }
+
+export async function searchYouTubeDirect(query: string): Promise<YouTubeVideo[]> {
+  try {
+    const res = await fetch('/api/search-youtube-direct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query }),
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.videos || [];
+  } catch (err) {
+    console.error('Direct YouTube search request failed:', err);
+    return [];
+  }
+}

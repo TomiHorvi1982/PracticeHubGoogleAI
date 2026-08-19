@@ -1,6 +1,7 @@
 {
   "name": "Guitar & Band Hub",
-  "description": "Hudební portál pro kytaristy a kapely se sdílením akordů, ladičkou, virtuálními nástroji, tréninkem stupnic a QR přístupem.",
+  "description": "Hudební portál a reálný online hub pro kapely s Media Center Kaset enginem (Smart Shuffle, synchronizované LRC texty, YouTube Music přehrávání, A-B looper), správou uživatelů, sdílenou fotogalerií a printscreeny z PC, persistentním playlistem, online členy, zpěvníkem, ladičkou a databází skladeb.",
   "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
+

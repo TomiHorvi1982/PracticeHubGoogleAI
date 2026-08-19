@@ -1,80 +1,99 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
   body {
-    background-color: #050505;
-    color: #d1d1d1;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    background-color: #0A0A0C;
+    color: #F5F5F7;
+    font-family: var(--font-apple);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+    overflow-x: hidden;
   }
 }
 
-@keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
+/* Subtle Apple-style Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.25), inset 0 0 10px rgba(0, 255, 65, 0.1);
-    border-left-color: #00FF41;
-  }
-  50% {
-    box-shadow: 0 0 25px rgba(0, 255, 65, 0.5), inset 0 0 15px rgba(0, 255, 65, 0.2);
-    border-left-color: #FF3E00;
-  }
+@keyframes popSubtle {
+  0% { transform: scale(0.98); }
+  50% { transform: scale(1.02); }
+  100% { transform: scale(1); }
 }
 
-@keyframes chordPop {
-  0%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 8px #00FF41;
-  }
-  50% {
-    transform: scale(1.12);
-    box-shadow: 0 0 18px #00FF41, 0 0 30px rgba(0, 255, 65, 0.8);
-  }
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(0.95); }
 }
 
-@keyframes lineBeam {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.9; }
-  100% { opacity: 0.3; }
+.animate-fade-in {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.animate-pulse-glow {
-  animation: pulseGlow 2s infinite ease-in-out;
+.animate-pop-subtle {
+  animation: popSubtle 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.animate-chord-pop {
-  animation: chordPop 1.2s infinite ease-in-out;
+.animate-pulse-soft {
+  animation: pulseSoft 2.5s ease-in-out infinite;
 }
 
-.animate-line-beam {
-  animation: lineBeam 1.5s infinite ease-in-out;
-}
-
-.animate-marquee {
-  display: flex;
-  width: 200%;
-  animation: marquee 25s linear infinite;
-}
-
-.animate-marquee:hover {
-  animation-play-state: paused;
-}
-
-/* Custom crisp technical scrollbar */
+/* Apple Pro refined scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #222222;
-  border: 1px solid #333333;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #ff3e00;
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: padding-box;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Apple-style Glass blur background */
+.glass-panel {
+  background: rgba(28, 28, 30, 0.72);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-subtle {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-card {
+  background: rgba(36, 36, 40, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }

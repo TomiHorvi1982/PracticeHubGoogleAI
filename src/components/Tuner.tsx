@@ -15,10 +15,24 @@ import {
   RotateCcw
 } from 'lucide-react';
 
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+function getNoteFromMidi(midi: number): { name: string; frequency: number } {
+  const noteName = NOTE_NAMES[midi % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  const frequency = Math.round(440 * Math.pow(2, (midi - 69) / 12) * 100) / 100;
+  return {
+    name: `${noteName}${octave}`,
+    frequency
+  };
+}
+
 export const Tuner: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [pitch, setPitch] = useState<PitchData | null>(null);
   const [selectedTuning, setSelectedTuning] = useState(TUNING_PRESETS[0]);
+  const [isCustomMode, setIsCustomMode] = useState(false);
+  const [customMidis, setCustomMidis] = useState<number[]>([40, 45, 50, 55, 59, 64]);
   const [micError, setMicError] = useState<string | null>(null);
   const pitchDetectorRef = useRef<PitchDetector | null>(null);
 
@@ -73,7 +87,6 @@ export const Tuner: React.FC = () => {
       clearTimeout(tapTimeoutRef.current);
     }
 
-    // Reset tap timestamps if user pauses tapping for > 2.2 seconds
     tapTimeoutRef.current = setTimeout(() => {
       tapTimesRef.current = [];
       setTapFeedback(null);
@@ -88,170 +101,250 @@ export const Tuner: React.FC = () => {
       for (let i = 1; i < tapTimesRef.current.length; i++) {
         intervals.push(tapTimesRef.current[i] - tapTimesRef.current[i - 1]);
       }
-      const avgMs = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const calculatedBpm = Math.round(60000 / avgMs);
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const calculatedBpm = Math.round(60000 / avgInterval);
 
-      if (calculatedBpm >= 30 && calculatedBpm <= 280) {
+      if (calculatedBpm >= 30 && calculatedBpm <= 300) {
         setMetroBpm(calculatedBpm);
-        setTapFeedback(`NAMĚŘENO: ${calculatedBpm} BPM`);
+        setTapFeedback(`${calculatedBpm} BPM`);
       }
     } else {
-      setTapFeedback('ŤUKEJTE DÁLE...');
+      setTapFeedback('Ťukněte znovu...');
     }
   };
 
   const toggleListening = async () => {
-    setMicError(null);
     if (isListening) {
       if (pitchDetectorRef.current) {
         pitchDetectorRef.current.stop();
-        pitchDetectorRef.current = null;
       }
       setIsListening(false);
       setPitch(null);
+      setMicError(null);
     } else {
+      setMicError(null);
       const detector = new PitchDetector();
+
       const success = await detector.start((data) => {
         setPitch(data);
       });
-
       if (success) {
         pitchDetectorRef.current = detector;
         setIsListening(true);
       } else {
-        setMicError('Přístup k mikrofonu odepřen nebo zařízení nepodporuje nahrávání zvuku.');
-        setIsListening(false);
+        setMicError('Přístup k mikrofonu byl zamítnut nebo mikrofon není k dispozici.');
       }
     }
   };
 
   const playReferencePitch = (freq: number) => {
-    audioSynth.playGuitarNote(freq, 2.5, 0.6);
+    audioSynth.playNote(freq, 'acoustic_guitar', 2.0, 0.8);
   };
 
+  const activeTuning = isCustomMode
+    ? {
+        name: 'Vlastní ladění',
+        notes: customMidis.map((m) => getNoteFromMidi(m).name),
+        frequencies: customMidis.map((m) => getNoteFromMidi(m).frequency)
+      }
+    : selectedTuning;
+
+  let activeStringIndex = -1;
+  if (pitch) {
+    let minDiff = Infinity;
+    activeTuning.frequencies.forEach((freq, idx) => {
+      const diff = Math.abs(pitch.frequency - freq);
+      if (diff < minDiff && diff < 15) {
+        minDiff = diff;
+        activeStringIndex = idx;
+      }
+    });
+  }
+
   const cents = pitch ? pitch.cents : 0;
-  const rotationAngle = Math.max(-70, Math.min(70, (cents / 50) * 70));
-  const isInTune = pitch ? Math.abs(pitch.cents) <= 5 : false;
+  const rotationAngle = Math.max(-50, Math.min(50, cents)) * 0.9;
+  const isInTune = pitch && Math.abs(pitch.cents) <= 4;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4 font-mono pb-12">
+    <div className="w-full space-y-4 font-sans pb-16">
       
-      {/* Title & Tuning Selector Bar */}
-      <div className="border border-[#333] bg-[#0F0F0F] p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* Header & Tuning Selection */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <span className="bg-[#FF3E00] text-black font-extrabold px-2 py-0.5 text-[10px] uppercase">
-              ANALYSER
+          <div className="flex items-center gap-2.5 mb-1">
+            <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+              Přesná Ladička
             </span>
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              LADIČKA & ANALÝZA FREKVENCE
-            </h2>
+            <span className="text-xs text-neutral-400 font-medium">Autodetekce frekvence</span>
           </div>
-          <p className="text-[11px] text-[#666] mt-1">
-            Měření kmitočtu v reálném čase přes mikrofonní vstup
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            Chromatická Ladička & Metronom
+          </h2>
+          <p className="text-xs text-neutral-400 mt-1">
+            Spusťte mikrofon a zahrajte na libovolnou strunu pro rychlé naladění s přesností na centy.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <label className="text-[11px] text-[#888] font-bold uppercase">
-            LADĚNÍ:
-          </label>
+        {/* Tuning Preset Selector */}
+        <div className="flex items-center gap-2 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
+          <span className="text-xs text-neutral-400 font-medium px-2">Ladění:</span>
           <select
-            value={selectedTuning.name}
+            value={isCustomMode ? 'custom' : selectedTuning.name}
             onChange={(e) => {
-              const found = TUNING_PRESETS.find((t) => t.name === e.target.value);
-              if (found) setSelectedTuning(found);
+              if (e.target.value === 'custom') {
+                setIsCustomMode(true);
+              } else {
+                setIsCustomMode(false);
+                const found = TUNING_PRESETS.find((t) => t.name === e.target.value);
+                if (found) setSelectedTuning(found);
+              }
             }}
-            className="bg-[#141414] border border-[#333] text-[#00FF41] text-xs font-bold px-3 py-1.5 focus:outline-none focus:border-[#00FF41] cursor-pointer"
+            className="bg-black/60 border border-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-xl outline-none cursor-pointer"
           >
             {TUNING_PRESETS.map((t) => (
               <option key={t.name} value={t.name}>
                 {t.name}
               </option>
             ))}
+            <option value="custom">-- Vlastní ladění --</option>
           </select>
         </div>
       </div>
 
-      {micError && (
-        <div className="bg-[#1A0000] border border-[#FF3E00] p-3 text-xs text-[#FF3E00] flex items-center gap-2 font-mono">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>ERR_MIC: {micError}</span>
+      {isCustomMode && (
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-[#FF9F0A]/30 rounded-3xl p-5 text-xs space-y-3 shadow-xl">
+          <div className="flex items-center justify-between">
+            <h4 className="text-white font-semibold flex items-center gap-2">
+              <Zap className="w-4 h-4 text-[#FF9F0A]" /> Vlastní ladění jednotlivých strun (6. až 1.)
+            </h4>
+            <button
+              onClick={() => setCustomMidis([40, 45, 50, 55, 59, 64])}
+              className="px-3 py-1 bg-white/10 hover:bg-white/20 text-neutral-300 rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Resetovat na E Standard
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
+            {customMidis.map((midi, idx) => {
+              const stringNum = 6 - idx;
+              const noteInfo = getNoteFromMidi(midi);
+              return (
+                <div key={idx} className="bg-black/40 border border-white/10 p-3 rounded-2xl flex flex-col items-center">
+                  <span className="text-[10px] text-neutral-400 mb-1">{stringNum}. struna</span>
+                  <span className="text-base font-bold text-[#FF9F0A]">{noteInfo.name}</span>
+                  <span className="text-[10px] text-neutral-400 font-mono mb-2">{noteInfo.frequency} Hz</span>
+                  
+                  <div className="flex gap-1 w-full">
+                    <button
+                      onClick={() => {
+                        const next = [...customMidis];
+                        next[idx] = Math.max(24, midi - 1);
+                        setCustomMidis(next);
+                      }}
+                      className="flex-1 bg-white/10 hover:bg-white/20 text-white py-1 font-bold rounded-lg text-center cursor-pointer"
+                    >
+                      -
+                    </button>
+                    <button
+                      onClick={() => {
+                        const next = [...customMidis];
+                        next[idx] = Math.min(84, midi + 1);
+                        setCustomMidis(next);
+                      }}
+                      className="flex-1 bg-white/10 hover:bg-white/20 text-white py-1 font-bold rounded-lg text-center cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
-      {/* Main Tuner Display */}
-      <div className="border border-[#333] bg-[#0F0F0F] p-6 relative overflow-hidden flex flex-col items-center justify-center text-center">
+      {micError && (
+        <div className="bg-red-500/10 border border-red-500/20 text-red-300 p-4 rounded-3xl text-xs flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+          <span>{micError}</span>
+        </div>
+      )}
+
+      {/* Main Tuner Display & Gauge */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-8 shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
         
         {/* Status Tag */}
-        <div className="absolute top-3 right-3 flex gap-2">
-          <span className="text-[10px] bg-[#222] px-2 py-1 text-[#888] font-mono">CLEAN_AMP</span>
-          <span className={`text-[10px] px-2 py-1 font-mono ${isListening ? 'bg-[#002B0E] text-[#00FF41] border border-[#00FF41]/40' : 'bg-[#222] text-[#666]'}`}>
-            SIGNAL: {isListening ? (pitch ? 'LOCK' : 'SEARCHING') : 'OFFLINE'}
+        <div className="absolute top-4 right-4 flex items-center gap-2">
+          <span className={`text-[10px] font-medium px-2.5 py-1 rounded-lg border ${
+            isListening 
+              ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/30' 
+              : 'bg-white/[0.04] text-neutral-400 border-white/[0.06]'
+          }`}>
+            {isListening ? (pitch ? 'PŘIJÍMÁM SIGNÁL' : 'POSLOUCHÁM...') : 'MIKROFON VYPNUT'}
           </span>
         </div>
 
         {/* Cents Meter Gauge */}
-        <div className="relative w-80 h-36 mb-4 flex items-end justify-center border-b border-[#222] pb-2">
-          {/* Arc / Background ticks */}
-          <div className="absolute inset-0 border-t-2 border-[#333] rounded-t-full"></div>
+        <div className="relative w-80 h-36 mb-4 flex items-end justify-center border-b border-white/10 pb-2">
+          <div className="absolute inset-0 border-t-2 border-white/10 rounded-t-full"></div>
 
-          <div className="absolute inset-x-0 top-3 flex justify-between px-4 text-[10px] font-mono text-[#666]">
+          <div className="absolute inset-x-0 top-3 flex justify-between px-6 text-[11px] font-mono text-neutral-400">
             <span>-50c</span>
             <span>-25c</span>
-            <span className="text-[#00FF41] font-bold">0</span>
+            <span className="text-[#30D158] font-bold">0</span>
             <span>+25c</span>
             <span>+50c</span>
           </div>
 
           {/* Needle */}
           <div
-            className={`w-1 h-28 origin-bottom transition-transform duration-100 shadow-[0_0_10px_rgba(0,255,65,0.5)] ${
+            className={`w-1 h-28 origin-bottom transition-transform duration-100 rounded-full shadow-lg ${
               isInTune
-                ? 'bg-[#00FF41]'
+                ? 'bg-[#30D158] shadow-[0_0_12px_#30D158]'
                 : pitch
-                ? 'bg-[#FF3E00]'
-                : 'bg-[#333]'
+                ? 'bg-[#FF9F0A] shadow-[0_0_12px_#FF9F0A]'
+                : 'bg-white/20'
             }`}
             style={{
               transform: `rotate(${rotationAngle}deg)`,
             }}
           >
-            <div className="w-3 h-3 bg-[#0A0A0A] border-2 border-current -translate-x-1/2 absolute -top-1 left-1/2"></div>
+            <div className="w-3 h-3 bg-white rounded-full -translate-x-1/2 absolute -top-1 left-1/2 shadow-md"></div>
           </div>
         </div>
 
         {/* Note Display Box */}
         <div className="relative mb-6 w-full max-w-sm">
           {pitch ? (
-            <div className="flex flex-col items-center bg-[#050505] border border-[#222] p-4">
-              <div className="flex items-baseline justify-center gap-2">
-                <span className={`text-6xl font-black font-mono tracking-tighter ${isInTune ? 'text-[#00FF41]' : 'text-white'}`}>
+            <div className="flex flex-col items-center bg-black/40 border border-white/10 p-5 rounded-2xl shadow-inner">
+              <div className="flex items-baseline justify-center gap-1.5">
+                <span className={`text-6xl font-bold font-mono tracking-tight ${isInTune ? 'text-[#30D158]' : 'text-white'}`}>
                   {pitch.note}
                 </span>
-                <span className="text-2xl font-bold text-[#FF3E00]">{pitch.octave}</span>
+                <span className="text-2xl font-semibold text-[#FF9F0A]">{pitch.octave}</span>
               </div>
 
-              <div className="mt-2 text-xs font-mono">
+              <div className="mt-2 text-xs">
                 {isInTune ? (
-                  <span className="text-[#00FF41] bg-[#002B0E] px-3 py-1 border border-[#00FF41] font-bold">
-                    [ PERFECT MATCH ]
+                  <span className="text-[#30D158] bg-[#30D158]/10 px-3 py-1 rounded-lg font-semibold border border-[#30D158]/30">
+                    PERFEKTNĚ NALADĚNO
                   </span>
                 ) : (
-                  <span className="text-[#FF3E00] bg-[#1A0000] px-3 py-1 border border-[#FF3E00] font-bold">
-                    {pitch.cents > 0 ? `+${pitch.cents} CENTŮ (VYSOKO)` : `${pitch.cents} CENTŮ (NÍZKO)`}
+                  <span className="text-[#FF9F0A] bg-[#FF9F0A]/10 px-3 py-1 rounded-lg font-semibold border border-[#FF9F0A]/30">
+                    {pitch.cents > 0 ? `+${pitch.cents} centů (vysoko)` : `${pitch.cents} centů (nízko)`}
                   </span>
                 )}
               </div>
 
-              <div className="mt-2 text-xs text-[#888] font-mono">
-                FREKVENCE: <span className="text-white font-bold">{pitch.frequency} Hz</span>
+              <div className="mt-2 text-xs text-neutral-400 font-mono">
+                Frekvence: <span className="text-white font-semibold">{pitch.frequency} Hz</span>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center p-6 bg-[#050505] border border-dashed border-[#222] text-[#555]">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#777]">
-                [ ZAHRANÝ TÓN SE ZOBRAZÍ ZDE ]
+            <div className="flex flex-col items-center justify-center p-8 bg-black/30 border border-dashed border-white/10 rounded-2xl text-neutral-400">
+              <span className="text-xs font-medium">
+                Zahrajte tón na kytaru pro detekci výšky
               </span>
             </div>
           )}
@@ -260,21 +353,21 @@ export const Tuner: React.FC = () => {
         {/* Start / Stop Microphone Button */}
         <button
           onClick={toggleListening}
-          className={`flex items-center gap-2 px-6 py-2.5 font-bold text-xs uppercase tracking-wider transition-none ${
+          className={`flex items-center gap-2 px-6 py-3 font-semibold text-xs rounded-2xl transition-all cursor-pointer shadow-md ${
             isListening
-              ? 'bg-[#FF3E00] text-black border border-black hover:bg-white'
-              : 'bg-[#D1D1D1] hover:bg-white text-black border border-white'
+              ? 'bg-[#FF453A] hover:bg-[#FF453A]/90 text-white'
+              : 'bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black'
           }`}
         >
           {isListening ? (
             <>
               <MicOff className="w-4 h-4" />
-              <span>VYPNOUT MIKROFON</span>
+              <span>Vypnout mikrofon</span>
             </>
           ) : (
             <>
               <Mic className="w-4 h-4" />
-              <span>SPUSTIT LADIČKU MIKROFONU</span>
+              <span>Spustit ladičku mikrofonu</span>
             </>
           )}
         </button>
@@ -282,267 +375,131 @@ export const Tuner: React.FC = () => {
       </div>
 
       {/* Target Guitar Strings Reference Panel */}
-      <div className="border border-[#333] bg-[#0F0F0F] p-4">
-        <div className="flex items-center justify-between mb-3 border-b border-[#222] pb-2">
-          <h3 className="text-xs font-bold text-white uppercase">
-            STRUNY DLE NALADĚNÍ: {selectedTuning.name}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl">
+        <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2.5">
+          <h3 className="text-xs font-semibold text-white">
+            Referenční tóny strun ({activeTuning.name})
           </h3>
-          <span className="text-[10px] text-[#666]">
-            KLIKNUTÍM PŘEHRÁT AUDIOGENERÁTOR
+          <span className="text-[11px] text-neutral-400">
+            Kliknutím přehrajte referenční tón
           </span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2">
-          {selectedTuning.notes.map((noteName, idx) => {
+        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
+          {activeTuning.notes.map((noteName, idx) => {
             const stringNum = 6 - idx;
-            const freq = selectedTuning.frequencies[idx];
-            const isMatched = pitch?.stringIndex === idx;
+            const freq = activeTuning.frequencies[idx];
+            const isMatched = activeStringIndex === idx;
 
             return (
               <button
                 key={idx}
                 onClick={() => playReferencePitch(freq)}
-                className={`p-3 border text-center transition-none ${
+                className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
                   isMatched
-                    ? 'bg-[#142618] border-[#00FF41] text-[#00FF41]'
-                    : 'bg-[#141414] hover:bg-[#1C1C1C] border-[#222] text-[#D1D1D1]'
+                    ? 'bg-[#30D158]/20 border-[#30D158] text-white shadow-lg shadow-green-500/10'
+                    : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.06] text-neutral-300'
                 }`}
               >
-                <div className="text-[9px] uppercase text-[#666] mb-1">
-                  STRUNA {stringNum}
-                </div>
-                <div className="text-xl font-black">{noteName}</div>
-                <div className="text-[10px] text-[#888] font-mono mt-1">{freq} Hz</div>
-                
-                <div className="mt-2 text-[#FF3E00] hover:text-white flex items-center justify-center gap-1 text-[9px] uppercase font-bold">
-                  <Volume2 className="w-3 h-3" /> PŘEHRÁT
-                </div>
+                <div className="text-[10px] text-neutral-400 mb-1">{stringNum}. struna</div>
+                <div className="text-lg font-bold text-white mb-0.5">{noteName}</div>
+                <div className="text-[10px] text-neutral-400 font-mono">{freq} Hz</div>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* ⏱️ VISUAL METRONOME & TEMPO SECTION */}
-      <div className="border border-[#333] bg-[#0F0F0F] p-5 space-y-4">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#222] pb-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="bg-[#FF3E00] text-black font-extrabold px-2 py-0.5 text-[10px] uppercase">
-                METRONOME
-              </span>
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
-                VIZUÁLNÍ METRONOM & TEMPO
-              </h3>
-            </div>
-            <p className="text-[11px] text-[#666] mt-1">
-              Optická rytmická indikace pro ladičku a cvičení
-            </p>
-          </div>
-
+      {/* Metronome Tool Panel */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
+        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
-            {/* Audio Mute/Unmute Toggle */}
+            <Activity className="w-4 h-4 text-[#FF9F0A]" />
+            <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+              Metronom & Tap Tempo
+            </h3>
+          </div>
+          
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setIsMuted(!isMuted)}
-              className={`p-2 border transition-none flex items-center gap-1 text-xs font-bold uppercase ${
-                isMuted
-                  ? 'bg-[#1A0000] border-[#FF3E00] text-[#FF3E00]'
-                  : 'bg-[#050505] border-[#222] text-[#00FF41] hover:border-[#00FF41]'
-              }`}
-              title={isMuted ? 'Zvuk vypnut (pouze vizuální blikání)' : 'Zvuk zapnut'}
+              className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
+              title={isMuted ? 'Zapnout zvuk metronomu' : 'Ztlumit zvuk metronomu'}
             >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              <span className="text-[10px] hidden sm:inline">{isMuted ? 'TICHÝ REŽIM' : 'ZVUK ZAPNUT'}</span>
+              {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
             </button>
-
-            {/* Time Signature Dropdown */}
-            <select
-              value={beatsPerBar}
-              onChange={(e) => setBeatsPerBar(Number(e.target.value))}
-              className="bg-[#050505] border border-[#222] text-white text-xs font-bold px-2 py-1.5 focus:border-[#FF3E00] outline-none uppercase cursor-pointer"
-            >
-              <option value={4}>4/4 TAKT</option>
-              <option value={3}>3/4 TAKT</option>
-              <option value={2}>2/4 TAKT</option>
-              <option value={6}>6/8 TAKT</option>
-            </select>
           </div>
         </div>
 
-        {/* Visual Pendulum Sweep Bar & Beat Indicators */}
-        <div className="bg-[#050505] p-4 border border-[#222] space-y-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           
-          {/* Dynamic Light Bar / Pendulum */}
-          <div className="relative h-6 bg-[#111] border border-[#222] overflow-hidden flex items-center px-1">
-            <div
-              className={`h-4 transition-all duration-75 ${
-                currentBeat === 0
-                  ? 'bg-[#FF3E00] shadow-[0_0_12px_#FF3E00]'
-                  : isMetroPlaying
-                  ? 'bg-[#00FF41] shadow-[0_0_10px_#00FF41]'
-                  : 'bg-[#333]'
-              }`}
-              style={{
-                width: `${100 / beatsPerBar}%`,
-                transform: `translateX(${currentBeat * 100}%)`,
-              }}
-            ></div>
-          </div>
-
-          {/* Beat Indicator Dots */}
-          <div className="flex items-center justify-center gap-2">
-            {Array.from({ length: beatsPerBar }).map((_, idx) => {
-              const isActive = currentBeat === idx && isMetroPlaying;
-              const isAccent = idx === 0;
-
-              return (
-                <div
-                  key={idx}
-                  className={`flex-1 h-12 border flex flex-col items-center justify-center transition-none font-bold font-mono ${
-                    isActive
-                      ? isAccent
-                        ? 'bg-[#FF3E00] border-black text-black scale-105 shadow-[0_0_15px_rgba(255,62,0,0.8)]'
-                        : 'bg-[#00FF41] border-black text-black scale-105 shadow-[0_0_15px_rgba(0,255,65,0.8)]'
-                      : 'bg-[#0A0A0A] border-[#222] text-[#444]'
-                  }`}
-                >
-                  <span className="text-sm">{idx + 1}</span>
-                  <span className="text-[8px] uppercase">
-                    {isAccent ? 'AKCENT' : 'DOBA'}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-        </div>
-
-        {/* BPM Display & Main Play/Tap Controls */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-          
-          {/* Large Numerical BPM Readout */}
-          <div className="bg-[#050505] border border-[#222] p-4 text-center">
-            <span className="text-[10px] text-[#666] font-bold uppercase tracking-wider block mb-1">
-              TEMPO V RÝCHLOSTI
-            </span>
-            <div className="text-4xl font-black text-white font-mono tracking-tighter">
-              {metroBpm} <span className="text-xs text-[#FF3E00] font-normal">BPM</span>
+          {/* BPM Display & Tap Button */}
+          <div className="flex items-center gap-3">
+            <div className="bg-black/40 border border-white/10 px-4 py-2 rounded-2xl text-center min-w-[100px]">
+              <div className="text-2xl font-bold text-white font-mono">{metroBpm}</div>
+              <div className="text-[10px] text-neutral-400 font-medium">BPM</div>
             </div>
-            <p className="text-[10px] text-[#00FF41] font-mono mt-1">
-              {metroBpm < 75
-                ? 'LARGO / SLOW'
-                : metroBpm < 105
-                ? 'ANDANTE / MODERATE'
-                : metroBpm < 135
-                ? 'ALLEGRO / FAST'
-                : 'PRESTO / VERY FAST'}
-            </p>
-          </div>
-
-          {/* Action Buttons: Play/Stop & Tap Tempo */}
-          <div className="space-y-2">
-            <button
-              onClick={() => setIsMetroPlaying(!isMetroPlaying)}
-              className={`w-full py-3 px-4 font-black text-xs uppercase border tracking-wider flex items-center justify-center gap-2 transition-none ${
-                isMetroPlaying
-                  ? 'bg-[#FF3E00] text-black border-black hover:bg-white'
-                  : 'bg-[#00FF41] text-black border-black hover:bg-white'
-              }`}
-            >
-              {isMetroPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              <span>{isMetroPlaying ? 'ZASTAVIT METRONOM' : 'SPUSTIT METRONOM'}</span>
-            </button>
 
             <button
               onClick={handleTapTempo}
-              className="w-full py-2.5 px-4 bg-[#141414] hover:bg-[#222] active:bg-[#FF3E00] active:text-black text-[#FF3E00] font-bold text-xs border border-[#333] uppercase flex items-center justify-center gap-1.5 transition-none"
+              className="px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white text-xs font-semibold rounded-2xl transition-all cursor-pointer active:scale-95"
             >
-              <Zap className="w-4 h-4" />
-              <span>TAP TEMPO (VYŤUKAT)</span>
+              TAP TEMPO
             </button>
 
             {tapFeedback && (
-              <div className="text-center text-[10px] font-bold text-[#00FF41] font-mono uppercase bg-[#001F09] py-1 border border-[#00FF41]/30">
+              <span className="text-xs text-[#FF9F0A] font-semibold animate-pulse">
                 {tapFeedback}
-              </div>
+              </span>
             )}
           </div>
 
-          {/* Slider & Increment / Decrement Buttons */}
-          <div className="space-y-3 bg-[#050505] p-3 border border-[#222]">
-            <div className="flex items-center justify-between text-[10px] text-[#888] font-bold uppercase">
-              <span>NASTAVENÍ TEMPA:</span>
-              <span>{metroBpm} BPM</span>
-            </div>
-
+          {/* Slider BPM */}
+          <div className="flex-1 w-full sm:max-w-xs px-2">
             <input
               type="range"
-              min="30"
-              max="250"
+              min="40"
+              max="240"
               value={metroBpm}
-              onChange={(e) => setMetroBpm(Number(e.target.value))}
-              className="w-full accent-[#FF3E00] bg-[#222] cursor-pointer"
+              onChange={(e) => setMetroBpm(parseInt(e.target.value, 10))}
+              className="w-full accent-[#FF9F0A] cursor-pointer"
             />
-
-            <div className="flex items-center justify-between gap-1">
-              <button
-                onClick={() => setMetroBpm((prev) => Math.max(30, prev - 5))}
-                className="flex-1 py-1 bg-[#141414] hover:bg-[#222] text-white border border-[#333] text-[10px] font-bold"
-              >
-                -5
-              </button>
-              <button
-                onClick={() => setMetroBpm((prev) => Math.max(30, prev - 1))}
-                className="flex-1 py-1 bg-[#141414] hover:bg-[#222] text-white border border-[#333] text-[10px] font-bold"
-              >
-                -1
-              </button>
-              <button
-                onClick={() => setMetroBpm((prev) => Math.min(250, prev + 1))}
-                className="flex-1 py-1 bg-[#141414] hover:bg-[#222] text-white border border-[#333] text-[10px] font-bold"
-              >
-                +1
-              </button>
-              <button
-                onClick={() => setMetroBpm((prev) => Math.min(250, prev + 5))}
-                className="flex-1 py-1 bg-[#141414] hover:bg-[#222] text-white border border-[#333] text-[10px] font-bold"
-              >
-                +5
-              </button>
-            </div>
           </div>
+
+          {/* Play / Pause Metronome */}
+          <button
+            onClick={() => setIsMetroPlaying(!isMetroPlaying)}
+            className={`px-5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
+              isMetroPlaying
+                ? 'bg-[#FF453A] text-white'
+                : 'bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black'
+            }`}
+          >
+            {isMetroPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            <span>{isMetroPlaying ? 'Zastavit metronom' : 'Spustit metronom'}</span>
+          </button>
 
         </div>
 
-        {/* Quick Tempo Preset Chips */}
-        <div>
-          <span className="block text-[10px] font-bold text-[#666] mb-1.5 uppercase">
-            RYCHLÉ PŘEDVOLBY TEMPA:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              { label: '60 LARGO', bpmVal: 60 },
-              { label: '80 ANDANTE', bpmVal: 80 },
-              { label: '100 MODERATO', bpmVal: 100 },
-              { label: '120 ALLEGRO', bpmVal: 120 },
-              { label: '140 PRESTO', bpmVal: 140 },
-              { label: '160 VIVACE', bpmVal: 160 },
-            ].map((preset) => (
-              <button
-                key={preset.bpmVal}
-                onClick={() => setMetroBpm(preset.bpmVal)}
-                className={`px-3 py-1 text-[10px] font-bold font-mono uppercase transition-none border ${
-                  metroBpm === preset.bpmVal
-                    ? 'bg-[#142618] border-[#00FF41] text-[#00FF41]'
-                    : 'bg-[#050505] hover:bg-[#1C1C1C] text-[#888] border-[#222]'
+        {/* Visual Beats Indicator */}
+        <div className="flex justify-center gap-2 pt-2">
+          {Array.from({ length: beatsPerBar }).map((_, idx) => {
+            const isCurrent = isMetroPlaying && currentBeat === idx;
+            const isFirst = idx === 0;
+
+            return (
+              <div
+                key={idx}
+                className={`w-4 h-4 rounded-full transition-all duration-100 ${
+                  isCurrent
+                    ? isFirst
+                      ? 'bg-[#FF453A] scale-125 shadow-[0_0_10px_#FF453A]'
+                      : 'bg-[#FF9F0A] scale-110 shadow-[0_0_8px_#FF9F0A]'
+                    : 'bg-white/10'
                 }`}
-              >
-                {preset.label}
-              </button>
-            ))}
-          </div>
+              />
+            );
+          })}
         </div>
 
       </div>
@@ -550,4 +507,3 @@ export const Tuner: React.FC = () => {
     </div>
   );
 };
-

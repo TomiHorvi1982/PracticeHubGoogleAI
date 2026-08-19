@@ -35,9 +35,9 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
 
   // Dimensions based on size
   const config = {
-    sm: { width: 90, height: 110, fretHeight: 18, stringSpacing: 12, dotRadius: 5, fontSize: '9px', paddingX: 15, paddingY: 20 },
-    md: { width: 130, height: 160, fretHeight: 26, stringSpacing: 18, dotRadius: 7, fontSize: '11px', paddingX: 20, paddingY: 28 },
-    lg: { width: 180, height: 210, fretHeight: 34, stringSpacing: 25, dotRadius: 10, fontSize: '13px', paddingX: 28, paddingY: 36 },
+    sm: { width: 84, height: 105, fretHeight: 18, stringSpacing: 11, dotRadius: 4.5, fontSize: '9px', paddingX: 14, paddingY: 18 },
+    md: { width: 124, height: 155, fretHeight: 25, stringSpacing: 17, dotRadius: 6.5, fontSize: '11px', paddingX: 18, paddingY: 26 },
+    lg: { width: 174, height: 205, fretHeight: 33, stringSpacing: 24, dotRadius: 9.5, fontSize: '13px', paddingX: 26, paddingY: 34 },
   }[size];
 
   const numFrets = 4;
@@ -56,20 +56,20 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`inline-flex flex-col items-center bg-[#0C0C0C] border border-[#222] p-2 font-mono transition-all ${
-        onClick ? 'cursor-pointer hover:border-[#FF3E00] hover:bg-[#141414]' : ''
+      className={`inline-flex flex-col items-center bg-[#1C1C1E] border border-white/[0.08] rounded-xl p-2 font-sans transition-all select-none shadow-sm ${
+        onClick ? 'cursor-pointer hover:border-white/20 hover:bg-[#252528] active:scale-[0.98]' : ''
       } ${className}`}
     >
       {/* Title & Play Header */}
       {showTitle && (
         <div className="flex items-center justify-between w-full mb-1 px-1">
-          <span className="font-extrabold text-white text-xs sm:text-sm tracking-wide">
+          <span className="font-semibold text-white text-xs sm:text-sm tracking-tight">
             {name}
           </span>
           {showPlayButton && (
             <button
               onClick={handlePlaySound}
-              className="p-1 text-[#FF3E00] hover:text-[#00FF41] hover:bg-[#222] transition-colors"
+              className="p-1 text-neutral-400 hover:text-[#FF9F0A] hover:bg-white/10 rounded-md transition-colors cursor-pointer"
               title="Přehrát akord"
             >
               <Volume2 className="w-3.5 h-3.5" />
@@ -92,16 +92,16 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
             y1={startY}
             x2={endX}
             y2={startY}
-            stroke="#D1D1D1"
-            strokeWidth={size === 'sm' ? 3 : 5}
-            strokeLinecap="square"
+            stroke="#E5E5EA"
+            strokeWidth={size === 'sm' ? 3 : 4}
+            strokeLinecap="round"
           />
         ) : (
           /* Base Fret Indicator on left */
           <text
-            x={startX - 6}
+            x={startX - 5}
             y={startY + config.fretHeight / 1.5}
-            fill="#FF3E00"
+            fill="#FF9F0A"
             fontSize={config.fontSize}
             fontWeight="bold"
             textAnchor="end"
@@ -121,7 +121,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
               y1={y}
               x2={endX}
               y2={y}
-              stroke="#333"
+              stroke="rgba(255,255,255,0.14)"
               strokeWidth={i === 0 && baseFret === 1 ? 0 : 1}
             />
           );
@@ -137,8 +137,8 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
               y1={startY}
               x2={x}
               y2={endY}
-              stroke="#555"
-              strokeWidth={1 + (numStrings - 1 - i) * 0.25} // Thick bass strings
+              stroke="rgba(255,255,255,0.35)"
+              strokeWidth={1 + (numStrings - 1 - i) * 0.2}
             />
           );
         })}
@@ -150,16 +150,16 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
             y={startY + (barreFret - baseFret) * config.fretHeight + config.fretHeight * 0.25}
             width={endX - startX}
             height={config.fretHeight * 0.5}
-            rx={config.dotRadius * 0.5}
-            fill="#FF3E00"
-            opacity={0.8}
+            rx={config.dotRadius * 0.6}
+            fill="#FF9F0A"
+            opacity={0.85}
           />
         )}
 
         {/* String Indicators (Open string 'O' or Muted 'X' above nut) */}
         {frets.map((fret, strIdx) => {
           const x = startX + strIdx * config.stringSpacing;
-          const y = startY - (size === 'sm' ? 6 : 10);
+          const y = startY - (size === 'sm' ? 6 : 9);
 
           if (fret === -1) {
             // Muted 'X'
@@ -168,7 +168,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
                 key={`mute-${strIdx}`}
                 x={x}
                 y={y}
-                fill="#888"
+                fill="#8E8E93"
                 fontSize={config.fontSize}
                 fontWeight="bold"
                 textAnchor="middle"
@@ -184,9 +184,9 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
                 key={`open-${strIdx}`}
                 cx={x}
                 cy={y}
-                r={config.dotRadius * 0.6}
+                r={config.dotRadius * 0.55}
                 fill="none"
-                stroke="#00FF41"
+                stroke="#30D158"
                 strokeWidth={1.5}
               />
             );
@@ -211,9 +211,9 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
                 cx={x}
                 cy={y}
                 r={config.dotRadius}
-                fill="#FF3E00"
+                fill="#FF9F0A"
                 stroke="#FFFFFF"
-                strokeWidth={1}
+                strokeWidth={1.5}
               />
               {fingerNum && fingerNum > 0 && (
                 <text
@@ -221,7 +221,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
                   y={y}
                   fill="#000000"
                   fontSize={config.fontSize}
-                  fontWeight="black"
+                  fontWeight="bold"
                   textAnchor="middle"
                   dominantBaseline="central"
                 >

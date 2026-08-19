@@ -1,30 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Song, BandSession } from '../types';
-import { INITIAL_SONGS, CHORDS_DATABASE } from '../data/chordsAndScales';
+import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { sessionSync } from '../services/sessionSync';
+import { songDatabaseService } from '../services/songDatabaseService';
 import {
-  Search, Plus, Play, Pause, ChevronUp, ChevronDown,
-  FileText, Camera, Share2, BookOpen, Music, Check, Globe, HelpCircle,
-  Repeat, Repeat1, Zap, Maximize2, Minimize2, ZoomIn, ZoomOut, Type, Eye, EyeOff, X, FileUp, Volume2, Youtube
+  Search, Plus, BookOpen, Music, Check,
+  Maximize2, Minimize2, X, FileUp,
+  Trash2, List, Edit3, Lock, Unlock, ListPlus,
+  ShieldAlert, Eye, EyeOff, Sliders,
+  AlignJustify, LayoutGrid
 } from 'lucide-react';
 import { OnlineSearchModal } from './OnlineSearchModal';
-import { GuitarChordDiagram } from './GuitarChordDiagram';
 import { ChordDetailModal } from './ChordDetailModal';
 import { FileImportModal } from './FileImportModal';
-import { AttachmentViewer } from './AttachmentViewer';
-import { ChordHoverPill } from './ChordHoverPill';
-import { extractUniqueChords, findOrGenerateChord } from '../utils/chordUtils';
-import { parseSongSections, SongSection } from '../utils/songSectionUtils';
-import { audioSynth } from '../services/audioSynth';
+import { useMusicalContext } from '../context/MusicalContext';
+import { SongModularWorkspace } from './SongModularWorkspace';
+import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 
 interface SongbookProps {
-  session: BandSession | null;
+  session?: BandSession | null;
   onOpenCameraModal: () => void;
   customNewSong?: Song | null;
   onSelectSongForYoutube?: (song: Song) => void;
 }
-
-const CHROMATIC_SCALE = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B'];
 
 export const Songbook: React.FC<SongbookProps> = ({
   session,
@@ -32,29 +30,58 @@ export const Songbook: React.FC<SongbookProps> = ({
   customNewSong,
   onSelectSongForYoutube,
 }) => {
-  const [songs, setSongs] = useState<Song[]>(() => {
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('band_songs_db');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {
-          return INITIAL_SONGS;
-        }
-      }
-    }
-    return INITIAL_SONGS;
+  const {
+    activeSong: globalActiveSong,
+    setActiveSong: setGlobalActiveSong,
+    transposeSemitones,
+    setTransposeSemitones,
+    capo: capoFret,
+    setCapo: setCapoFret,
+    setKey,
+    setBpm,
+    setTuning,
+  } = useMusicalContext();
+
+  const [songs, setSongs] = useState<Song[]>(() => songDatabaseService.getSongs());
+
+  useEffect(() => {
+    const unsub = songDatabaseService.subscribe((updatedSongs) => {
+      setSongs(updatedSongs);
+    });
+    return unsub;
+  }, []);
+
+  const [activeSongLocal, setActiveSongLocal] = useState<Song>(() => globalActiveSong || songs[0] || {
+    id: 'sample',
+    title: 'Stánky',
+    artist: 'Brontozaři',
+    key: 'G',
+    tuning: 'Standard (EADGBe)',
+    bpm: 90,
+    content: '[G]U stánků na levnou krásu [C]postávaj a [G]smutně koukaj...',
+    chordsUsed: ['G', 'C'],
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
   });
 
-  const [activeSong, setActiveSong] = useState<Song>(songs[0]);
+  const activeSong = globalActiveSong || activeSongLocal;
+
+  const setActiveSong = (song: Song | ((prev: Song) => Song)) => {
+    if (typeof song === 'function') {
+      const next = song(activeSong);
+      setActiveSongLocal(next);
+      setGlobalActiveSong(next);
+    } else {
+      setActiveSongLocal(song);
+      setGlobalActiveSong(song);
+    }
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [transposeSemitones, setTransposeSemitones] = useState(0);
-  const [isAutoScrolling, setIsAutoScrolling] = useState(false);
-  const [scrollSpeed, setScrollSpeed] = useState(3);
   const [isEditing, setIsEditing] = useState(false);
-  const [hoveredChord, setHoveredChord] = useState<string | null>(null);
+  const [isEditingTuningInline, setIsEditingTuningInline] = useState(false);
+  const [inlineTuningVal, setInlineTuningVal] = useState('');
   const [selectedModalChord, setSelectedModalChord] = useState<string | null>(null);
-  const [sharedNotice, setSharedNotice] = useState(false);
   const [isOnlineSearchOpen, setIsOnlineSearchOpen] = useState(false);
   const [isFileImportOpen, setIsFileImportOpen] = useState(false);
 
@@ -64,507 +91,112 @@ export const Songbook: React.FC<SongbookProps> = ({
   const [isStageCleanMode, setIsStageCleanMode] = useState<boolean>(false);
   const [isExpandedHeight, setIsExpandedHeight] = useState<boolean>(false);
 
-  // Rhythm Follower & Animated Highlighting States
-  const [isRhythmGuideActive, setIsRhythmGuideActive] = useState<boolean>(true);
-  const [activeLineId, setActiveLineId] = useState<string | null>(null);
-  const [isBeatStepperActive, setIsBeatStepperActive] = useState<boolean>(false);
-  const [beatsPerLine, setBeatsPerLine] = useState<number>(4);
+  // Playlists, Sorting & Alphabet Filter States
+  const [playlists, setPlaylists] = useState<{ id: string; name: string; songIds: string[] }[]>(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('band_playlists_db');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
+      }
+    }
+    return [
+      { id: 'all', name: 'Vše', songIds: [] },
+      { id: 'favorites', name: 'Oblíbené', songIds: [] },
+      { id: 'concert', name: 'Koncertní set', songIds: [] }
+    ];
+  });
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('all');
+  const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
+  const [newPlaylistName, setNewPlaylistName] = useState('');
+  const [sortMode, setSortMode] = useState<'alphabetical' | 'recent'>('recent');
+  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
 
-  const hoveredChordDef = hoveredChord ? findOrGenerateChord(hoveredChord) : null;
+  // View Mode: 'detailed' (full cards with badges) vs 'compact' (1-line: Band - Song)
+  const [songListViewMode, setSongListViewMode] = useState<'detailed' | 'compact'>(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('strumos_songlist_view_mode');
+      if (saved === 'detailed' || saved === 'compact') return saved;
+    }
+    return 'detailed';
+  });
 
-  // Section Looping Practice States
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-  const [isLoopActive, setIsLoopActive] = useState(false);
-  const [isMetronomeActive, setIsMetronomeActive] = useState(false);
-  const [metronomeBpm, setMetronomeBpm] = useState(90);
+  const toggleSongListViewMode = (mode: 'detailed' | 'compact') => {
+    setSongListViewMode(mode);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('strumos_songlist_view_mode', mode);
+    }
+  };
 
-  // Capo (Kapodastr) State
-  const [capoFret, setCapoFret] = useState<number>(activeSong?.capo || 0);
+  // Success / Toast Messages
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
 
+  // Modals state for Lock & AddToPlaylist & Delete
+  const [lockModalSong, setLockModalSong] = useState<Song | null>(null);
+  const [lockModalMode, setLockModalMode] = useState<'lock' | 'unlock' | 'delete' | 'edit'>('lock');
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+
+  const [deleteModalSong, setDeleteModalSong] = useState<Song | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [playlistModalSong, setPlaylistModalSong] = useState<Song | null>(null);
+  const [isPlaylistModalOpen, setIsPlaylistModalOpen] = useState(false);
+
+  // Sync edited chords & musical context parameters when song changes
   useEffect(() => {
     if (activeSong) {
       setCapoFret(activeSong.capo || 0);
+      if (activeSong.key) setKey(activeSong.key);
+      if (activeSong.bpm) setBpm(activeSong.bpm);
+      if (activeSong.tuning) setTuning(activeSong.tuning);
     }
-  }, [activeSong?.id]);
+  }, [activeSong?.id, activeSong?.key, activeSong?.bpm, activeSong?.tuning]);
 
-  // Effective transposition considering Capo
-  const effectiveTranspose = transposeSemitones - capoFret;
-
-  // Parse sections for active song
-  const songSections = parseSongSections(activeSong?.content || '');
-  const activeSection = songSections.find((s) => s.id === selectedSectionId) || null;
-
-  // Get all unique chords present in the active song (transposed with capo offset)
-  const songChords = extractUniqueChords(activeSong?.content || '', effectiveTranspose);
-
-  // Form states for creating/editing song
-  const [editTitle, setEditTitle] = useState('');
-  const [editArtist, setEditArtist] = useState('');
-  const [editKey, setEditKey] = useState('G');
-  const [editBpm, setEditBpm] = useState(90);
-  const [editContent, setEditContent] = useState('');
-
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-  const fullscreenScrollRef = useRef<HTMLDivElement | null>(null);
-
-  // Get ordered list of all line IDs in current song
-  const getAllLineIds = (): string[] => {
-    if (songSections.length === 0) {
-      const lines = (activeSong?.content || '').split('\n');
-      return lines.map((_, idx) => `line-${idx}`);
-    }
-    const ids: string[] = [];
-    songSections.forEach((sec) => {
-      sec.lines.forEach((_, lineIdx) => {
-        ids.push(`sec-${sec.id}-line-${lineIdx}`);
-      });
-    });
-    return ids;
-  };
-
-  // Step active line forward or backward
-  const handleStepLine = (direction: 'next' | 'prev') => {
-    const lineIds = getAllLineIds();
-    if (lineIds.length === 0) return;
-
-    const currentIdx = activeLineId ? lineIds.indexOf(activeLineId) : -1;
-    let newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
-
-    if (newIdx < 0) newIdx = 0;
-    if (newIdx >= lineIds.length) newIdx = lineIds.length - 1;
-
-    const targetLineId = lineIds[newIdx];
-    setActiveLineId(targetLineId);
-
-    // Scroll target line into view smooth center
-    const targetRef = isFullscreen ? fullscreenScrollRef.current : scrollRef.current;
-    if (targetRef) {
-      const lineEl = targetRef.querySelector(`[data-line-id="${targetLineId}"]`);
-      if (lineEl) {
-        lineEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  };
-
-  // Auto detect active line from scroll position (reader focal line)
-  const handleViewerScroll = () => {
-    if (!isRhythmGuideActive) return;
-    const targetRef = isFullscreen ? fullscreenScrollRef.current : scrollRef.current;
-    if (!targetRef) return;
-
-    const lines = targetRef.querySelectorAll<HTMLElement>('.song-lyric-line');
-    if (lines.length === 0) return;
-
-    const containerRect = targetRef.getBoundingClientRect();
-    const focusPoint = containerRect.top + containerRect.height * 0.3; // 30% down from top
-
-    let closestLineId: string | null = null;
-    let minDistance = Infinity;
-
-    lines.forEach((lineEl) => {
-      const rect = lineEl.getBoundingClientRect();
-      const lineCenter = rect.top + rect.height / 2;
-      const distance = Math.abs(lineCenter - focusPoint);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestLineId = lineEl.getAttribute('data-line-id');
-      }
-    });
-
-    if (closestLineId && closestLineId !== activeLineId) {
-      setActiveLineId(closestLineId);
-    }
-  };
-
-  // Reset section loop & initialize first line when song changes
+  // Keep songs state automatically backed up
   useEffect(() => {
-    setSelectedSectionId(null);
-    setIsLoopActive(false);
-    const lineIds = getAllLineIds();
-    if (lineIds.length > 0) {
-      setActiveLineId(lineIds[0]);
-    } else {
-      setActiveLineId(null);
-    }
-  }, [activeSong]);
-
-  // Handle Keyboard Navigation (ESC, Arrow keys for line stepping)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFullscreen) {
-        setIsFullscreen(false);
-      }
-      const isInput = ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName);
-      if (!isInput && activeSong && isRhythmGuideActive) {
-        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-          e.preventDefault();
-          handleStepLine('next');
-        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-          e.preventDefault();
-          handleStepLine('prev');
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isFullscreen, activeSong, activeLineId, songSections, isRhythmGuideActive]);
-
-  // Practice Metronome Effect & Auto Beat Stepper
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isMetronomeActive) {
-      let beat = 0;
-      const intervalMs = Math.max(150, (60 / metronomeBpm) * 1000);
-      interval = setInterval(() => {
-        audioSynth.playMetronomeClick(beat === 0);
-        beat = (beat + 1) % beatsPerLine;
-
-        if (isBeatStepperActive && beat === 0) {
-          handleStepLine('next');
-        }
-      }, intervalMs);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isMetronomeActive, metronomeBpm, isBeatStepperActive, beatsPerLine, activeLineId, isFullscreen]);
-
-  // Auto-save songs to localStorage
-  useEffect(() => {
-    if (typeof localStorage !== 'undefined') {
+    if (typeof localStorage !== 'undefined' && songs && songs.length > 0) {
       localStorage.setItem('band_songs_db', JSON.stringify(songs));
     }
   }, [songs]);
 
-  // Handle new AI scanned song added
+  // Sync playlists to localStorage
   useEffect(() => {
-    if (customNewSong) {
-      setSongs((prev) => [customNewSong, ...prev]);
-      setActiveSong(customNewSong);
-      setTransposeSemitones(0);
-      if (session) {
-        sessionSync.broadcastNewSong(customNewSong);
-      }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('band_playlists_db', JSON.stringify(playlists));
     }
-  }, [customNewSong]);
+  }, [playlists]);
 
-  // Section-Aware Auto-scroll & Looping Effect (Handles normal & fullscreen views)
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    const targetRef = isFullscreen ? fullscreenScrollRef.current : scrollRef.current;
+  // Form states for creating song
+  const [editTitle, setEditTitle] = useState('');
+  const [editArtist, setEditArtist] = useState('');
+  const [editKey, setEditKey] = useState('G');
+  const [editTuning, setEditTuning] = useState('Standard (EADGBe)');
+  const [editBpm, setEditBpm] = useState(90);
+  const [editContent, setEditContent] = useState('');
 
-    if (isAutoScrolling && targetRef) {
-      interval = setInterval(() => {
-        if (targetRef) {
-          // Continuous section loop handling
-          if (isLoopActive && selectedSectionId) {
-            const secEl = document.getElementById(
-              isFullscreen ? `fs-section-${selectedSectionId}` : `section-${selectedSectionId}`
-            );
-            if (secEl) {
-              const containerTop = targetRef.offsetTop;
-              const secTop = secEl.offsetTop - containerTop - 10;
-              const secBottom = secTop + secEl.offsetHeight;
-
-              if (
-                targetRef.scrollTop + targetRef.clientHeight >= secBottom + 10 ||
-                targetRef.scrollTop >= secBottom - 10
-              ) {
-                targetRef.scrollTop = Math.max(0, secTop);
-                return;
-              }
-            }
-          }
-
-          targetRef.scrollTop += scrollSpeed * 0.5;
-
-          if (
-            !isLoopActive &&
-            targetRef.scrollTop + targetRef.clientHeight >= targetRef.scrollHeight - 5
-          ) {
-            setIsAutoScrolling(false);
-          }
-        }
-      }, 50);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isAutoScrolling, scrollSpeed, isLoopActive, selectedSectionId, isFullscreen]);
-
-  // Handler to toggle section looping
-  const handleToggleSectionLoop = (sectionId: string) => {
-    if (selectedSectionId === sectionId && isLoopActive) {
-      setIsLoopActive(false);
-      setSelectedSectionId(null);
-    } else {
-      setSelectedSectionId(sectionId);
-      setIsLoopActive(true);
-      setIsAutoScrolling(true);
-
-      const targetRef = isFullscreen ? fullscreenScrollRef.current : scrollRef.current;
-      setTimeout(() => {
-        const secEl = document.getElementById(
-          isFullscreen ? `fs-section-${sectionId}` : `section-${sectionId}`
-        );
-        if (secEl && targetRef) {
-          const containerTop = targetRef.offsetTop;
-          targetRef.scrollTop = Math.max(0, secEl.offsetTop - containerTop - 10);
-        }
-      }, 50);
-    }
-  };
-
-  // Listen for band session song broadcast & song list synchronization
-  useEffect(() => {
-    const unsubscribe = sessionSync.subscribe((sessionData) => {
-      if (sessionData.songsList && sessionData.songsList.length > 0) {
-        setSongs((prevSongs) => {
-          const incoming = sessionData.songsList!;
-          const existingMap = new Map<string, Song>(prevSongs.map((s) => [s.id, s]));
-
-          let changed = false;
-          for (const incSong of incoming) {
-            const old = existingMap.get(incSong.id);
-            if (!old || old.updatedAt !== incSong.updatedAt || old.content !== incSong.content) {
-              existingMap.set(incSong.id, incSong);
-              changed = true;
-            }
-          }
-
-          if (changed || prevSongs.length === 0) {
-            const merged = Array.from(existingMap.values());
-            if (typeof localStorage !== 'undefined') {
-              localStorage.setItem('band_songs_db', JSON.stringify(merged));
-            }
-            return merged;
-          }
-          return prevSongs;
-        });
-      }
-
-      if (sessionData.activeSongId) {
-        setActiveSong((currentActive) => {
-          if (currentActive?.id === sessionData.activeSongId) return currentActive;
-          const found = sessionData.songsList?.find((s) => s.id === sessionData.activeSongId);
-          if (found) {
-            setTransposeSemitones(0);
-            return found;
-          }
-          return currentActive;
-        });
-      }
-    });
-    return unsubscribe;
-  }, []);
-
-  // Transpose helper supporting slash chords (e.g. G/B -> A/C#)
-  const transposeNote = (note: string, semitones: number): string => {
-    let root = note;
-    if (root === 'Db') root = 'C#';
-    if (root === 'D#') root = 'Eb';
-    if (root === 'Gb') root = 'F#';
-    if (root === 'Ab') root = 'G#';
-    if (root === 'A#') root = 'Bb';
-
-    const index = CHROMATIC_SCALE.indexOf(root);
-    if (index === -1) return note;
-
-    let newIndex = (index + semitones) % 12;
-    if (newIndex < 0) newIndex += 12;
-
-    return CHROMATIC_SCALE[newIndex];
-  };
-
-  const transposeChordName = (chordName: string, semitones: number): string => {
-    if (semitones === 0) return chordName;
-
-    if (chordName.includes('/')) {
-      const parts = chordName.split('/');
-      return parts.map((p) => transposeChordName(p, semitones)).join('/');
-    }
-
-    const match = chordName.match(/^([A-G][#b]?)(.*)$/);
-    if (!match) return chordName;
-
-    const [, root, suffix] = match;
-    const transposedRoot = transposeNote(root, semitones);
-    return transposedRoot + suffix;
-  };
-
-  // Render content with section blocks, looping badges, rhythm follower highlights, and interactive inline transposed chords
-  const renderFormattedLyrics = (content: string, isFS: boolean = false) => {
-    if (!content) return null;
-
-    if (songSections.length === 0) {
-      const lines = content.split('\n');
-      return lines.map((line, lineIdx) => {
-        const lineId = `line-${lineIdx}`;
-        const isActiveLine = isRhythmGuideActive && activeLineId === lineId;
-        const parts = line.split(/(\[[^\]]+\])/g);
-
-        return (
-          <div
-            key={lineIdx}
-            data-line-id={lineId}
-            onClick={() => {
-              if (isRhythmGuideActive) setActiveLineId(lineId);
-            }}
-            className={`song-lyric-line my-1.5 p-2 rounded transition-all duration-200 cursor-pointer relative font-mono leading-relaxed ${
-              isActiveLine
-                ? 'bg-[#00220A]/80 border-l-4 border-[#00FF41] shadow-[0_0_20px_rgba(0,255,65,0.35)] animate-pulse-glow text-white font-bold'
-                : 'hover:bg-[#111] text-[#D1D1D1] border-l-4 border-transparent'
-            }`}
-            style={{ fontSize: `${fontSize}px` }}
-          >
-            {isActiveLine && (
-              <span className="inline-flex items-center gap-1 bg-[#00FF41] text-black font-black text-[9px] px-1.5 py-0.5 rounded-xs mr-2 uppercase tracking-wider animate-pulse shadow-sm">
-                <Zap className="w-2.5 h-2.5 text-black" /> HRAJE SE
-              </span>
-            )}
-
-            {parts.map((part, partIdx) => {
-              if (part.startsWith('[') && part.endsWith(']')) {
-                const originalChord = part.slice(1, -1);
-                const transposedChord = transposeChordName(originalChord, effectiveTranspose);
-                return (
-                  <ChordHoverPill
-                    key={partIdx}
-                    chordName={transposedChord}
-                    isActiveLine={isActiveLine}
-                    fontSize={fontSize}
-                    onSelectModalChord={setSelectedModalChord}
-                  />
-                );
-              }
-              return <span key={partIdx}>{part}</span>;
-            })}
-          </div>
-        );
-      });
-    }
-
-    return songSections.map((sec) => {
-      const isSelected = selectedSectionId === sec.id;
-      const isLoopingThis = isSelected && isLoopActive;
-      const elementId = isFS ? `fs-section-${sec.id}` : `section-${sec.id}`;
-
-      return (
-        <div
-          key={sec.id}
-          id={elementId}
-          className={`my-3 p-3 sm:p-4 transition-all duration-200 border relative rounded-sm ${
-            isLoopingThis
-              ? 'bg-[#00220A]/40 border-[#00FF41] shadow-[0_0_15px_rgba(0,255,65,0.25)]'
-              : isSelected
-              ? 'bg-[#141414] border-[#FF3E00]/60'
-              : 'bg-[#0A0A0A]/60 border-[#1A1A1A] hover:border-[#333]'
-          }`}
-        >
-          {/* Section Header Bar */}
-          <div className="flex items-center justify-between border-b border-[#222] pb-1.5 mb-2 select-none">
-            <div className="flex items-center gap-2">
-              <span
-                className={`text-[10px] sm:text-xs font-black uppercase px-2 py-0.5 border ${
-                  isLoopingThis
-                    ? 'bg-[#00FF41] text-black border-black font-extrabold'
-                    : sec.type === 'chorus'
-                    ? 'bg-[#FF3E00] text-black border-black font-extrabold'
-                    : 'bg-[#1A1A1A] text-white border-[#333]'
-                }`}
-              >
-                {sec.title}
-              </span>
-
-              {isLoopingThis && (
-                <span className="animate-pulse text-[9px] font-extrabold text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40 flex items-center gap-1">
-                  <Repeat1 className="w-3 h-3 text-[#00FF41]" />
-                  AKTIVNÍ PRAKTICKÁ SMYČKA
-                </span>
-              )}
-            </div>
-
-            <button
-              onClick={() => handleToggleSectionLoop(sec.id)}
-              className={`text-[10px] font-extrabold uppercase px-2 py-1 border transition-none flex items-center gap-1.5 ${
-                isLoopingThis
-                  ? 'bg-[#00FF41] hover:bg-white text-black border-black shadow-md'
-                  : 'bg-[#141414] hover:bg-[#222] text-[#888] hover:text-[#00FF41] border-[#333]'
-              }`}
-              title="Nastavit tuto sekci pro plynulé opakovací cvičení"
-            >
-              <Repeat className={`w-3.5 h-3.5 ${isLoopingThis ? 'text-black animate-spin' : ''}`} />
-              <span>{isLoopingThis ? 'ZRUŠIT LOOP' : 'LOOPOVAT SEKCI'}</span>
-            </button>
-          </div>
-
-          {/* Section Lines */}
-          {sec.lines.map((line, lineIdx) => {
-            const lineId = `sec-${sec.id}-line-${lineIdx}`;
-            const isActiveLine = isRhythmGuideActive && activeLineId === lineId;
-            const parts = line.split(/(\[[^\]]+\])/g);
-
-            return (
-              <div
-                key={lineIdx}
-                data-line-id={lineId}
-                onClick={() => {
-                  if (isRhythmGuideActive) setActiveLineId(lineId);
-                }}
-                className={`song-lyric-line my-1.5 p-2 rounded transition-all duration-200 cursor-pointer relative font-mono leading-relaxed ${
-                  isActiveLine
-                    ? 'bg-[#00220A]/80 border-l-4 border-[#00FF41] shadow-[0_0_20px_rgba(0,255,65,0.35)] animate-pulse-glow text-white font-bold'
-                    : 'hover:bg-[#111] text-[#D1D1D1] border-l-4 border-transparent'
-                }`}
-                style={{ fontSize: `${fontSize}px` }}
-              >
-                {isActiveLine && (
-                  <span className="inline-flex items-center gap-1 bg-[#00FF41] text-black font-black text-[9px] px-1.5 py-0.5 rounded-xs mr-2 uppercase tracking-wider animate-pulse shadow-sm">
-                    <Zap className="w-2.5 h-2.5 text-black" /> HRAJE SE
-                  </span>
-                )}
-
-                {parts.map((part, partIdx) => {
-                  if (part.startsWith('[') && part.endsWith(']')) {
-                    const originalChord = part.slice(1, -1);
-                    const transposedChord = transposeChordName(originalChord, effectiveTranspose);
-
-                    return (
-                      <ChordHoverPill
-                        key={partIdx}
-                        chordName={transposedChord}
-                        isActiveLine={isActiveLine}
-                        fontSize={fontSize}
-                        onSelectModalChord={setSelectedModalChord}
-                      />
-                    );
-                  }
-                  return <span key={partIdx}>{part}</span>;
-                })}
-              </div>
-            );
-          })}
-        </div>
-      );
-    });
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
   };
 
   const handleCreateSong = () => {
     const newSong: Song = {
       id: 'song_' + Date.now(),
-      title: editTitle || 'Nová Píseň',
-      artist: editArtist || 'Vlastní tvorba',
+      title: editTitle || 'Nová skladba',
+      artist: editArtist || 'Neznámý interpret',
       key: editKey,
+      tuning: editTuning,
       bpm: editBpm,
       content: editContent,
       chordsUsed: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    const updatedSongs = [newSong, ...songs];
-    setSongs(updatedSongs);
+    songDatabaseService.saveSong(newSong);
     setActiveSong(newSong);
     setIsEditing(false);
+    showToast(`Skladba "${newSong.title}" byla uložena.`);
 
     if (session) {
       sessionSync.broadcastNewSong(newSong);
@@ -572,22 +204,17 @@ export const Songbook: React.FC<SongbookProps> = ({
   };
 
   const handleSongImported = (importedSong: Song) => {
-    setSongs((prev) => [importedSong, ...prev]);
+    songDatabaseService.saveSong(importedSong);
     setActiveSong(importedSong);
     setTransposeSemitones(0);
+    showToast(`Skladba "${importedSong.title}" byla importována.`);
     if (session) {
       sessionSync.broadcastNewSong(importedSong);
     }
   };
 
-  const handleDeleteAttachment = (attachmentId: string) => {
-    if (!activeSong) return;
-    const updatedAttachments = (activeSong.attachments || []).filter((a) => a.id !== attachmentId);
-    const updatedSong: Song = {
-      ...activeSong,
-      attachments: updatedAttachments,
-      updatedAt: Date.now(),
-    };
+  const handleUpdateSong = (updatedSong: Song) => {
+    songDatabaseService.saveSong(updatedSong);
     setActiveSong(updatedSong);
     setSongs((prev) => prev.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
     if (session) {
@@ -595,811 +222,880 @@ export const Songbook: React.FC<SongbookProps> = ({
     }
   };
 
-  const handleShareSongToBand = () => {
-    if (session && activeSong) {
-      sessionSync.setActiveSong(activeSong.id);
-      sessionSync.broadcastSongs(songs);
-      setSharedNotice(true);
-      setTimeout(() => setSharedNotice(false), 2500);
+  // Lock / Delete Actions
+  const handleLockClick = (song: Song, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setLockModalSong(song);
+    setLockModalMode(song.isLocked ? 'unlock' : 'lock');
+    setIsLockModalOpen(true);
+  };
+
+  const handleDeleteClick = (song: Song, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (song.isLocked) {
+      setLockModalSong(song);
+      setLockModalMode('delete');
+      setIsLockModalOpen(true);
+    } else {
+      setDeleteModalSong(song);
+      setIsDeleteModalOpen(true);
     }
   };
 
-  const filteredSongs = songs.filter(
-    (s) =>
-      s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.key.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const performDeleteSong = (songId: string) => {
+    const deletedSong = songs.find((s) => s.id === songId);
+    const deletedTitle = deletedSong?.title || 'Skladba';
 
-  const chordDef = hoveredChord
-    ? CHORDS_DATABASE.find((c) => c.name === hoveredChord || c.root === hoveredChord)
-    : null;
+    songDatabaseService.deleteSong(songId);
+
+    setPlaylists((prev) =>
+      prev.map((p) => ({
+        ...p,
+        songIds: p.songIds.filter((id) => id !== songId),
+      }))
+    );
+
+    const updatedSongs = songs.filter((s) => s.id !== songId);
+    setSongs(updatedSongs);
+
+    if (activeSong?.id === songId) {
+      if (updatedSongs.length > 0) {
+        setActiveSong(updatedSongs[0]);
+      } else {
+        const defaultEmptySong: Song = {
+          id: 'song_' + Date.now(),
+          title: 'Nová skladba',
+          artist: '',
+          key: 'C',
+          tuning: 'Standard (EADGBe)',
+          bpm: 120,
+          content: '',
+          chordsUsed: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        };
+        setActiveSong(defaultEmptySong);
+      }
+    }
+
+    showToast(`Skladba "${deletedTitle}" byla úspěšně smazána.`);
+  };
+
+  const handleLockConfirmed = (password: string) => {
+    if (!lockModalSong) return;
+    const updated: Song = {
+      ...lockModalSong,
+      isLocked: true,
+      lockPassword: password,
+      updatedAt: Date.now(),
+    };
+    handleUpdateSong(updated);
+    showToast(`Skladba "${lockModalSong.title}" byla uzamčena adminem.`);
+  };
+
+  const handleUnlockConfirmed = () => {
+    if (!lockModalSong) return;
+    const updated: Song = {
+      ...lockModalSong,
+      isLocked: false,
+      updatedAt: Date.now(),
+    };
+    handleUpdateSong(updated);
+    showToast(`Skladba "${lockModalSong.title}" byla odemčena.`);
+  };
+
+  const handleOpenAddToPlaylist = (song: Song, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setPlaylistModalSong(song);
+    setIsPlaylistModalOpen(true);
+  };
+
+  const handleCreatePlaylist = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPlaylistName.trim()) return;
+    const item = {
+      id: 'pl_' + Date.now(),
+      name: newPlaylistName.trim(),
+      songIds: [],
+    };
+    setPlaylists((prev) => [...prev, item]);
+    setSelectedPlaylistId(item.id);
+    setNewPlaylistName('');
+    setShowNewPlaylistInput(false);
+  };
+
+  const toggleSongInPlaylist = (playlistId: string, songId: string) => {
+    setPlaylists((prev) =>
+      prev.map((p) => {
+        if (p.id !== playlistId) return p;
+        const alreadyHas = p.songIds.includes(songId);
+        return {
+          ...p,
+          songIds: alreadyHas ? p.songIds.filter((id) => id !== songId) : [...p.songIds, songId],
+        };
+      })
+    );
+  };
+
+  // Helper to extract content tags for library song list
+  const getSongContentBadges = (song: Song) => {
+    const badges = [];
+    if ((song.youtubeVideos?.length || 0) > 0) {
+      badges.push({ id: 'yt', label: 'YouTube', icon: '🎥', color: 'bg-red-500/20 text-red-300 border-red-500/30' });
+    }
+    if (song.content && song.content.trim().length > 0) {
+      badges.push({ id: 'txt', label: 'Text', icon: '📝', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' });
+    }
+    if ((song.chordsUsed?.length || 0) > 0 || /\[[^\]]+\]/.test(song.content || '')) {
+      badges.push({ id: 'chords', label: 'Akordy', icon: '🎸', color: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30' });
+    }
+    if (
+      (song.tabs?.length || 0) > 0 ||
+      song.attachments?.some((a) => a.type === 'guitarpro' || a.type === 'txt') ||
+      /tab|e\|---|b\|---/i.test(song.content || '')
+    ) {
+      badges.push({ id: 'tabs', label: 'Tabs', icon: '📑', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30' });
+    }
+    if ((song.midiFiles?.length || 0) > 0 || song.attachments?.some((a) => a.type === 'midi')) {
+      badges.push({ id: 'midi', label: 'Midi', icon: '🎹', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' });
+    }
+    if ((song.sheetMusic?.length || 0) > 0 || song.attachments?.some((a) => a.type === 'pdf')) {
+      badges.push({ id: 'notes', label: 'Noty', icon: '🎼', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' });
+    }
+    if ((song.images?.length || 0) > 0 || song.attachments?.some((a) => a.type === 'image')) {
+      badges.push({ id: 'img', label: 'Obrázky', icon: '🖼️', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' });
+    }
+    if ((song.links?.length || 0) > 0) {
+      badges.push({ id: 'links', label: 'Odkazy', icon: '🔗', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' });
+    }
+    return badges;
+  };
+
+  const filteredSongs = songs
+    .filter((s) => {
+      if (selectedPlaylistId !== 'all') {
+        const pl = playlists.find((p) => p.id === selectedPlaylistId);
+        if (pl && !pl.songIds.includes(s.id)) return false;
+      }
+      if (selectedLetter) {
+        if (!s.title.toUpperCase().startsWith(selectedLetter)) return false;
+      }
+      const q = searchQuery.toLowerCase();
+      return (
+        s.title.toLowerCase().includes(q) ||
+        s.artist.toLowerCase().includes(q) ||
+        s.key.toLowerCase().includes(q)
+      );
+    })
+    .sort((a, b) => {
+      if (sortMode === 'alphabetical') {
+        return a.title.localeCompare(b.title, 'cs');
+      }
+      return (b.createdAt || 0) - (a.createdAt || 0);
+    });
 
   return (
-    <div className="max-w-[1400px] mx-auto space-y-3 font-mono pb-12">
+    <div className="w-full space-y-4 font-sans pb-16">
       {/* Cloud Session Live Status Banner */}
       {session && (
-        <div className="bg-[#001D07] border border-[#00FF41] px-4 py-2 text-xs text-[#00FF41] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-[0_0_15px_rgba(0,255,65,0.15)]">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-[#00FF41] rounded-full animate-pulse shrink-0"></span>
-            <span className="font-extrabold uppercase tracking-wide">
-              ☁️ CLOUD ZKUŠEBNY PROPOJENA: <span className="text-white font-mono bg-black/60 px-2 py-0.5 border border-[#00FF41]/40">{session.roomId}</span>
+        <div className="bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl px-4 py-2.5 text-xs text-[#30D158] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-sm backdrop-blur-md">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 bg-[#30D158] rounded-full animate-pulse shrink-0 shadow-[0_0_8px_#30D158]"></span>
+            <span className="font-semibold">
+              Cloud zkušebny propojena:{' '}
+              <span className="text-white font-mono bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
+                {session.roomId}
+              </span>
             </span>
-            <span className="hidden md:inline text-[11px] text-[#A0FFA0]">
-              // Všechny přidané písničky se automaticky ukládají do cloudu a vidí je všichni v reálném čase.
+            <span className="hidden md:inline text-neutral-300">
+              Všechny změny se synchronizují v reálném čase.
             </span>
           </div>
-          <span className="text-[10px] bg-[#00FF41] text-black font-black uppercase px-2 py-0.5">
-            PŘIPOJENO ČLENŮ: {session.members.length}
+          <span className="text-[11px] bg-[#30D158] text-black font-semibold px-2.5 py-0.5 rounded-lg">
+            Připojeno: {session.members.length}
           </span>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      
-      {/* Sidebar: Song List & Search */}
-      <div className={`lg:col-span-4 bg-[#0F0F0F] border border-[#333] p-4 flex flex-col ${isExpandedHeight ? 'h-[850px]' : 'h-[650px]'}`}>
-        
-        {/* Search & Actions Header */}
-        <div className="space-y-3 mb-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold text-[#888] uppercase tracking-wider flex items-center gap-2">
-              <BookOpen className="w-4 h-4 text-[#FF3E00]" />
-              KNIHOVNA SKLADEB ({songs.length})
-            </h2>
-            <button
-              onClick={() => {
-                setEditTitle('');
-                setEditArtist('');
-                setEditContent('[G]Text s akordy [C]zde...');
-                setIsEditing(true);
-              }}
-              className="px-2.5 py-1 bg-[#D1D1D1] hover:bg-white text-black font-extrabold text-[11px] uppercase flex items-center gap-1 border border-white"
-            >
-              <Plus className="w-3.5 h-3.5" /> NOVÁ SKLADBA
-            </button>
-          </div>
-
-          <div className="relative">
-            <Search className="w-3.5 h-3.5 text-[#666] absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="VYHLEDAT..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#050505] border border-[#222] text-[#D1D1D1] pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:border-[#FF3E00] uppercase"
-            />
-          </div>
-
-          {/* Action Buttons: File Import, Photo OCR & Online Search */}
-          <button
-            onClick={() => setIsFileImportOpen(true)}
-            className="w-full py-2 px-2 bg-[#1A1800] hover:bg-[#2B2800] border border-[#FFD700] hover:border-white text-[#FFD700] text-[11px] font-black flex items-center justify-center gap-1.5 uppercase transition-none shadow-[0_0_12px_rgba(255,215,0,0.15)]"
-          >
-            <FileUp className="w-4 h-4 text-[#FFD700]" />
-            <span>IMPORT SOUBORŮ (TXT, PDF, MIDI, GUITAR PRO)</span>
+      {/* Success / Toast Banner */}
+      {toastMsg && (
+        <div className="bg-[#30D158]/15 border border-[#30D158]/30 rounded-2xl px-4 py-2.5 text-xs text-[#30D158] flex items-center justify-between shadow-md">
+          <span>{toastMsg}</span>
+          <button onClick={() => setToastMsg(null)} className="text-white hover:text-[#30D158]">
+            <X className="w-4 h-4" />
           </button>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            <button
-              onClick={() => setIsOnlineSearchOpen(true)}
-              className="py-1.5 px-2 bg-[#141414] hover:bg-[#1A1A1A] border border-[#333] hover:border-[#00FF41] text-[#00FF41] text-[11px] font-bold flex items-center justify-center gap-1.5 uppercase transition-none"
-            >
-              <Globe className="w-3.5 h-3.5 text-[#00FF41]" />
-              <span>HLEDAT ONLINE</span>
-            </button>
-
-            <button
-              onClick={onOpenCameraModal}
-              className="py-1.5 px-2 bg-[#141414] hover:bg-[#1A1A1A] border border-[#333] hover:border-[#FF3E00] text-[#FF3E00] text-[11px] font-bold flex items-center justify-center gap-1.5 uppercase transition-none"
-            >
-              <Camera className="w-3.5 h-3.5 text-[#FF3E00]" />
-              <span>SKEN_ZPĚVNÍK (AI)</span>
-            </button>
-          </div>
         </div>
+      )}
 
-        {/* Songs List */}
-        <div className="flex-1 overflow-y-auto space-y-1 pr-1">
-          {filteredSongs.map((song) => {
-            const isActive = activeSong.id === song.id;
-            return (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+        {/* Sidebar: Library & Filters */}
+        <div
+          className={`lg:col-span-4 2xl:col-span-3 bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col ${
+            isExpandedHeight ? 'min-h-[880px]' : 'min-h-[740px]'
+          } gap-3 shadow-xl`}
+        >
+          {/* Search & Actions Header */}
+          <div className="space-y-3 shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[#FF9F0A]" />
+                <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                  Knihovna skladeb ({filteredSongs.length})
+                </h2>
+              </div>
               <button
-                key={song.id}
                 onClick={() => {
-                  setActiveSong(song);
-                  setTransposeSemitones(0);
-                  if (session) {
-                    sessionSync.setActiveSong(song.id);
-                  }
+                  setEditTitle('');
+                  setEditArtist('');
+                  setEditTuning('Standard (EADGBe)');
+                  setEditContent('[G]Text s akordy [C]zde...');
+                  setIsEditing(true);
                 }}
-                className={`w-full text-left p-2.5 border transition-none ${
-                  isActive
-                    ? 'bg-[#141414] border-[#FF3E00] border-l-4 text-white'
-                    : 'bg-[#050505] hover:bg-[#111] border-[#222] text-[#888]'
-                }`}
+                className="px-3 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black font-semibold text-xs rounded-xl flex items-center gap-1 shadow-sm transition-all cursor-pointer"
               >
-                <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-xs uppercase truncate text-white">{song.title}</h3>
-                  <span className="text-[10px] font-bold bg-[#222] text-[#00FF41] px-1.5 py-0.5 border border-[#333]">
-                    {song.key}
-                  </span>
-                </div>
-                <p className="text-[10px] text-[#666] mt-1 uppercase">{song.artist}</p>
-              </button>
-            );
-          })}
-        </div>
-
-      </div>
-
-      {/* Main View: Song Viewer / Transposer / Auto-Scroll */}
-      <div className={`lg:col-span-8 bg-[#0F0F0F] border border-[#333] p-4 flex flex-col relative ${isExpandedHeight ? 'h-[850px]' : 'h-[650px]'}`}>
-        
-        {/* Song Control Toolbar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#222]">
-          <div>
-            <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
-              {activeSong.title}
-              <span className="text-[10px] font-bold text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40">
-                TÓNINA: {transposeChordName(activeSong.key, transposeSemitones)}
-              </span>
-            </h2>
-            <p className="text-[11px] text-[#666] uppercase">{activeSong.artist}</p>
-          </div>
-
-          <div className="flex items-center flex-wrap gap-2">
-            
-            {/* Font Size Zoom Controller */}
-            <div className="flex items-center bg-[#050505] border border-[#222] p-1 gap-1" title="Nastavení velikosti písma a akordů">
-              <Type className="w-3.5 h-3.5 text-[#FF3E00] ml-1" />
-              <button
-                onClick={() => setFontSize((prev) => Math.max(12, prev - 2))}
-                className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222] text-white text-xs font-bold border border-[#333]"
-                title="Zmenšit písmo (A-)"
-              >
-                -
-              </button>
-              <span className="text-xs font-bold px-1.5 text-[#00FF41]">{fontSize}px</span>
-              <button
-                onClick={() => setFontSize((prev) => Math.min(36, prev + 2))}
-                className="px-1.5 py-0.5 bg-[#141414] hover:bg-[#222] text-white text-xs font-bold border border-[#333]"
-                title="Zvětšit písmo (A+)"
-              >
-                +
+                <Plus className="w-3.5 h-3.5" /> Nová
               </button>
             </div>
 
-            {/* Stage Mode Fullscreen Button */}
-            <button
-              onClick={() => setIsFullscreen(true)}
-              className="px-2.5 py-1 bg-[#FF3E00] hover:bg-white text-black font-extrabold text-[10px] uppercase flex items-center gap-1 border border-black shadow-sm"
-              title="Otevřít na celou obrazovku v režimu pódiového čtení (Stage Mode)"
-            >
-              <Maximize2 className="w-3.5 h-3.5" />
-              <span>PLNOU OBRAZOVKU</span>
-            </button>
-
-            {/* YouTube Section Shortcut Button */}
-            <button
-              onClick={() => onSelectSongForYoutube && onSelectSongForYoutube(activeSong)}
-              className="px-2.5 py-1 bg-[#FF0000] hover:bg-white text-white hover:text-black font-extrabold text-[10px] uppercase flex items-center gap-1 border border-black shadow-sm"
-              title="Zobrazit oficiální videoklip a backing tracky z YouTube pro tuto písničku"
-            >
-              <Youtube className="w-3.5 h-3.5" />
-              <span>YOUTUBE ({activeSong.youtubeVideos?.length || 0})</span>
-            </button>
-
-            {/* Transposer Controls */}
-            <div className="flex items-center bg-[#050505] border border-[#222] p-1 gap-1">
-              <span className="text-[10px] uppercase font-bold text-[#666] px-1 flex items-center gap-1">
-                <Music className="w-3 h-3 text-[#FF3E00]" />
-                TRANSPOZICE:
-              </span>
-
-              <button
-                onClick={() => setTransposeSemitones((prev) => prev - 1)}
-                className="px-2 py-0.5 bg-[#141414] hover:bg-[#222] text-white text-xs font-black border border-[#333] transition-none flex items-center gap-0.5"
-                title="Snížit o 1 polotón (-1)"
-              >
-                <ChevronDown className="w-3 h-3 text-[#FF3E00]" />
-                <span>-1</span>
-              </button>
-
-              <span className={`text-xs font-black px-2 py-0.5 border text-center ${
-                transposeSemitones !== 0 
-                  ? 'bg-[#FF3E00]/20 text-[#FF3E00] border-[#FF3E00]' 
-                  : 'text-[#888] border-[#333] bg-[#111]'
-              }`}>
-                {transposeSemitones > 0 ? `+${transposeSemitones}` : transposeSemitones}
-              </span>
-
-              <button
-                onClick={() => setTransposeSemitones((prev) => prev + 1)}
-                className="px-2 py-0.5 bg-[#141414] hover:bg-[#222] text-white text-xs font-black border border-[#333] transition-none flex items-center gap-0.5"
-                title="Zvýšit o 1 polotón (+1)"
-              >
-                <ChevronUp className="w-3 h-3 text-[#00FF41]" />
-                <span>+1</span>
-              </button>
-
-              {transposeSemitones !== 0 && (
-                <button
-                  onClick={() => setTransposeSemitones(0)}
-                  className="px-2 py-0.5 bg-[#FF3E00] hover:bg-white text-black font-extrabold text-[10px] uppercase transition-none ml-1"
-                  title="Obnovit původní tóninu"
-                >
-                  RESET (0)
-                </button>
-              )}
-            </div>
-
-            {/* Auto-Scroll Toggle */}
-            <div className="flex items-center bg-[#050505] border border-[#222] px-2 py-1 gap-2">
-              <button
-                onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-                className={`px-2 py-1 text-[10px] font-bold uppercase flex items-center gap-1 transition-none ${
-                  isAutoScrolling
-                    ? 'bg-[#FF3E00] text-black'
-                    : 'bg-[#222] text-[#D1D1D1] hover:bg-[#333]'
-                }`}
-              >
-                {isAutoScrolling ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                <span>{isAutoScrolling ? 'PAUZA' : 'POSUN'}</span>
-              </button>
-
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
-                type="range"
-                min="1"
-                max="8"
-                value={scrollSpeed}
-                onChange={(e) => setScrollSpeed(Number(e.target.value))}
-                className="w-14 accent-[#FF3E00] cursor-pointer"
+                type="text"
+                placeholder="Hledat skladbu, interpreta..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
               />
             </div>
 
-            {/* Height Toggle */}
-            <button
-              onClick={() => setIsExpandedHeight(!isExpandedHeight)}
-              className="p-1.5 bg-[#141414] hover:bg-[#222] border border-[#333] text-[#888] hover:text-white"
-              title={isExpandedHeight ? "Zmenšit výšku panelu" : "Zvětšit výšku panelu"}
-            >
-              {isExpandedHeight ? <ChevronUp className="w-4 h-4 text-[#00FF41]" /> : <ChevronDown className="w-4 h-4 text-[#FF3E00]" />}
-            </button>
+            {/* Alphabet Index Row */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none select-none">
+              <button
+                onClick={() => setSelectedLetter(null)}
+                className={`px-2 py-1 text-[10px] font-medium rounded-lg border shrink-0 transition-all cursor-pointer ${
+                  !selectedLetter
+                    ? 'bg-white/20 text-white border-white/25 font-semibold'
+                    : 'bg-white/[0.04] text-neutral-400 border-white/[0.04] hover:text-white'
+                }`}
+              >
+                Vše
+              </button>
+              {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) => {
+                const hasSongs = songs.some((s) => s.title.toUpperCase().startsWith(letter));
+                const isActive = selectedLetter === letter;
+                return (
+                  <button
+                    key={letter}
+                    onClick={() => setSelectedLetter(isActive ? null : letter)}
+                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-md border shrink-0 transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] font-bold'
+                        : hasSongs
+                        ? 'bg-white/[0.06] text-neutral-300 border-white/[0.08] hover:border-white/20'
+                        : 'bg-transparent text-neutral-600 border-transparent cursor-not-allowed'
+                    }`}
+                    disabled={!hasSongs}
+                  >
+                    {letter}
+                  </button>
+                );
+              })}
+            </div>
 
-            {/* Share to Band Room */}
-            <button
-              onClick={handleShareSongToBand}
-              className={`px-2.5 py-1 text-[10px] font-bold uppercase flex items-center gap-1 border transition-none ${
-                sharedNotice
-                  ? 'bg-[#002B0E] border-[#00FF41] text-[#00FF41]'
-                  : 'bg-[#141414] hover:bg-[#222] border-[#333] text-white'
-              }`}
-            >
-              {sharedNotice ? <Check className="w-3.5 h-3.5 text-[#00FF41]" /> : <Share2 className="w-3.5 h-3.5 text-[#FF3E00]" />}
-              <span>{sharedNotice ? 'VYSÍLÁNO' : 'VYSÍLAT'}</span>
-            </button>
-
-          </div>
-        </div>
-
-        {/* Transpose Presets & Capo Selector Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 my-2 py-1.5 px-2 bg-[#050505] border border-[#222] text-[10px] font-mono">
-          <div className="flex items-center gap-1 overflow-x-auto">
-            <span className="text-[#666] uppercase font-bold shrink-0">RYCHLÁ TRANSPOZICE:</span>
-            {[-5, -2, -1, 0, 1, 2, 5].map((step) => {
-              const isActive = transposeSemitones === step;
-              return (
+            {/* Sorting Controller */}
+            <div className="flex items-center justify-between bg-white/[0.03] p-1 rounded-xl border border-white/[0.06] text-[11px]">
+              <span className="text-neutral-400 font-medium px-2">Řazení</span>
+              <div className="flex gap-1">
                 <button
-                  key={step}
-                  onClick={() => setTransposeSemitones(step)}
-                  className={`px-2 py-0.5 border font-bold uppercase whitespace-nowrap transition-none ${
-                    isActive
-                      ? 'bg-[#FF3E00] text-black border-black'
-                      : 'bg-[#141414] text-[#AAA] border-[#222] hover:text-white hover:border-[#444]'
+                  onClick={() => setSortMode('recent')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    sortMode === 'recent'
+                      ? 'bg-white/15 text-white font-semibold shadow-sm'
+                      : 'text-neutral-400 hover:text-white'
                   }`}
                 >
-                  {step === 0 ? 'PŮVODNÍ (0)' : step > 0 ? `+${step}` : step}
+                  Poslední
                 </button>
-              );
-            })}
-          </div>
+                <button
+                  onClick={() => setSortMode('alphabetical')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                    sortMode === 'alphabetical'
+                      ? 'bg-white/15 text-white font-semibold shadow-sm'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  Abecedně
+                </button>
+              </div>
+            </div>
 
-          {/* Guitarist Capo Selector */}
-          <div className="flex items-center gap-2 shrink-0 bg-[#0F0F0F] border border-[#333] px-2 py-1 rounded-xs">
-            <span className="text-[#FFD700] uppercase font-black flex items-center gap-1 text-[10px]">
-              🎸 KAPODASTR (CAPO):
-            </span>
-            <div className="flex items-center gap-1">
+            {/* Playlists Selector Panel */}
+            <div className="bg-white/[0.03] border border-white/[0.06] p-2.5 rounded-2xl space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
+                  <List className="w-3.5 h-3.5 text-[#FF9F0A]" /> Playlisty
+                </span>
+                <button
+                  onClick={() => setShowNewPlaylistInput(!showNewPlaylistInput)}
+                  className="text-[10px] font-medium text-[#FF9F0A] hover:underline cursor-pointer"
+                >
+                  + Nový playlist
+                </button>
+              </div>
+
+              {showNewPlaylistInput ? (
+                <form onSubmit={handleCreatePlaylist} className="flex gap-1.5">
+                  <input
+                    type="text"
+                    placeholder="Název playlistu..."
+                    value={newPlaylistName}
+                    onChange={(e) => setNewPlaylistName(e.target.value)}
+                    className="flex-1 bg-black/50 border border-white/15 rounded-xl px-2.5 py-1 text-xs text-white focus:border-[#FF9F0A] outline-none"
+                    autoFocus
+                  />
+                  <button
+                    type="submit"
+                    className="bg-[#FF9F0A] text-black text-xs font-semibold px-2.5 rounded-xl cursor-pointer"
+                  >
+                    OK
+                  </button>
+                </form>
+              ) : (
+                <div className="flex flex-wrap gap-1.5 max-h-[72px] overflow-y-auto">
+                  {playlists.map((pl) => {
+                    const isActive = selectedPlaylistId === pl.id;
+                    const songCount =
+                      pl.id === 'all'
+                        ? songs.length
+                        : songs.filter((s) => pl.songIds.includes(s.id)).length;
+                    return (
+                      <button
+                        key={pl.id}
+                        onClick={() => {
+                          setSelectedPlaylistId(pl.id);
+                          setSelectedLetter(null);
+                        }}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-xl border transition-all cursor-pointer ${
+                          isActive
+                            ? 'bg-[#FF9F0A] border-[#FF9F0A] text-black font-semibold shadow-sm'
+                            : 'bg-white/[0.04] border-white/[0.06] text-neutral-400 hover:text-white'
+                        }`}
+                      >
+                        {pl.name} <span className="opacity-70 text-[10px]">({songCount})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons: Import */}
+            <div className="pt-1">
               <button
-                onClick={() => setCapoFret((prev) => Math.max(0, prev - 1))}
-                disabled={capoFret === 0}
-                className="w-5 h-5 bg-[#1C1C1C] hover:bg-[#333] disabled:opacity-30 text-white font-black text-xs flex items-center justify-center border border-[#444]"
-                title="Snížit kapodastr o 1 pražec"
+                onClick={() => setIsFileImportOpen(true)}
+                className="w-full py-2.5 px-3 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white text-xs font-semibold rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
               >
-                -
-              </button>
-              <span className="font-extrabold text-[#00FF41] px-1 min-w-[55px] text-center text-[10px]">
-                {capoFret === 0 ? 'BEZ KAPO' : `${capoFret}. PRAŽEC`}
-              </span>
-              <button
-                onClick={() => setCapoFret((prev) => Math.min(12, prev + 1))}
-                disabled={capoFret === 12}
-                className="w-5 h-5 bg-[#1C1C1C] hover:bg-[#333] disabled:opacity-30 text-white font-black text-xs flex items-center justify-center border border-[#444]"
-                title="Zvýšit kapodastr o 1 pražec"
-              >
-                +
+                <FileUp className="w-4 h-4 text-[#FF9F0A]" />
+                <span>Importovat píseň (.txt, .gp, .chordpro, .pdf)</span>
               </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-[#888] uppercase">
-              PŮVODNÍ TÓNINA: <strong className="text-white">{activeSong.key}</strong>
+          {/* View Mode Switcher Header */}
+          <div className="flex items-center justify-between px-1 pt-2 pb-1 border-t border-white/[0.06]">
+            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+              Skladby ({filteredSongs.length})
             </span>
-            {capoFret > 0 && (
-              <span className="text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40 font-bold uppercase">
-                TVARY S KAPO: {transposeChordName(activeSong.key, effectiveTranspose)}
-              </span>
+            <div className="flex items-center bg-black/50 border border-white/10 p-0.5 rounded-xl">
+              <button
+                onClick={() => toggleSongListViewMode('compact')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                  songListViewMode === 'compact'
+                    ? 'bg-[#FF9F0A] text-black shadow-sm font-bold'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+                title="1-řádkový kompaktní režim (Název skladby & Kapela)"
+              >
+                <AlignJustify className="w-3 h-3" />
+                <span>Řádky</span>
+              </button>
+              <button
+                onClick={() => toggleSongListViewMode('detailed')}
+                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                  songListViewMode === 'detailed'
+                    ? 'bg-[#FF9F0A] text-black shadow-sm font-bold'
+                    : 'text-neutral-400 hover:text-white'
+                }`}
+                title="Detailní režim s popisem obsahu a odznaky"
+              >
+                <LayoutGrid className="w-3 h-3" />
+                <span>Detailní</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Songs List with Scroll Support (Compact 1-line or Detailed Cards) */}
+          <div className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] space-y-1.5 pr-1 pt-1">
+            {filteredSongs.length === 0 ? (
+              <p className="text-xs text-neutral-500 text-center py-10">
+                Žádné skladby neodpovídají filtrům
+              </p>
+            ) : (
+              filteredSongs.map((song) => {
+                const isActive = activeSong.id === song.id;
+                const badges = getSongContentBadges(song);
+
+                if (songListViewMode === 'compact') {
+                  // Compact 1-line view (Band & Song only for high density)
+                  return (
+                    <div
+                      key={song.id}
+                      onClick={() => {
+                        setActiveSong(song);
+                        setTransposeSemitones(0);
+                        if (session) {
+                          sessionSync.setActiveSong(song);
+                        }
+                      }}
+                      className={`w-full text-left px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 group ${
+                        isActive
+                          ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]/40 text-white shadow-sm font-semibold'
+                          : 'bg-white/[0.02] hover:bg-white/[0.08] border-white/[0.04] text-neutral-300'
+                      }`}
+                      title={`${song.artist} - ${song.title}`}
+                    >
+                      {/* Band & Song 1-line text */}
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {song.isLocked && (
+                          <span title="Uzamčeno">
+                            <Lock className="w-3.5 h-3.5 text-[#FF453A] shrink-0" />
+                          </span>
+                        )}
+                        <div className="text-xs truncate flex items-center gap-1.5">
+                          <span className="font-bold text-white truncate">{song.title}</span>
+                          <span className="text-neutral-500 font-normal shrink-0">—</span>
+                          <span className="text-neutral-400 text-[11px] truncate font-medium">{song.artist}</span>
+                        </div>
+                      </div>
+
+                      {/* Tuning / Key Badge & Compact hover actions */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="text-[9px] font-medium bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded">
+                          {song.tuning ? song.tuning.split(' ')[0] : 'Std'}
+                        </span>
+                        
+                        <div className="hidden group-hover:flex items-center gap-0.5 ml-1">
+                          <button
+                            onClick={(e) => handleOpenAddToPlaylist(song, e)}
+                            className="p-1 hover:bg-white/15 text-neutral-300 hover:text-white rounded cursor-pointer"
+                            title="Přidat do playlistu"
+                          >
+                            <ListPlus className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                          </button>
+                          <button
+                            onClick={(e) => handleLockClick(song, e)}
+                            className="p-1 hover:bg-white/15 text-neutral-300 hover:text-white rounded cursor-pointer"
+                            title={song.isLocked ? 'Odemknout' : 'Uzamknout'}
+                          >
+                            {song.isLocked ? <Lock className="w-3.5 h-3.5 text-[#FF453A]" /> : <Unlock className="w-3.5 h-3.5 text-neutral-400" />}
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteClick(song, e)}
+                            className="p-1 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded cursor-pointer"
+                            title="Smazat"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // Detailed view (Full card with content descriptor badges)
+                return (
+                  <div
+                    key={song.id}
+                    onClick={() => {
+                      setActiveSong(song);
+                      setTransposeSemitones(0);
+                      if (session) {
+                        sessionSync.setActiveSong(song);
+                      }
+                    }}
+                    className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer relative group ${
+                      isActive
+                        ? 'bg-white/15 border-white/25 text-white shadow-md'
+                        : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.04] text-neutral-300'
+                    }`}
+                  >
+                    {/* Song Header & Title */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 flex-1 truncate">
+                        {song.isLocked && (
+                          <span title="Zamčeno adminem">
+                            <Lock className="w-3.5 h-3.5 text-[#FF453A] shrink-0" />
+                          </span>
+                        )}
+                        <h3 className="font-bold text-xs truncate text-white">{song.title}</h3>
+                      </div>
+                      <span className="text-[10px] font-medium bg-white/10 text-neutral-300 px-2 py-0.5 rounded-md shrink-0">
+                        {song.tuning || 'Standard'}
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-neutral-400 mt-0.5 truncate">{song.artist}</p>
+
+                    {/* Content Descriptor Badges ("popis co obsahuje: Youtube, Text, Akordy, Tabs, Midi, Noty, Obrázky, Odkazy") */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {badges.map((b) => (
+                        <span
+                          key={b.id}
+                          className={`text-[9px] font-semibold border px-1.5 py-0.5 rounded-md flex items-center gap-1 ${b.color}`}
+                        >
+                          <span>{b.icon}</span>
+                          <span>{b.label}</span>
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Quick Card Action Toolbar */}
+                    <div className="flex items-center justify-end gap-1.5 mt-2.5 pt-1.5 border-t border-white/[0.06] opacity-90 group-hover:opacity-100">
+                      {/* Add to playlist button */}
+                      <button
+                        onClick={(e) => handleOpenAddToPlaylist(song, e)}
+                        className="p-1.5 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white rounded-lg text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+                        title="Přidat do playlistu"
+                      >
+                        <ListPlus className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                        <span>Playlist</span>
+                      </button>
+
+                      {/* Lock / Unlock button */}
+                      <button
+                        onClick={(e) => handleLockClick(song, e)}
+                        className={`p-1.5 rounded-lg text-[10px] flex items-center gap-1 cursor-pointer transition-colors ${
+                          song.isLocked
+                            ? 'bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/30'
+                            : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white'
+                        }`}
+                        title={song.isLocked ? 'Odemknout skladbu' : 'Uzamknout adminem'}
+                      >
+                        {song.isLocked ? <Lock className="w-3.5 h-3.5 text-[#FF453A]" /> : <Unlock className="w-3.5 h-3.5 text-neutral-400" />}
+                      </button>
+
+                      {/* Delete button */}
+                      <button
+                        onClick={(e) => handleDeleteClick(song, e)}
+                        className="p-1.5 bg-white/5 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-lg cursor-pointer transition-colors"
+                        title="Odstranit z knihovny"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* Capo Notice Banner if active */}
-        {capoFret > 0 && (
-          <div className="bg-[#1A1600] border border-[#FFD700] px-3 py-1.5 my-1 text-[11px] font-mono text-[#FFD700] flex items-center justify-between font-bold shadow-sm">
-            <span className="flex items-center gap-1.5">
-              🎸 NASAĎTE KAPODASTR NA {capoFret}. PRAŽEC KYTARY!
-            </span>
-            <span className="text-white text-[10px]">
-              Zní tónina: <strong className="text-[#00FF41]">{transposeChordName(activeSong.key, transposeSemitones)}</strong> | Akordové tvary k hraní: <strong className="text-[#FFD700]">{transposeChordName(activeSong.key, effectiveTranspose)}</strong>
-            </span>
-          </div>
-        )}
+        {/* Main View: Song Viewer with Modular Windows Workspace */}
+        <div className="lg:col-span-8 2xl:col-span-9 bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl space-y-4">
+          {/* Song Header & Actions Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
+            <div>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
+                  {activeSong.title}
+                </h1>
 
-        {/* Practice Loop & Section Selection Toolbar */}
-        <div className="bg-[#080808] border border-[#222] p-2.5 my-1 space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1C1C1C] pb-2">
-            <div className="flex items-center gap-1.5">
-              <Repeat1 className={`w-4 h-4 ${isLoopActive ? 'text-[#00FF41] animate-spin' : 'text-[#FF3E00]'}`} />
-              <span className="text-xs font-black uppercase tracking-wider text-white">
-                CVIČEBNÍ OPIS (SECTION LOOP)
-              </span>
-              {isLoopActive && activeSection && (
-                <span className="text-[10px] font-extrabold bg-[#00FF41] text-black px-2 py-0.5 uppercase border border-black shadow-sm">
-                  SMYČKA: {activeSection.title}
-                </span>
-              )}
-            </div>
+                {activeSong.isLocked && (
+                  <span className="bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/30 font-bold text-[10px] px-2.5 py-0.5 rounded-lg flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Zamčeno adminem
+                  </span>
+                )}
 
-            <div className="flex items-center flex-wrap gap-2">
-              {/* Metronome Toggle */}
-              <button
-                onClick={() => setIsMetronomeActive((prev) => !prev)}
-                className={`px-2 py-1 text-[10px] font-extrabold uppercase border flex items-center gap-1 transition-none ${
-                  isMetronomeActive
-                    ? 'bg-[#00FF41] text-black border-black font-extrabold'
-                    : 'bg-[#141414] hover:bg-[#222] text-[#AAA] border-[#333]'
-                }`}
-                title="Zapnout/vypnout cvičný metronom"
-              >
-                <Zap className="w-3 h-3" />
-                <span>METRONOM ({metronomeBpm} BPM)</span>
-              </button>
-
-              {/* Tempo / Speed selector */}
-              <div className="flex items-center bg-[#050505] border border-[#222] p-0.5">
-                <span className="text-[9px] uppercase font-bold text-[#666] px-1">TEMPO:</span>
-                {[0.5, 0.75, 1, 1.25, 1.5].map((spd) => (
+                {isEditingTuningInline ? (
+                  <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 p-1 rounded-xl">
+                    <select
+                      value={TUNING_PRESETS.some((t) => t.name === inlineTuningVal) ? inlineTuningVal : ''}
+                      onChange={(e) => {
+                        if (e.target.value && e.target.value !== 'Vlastní') {
+                          setInlineTuningVal(e.target.value);
+                        }
+                      }}
+                      className="bg-black/80 border border-white/10 text-white text-xs p-1 rounded-lg focus:outline-none"
+                    >
+                      <option value="">-- Předvolba --</option>
+                      {TUNING_PRESETS.map((tuning) => (
+                        <option key={tuning.name} value={tuning.name}>
+                          {tuning.name}
+                        </option>
+                      ))}
+                      <option value="Vlastní">Vlastní...</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={inlineTuningVal}
+                      onChange={(e) => setInlineTuningVal(e.target.value)}
+                      className="bg-black/80 border border-white/10 text-white text-xs p-1 w-28 rounded-lg outline-none"
+                      placeholder="Ladění..."
+                    />
+                    <button
+                      onClick={() => {
+                        const updatedSong = { ...activeSong, tuning: inlineTuningVal || 'Standard (EADGBe)' };
+                        handleUpdateSong(updatedSong);
+                        setIsEditingTuningInline(false);
+                      }}
+                      className="p-1 bg-[#30D158]/20 text-[#30D158] rounded-lg hover:bg-[#30D158] hover:text-black cursor-pointer"
+                    >
+                      <Check className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setIsEditingTuningInline(false)}
+                      className="p-1 bg-white/10 text-neutral-400 rounded-lg hover:text-white cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
                   <button
-                    key={spd}
-                    onClick={() => setScrollSpeed(spd * 3)}
-                    className={`px-1.5 py-0.5 text-[10px] font-extrabold uppercase ${
-                      scrollSpeed === spd * 3
-                        ? 'bg-[#FF3E00] text-black'
-                        : 'text-[#888] hover:text-white'
-                    }`}
+                    onClick={() => {
+                      setInlineTuningVal(activeSong.tuning || 'Standard (EADGBe)');
+                      setIsEditingTuningInline(true);
+                    }}
+                    className="text-xs font-medium text-neutral-300 bg-white/[0.06] hover:bg-white/[0.12] px-2.5 py-1 rounded-xl border border-white/[0.08] flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
-                    {spd}x
+                    <span>🎸 Ladění: {activeSong.tuning || 'Standard (EADGBe)'}</span>
+                    <span className="text-[10px] text-[#FF9F0A]">(Změnit)</span>
                   </button>
-                ))}
+                )}
               </div>
+              <p className="text-xs text-neutral-400 mt-0.5">{activeSong.artist}</p>
             </div>
-          </div>
 
-          {/* Quick Section Selector Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-thin scrollbar-thumb-[#333]">
-            <span className="text-[10px] font-bold uppercase text-[#666] shrink-0">VYBRAT SEKCI PRO LOOP:</span>
-            <button
-              onClick={() => {
-                setIsLoopActive(false);
-                setSelectedSectionId(null);
-              }}
-              className={`px-2.5 py-0.5 text-[10px] font-extrabold uppercase border whitespace-nowrap transition-none ${
-                !isLoopActive
-                  ? 'bg-[#FF3E00] text-black border-black'
-                  : 'bg-[#141414] text-[#AAA] border-[#222] hover:text-white'
-              }`}
-            >
-              CELÁ SKLADBA
-            </button>
-
-            {songSections.map((sec) => {
-              const isSecLooping = selectedSectionId === sec.id && isLoopActive;
-              return (
-                <button
-                  key={sec.id}
-                  onClick={() => handleToggleSectionLoop(sec.id)}
-                  className={`px-2.5 py-0.5 text-[10px] font-extrabold uppercase border whitespace-nowrap transition-none flex items-center gap-1 ${
-                    isSecLooping
-                      ? 'bg-[#00FF41] text-black border-black shadow-sm font-black'
-                      : selectedSectionId === sec.id
-                      ? 'bg-[#222] text-[#00FF41] border-[#00FF41]'
-                      : 'bg-[#141414] text-[#888] border-[#222] hover:text-white hover:border-[#444]'
-                  }`}
-                >
-                  {isSecLooping && <Repeat className="w-3 h-3 animate-spin text-black" />}
-                  <span>{sec.title}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Scrollable Song Lyrics & Chords Canvas */}
-        {/* Rhythm Follower & Animated Highlighting Toolbar */}
-        <div className="bg-[#0A1A0F] border border-[#00FF41]/40 p-2 my-1 rounded-xs flex flex-wrap items-center justify-between gap-2 text-xs font-mono select-none">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsRhythmGuideActive(!isRhythmGuideActive)}
-              className={`px-2.5 py-1 text-[10px] font-black uppercase flex items-center gap-1.5 border shadow-sm transition-none ${
-                isRhythmGuideActive
-                  ? 'bg-[#00FF41] text-black border-black animate-pulse'
-                  : 'bg-[#141414] text-[#AAA] border-[#333] hover:text-white'
-              }`}
-              title="Zapnout/vypnout animované zvýrazňování aktuálního akordu a řádku"
-            >
-              <Zap className="w-3.5 h-3.5 text-black" />
-              <span>{isRhythmGuideActive ? 'VODIČ RYTMA: ZAPNUT' : 'VODIČ RYTMA: VYPNUT'}</span>
-            </button>
-
-            <div className="flex items-center gap-1 bg-[#050505] border border-[#222] p-0.5">
+            {/* Quick Actions Header Toolbar */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Add to Playlist */}
               <button
-                onClick={() => handleStepLine('prev')}
-                className="px-2 py-0.5 bg-[#141414] hover:bg-[#222] text-[#00FF41] font-extrabold text-[10px] border border-[#333] flex items-center gap-1"
-                title="Posunout na předchozí řádek (Šipka Nahoru)"
+                onClick={() => handleOpenAddToPlaylist(activeSong)}
+                className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
               >
-                <ChevronUp className="w-3 h-3" />
-                <span>PŘEDCHOZÍ ŘÁDEK</span>
+                <ListPlus className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                <span>Do playlistu</span>
               </button>
+
+              {/* Fullscreen Stage Mode */}
               <button
-                onClick={() => handleStepLine('next')}
-                className="px-2 py-0.5 bg-[#141414] hover:bg-[#222] text-[#00FF41] font-extrabold text-[10px] border border-[#333] flex items-center gap-1"
-                title="Posunout na další řádek (Šipka Dolů)"
+                onClick={() => setIsFullscreen(true)}
+                className="px-3.5 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                title="Pódiový režim s nastavitelnými oknami"
               >
-                <span>DALŠÍ ŘÁDEK</span>
-                <ChevronDown className="w-3 h-3" />
+                <Maximize2 className="w-3.5 h-3.5" />
+                <span>Pódium</span>
+              </button>
+
+              {/* Delete Active Song button */}
+              <button
+                onClick={(e) => handleDeleteClick(activeSong, e)}
+                className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 hover:border-red-500/40 text-red-400 hover:text-red-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+                title="Smazat skladbu ze zpěvníku"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Smazat</span>
               </button>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsBeatStepperActive(!isBeatStepperActive)}
-              className={`px-2 py-1 text-[10px] font-extrabold uppercase border flex items-center gap-1 transition-none ${
-                isBeatStepperActive
-                  ? 'bg-[#FF3E00] text-black border-black font-black'
-                  : 'bg-[#141414] hover:bg-[#222] text-[#888] border-[#333]'
-              }`}
-              title="Automaticky posouvat řádek na každé 4 doby metronomu"
-            >
-              <Repeat className={`w-3 h-3 ${isBeatStepperActive ? 'animate-spin' : ''}`} />
-              <span>{isBeatStepperActive ? 'AUTOPOSUN BEATU: AKTIVNÍ' : 'AUTOPOSUN METRONOMU'}</span>
-            </button>
-
-            <span className="text-[9px] text-[#00FF41] hidden xl:inline-block font-mono">
-              💡 ŠIPKY / KLIKNUTÍ PRO POSUN
-            </span>
-          </div>
-        </div>
-
-        {/* Enlarged Lyrics Canvas */}
-        <div
-          ref={scrollRef}
-          onScroll={handleViewerScroll}
-          className="flex-1 overflow-y-auto my-1 p-4 bg-[#050505] border border-[#222] relative min-h-[500px]"
-        >
-          {renderFormattedLyrics(activeSong.content, false)}
-
-          {/* Attachments Section (PDF, MIDI, Guitar Pro, TXT) */}
-          <AttachmentViewer
-            attachments={activeSong.attachments || []}
-            onDeleteAttachment={handleDeleteAttachment}
+          {/* SONG MODULAR WORKSPACE (Movable & Resizable Windows) */}
+          <SongModularWorkspace
+            song={activeSong}
+            onUpdateSong={handleUpdateSong}
+            transposeSemitones={transposeSemitones}
+            setTransposeSemitones={setTransposeSemitones}
+            capoFret={capoFret}
+            setCapoFret={setCapoFret}
+            fontSize={fontSize}
+            setFontSize={setFontSize}
             onOpenImportModal={() => setIsFileImportOpen(true)}
-            isSessionActive={!!session}
+            onSelectModalChord={setSelectedModalChord}
           />
         </div>
-
-        {/* Bottom Minimized Used Chords Bar with Hover Diagrams & Variation Helper */}
-        {songChords.length > 0 && (
-          <div className="bg-[#0A0A0A] border-t-2 border-[#222] p-2 my-1 shrink-0 flex flex-wrap items-center justify-between gap-2 z-20 font-mono">
-            <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-thin scrollbar-thumb-[#333]">
-              <span className="text-[10px] font-black uppercase text-[#FF3E00] flex items-center gap-1 shrink-0">
-                <Music className="w-3.5 h-3.5 text-[#FF3E00]" />
-                POUŽITÉ AKORDY ({songChords.length}):
-              </span>
-
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {songChords.map((chordName) => (
-                  <ChordHoverPill
-                    key={chordName}
-                    chordName={chordName}
-                    fontSize={13}
-                    onSelectModalChord={setSelectedModalChord}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                if (songChords[0]) setSelectedModalChord(songChords[0]);
-              }}
-              className="text-[10px] font-bold text-[#FFD700] hover:text-white uppercase underline shrink-0 flex items-center gap-1"
-            >
-              <Zap className="w-3 h-3 text-[#FFD700]" /> VARIACE &amp; BARRE HMATY 🎸
-            </button>
-          </div>
-        )}
-
-        {/* Hovered Chord Mini SVG Fretboard Popup */}
-        {hoveredChordDef && !isFullscreen && (
-          <div className="fixed bottom-6 right-6 bg-[#0F0F0F] border-2 border-[#FF3E00] p-3 shadow-2xl z-50 font-mono animate-in fade-in zoom-in-95 duration-150 rounded-sm pointer-events-auto">
-            <div className="flex items-center justify-between gap-3 mb-2 border-b border-[#222] pb-1">
-              <span className="text-[10px] font-black uppercase text-[#FF3E00] flex items-center gap-1">
-                <Music className="w-3.5 h-3.5" /> AKORD {hoveredChordDef.name}
-              </span>
-              <span className="text-[9px] text-[#00FF41] font-bold uppercase">
-                {hoveredChordDef.type}
-              </span>
-            </div>
-            
-            <GuitarChordDiagram
-              chord={hoveredChordDef}
-              size="md"
-              showTitle={false}
-              showPlayButton={true}
-              onClick={() => setSelectedModalChord(hoveredChordDef.name)}
-              className="shadow-lg border-[#333]"
-            />
-            <p className="text-[8px] text-[#888] text-center mt-1.5 uppercase font-bold">
-              KLIKNĚTE PRO AUDIO &amp; DETAIL
-            </p>
-          </div>
-        )}
-
       </div>
 
-      {/* FULLSCREEN STAGE VIEW MODAL (PLNOOBRAZOVKOVÝ REŽIM) */}
+      {/* FULLSCREEN STAGE VIEW MODAL (PÓDIOVÝ REŽIM) */}
       {isFullscreen && (
-        <div className="fixed inset-0 z-[100] bg-[#050505] text-[#D1D1D1] flex flex-col font-mono p-3 sm:p-6 overflow-hidden select-none">
-          
-          {/* Stage Mode Top Navigation Bar */}
+        <div className="fixed inset-0 z-[100] bg-[#0E0E12] text-[#E5E5EA] flex flex-col font-sans p-4 sm:p-6 overflow-y-auto select-none">
+          {/* Stage Mode Header */}
           {!isStageCleanMode && (
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0F0F0F] border-2 border-[#333] p-3 mb-2 shadow-xl">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#1C1C22]/90 backdrop-blur-2xl border border-white/15 rounded-2xl p-4 mb-4 shadow-2xl">
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-[#FF3E00] text-black font-extrabold text-[10px] px-2 py-0.5 uppercase tracking-wider">
-                    STAGE MODE
+                <div className="flex items-center gap-2.5">
+                  <span className="bg-[#FF9F0A] text-black font-extrabold text-[10px] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+                    Pódiový režim
                   </span>
-                  <h1 className="text-lg sm:text-xl font-black text-white uppercase tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                     {activeSong.title}
                   </h1>
                 </div>
-                <p className="text-xs text-[#888] uppercase mt-0.5">
-                  INTERPRET: <strong className="text-white">{activeSong.artist}</strong> | TÓNINA: <strong className="text-[#00FF41]">{transposeChordName(activeSong.key, transposeSemitones)}</strong>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  {activeSong.artist} • Ladění: <span className="text-[#FF9F0A] font-medium">{activeSong.tuning || 'Standard (EADGBe)'}</span>
                 </p>
               </div>
 
               {/* Controls Grid */}
               <div className="flex items-center flex-wrap gap-2">
-                
-                {/* Font Size Buttons */}
-                <div className="flex items-center bg-[#050505] border border-[#333] p-1 gap-1">
-                  <Type className="w-4 h-4 text-[#FF3E00] ml-1" />
-                  <button
-                    onClick={() => setFontSize((prev) => Math.max(12, prev - 2))}
-                    className="px-2 py-1 bg-[#222] hover:bg-[#333] text-white text-xs font-black border border-[#444]"
-                    title="Zmenšit písmo (A-)"
-                  >
-                    A-
-                  </button>
-                  <span className="text-xs font-extrabold text-[#00FF41] px-2">{fontSize}px</span>
-                  <button
-                    onClick={() => setFontSize((prev) => Math.min(36, prev + 2))}
-                    className="px-2 py-1 bg-[#222] hover:bg-[#333] text-white text-xs font-black border border-[#444]"
-                    title="Zvětšit písmo (A+)"
-                  >
-                    A+
-                  </button>
-                </div>
-
-                {/* Transposition */}
-                <div className="flex items-center bg-[#050505] border border-[#333] p-1 gap-1">
-                  <span className="text-[10px] uppercase font-bold text-[#666] px-1">TRANSPOZICE:</span>
-                  <button
-                    onClick={() => setTransposeSemitones((p) => p - 1)}
-                    className="px-2 py-1 bg-[#141414] hover:bg-[#222] text-white text-xs font-black border border-[#333]"
-                  >
-                    -1
-                  </button>
-                  <span className="text-xs font-black text-[#FF3E00] px-1">
-                    {transposeSemitones > 0 ? `+${transposeSemitones}` : transposeSemitones}
-                  </span>
-                  <button
-                    onClick={() => setTransposeSemitones((p) => p + 1)}
-                    className="px-2 py-1 bg-[#141414] hover:bg-[#222] text-white text-xs font-black border border-[#333]"
-                  >
-                    +1
-                  </button>
-                  {transposeSemitones !== 0 && (
-                    <button
-                      onClick={() => setTransposeSemitones(0)}
-                      className="px-1.5 py-1 bg-[#FF3E00] text-black text-[10px] font-bold uppercase"
-                    >
-                      RESET
-                    </button>
-                  )}
-                </div>
-
-                {/* Auto Scroll */}
-                <button
-                  onClick={() => setIsAutoScrolling(!isAutoScrolling)}
-                  className={`px-3 py-1.5 text-xs font-black uppercase flex items-center gap-1.5 border ${
-                    isAutoScrolling
-                      ? 'bg-[#FF3E00] text-black border-black'
-                      : 'bg-[#222] text-white border-[#444] hover:bg-[#333]'
-                  }`}
-                >
-                  {isAutoScrolling ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  <span>{isAutoScrolling ? 'PAUZA' : 'POSUN'}</span>
-                </button>
-
-                {/* Clean Mode Toggle */}
                 <button
                   onClick={() => setIsStageCleanMode(true)}
-                  className="px-2.5 py-1.5 bg-[#141414] hover:bg-[#222] border border-[#333] text-[#888] hover:text-white text-xs font-bold uppercase flex items-center gap-1"
-                  title="Skrýt lišty pro maximální přehlednost na pódiu"
+                  className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-neutral-300 hover:text-white text-xs font-medium rounded-xl flex items-center gap-1.5 cursor-pointer"
                 >
-                  <EyeOff className="w-4 h-4 text-[#FF3E00]" />
-                  <span>ČISTÝ REŽIM</span>
+                  <EyeOff className="w-4 h-4 text-neutral-400" />
+                  <span>Čistý režim</span>
                 </button>
 
-                {/* Exit Fullscreen */}
                 <button
                   onClick={() => setIsFullscreen(false)}
-                  className="px-3 py-1.5 bg-[#FF3E00] hover:bg-white text-black font-black text-xs uppercase flex items-center gap-1 border border-black"
+                  className="px-3.5 py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
                 >
                   <Minimize2 className="w-4 h-4" />
-                  <span>ZAVŘÍT</span>
+                  <span>Zavřít Pódium</span>
                 </button>
-
               </div>
             </div>
           )}
 
           {/* Floating Exit Button when in Clean Mode */}
           {isStageCleanMode && (
-            <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+            <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
               <button
                 onClick={() => setIsStageCleanMode(false)}
-                className="px-3 py-1.5 bg-[#141414]/90 hover:bg-[#222] text-white text-xs font-bold uppercase border border-[#444] flex items-center gap-1 backdrop-blur-md"
+                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-xl flex items-center gap-1.5 backdrop-blur-xl border border-white/10 cursor-pointer shadow-lg"
               >
-                <Eye className="w-4 h-4 text-[#00FF41]" />
-                <span>ZOBRAZIT NÁSTROJE</span>
+                <Eye className="w-4 h-4 text-[#30D158]" />
+                <span>Nástroje</span>
               </button>
               <button
                 onClick={() => setIsFullscreen(false)}
-                className="px-3 py-1.5 bg-[#FF3E00] text-black text-xs font-black uppercase border border-black"
+                className="px-3 py-1.5 bg-[#FF453A] text-white text-xs font-semibold rounded-xl cursor-pointer shadow-lg"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
           )}
 
-          {/* Fullscreen Lyrics Scroll Canvas */}
-          <div
-            ref={fullscreenScrollRef}
-            onScroll={handleViewerScroll}
-            className="flex-1 overflow-y-auto bg-[#0A0A0A] border-2 border-[#222] p-4 sm:p-8 rounded-sm my-1 max-w-6xl mx-auto w-full shadow-2xl relative"
-          >
-            {renderFormattedLyrics(activeSong.content, true)}
+          {/* Stage Workspace */}
+          <div className="flex-1 w-full max-w-7xl mx-auto py-2">
+            <SongModularWorkspace
+              song={activeSong}
+              onUpdateSong={handleUpdateSong}
+              isStageMode={true}
+              transposeSemitones={transposeSemitones}
+              setTransposeSemitones={setTransposeSemitones}
+              capoFret={capoFret}
+              setCapoFret={setCapoFret}
+              fontSize={fontSize}
+              setFontSize={setFontSize}
+              onOpenImportModal={() => setIsFileImportOpen(true)}
+              onSelectModalChord={setSelectedModalChord}
+            />
           </div>
-
-          {/* Fullscreen Guitar Chords Strip */}
-          {songChords.length > 0 && !isStageCleanMode && (
-            <div className="bg-[#0F0F0F] border border-[#333] p-2 mt-2 flex items-center gap-3 overflow-x-auto max-w-6xl mx-auto w-full font-mono">
-              <span className="text-[10px] font-black uppercase text-[#FF3E00] shrink-0">AKORDY:</span>
-              <div className="flex items-center gap-2 overflow-x-auto">
-                {songChords.map((chordName) => (
-                  <ChordHoverPill
-                    key={chordName}
-                    chordName={chordName}
-                    fontSize={14}
-                    onSelectModalChord={setSelectedModalChord}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
       )}
 
       {/* New Song Modal */}
       {isEditing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-mono">
-          <div className="bg-[#0F0F0F] border-2 border-[#333] text-[#D1D1D1] max-w-2xl w-full p-5">
-            <h3 className="text-sm font-bold text-white uppercase mb-4 flex items-center gap-2 border-b border-[#222] pb-2">
-              <Music className="w-4 h-4 text-[#FF3E00]" /> VLOŽIT / UPRAVIT SKLADBU
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="bg-[#1C1C1E] border border-white/15 text-white max-w-2xl w-full p-6 rounded-3xl shadow-2xl">
+            <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-3">
+              <Music className="w-5 h-5 text-[#FF9F0A]" /> Vložit novou skladbu
             </h3>
 
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block text-[10px] text-[#666] mb-1 uppercase">NÁZEV SKLADBY</label>
+                  <label className="block text-[11px] text-neutral-400 mb-1">Název skladby</label>
                   <input
                     type="text"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
-                    placeholder="NAPŘ. STÁNKY"
-                    className="w-full bg-[#050505] border border-[#222] p-2 text-white focus:border-[#FF3E00] uppercase"
+                    placeholder="Např. Stánky"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-[#FF9F0A] outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] text-[#666] mb-1 uppercase">INTERPRET</label>
+                  <label className="block text-[11px] text-neutral-400 mb-1">Interpret</label>
                   <input
                     type="text"
                     value={editArtist}
                     onChange={(e) => setEditArtist(e.target.value)}
-                    placeholder="NEDVĚDI"
-                    className="w-full bg-[#050505] border border-[#222] p-2 text-white focus:border-[#FF3E00] uppercase"
+                    placeholder="Nedvědi"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-[#FF9F0A] outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[10px] text-[#666] mb-1 uppercase">
-                  TEXT S AKORDY V BRACKETS (NAPŘ. [G]KDYŽ SE U [C]NÁS)
+                <label className="block text-[11px] text-neutral-400 mb-1">Ladění kytary</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <select
+                    onChange={(e) => {
+                      if (e.target.value && e.target.value !== 'Vlastní') {
+                        setEditTuning(e.target.value);
+                      }
+                    }}
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:border-[#FF9F0A] outline-none"
+                    value={TUNING_PRESETS.some((t) => t.name === editTuning) ? editTuning : ''}
+                  >
+                    <option value="">-- Vyberte předvolbu --</option>
+                    {TUNING_PRESETS.map((tuning) => (
+                      <option key={tuning.name} value={tuning.name}>
+                        {tuning.name}
+                      </option>
+                    ))}
+                    <option value="Vlastní">Vlastní (ručně vpravo)...</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={editTuning}
+                    onChange={(e) => setEditTuning(e.target.value)}
+                    placeholder="Např. Standard (EADGBe)..."
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-[#FF9F0A] outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-neutral-400 mb-1">
+                  Text s akordy v hranatých závorkách (např. [G]Když se u [C]nás)
                 </label>
                 <textarea
                   rows={8}
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full bg-[#050505] border border-[#222] p-2 text-xs font-mono text-white focus:border-[#FF3E00]"
+                  className="w-full bg-black/60 border border-white/10 rounded-2xl p-3 text-xs font-mono text-white focus:border-[#FF9F0A] outline-none"
                 ></textarea>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2.5 pt-2">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-1.5 bg-[#222] hover:bg-[#333] text-white text-xs font-bold uppercase"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-neutral-300 rounded-xl text-xs font-medium cursor-pointer"
                 >
-                  ZRUŠIT
+                  Zrušit
                 </button>
                 <button
                   onClick={handleCreateSong}
-                  className="px-4 py-1.5 bg-[#FF3E00] hover:bg-white text-black text-xs font-bold uppercase"
+                  className="px-4 py-2 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-semibold rounded-xl cursor-pointer shadow-md"
                 >
-                  ULOŽIT SKLADBU
+                  Uložit skladbu
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-
-      </div>
 
       {/* Online Search Modal */}
       <OnlineSearchModal
@@ -1429,6 +1125,52 @@ export const Songbook: React.FC<SongbookProps> = ({
         onClose={() => setSelectedModalChord(null)}
       />
 
+      {/* Admin Lock / Password Modal */}
+      <LockPasswordModal
+        isOpen={isLockModalOpen}
+        song={lockModalSong}
+        mode={lockModalMode}
+        onClose={() => setIsLockModalOpen(false)}
+        onSuccess={() => {
+          if (lockModalSong && lockModalMode === 'delete') {
+            performDeleteSong(lockModalSong.id);
+          } else if (lockModalSong && lockModalMode === 'unlock') {
+            handleUnlockConfirmed();
+          }
+        }}
+        onLockConfirmed={handleLockConfirmed}
+      />
+
+      {/* Add To Playlist Modal */}
+      <AddToPlaylistModal
+        isOpen={isPlaylistModalOpen}
+        song={playlistModalSong}
+        playlists={playlists}
+        onClose={() => setIsPlaylistModalOpen(false)}
+        onToggleSongInPlaylist={toggleSongInPlaylist}
+        onCreateNewPlaylist={(name) => {
+          const item = { id: 'pl_' + Date.now(), name, songIds: [] };
+          setPlaylists((prev) => [...prev, item]);
+          if (playlistModalSong) {
+            toggleSongInPlaylist(item.id, playlistModalSong.id);
+          }
+        }}
+        onAddedSuccessToast={showToast}
+      />
+      {/* Delete Song Confirmation Modal */}
+      <DeleteSongConfirmModal
+        isOpen={isDeleteModalOpen}
+        song={deleteModalSong}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteModalSong(null);
+        }}
+        onConfirm={() => {
+          if (deleteModalSong) {
+            performDeleteSong(deleteModalSong.id);
+          }
+        }}
+      />
     </div>
   );
 };

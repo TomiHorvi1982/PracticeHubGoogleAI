@@ -1,0 +1,50 @@
+[
+  {
+    "id": "usr_mst4tdbs_nyho",
+    "email": "test-clen@kapela.cz",
+    "username": "test-clen",
+    "displayName": "Test Člen",
+    "role": "musician",
+    "permissions": {
+      "canEditSongs": false,
+      "canDeleteSongs": false,
+      "canImportFiles": false,
+      "canManageUsers": false,
+      "canStartBandSession": true,
+      "canManageSetlists": false,
+      "canAccessTools": true
+    },
+    "password": "Rock-2082!",
+    "initialPassword": "Rock-2082!",
+    "status": "invited",
+    "createdAt": 1786723123384,
+    "invitationToken": "inv_fy82d558mst4tdbs",
+    "invitationExpiresAt": 1789315123384,
+    "instrument": "Baskytara",
+    "notes": ""
+  },
+  {
+    "id": "user-admin-hortom82",
+    "email": "hortom82@gmail.com",
+    "username": "hortom82",
+    "displayName": "Tomáš Hort (Hlavní Správce)",
+    "role": "admin",
+    "permissions": {
+      "canEditSongs": true,
+      "canDeleteSongs": true,
+      "canImportFiles": true,
+      "canManageUsers": true,
+      "canStartBandSession": true,
+      "canManageSetlists": true,
+      "canAccessTools": true
+    },
+    "password": "Admin123!",
+    "initialPassword": "Admin123!",
+    "status": "active",
+    "createdAt": 1784131122046,
+    "lastLoginAt": 1786723122046,
+    "avatarColor": "#FF3E00",
+    "instrument": "Kytara / Leader",
+    "notes": "Hlavní administrátor systému"
+  }
+]

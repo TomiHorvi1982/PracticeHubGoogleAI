@@ -1,4 +1,13 @@
-// Web Audio API Sound Synthesizer with Enhanced Instruments, Custom Sound Mappings, Effects Chain & MIDI Polyphony
+// Web Audio API High-Quality Sampler & SoundSynthesizer Engine
+// Supports 200+ Real General MIDI SoundFont Instruments with Multi-Velocity Acoustic Modeling,
+// IndexedDB Local Sample Caching, Polyphonic Voice Management & Damper Release.
+
+import { ALL_INSTRUMENTS, InstrumentPreset } from '../data/instrumentPresets';
+import { DRUM_KITS, DrumKitOption } from '../data/drumKits';
+import { drumKitFactory } from './drumKitFactory';
+import { eventBus } from './eventBus';
+
+export { DRUM_KITS, type DrumKitOption };
 
 export type InstrumentProfile =
   | 'acoustic_guitar'
@@ -6,9 +15,15 @@ export type InstrumentProfile =
   | 'nylon_guitar'
   | 'bass_guitar'
   | 'grand_piano'
+  | 'acoustic_grand_piano_sf'
+  | 'electric_piano_1_sf'
+  | 'clavinet_sf'
   | 'rhodes_ep'
   | 'analog_synth'
-  | 'drums';
+  | 'drums'
+  | 'drums_808'
+  | 'drums_jazz'
+  | string;
 
 export interface SoundProfileOption {
   id: InstrumentProfile;
@@ -18,38 +33,263 @@ export interface SoundProfileOption {
 }
 
 export const INSTRUMENT_PROFILES: SoundProfileOption[] = [
-  { id: 'acoustic_guitar', name: 'Akustická kytara (Karplus-Strong)', czCategory: 'Kytary', description: 'Reálný zvuk brnkané akustické kytary s rezonancí těla' },
-  { id: 'electric_guitar', name: 'Elektrická kytara (Overdrive/Distortion)', czCategory: 'Kytary', description: 'Sytý kreslený zvuk s lampovou saturací a simulací kabinetu' },
-  { id: 'nylon_guitar', name: 'Španělka / Klasická kytara (Nylon)', czCategory: 'Kytary', description: 'Jemný, teplý tón klasické kytary s mekkým dopadem' },
-  { id: 'bass_guitar', name: 'Baskytara (Electric / Sub Bass)', czCategory: 'Baskytary', description: 'Hluboké basové frekvence s průrazným attackem' },
-  { id: 'grand_piano', name: 'Křídlo / Akustické piano', czCategory: 'Klávesy', description: 'Tří-strunné chorusing křídlo s akustickým dozvukem soundboardu' },
-  { id: 'rhodes_ep', name: 'Rhodes / Elektrické piano', czCategory: 'Klávesy', description: 'Klasické retro FM piano s kovovým tónem a tremolo modulací' },
-  { id: 'analog_synth', name: 'Analogový Synth Lead', czCategory: 'Syntetizéry', description: 'Dvojitý detunovaný pilový oscilátor s rezonančním filtrem' },
-  { id: 'drums', name: 'Akustické & Synth Bicí', czCategory: 'Bicí', description: 'Sada bicích s kopákem, virblem, činely a tomy' },
+  ...ALL_INSTRUMENTS.map(inst => ({
+    id: inst.id,
+    name: `${inst.icon} ${inst.czName} (${inst.name})`,
+    czCategory: inst.czCategory,
+    description: inst.description,
+  })),
+
+  ...DRUM_KITS.map(kit => ({
+    id: kit.id,
+    name: `${kit.icon} ${kit.czName}`,
+    czCategory: 'Bicí sady',
+    description: kit.description,
+  })),
 ];
+
+const MIDI_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+export function midiToNoteName(midi: number): string {
+  const note = MIDI_NOTE_NAMES[midi % 12];
+  const octave = Math.floor(midi / 12) - 1;
+  return `${note}${octave}`;
+}
+
+export function noteToMidi(note: string): number {
+  const match = note.trim().match(/^([A-G]#?)(\d+)$/i);
+  if (!match) return 60;
+  const noteName = match[1].toUpperCase();
+  const octave = parseInt(match[2], 10);
+  const noteIndex = MIDI_NOTE_NAMES.indexOf(noteName);
+  if (noteIndex === -1) return 60;
+  return (octave + 1) * 12 + noteIndex;
+}
+
+// IndexedDB & Cache API Dual-Layer Persistent Caching Helpers
+const DB_NAME = 'StrumSoundFontCache';
+const STORE_NAME = 'soundfonts';
+const CACHE_NAME = 'strum-soundfont-cache-v1';
+
+async function fetchWithCache(sfName: string, cdnUrl: string): Promise<string> {
+  // 1. Try Browser Cache API first
+  if (typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      const cachedResponse = await cache.match(cdnUrl);
+      if (cachedResponse) {
+        return await cachedResponse.text();
+      }
+    } catch {
+      // Ignore cache API failures
+    }
+  }
+
+  // 2. Fetch from network CDN
+  const res = await fetch(cdnUrl);
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  const text = await res.text();
+
+  // 3. Store in Cache API asynchronously
+  if (typeof caches !== 'undefined') {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(cdnUrl, new Response(text, { headers: { 'Content-Type': 'application/javascript' } }));
+    } catch {
+      // Ignore
+    }
+  }
+
+  return text;
+}
+
+async function getCachedSoundfont(sfName: string): Promise<Record<string, string> | null> {
+  if (typeof indexedDB === 'undefined') return null;
+  return new Promise((resolve) => {
+    try {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains(STORE_NAME)) {
+          req.result.createObjectStore(STORE_NAME);
+        }
+      };
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const getReq = store.get(sfName);
+        getReq.onsuccess = () => resolve(getReq.result || null);
+        getReq.onerror = () => resolve(null);
+      };
+      req.onerror = () => resolve(null);
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+/**
+ * Robust multi-strategy SoundFont JS script parser.
+ * Handles valid JSON, JS object assignments with unquoted keys or trailing commas, and sandbox execution.
+ */
+function parseSoundfontJS(scriptText: string): Record<string, string> {
+  // Strategy 1: Regex match extracted object string and parse with JSON.parse
+  const jsonMatch = scriptText.match(/MIDI\.Soundfont\.\w+\s*=\s*(\{[\s\S]*\});?/);
+  if (jsonMatch && jsonMatch[1]) {
+    const rawObjStr = jsonMatch[1].trim();
+    try {
+      return JSON.parse(rawObjStr);
+    } catch {
+      // Remove trailing commas before closing braces/brackets if present
+      try {
+        const cleaned = rawObjStr.replace(/,\s*([}\]])/g, '$1');
+        return JSON.parse(cleaned);
+      } catch {
+        // Fall through to Strategy 2
+      }
+    }
+  }
+
+  // Strategy 2: Execute script in sandboxed Function context with MIDI object stub
+  try {
+    const midiMock: any = { Soundfont: {} };
+    const sandboxFn = new Function('MIDI', scriptText);
+    sandboxFn(midiMock);
+
+    const keys = Object.keys(midiMock.Soundfont);
+    if (keys.length > 0 && typeof midiMock.Soundfont[keys[0]] === 'object') {
+      return midiMock.Soundfont[keys[0]];
+    }
+  } catch {
+    // Fall through to Strategy 3
+  }
+
+  // Strategy 3: Key-value regex extraction for base64 data URIs
+  const result: Record<string, string> = {};
+  const kvRegex = /"([A-Ga-g0-9#]+)"\s*:\s*"(data:audio\/[a-zA-Z0-9]+;base64,[A-Za-z0-9+/=]+)"/g;
+  let match: RegExpExecArray | null;
+  while ((match = kvRegex.exec(scriptText)) !== null) {
+    result[match[1]] = match[2];
+  }
+
+  if (Object.keys(result).length > 0) {
+    return result;
+  }
+
+  throw new Error('Could not parse SoundFont JavaScript content with any available parsing strategy');
+}
+
+async function setCachedSoundfont(sfName: string, data: Record<string, string>): Promise<void> {
+  if (typeof indexedDB === 'undefined') return;
+  return new Promise((resolve) => {
+    try {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains(STORE_NAME)) {
+          req.result.createObjectStore(STORE_NAME);
+        }
+      };
+      req.onsuccess = () => {
+        const db = req.result;
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put(data, sfName);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      };
+      req.onerror = () => resolve();
+    } catch {
+      resolve();
+    }
+  });
+}
+
+// LRU Cache for decoded AudioBuffers to optimize RAM & prevent memory leaks
+class LruAudioBufferCache {
+  private cache = new Map<string, AudioBuffer>();
+  private maxEntries: number;
+
+  constructor(maxEntries = 48) {
+    this.maxEntries = maxEntries;
+  }
+
+  get(key: string): AudioBuffer | undefined {
+    const item = this.cache.get(key);
+    if (item) {
+      this.cache.delete(key);
+      this.cache.set(key, item);
+    }
+    return item;
+  }
+
+  set(key: string, value: AudioBuffer): void {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    } else if (this.cache.size >= this.maxEntries) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) this.cache.delete(firstKey);
+    }
+    this.cache.set(key, value);
+  }
+
+  has(key: string): boolean {
+    return this.cache.has(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Active Voice Node Interface for Polyphony & Damper Release
+interface ActiveVoice {
+  id: string;
+  source: AudioBufferSourceNode | OscillatorNode;
+  gainNode: GainNode;
+  filterNode?: BiquadFilterNode;
+  pannerNode?: StereoPannerNode;
+  startTime: number;
+  releaseTime: number;
+  isSustained: boolean;
+  stop: () => void;
+}
 
 class SoundSynthesizer {
   private ctx: AudioContext | null = null;
   private masterGain: GainNode | null = null;
   private compressor: DynamicsCompressorNode | null = null;
-  private reverbNode: ConvolverNode | null = null;
-  private reverbGain: GainNode | null = null;
+  private noiseBuffer: AudioBuffer | null = null;
 
-  // Track active notes for polyphonic MIDI sustain & noteOff release
-  private activeNotes: Map<string, { stop: () => void; gainNode?: GainNode }> = new Map();
+  // Raw base64 data dicts: sfName -> (noteName -> base64Str)
+  private rawSoundfontData: Record<string, Record<string, string>> = {};
+  // LRU cache for active decoded AudioBuffers: key `${sfName}:${noteName}` -> AudioBuffer
+  private lruAudioCache = new LruAudioBufferCache(60);
+  // Cache for fully/partially decoded AudioBuffers: sfName -> (noteName -> AudioBuffer)
+  private soundfontBuffers: Record<string, Record<string, AudioBuffer>> = {};
+  private loadingInstruments: Record<string, boolean> = {};
+  private loadingCallbacks: Record<string, ((progress: number) => void)[]> = {};
+  private loadingProgress: Record<string, number> = {};
 
-  // Role -> Instrument Mapping (Persisted or Default)
+  // Polyphony Voice Tracking
+  private activeVoices: Map<string, ActiveVoice> = new Map();
+  private maxPolyphony = 64;
+  private isSustainActive = false;
+
+  // Custom Drum Kits: kitId -> (padId -> AudioBuffer)
+  private customDrumKitBuffers: Map<string, Map<string, AudioBuffer>> = new Map();
+
+  // Mapped Role -> Instrument Profile
   private instrumentMappings: Record<string, InstrumentProfile> = {
-    'Kytara': 'acoustic_guitar',
-    'Akustická kytara': 'acoustic_guitar',
-    'Elektrická kytara': 'electric_guitar',
-    'Basa': 'bass_guitar',
-    'Baskytara': 'bass_guitar',
-    'Klávesy': 'grand_piano',
-    'Piano': 'grand_piano',
-    'Syntetizér': 'analog_synth',
+    'Kytara': 'acoustic_dreadnought',
+    'Akustická kytara': 'acoustic_dreadnought',
+    'Elektrická kytara': 'electric_strat_clean',
+    'Basa': 'fender_jazz_bass_finger',
+    'Baskytara': 'fender_jazz_bass_finger',
+    'Klávesy': 'grand_piano_steinway',
+    'Piano': 'grand_piano_steinway',
+    'Syntetizér': 'prophet5_brass_lead',
     'Bicí': 'drums',
-    'Zpěv': 'rhodes_ep',
+    'Zpěv': 'rhodes_stage73',
   };
 
   constructor() {
@@ -78,655 +318,1177 @@ class SoundSynthesizer {
   }
 
   public getMappedSound(role: string): InstrumentProfile {
-    return this.instrumentMappings[role] || 'acoustic_guitar';
+    return this.instrumentMappings[role] || 'grand_piano_steinway';
   }
 
   public getAllMappings(): Record<string, InstrumentProfile> {
     return { ...this.instrumentMappings };
   }
 
-  private initCtx(): AudioContext {
+  // --- AUDIO CONTEXT INITIALIZATION ---
+  public initCtx(): AudioContext {
     if (!this.ctx) {
-      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      this.ctx = new AudioCtx();
+      const AudioCtxClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      this.ctx = new AudioCtxClass();
 
-      // Master Compressor to prevent clipping & add punch
+      // Mastering compressor
       this.compressor = this.ctx.createDynamicsCompressor();
-      this.compressor.threshold.setValueAtTime(-12, this.ctx.currentTime);
+      this.compressor.threshold.setValueAtTime(-14, this.ctx.currentTime);
       this.compressor.knee.setValueAtTime(10, this.ctx.currentTime);
-      this.compressor.ratio.setValueAtTime(4, this.ctx.currentTime);
+      this.compressor.ratio.setValueAtTime(3.5, this.ctx.currentTime);
       this.compressor.attack.setValueAtTime(0.003, this.ctx.currentTime);
       this.compressor.release.setValueAtTime(0.15, this.ctx.currentTime);
 
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
 
-      // Simple algorithmic impulse reverb node
-      this.reverbNode = this.createReverbBuffer(this.ctx, 1.8, 2.5);
-      this.reverbGain = this.ctx.createGain();
-      this.reverbGain.gain.setValueAtTime(0.25, this.ctx.currentTime); // Reverb mix 25%
-
       this.masterGain.connect(this.compressor);
-      this.masterGain.connect(this.reverbNode);
-      this.reverbNode.connect(this.reverbGain);
-      this.reverbGain.connect(this.compressor);
       this.compressor.connect(this.ctx.destination);
     }
+
     if (this.ctx.state === 'suspended') {
-      this.ctx.resume();
+      this.ctx.resume().catch(() => {});
     }
     return this.ctx;
   }
 
-  private createReverbBuffer(ctx: AudioContext, seconds: number, decay: number): ConvolverNode {
-    const rate = ctx.sampleRate;
-    const length = rate * seconds;
-    const impulse = ctx.createBuffer(2, length, rate);
-    const left = impulse.getChannelData(0);
-    const right = impulse.getChannelData(1);
-
-    for (let i = 0; i < length; i++) {
-      const n = length - i;
-      left[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay);
-      right[i] = (Math.random() * 2 - 1) * Math.pow(n / length, decay);
+  public getMasterGain(): GainNode | null {
+    if (!this.masterGain) {
+      this.initCtx();
     }
-
-    const convolver = ctx.createConvolver();
-    convolver.buffer = impulse;
-    return convolver;
+    return this.masterGain;
   }
 
-  // Convert note name (e.g. 'C4', 'A#3') or MIDI number to frequency Hz
-  public noteToFreq(note: string | number): number {
-    if (typeof note === 'number') {
-      return 440 * Math.pow(2, (note - 69) / 12);
+  private getNoiseBuffer(ctx: AudioContext, duration = 1.0): AudioBuffer {
+    if (!this.noiseBuffer || this.noiseBuffer.duration < duration) {
+      const bufferSize = ctx.sampleRate * Math.max(duration, 2.0);
+      this.noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = this.noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
     }
-    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const match = String(note).trim().match(/^([A-Ga-g]#?)(\d+)$/);
-    if (!match) return 440;
-    const noteName = match[1].toUpperCase();
-    const octave = parseInt(match[2], 10);
-    const noteIndex = notes.indexOf(noteName);
-    if (noteIndex === -1) return 440;
-    const midi = (octave + 1) * 12 + noteIndex;
+    return this.noiseBuffer;
+  }
+
+  // --- CUSTOM DRUM SAMPLE MANAGEMENT ---
+  public async loadCustomDrumSample(kitId: string, padId: string, audioData: string | ArrayBuffer): Promise<AudioBuffer> {
+    const ctx = this.initCtx();
+    let arrayBuffer: ArrayBuffer;
+
+    if (typeof audioData === 'string') {
+      const base64Str = audioData.includes(',') ? audioData.split(',')[1] : audioData;
+      const binaryStr = atob(base64Str);
+      const len = binaryStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      arrayBuffer = bytes.buffer;
+    } else {
+      arrayBuffer = audioData;
+    }
+
+    const decodedBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+
+    if (!this.customDrumKitBuffers.has(kitId)) {
+      this.customDrumKitBuffers.set(kitId, new Map());
+    }
+    this.customDrumKitBuffers.get(kitId)!.set(padId, decodedBuffer);
+    try {
+      drumKitFactory.loadKitBuffers(kitId).catch(() => {});
+    } catch (e) {}
+    return decodedBuffer;
+  }
+
+  public unloadCustomKit(kitId: string): void {
+    this.customDrumKitBuffers.delete(kitId);
+    try {
+      drumKitFactory.unloadKit(kitId);
+    } catch (e) {}
+  }
+
+  public getCustomDrumSampleBuffer(kitId: string, padId: string): AudioBuffer | undefined {
+    return this.customDrumKitBuffers.get(kitId)?.get(padId);
+  }
+
+  public hasCustomDrumKit(kitId: string): boolean {
+    return this.customDrumKitBuffers.has(kitId);
+  }
+
+  // --- HELPER CONVERSIONS ---
+  public noteToFreq(note: string | number): number {
+    if (typeof note === 'number') return note;
+    const midi = noteToMidi(note);
     return 440 * Math.pow(2, (midi - 69) / 12);
   }
 
-  // --- UNIVERSAL PLAY NOTE METHOD ---
-  public playNote(
-    noteOrFreq: number | string,
-    profile: InstrumentProfile = 'acoustic_guitar',
-    duration = 2.0,
-    velocity = 0.8
-  ) {
-    switch (profile) {
-      case 'electric_guitar':
-        this.playElectricGuitarNote(noteOrFreq, duration, velocity);
-        break;
-      case 'nylon_guitar':
-        this.playNylonGuitarNote(noteOrFreq, duration, velocity);
-        break;
-      case 'bass_guitar':
-        this.playBassNote(noteOrFreq, duration, velocity);
-        break;
-      case 'grand_piano':
-        this.playPianoNote(noteOrFreq, duration, velocity);
-        break;
-      case 'rhodes_ep':
-        this.playRhodesNote(noteOrFreq, duration, velocity);
-        break;
-      case 'analog_synth':
-        this.playAnalogSynthNote(noteOrFreq, duration, velocity);
-        break;
-      case 'drums':
-        if (typeof noteOrFreq === 'number') {
-          const drumType = noteOrFreq % 2 === 0 ? 'kick' : 'snare';
-          this.playDrumSound(drumType, velocity);
-        } else {
-          this.playDrumSound('snare', velocity);
-        }
-        break;
-      case 'acoustic_guitar':
-      default:
-        this.playGuitarNote(noteOrFreq, duration, velocity);
-        break;
+  // --- SOUNDFONT SAMPLE LOADING & CACHING ---
+  public getSoundfontNameForProfile(profile: string): string {
+    if (profile === 'acoustic_grand_piano_sf') return 'acoustic_grand_piano';
+    if (profile === 'electric_piano_1_sf') return 'electric_piano_1';
+    if (profile === 'clavinet_sf') return 'clavinet';
+
+    // Drum kit profiles mapped to soundfont sample sets for high-quality multisamples
+    if (profile === 'drums' || profile.startsWith('drums_')) {
+      if (profile === 'drums_jazz') return 'synth_drum';
+      if (profile === 'drums_808' || profile === 'drums_electronic_909') return 'synth_drum';
+      if (profile === 'drums_metal' || profile === 'drums_heavy_rock' || profile === 'drums_djent') return 'taiko_drum';
+      if (profile === 'drums_80s_arena' || profile === 'drums_funk') return 'melodic_tom';
+      return 'taiko_drum';
     }
+
+    const preset = ALL_INSTRUMENTS.find(i => i.id === profile);
+    if (preset && preset.soundfont) {
+      return preset.soundfont;
+    }
+    return 'acoustic_grand_piano';
   }
 
-  // --- MIDI REAL-TIME POLYPHONIC NOTE ON ---
-  public noteOn(noteOrFreq: number | string, profile: InstrumentProfile = 'grand_piano', velocity = 0.8) {
-    const freq = typeof noteOrFreq === 'number' ? this.noteToFreq(noteOrFreq) : this.noteToFreq(noteOrFreq);
-    const noteKey = `${profile}-${freq.toFixed(1)}`;
+  public isInstrumentLoaded(profile: string): boolean {
+    const sfName = this.getSoundfontNameForProfile(profile);
+    return !!(this.soundfontBuffers[sfName] && Object.keys(this.soundfontBuffers[sfName]).length > 0);
+  }
 
-    // Stop existing note if already playing
-    this.noteOff(noteOrFreq, profile);
+  public isInstrumentLoading(profile: string): boolean {
+    const sfName = this.getSoundfontNameForProfile(profile);
+    return !!this.loadingInstruments[sfName];
+  }
 
-    const ctx = this.initCtx();
-    const now = ctx.currentTime;
+  public getLoadingProgress(profile: string): number | null {
+    const sfName = this.getSoundfontNameForProfile(profile);
+    return this.loadingProgress[sfName] ?? null;
+  }
 
-    const mainGain = ctx.createGain();
-    mainGain.gain.setValueAtTime(0, now);
-    mainGain.gain.linearRampToValueAtTime(velocity * 0.7, now + 0.008);
+  public async isInstrumentCachedLocally(profile: string): Promise<boolean> {
+    const sfName = this.getSoundfontNameForProfile(profile);
+    if (this.soundfontBuffers[sfName] && Object.keys(this.soundfontBuffers[sfName]).length > 0) {
+      return true;
+    }
+    const cachedData = await getCachedSoundfont(sfName);
+    return !!cachedData;
+  }
 
-    let stopFn = () => {};
+  public async preloadInstrument(profile: string, onProgress?: (p: number) => void): Promise<void> {
+    const sfName = this.getSoundfontNameForProfile(profile);
 
-    if (profile === 'electric_guitar') {
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(freq, now);
-
-      // Distortion waveshaper
-      const shaper = ctx.createWaveShaper();
-      shaper.curve = this.makeDistortionCurve(18);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(3200, now);
-
-      osc.connect(shaper);
-      shaper.connect(filter);
-      filter.connect(mainGain);
-      if (this.masterGain) mainGain.connect(this.masterGain);
-
-      osc.start(now);
-      stopFn = () => {
-        const t = ctx.currentTime;
-        mainGain.gain.setValueAtTime(mainGain.gain.value, t);
-        mainGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-        osc.stop(t + 0.16);
-      };
-    } else if (profile === 'bass_guitar') {
-      const osc = ctx.createOscillator();
-      const sub = ctx.createOscillator();
-      osc.type = 'sawtooth';
-      sub.type = 'sine';
-
-      osc.frequency.setValueAtTime(freq, now);
-      sub.frequency.setValueAtTime(freq, now);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(800, now);
-
-      osc.connect(filter);
-      sub.connect(filter);
-      filter.connect(mainGain);
-      if (this.masterGain) mainGain.connect(this.masterGain);
-
-      osc.start(now);
-      sub.start(now);
-      stopFn = () => {
-        const t = ctx.currentTime;
-        mainGain.gain.setValueAtTime(mainGain.gain.value, t);
-        mainGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.1);
-        osc.stop(t + 0.11);
-        sub.stop(t + 0.11);
-      };
-    } else if (profile === 'analog_synth') {
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
-      osc1.type = 'sawtooth';
-      osc2.type = 'square';
-
-      osc1.frequency.setValueAtTime(freq, now);
-      osc2.frequency.setValueAtTime(freq, now);
-      osc2.detune.setValueAtTime(8, now);
-
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(freq * 3, now);
-
-      osc1.connect(filter);
-      osc2.connect(filter);
-      filter.connect(mainGain);
-      if (this.masterGain) mainGain.connect(this.masterGain);
-
-      osc1.start(now);
-      osc2.start(now);
-
-      stopFn = () => {
-        const t = ctx.currentTime;
-        mainGain.gain.setValueAtTime(mainGain.gain.value, t);
-        mainGain.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
-        osc1.stop(t + 0.21);
-        osc2.stop(t + 0.21);
-      };
-    } else {
-      // Piano & default fallback
-      this.playNote(freq, profile, 2.5, velocity);
+    if (this.soundfontBuffers[sfName] && Object.keys(this.soundfontBuffers[sfName]).length > 0) {
+      if (onProgress) onProgress(100);
       return;
     }
 
-    this.activeNotes.set(noteKey, { stop: stopFn, gainNode: mainGain });
-  }
+    if (onProgress) {
+      if (!this.loadingCallbacks[sfName]) this.loadingCallbacks[sfName] = [];
+      this.loadingCallbacks[sfName].push(onProgress);
+    }
 
-  // --- MIDI REAL-TIME POLYPHONIC NOTE OFF ---
-  public noteOff(noteOrFreq: number | string, profile: InstrumentProfile = 'grand_piano') {
-    const freq = typeof noteOrFreq === 'number' ? this.noteToFreq(noteOrFreq) : this.noteToFreq(noteOrFreq);
-    const noteKey = `${profile}-${freq.toFixed(1)}`;
+    if (this.loadingInstruments[sfName]) return;
+    this.loadingInstruments[sfName] = true;
 
-    const active = this.activeNotes.get(noteKey);
-    if (active) {
-      active.stop();
-      this.activeNotes.delete(noteKey);
+    const notifyProgress = (pct: number) => {
+      this.loadingProgress[sfName] = pct;
+      if (this.loadingCallbacks[sfName]) {
+        this.loadingCallbacks[sfName].forEach(cb => cb(pct));
+      }
+      eventBus.emit('INSTRUMENT_LOADING_UPDATE', {
+        profile,
+        sfName,
+        progress: pct,
+        isLoading: pct < 100,
+      });
+    };
+
+    notifyProgress(10);
+
+    try {
+      const ctx = this.initCtx();
+
+      // Step 1: Check IndexedDB / Local Storage Cache
+      let rawData = await getCachedSoundfont(sfName);
+
+      if (!rawData || typeof rawData !== 'object' || Object.keys(rawData).length === 0) {
+        notifyProgress(25);
+        // Step 2: Download from CDN if not cached using Cache API + Network fallback
+        const cdnUrl = `https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/${sfName}-mp3.js`;
+        const text = await fetchWithCache(sfName, cdnUrl);
+        notifyProgress(55);
+
+        // Parse object safely using multi-strategy parser
+        rawData = parseSoundfontJS(text);
+
+        // Cache to IndexedDB asynchronously
+        setCachedSoundfont(sfName, rawData).catch(() => {});
+      }
+
+      notifyProgress(75);
+
+      // Step 3: Fast Keynote Decoding (sparse set of notes e.g., C1..C8 for instant 0-ms play)
+      this.rawSoundfontData[sfName] = rawData;
+      if (!this.soundfontBuffers[sfName]) {
+        this.soundfontBuffers[sfName] = {};
+      }
+
+      const noteEntries = Object.entries(rawData);
+      if (noteEntries.length === 0) {
+        throw new Error('SoundFont object contains no notes');
+      }
+
+      // Keynotes to pre-decode immediately (e.g. C or F notes, or sampled step notes if no C/F)
+      let keynotes = noteEntries.filter(([k]) => k.startsWith('C') || k.startsWith('F'));
+      if (keynotes.length === 0) {
+        const step = Math.max(1, Math.floor(noteEntries.length / 12));
+        keynotes = noteEntries.filter((_, idx) => idx % step === 0);
+      }
+
+      let decodedCount = 0;
+
+      await Promise.all(
+        keynotes.map(async ([noteKey, b64Data]) => {
+          try {
+            const base64Str = b64Data.includes(',') ? b64Data.split(',')[1] : b64Data;
+            const binaryStr = atob(base64Str);
+            const bytes = new Uint8Array(binaryStr.length);
+            for (let i = 0; i < binaryStr.length; i++) {
+              bytes[i] = binaryStr.charCodeAt(i);
+            }
+            const buffer = await ctx.decodeAudioData(bytes.buffer);
+            this.soundfontBuffers[sfName][noteKey] = buffer;
+            this.lruAudioCache.set(`${sfName}:${noteKey}`, buffer);
+          } catch {
+            // ignore individual decode error
+          } finally {
+            decodedCount++;
+            const pct = 75 + Math.floor((decodedCount / keynotes.length) * 25);
+            notifyProgress(Math.min(100, pct));
+          }
+        })
+      );
+
+      notifyProgress(100);
+    } catch (err) {
+      console.warn(`Failed to load SoundFont '${sfName}', using dynamic physical modeling fallback`, err);
+      eventBus.emit('INSTRUMENT_LOADING_UPDATE', {
+        profile,
+        sfName,
+        progress: 0,
+        isLoading: false,
+      });
+    } finally {
+      this.loadingInstruments[sfName] = false;
+      delete this.loadingProgress[sfName];
+      delete this.loadingCallbacks[sfName];
     }
   }
 
-  // --- ACOUSTIC GUITAR SYNTH (Karplus-Strong) ---
-  public playGuitarNote(freqOrNote: number | string, duration = 2.0, volume = 0.5) {
+  // --- LAZY NOTE DECODER WITH LRU CACHE & PITCH-SHIFTING ---
+  public getNoteBufferSync(sfName: string, noteName: string): { buffer: AudioBuffer; baseNote: string } | null {
+    const cacheKey = `${sfName}:${noteName}`;
+    const lruCached = this.lruAudioCache.get(cacheKey);
+    if (lruCached) {
+      return { buffer: lruCached, baseNote: noteName };
+    }
+
+    const dict = this.soundfontBuffers[sfName];
+    if (dict && dict[noteName]) {
+      this.lruAudioCache.set(cacheKey, dict[noteName]);
+      return { buffer: dict[noteName], baseNote: noteName };
+    }
+
+    // Trigger background decode if raw base64 exists
+    const rawDict = this.rawSoundfontData[sfName];
+    if (rawDict && rawDict[noteName]) {
+      this.decodeNoteInBackground(sfName, noteName);
+    }
+
+    // Pitch-shifting fallback: find closest decoded keynote
+    if (dict) {
+      const targetMidi = noteToMidi(noteName);
+      let bestNote = '';
+      let minDiff = Infinity;
+      for (const k of Object.keys(dict)) {
+        const diff = Math.abs(noteToMidi(k) - targetMidi);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestNote = k;
+        }
+      }
+      if (bestNote && dict[bestNote]) {
+        return { buffer: dict[bestNote], baseNote: bestNote };
+      }
+    }
+
+    return null;
+  }
+
+  private async decodeNoteInBackground(sfName: string, noteName: string): Promise<void> {
+    const rawDict = this.rawSoundfontData[sfName];
+    if (!rawDict || !rawDict[noteName]) return;
+    try {
+      const ctx = this.initCtx();
+      const b64Data = rawDict[noteName];
+      const base64Str = b64Data.includes(',') ? b64Data.split(',')[1] : b64Data;
+      const binaryStr = atob(base64Str);
+      const bytes = new Uint8Array(binaryStr.length);
+      for (let i = 0; i < binaryStr.length; i++) {
+        bytes[i] = binaryStr.charCodeAt(i);
+      }
+      const decoded = await ctx.decodeAudioData(bytes.buffer);
+      if (!this.soundfontBuffers[sfName]) this.soundfontBuffers[sfName] = {};
+      this.soundfontBuffers[sfName][noteName] = decoded;
+      this.lruAudioCache.set(`${sfName}:${noteName}`, decoded);
+    } catch {
+      // ignore
+    }
+  }
+
+  // --- POLYPHONY & VOICE STEALER ---
+  private addVoice(voice: ActiveVoice) {
+    if (this.activeVoices.size >= this.maxPolyphony) {
+      // Steal oldest released voice or oldest voice overall
+      let oldestKey: string | null = null;
+      let oldestTime = Infinity;
+
+      for (const [key, v] of this.activeVoices.entries()) {
+        if (v.isSustained || v.releaseTime < Infinity) {
+          oldestKey = key;
+          break;
+        }
+        if (v.startTime < oldestTime) {
+          oldestTime = v.startTime;
+          oldestKey = key;
+        }
+      }
+
+      if (oldestKey) {
+        const stolen = this.activeVoices.get(oldestKey);
+        if (stolen) {
+          try {
+            stolen.gainNode.gain.cancelScheduledValues(0);
+            stolen.gainNode.gain.setValueAtTime(stolen.gainNode.gain.value, this.initCtx().currentTime);
+            stolen.gainNode.gain.linearRampToValueAtTime(0.0001, this.initCtx().currentTime + 0.005);
+            setTimeout(() => stolen.stop(), 8);
+          } catch {
+            // ignore
+          }
+        }
+        this.activeVoices.delete(oldestKey);
+      }
+    }
+    this.activeVoices.set(voice.id, voice);
+  }
+
+  // --- SUSTAIN PEDAL MANAGEMENT ---
+  public setSustain(active: boolean) {
+    this.isSustainActive = active;
+    if (!active) {
+      const now = this.initCtx().currentTime;
+      for (const [key, voice] of this.activeVoices.entries()) {
+        if (voice.isSustained) {
+          voice.isSustained = false;
+          voice.gainNode.gain.cancelScheduledValues(now);
+          voice.gainNode.gain.setValueAtTime(voice.gainNode.gain.value, now);
+          voice.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + (voice.releaseTime || 0.35));
+          setTimeout(() => {
+            voice.stop();
+            this.activeVoices.delete(key);
+          }, ((voice.releaseTime || 0.35) + 0.05) * 1000);
+        }
+      }
+    }
+  }
+
+  // --- STOP NOTE & PANIC ALL NOTES ---
+  public stopNote(noteName: string, profile?: InstrumentProfile): void {
     const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
     const now = ctx.currentTime;
+    for (const [key, voice] of this.activeVoices.entries()) {
+      if (key.includes(noteName)) {
+        try {
+          voice.gainNode.gain.cancelScheduledValues(now);
+          voice.gainNode.gain.setValueAtTime(voice.gainNode.gain.value, now);
+          voice.gainNode.gain.linearRampToValueAtTime(0.0001, now + 0.05);
+          setTimeout(() => {
+            voice.stop();
+            this.activeVoices.delete(key);
+          }, 60);
+        } catch {
+          // ignore
+        }
+      }
+    }
+  }
 
-    const bufferSize = Math.max(2, Math.round(ctx.sampleRate / freq));
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
+  public stopAllNotes(): void {
+    const ctx = this.initCtx();
+    const now = ctx.currentTime;
+    for (const [key, voice] of this.activeVoices.entries()) {
+      try {
+        voice.gainNode.gain.cancelScheduledValues(now);
+        voice.gainNode.gain.setValueAtTime(voice.gainNode.gain.value, now);
+        voice.gainNode.gain.linearRampToValueAtTime(0.0001, now + 0.01);
+        setTimeout(() => voice.stop(), 20);
+      } catch {
+        // ignore
+      }
+    }
+    this.activeVoices.clear();
+  }
+
+  // --- CORE SAMPLED & MODELING NOTE PLAYBACK ---
+  public playSampledNote(
+    sfName: string,
+    noteName: string,
+    duration = 2.5,
+    volume = 0.7,
+    velocity = 0.8
+  ): boolean {
+    const buffers = this.soundfontBuffers[sfName];
+    if (!buffers) return false;
+
+    const ctx = this.initCtx();
+    const now = ctx.currentTime;
+    const targetMidi = noteToMidi(noteName);
+
+    // Find closest available sampled note
+    let bestNote = noteName;
+    let minDiff = Infinity;
+
+    if (!buffers[noteName]) {
+      for (const key of Object.keys(buffers)) {
+        const keyMidi = noteToMidi(key);
+        const diff = Math.abs(keyMidi - targetMidi);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestNote = key;
+        }
+      }
     }
 
-    const whiteNoise = ctx.createBufferSource();
-    whiteNoise.buffer = noiseBuffer;
-    whiteNoise.loop = true;
+    const sampleBuffer = buffers[bestNote];
+    if (!sampleBuffer) return false;
 
-    // String brightness decay
+    const baseMidi = noteToMidi(bestNote);
+    const playbackRate = Math.pow(2, (targetMidi - baseMidi) / 12);
+
+    const source = ctx.createBufferSource();
+    source.buffer = sampleBuffer;
+    source.playbackRate.setValueAtTime(playbackRate, now);
+
+    // Dynamic Multi-Velocity Acoustic Modeling
+    // 1. Dynamic Lowpass Filter: Higher velocity = brighter overtones
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(Math.min(freq * 6, 8000), now);
-    filter.frequency.exponentialRampToValueAtTime(Math.max(freq * 1.5, 200), now + duration);
+    const baseFreq = 440 * Math.pow(2, (targetMidi - 69) / 12);
+    const normVel = Math.max(0.05, Math.min(1.0, velocity));
+    filter.frequency.setValueAtTime(baseFreq * (1.2 + Math.pow(normVel, 1.5) * 10.0), now);
 
-    // Body resonance peak
-    const bodyFilter = ctx.createBiquadFilter();
-    bodyFilter.type = 'peaking';
-    bodyFilter.frequency.setValueAtTime(220, now);
-    bodyFilter.gain.setValueAtTime(4, now);
-    bodyFilter.Q.setValueAtTime(2, now);
-
+    // 2. Perceptual Volume Curve (Logarithmic)
     const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(volume * 0.8, now);
+    const scaledGain = volume * (0.05 + 0.95 * Math.pow(normVel, 1.35));
+
+    // Attack Envelope: Instantaneous transient for hard hits, subtle ramp for soft touches
+    const attackTime = (1.0 - normVel) * 0.015 + 0.003;
+    gainNode.gain.setValueAtTime(0.0001, now);
+    gainNode.gain.linearRampToValueAtTime(scaledGain, now + attackTime);
+    gainNode.gain.setValueAtTime(scaledGain, now + Math.max(0.05, duration - 0.35));
     gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
 
-    whiteNoise.connect(filter);
-    filter.connect(bodyFilter);
-    bodyFilter.connect(gainNode);
-    if (this.masterGain) gainNode.connect(this.masterGain);
+    // 3. True Keyboard Stereo Panning
+    const panner = ctx.createStereoPanner();
+    const panVal = Math.max(-0.55, Math.min(0.55, (targetMidi - 60) / 60 * 0.35));
+    panner.pan.setValueAtTime(panVal, now);
 
-    whiteNoise.start(now);
-    whiteNoise.stop(now + duration);
-  }
-
-  // --- ELECTRIC GUITAR WITH OVERDRIVE / TUBE SATURATION ---
-  public playElectricGuitarNote(freqOrNote: number | string, duration = 2.2, volume = 0.5) {
-    const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
-    const now = ctx.currentTime;
-
-    const oscA = ctx.createOscillator();
-    const oscB = ctx.createOscillator();
-    oscA.type = 'sawtooth';
-    oscB.type = 'square';
-
-    oscA.frequency.setValueAtTime(freq, now);
-    oscB.frequency.setValueAtTime(freq, now);
-    oscB.detune.setValueAtTime(5, now);
-
-    // WaveShaper distortion distortion curve
-    const distortion = ctx.createWaveShaper();
-    distortion.curve = this.makeDistortionCurve(25);
-
-    // Cabinet Simulator lowpass filter
-    const cabinet = ctx.createBiquadFilter();
-    cabinet.type = 'lowpass';
-    cabinet.frequency.setValueAtTime(2800, now);
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(volume * 0.6, now + 0.005);
-    gainNode.gain.exponentialRampToValueAtTime(volume * 0.25, now + 0.2);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    oscA.connect(distortion);
-    oscB.connect(distortion);
-    distortion.connect(cabinet);
-    cabinet.connect(gainNode);
-    if (this.masterGain) gainNode.connect(this.masterGain);
-
-    oscA.start(now);
-    oscB.start(now);
-    oscA.stop(now + duration);
-    oscB.stop(now + duration);
-  }
-
-  private makeDistortionCurve(amount: number): Float32Array {
-    const k = typeof amount === 'number' ? amount : 20;
-    const n_samples = 44100;
-    const curve = new Float32Array(n_samples);
-    const deg = Math.PI / 180;
-    for (let i = 0; i < n_samples; ++i) {
-      const x = (i * 2) / n_samples - 1;
-      curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
-    }
-    return curve;
-  }
-
-  // --- NYLON GUITAR ---
-  public playNylonGuitarNote(freqOrNote: number | string, duration = 2.0, volume = 0.5) {
-    const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
-    const now = ctx.currentTime;
-
-    const osc = ctx.createOscillator();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(freq, now);
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1800, now);
-    filter.frequency.exponentialRampToValueAtTime(300, now + duration);
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(volume * 0.7, now + 0.008);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    osc.connect(filter);
+    source.connect(filter);
     filter.connect(gainNode);
-    if (this.masterGain) gainNode.connect(this.masterGain);
+    gainNode.connect(panner);
+    if (this.masterGain) panner.connect(this.masterGain);
 
-    osc.start(now);
-    osc.stop(now + duration);
+    source.start(now);
+    source.stop(now + duration + 0.1);
+
+    const voiceId = `${targetMidi}_${sfName}_${now}`;
+    const activeVoice: ActiveVoice = {
+      id: voiceId,
+      source,
+      gainNode,
+      filterNode: filter,
+      pannerNode: panner,
+      startTime: now,
+      releaseTime: 0.35,
+      isSustained: false,
+      stop: () => {
+        try { source.stop(); } catch { /* ignore */ }
+      },
+    };
+
+    this.addVoice(activeVoice);
+    return true;
   }
 
-  // --- BASS GUITAR SYNTH ---
-  public playBassNote(freqOrNote: number | string, duration = 2.0, volume = 0.6) {
-    const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
-    const now = ctx.currentTime;
+  // --- GENERAL NOTE TRIGGER ---
+  public playNote(
+    freqOrNote: number | string,
+    profile: InstrumentProfile = 'grand_piano_steinway',
+    duration = 2.5,
+    volume = 0.7,
+    velocity = 0.8
+  ) {
+    const noteName = typeof freqOrNote === 'number' ? midiToNoteName(Math.round(69 + 12 * Math.log2(freqOrNote / 440))) : freqOrNote;
+    const sfName = this.getSoundfontNameForProfile(profile);
 
-    const oscSub = ctx.createOscillator();
-    const oscSaw = ctx.createOscillator();
-    oscSub.type = 'sine';
-    oscSaw.type = 'sawtooth';
+    // Try playing authentic sample from SoundFont
+    const playedSample = this.playSampledNote(sfName, noteName, duration, volume, velocity);
 
-    oscSub.frequency.setValueAtTime(freq, now);
-    oscSaw.frequency.setValueAtTime(freq, now);
+    if (!playedSample) {
+      // Trigger background preload for next time
+      this.preloadInstrument(profile);
 
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(1200, now);
-    filter.frequency.exponentialRampToValueAtTime(250, now + duration);
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(volume * 0.9, now + 0.005);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    oscSub.connect(filter);
-    oscSaw.connect(filter);
-    filter.connect(gainNode);
-    if (this.masterGain) gainNode.connect(this.masterGain);
-
-    oscSub.start(now);
-    oscSaw.start(now);
-    oscSub.stop(now + duration);
-    oscSaw.stop(now + duration);
+      // Play rich expressive modeling preset while sample loads
+      const preset = ALL_INSTRUMENTS.find(i => i.id === profile) || ALL_INSTRUMENTS[0];
+      this.playPresetNote(preset, noteName, duration, volume, velocity);
+    }
   }
 
-  // --- ACOUSTIC GRAND PIANO SYNTH ---
-  public playPianoNote(freqOrNote: number | string, duration = 2.2, volume = 0.5) {
+  // --- POLYPHONIC MIDI NOTE ON & OFF ---
+  public noteOn(
+    noteOrFreq: number | string,
+    profile: InstrumentProfile = 'grand_piano_steinway',
+    velocity = 0.8
+  ) {
+    const noteName = typeof noteOrFreq === 'number' ? midiToNoteName(Math.round(69 + 12 * Math.log2(noteOrFreq / 440))) : noteOrFreq;
+    const midi = noteToMidi(noteName);
+
+    // General MIDI Drum note handling for drum profiles
+    if (profile === 'drums' || profile.startsWith('drums_')) {
+      let padType = 'kick';
+      if (midi === 35 || midi === 36) padType = 'kick';
+      else if (midi === 38 || midi === 40 || midi === 37) padType = 'snare';
+      else if (midi === 42 || midi === 44) padType = 'hihat_closed';
+      else if (midi === 46) padType = 'hihat_open';
+      else if (midi === 41 || midi === 43 || midi === 45) padType = 'tom_low';
+      else if (midi === 47 || midi === 48 || midi === 50) padType = 'tom_high';
+      else if (midi === 49 || midi === 52 || midi === 55 || midi === 57) padType = 'crash';
+      else if (midi === 51 || midi === 53 || midi === 59) padType = 'ride';
+      else {
+        const types = ['kick', 'snare', 'hihat_closed', 'hihat_open', 'tom_low', 'tom_high', 'crash', 'ride'];
+        padType = types[Math.abs(midi) % types.length];
+      }
+      this.playDrumSound(padType, velocity, profile);
+      return;
+    }
+
+    const key = `${midi}_${profile}`;
+
+    // Stop existing note if already held
+    if (this.activeVoices.has(key)) {
+      this.noteOff(noteName, profile);
+    }
+
+    const sfName = this.getSoundfontNameForProfile(profile);
+    const buffers = this.soundfontBuffers[sfName];
+
+    if (buffers) {
+      const ctx = this.initCtx();
+      const now = ctx.currentTime;
+      let bestNote = noteName;
+      let minDiff = Infinity;
+
+      if (!buffers[noteName]) {
+        for (const k of Object.keys(buffers)) {
+          const keyMidi = noteToMidi(k);
+          const diff = Math.abs(keyMidi - midi);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestNote = k;
+          }
+        }
+      }
+
+      const sampleBuffer = buffers[bestNote];
+      if (sampleBuffer) {
+        const baseMidi = noteToMidi(bestNote);
+        const playbackRate = Math.pow(2, (midi - baseMidi) / 12);
+
+        const source = ctx.createBufferSource();
+        source.buffer = sampleBuffer;
+        source.playbackRate.setValueAtTime(playbackRate, now);
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        const baseFreq = 440 * Math.pow(2, (midi - 69) / 12);
+        const normVel = Math.max(0.05, Math.min(1.0, velocity));
+        filter.frequency.setValueAtTime(baseFreq * (1.2 + Math.pow(normVel, 1.5) * 10.0), now);
+
+        const gainNode = ctx.createGain();
+        const scaledGain = 0.7 * (0.05 + 0.95 * Math.pow(normVel, 1.35));
+        const attackTime = (1.0 - normVel) * 0.015 + 0.003;
+
+        gainNode.gain.setValueAtTime(0.0001, now);
+        gainNode.gain.linearRampToValueAtTime(scaledGain, now + attackTime);
+
+        const panner = ctx.createStereoPanner();
+        const panVal = Math.max(-0.55, Math.min(0.55, (midi - 60) / 60 * 0.35));
+        panner.pan.setValueAtTime(panVal, now);
+
+        source.connect(filter);
+        filter.connect(gainNode);
+        gainNode.connect(panner);
+        if (this.masterGain) panner.connect(this.masterGain);
+
+        source.start(now);
+
+        const voice: ActiveVoice = {
+          id: key,
+          source,
+          gainNode,
+          filterNode: filter,
+          pannerNode: panner,
+          startTime: now,
+          releaseTime: 0.35,
+          isSustained: false,
+          stop: () => {
+            try { source.stop(); } catch { /* ignore */ }
+          },
+        };
+
+        this.addVoice(voice);
+        return;
+      }
+    }
+
+    // Fallback preset playback
+    this.playNote(noteName, profile, 2.5, 0.7, velocity);
+  }
+
+  public noteOff(noteOrFreq: number | string, profile: InstrumentProfile = 'grand_piano_steinway') {
+    const noteName = typeof noteOrFreq === 'number' ? midiToNoteName(Math.round(69 + 12 * Math.log2(noteOrFreq / 440))) : noteOrFreq;
+    const midi = noteToMidi(noteName);
+    const key = `${midi}_${profile}`;
+
+    const voice = this.activeVoices.get(key);
+    if (voice) {
+      if (this.isSustainActive) {
+        voice.isSustained = true;
+        return;
+      }
+
+      const ctx = this.initCtx();
+      const now = ctx.currentTime;
+      const releaseTime = voice.releaseTime || 0.35;
+
+      voice.gainNode.gain.cancelScheduledValues(now);
+      voice.gainNode.gain.setValueAtTime(voice.gainNode.gain.value, now);
+      voice.gainNode.gain.exponentialRampToValueAtTime(0.0001, now + releaseTime);
+
+      setTimeout(() => {
+        voice.stop();
+        this.activeVoices.delete(key);
+      }, (releaseTime + 0.05) * 1000);
+    }
+  }
+
+  // --- EXPRESSIVE PHYSICAL MODELING PRESET SYNTHESIZER ---
+  public playPresetNote(
+    preset: InstrumentPreset,
+    freqOrNote: number | string,
+    duration = 2.5,
+    volume = 0.7,
+    velocity = 0.8
+  ) {
     const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
     const now = ctx.currentTime;
+    let baseFreq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
 
-    const oscMainA = ctx.createOscillator();
-    const oscMainB = ctx.createOscillator();
-    const oscOvertone = ctx.createOscillator();
-    const oscSub = ctx.createOscillator();
+    if (preset.octaveShift) {
+      baseFreq *= Math.pow(2, preset.octaveShift);
+    }
 
-    oscMainA.type = 'sine';
-    oscMainB.type = 'sine';
-    oscOvertone.type = 'triangle';
-    oscSub.type = 'sine';
-
-    const detuneCents = 1.8;
-    oscMainA.frequency.setValueAtTime(freq, now);
-    oscMainA.detune.setValueAtTime(detuneCents, now);
-
-    oscMainB.frequency.setValueAtTime(freq, now);
-    oscMainB.detune.setValueAtTime(-detuneCents, now);
-
-    oscOvertone.frequency.setValueAtTime(freq * 2, now);
-    oscSub.frequency.setValueAtTime(freq * 0.5, now);
+    const normVel = Math.max(0.05, Math.min(1.0, velocity));
+    const scaledGain = volume * (0.05 + 0.95 * Math.pow(normVel, 1.35));
+    const brightness = preset.brightness || 1.0;
+    const effectiveDuration = Math.max(0.3, preset.decay || duration);
 
     const mainGain = ctx.createGain();
-    const overtoneGain = ctx.createGain();
-    const subGain = ctx.createGain();
-
-    mainGain.gain.setValueAtTime(0, now);
-    mainGain.gain.linearRampToValueAtTime(volume * 0.7, now + 0.005);
-    mainGain.gain.exponentialRampToValueAtTime(volume * 0.3, now + 0.15);
-    mainGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    overtoneGain.gain.setValueAtTime(0, now);
-    overtoneGain.gain.linearRampToValueAtTime(volume * 0.35, now + 0.003);
-    overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 0.35);
-
-    subGain.gain.setValueAtTime(0, now);
-    subGain.gain.linearRampToValueAtTime(volume * 0.15, now + 0.008);
-    subGain.gain.exponentialRampToValueAtTime(0.0001, now + duration * 0.6);
+    mainGain.gain.setValueAtTime(0.0001, now);
 
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(Math.min(freq * 5, 7500), now);
-    filter.frequency.exponentialRampToValueAtTime(Math.min(freq * 2, 2500), now + duration);
+    filter.frequency.setValueAtTime(baseFreq * (1.2 + Math.pow(normVel, 1.5) * 8.0 * brightness), now);
 
-    oscMainA.connect(mainGain);
-    oscMainB.connect(mainGain);
-    oscOvertone.connect(overtoneGain);
-    oscSub.connect(subGain);
+    if (preset.resonance) {
+      filter.Q.setValueAtTime(preset.resonance, now);
+    }
 
-    mainGain.connect(filter);
-    overtoneGain.connect(filter);
-    subGain.connect(filter);
+    // Synthesize based on preset category
+    switch (preset.synthType) {
+      case 'piano':
+      case 'rhodes':
+      case 'fm_ep': {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        osc1.type = preset.synthType === 'rhodes' ? 'sine' : 'triangle';
+        osc2.type = 'sine';
 
-    if (this.masterGain) filter.connect(this.masterGain);
+        osc1.frequency.setValueAtTime(baseFreq, now);
+        osc2.frequency.setValueAtTime(baseFreq * 2.001, now);
 
-    oscMainA.start(now);
-    oscMainB.start(now);
-    oscOvertone.start(now);
-    oscSub.start(now);
+        const g2 = ctx.createGain();
+        g2.gain.setValueAtTime(scaledGain * 0.4 * brightness, now);
 
-    oscMainA.stop(now + duration);
-    oscMainB.stop(now + duration);
-    oscOvertone.stop(now + duration);
-    oscSub.stop(now + duration);
-  }
+        osc1.connect(filter);
+        osc2.connect(g2);
+        g2.connect(filter);
 
-  // --- RHODES ELECTRIC PIANO SYNTH ---
-  public playRhodesNote(freqOrNote: number | string, duration = 2.2, volume = 0.5) {
-    const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
-    const now = ctx.currentTime;
+        mainGain.gain.linearRampToValueAtTime(scaledGain, now + 0.005);
+        mainGain.gain.exponentialRampToValueAtTime(0.0001, now + effectiveDuration);
 
-    const carrier = ctx.createOscillator();
-    const modulator = ctx.createOscillator();
-    const modGain = ctx.createGain();
-
-    carrier.type = 'sine';
-    modulator.type = 'sine';
-
-    carrier.frequency.setValueAtTime(freq, now);
-    modulator.frequency.setValueAtTime(freq * 4, now); // FM metallic tine ratio
-
-    modGain.gain.setValueAtTime(freq * 2, now);
-    modGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-
-    modulator.connect(modGain);
-    modGain.connect(carrier.frequency);
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(volume * 0.7, now + 0.005);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    carrier.connect(gainNode);
-    if (this.masterGain) gainNode.connect(this.masterGain);
-
-    carrier.start(now);
-    modulator.start(now);
-    carrier.stop(now + duration);
-    modulator.stop(now + duration);
-  }
-
-  // --- ANALOG SYNTH LEAD ---
-  public playAnalogSynthNote(freqOrNote: number | string, duration = 2.0, volume = 0.5) {
-    const ctx = this.initCtx();
-    const freq = typeof freqOrNote === 'number' ? freqOrNote : this.noteToFreq(freqOrNote);
-    const now = ctx.currentTime;
-
-    const osc1 = ctx.createOscillator();
-    const osc2 = ctx.createOscillator();
-    osc1.type = 'sawtooth';
-    osc2.type = 'square';
-
-    osc1.frequency.setValueAtTime(freq, now);
-    osc2.frequency.setValueAtTime(freq, now);
-    osc2.detune.setValueAtTime(10, now);
-
-    const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(freq * 4, now);
-    filter.frequency.exponentialRampToValueAtTime(freq * 0.8, now + duration);
-
-    const gainNode = ctx.createGain();
-    gainNode.gain.setValueAtTime(0, now);
-    gainNode.gain.linearRampToValueAtTime(volume * 0.6, now + 0.01);
-    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-
-    osc1.connect(filter);
-    osc2.connect(filter);
-    filter.connect(gainNode);
-    if (this.masterGain) gainNode.connect(this.masterGain);
-
-    osc1.start(now);
-    osc2.start(now);
-    osc1.stop(now + duration);
-    osc2.stop(now + duration);
-  }
-
-  // --- GUITAR CHORD STRUM ---
-  public playGuitarChord(frets: number[], baseTuning = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63], profile: InstrumentProfile = 'acoustic_guitar') {
-    frets.forEach((fret, stringIdx) => {
-      if (fret >= 0) {
-        const baseFreq = baseTuning[stringIdx];
-        const freq = baseFreq * Math.pow(2, fret / 12);
-        setTimeout(() => {
-          this.playNote(freq, profile, 2.5, 0.45);
-        }, stringIdx * 35);
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + effectiveDuration);
+        osc2.stop(now + effectiveDuration);
+        break;
       }
+
+      case 'organ': {
+        const drawbars = [1, 2, 3, 4, 6];
+        const oscs: OscillatorNode[] = [];
+        drawbars.forEach((mult, idx) => {
+          const osc = ctx.createOscillator();
+          osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(baseFreq * mult, now);
+          osc.connect(filter);
+          oscs.push(osc);
+        });
+
+        mainGain.gain.linearRampToValueAtTime(scaledGain * 0.8, now + 0.015);
+        mainGain.gain.exponentialRampToValueAtTime(0.0001, now + effectiveDuration);
+
+        oscs.forEach(o => {
+          o.start(now);
+          o.stop(now + effectiveDuration);
+        });
+        break;
+      }
+
+      default: {
+        const osc = ctx.createOscillator();
+        osc.type = preset.synthType.includes('bass') ? 'sawtooth' : 'triangle';
+        osc.frequency.setValueAtTime(baseFreq, now);
+
+        osc.connect(filter);
+
+        mainGain.gain.linearRampToValueAtTime(scaledGain, now + 0.01);
+        mainGain.gain.exponentialRampToValueAtTime(0.0001, now + effectiveDuration);
+
+        osc.start(now);
+        osc.stop(now + effectiveDuration);
+        break;
+      }
+    }
+
+    filter.connect(mainGain);
+    if (this.masterGain) mainGain.connect(this.masterGain);
+  }
+
+  // --- SPECIALIZED INSTRUMENT CONVENIENCE METHODS ---
+  public playClavinetNote(freqOrNote: number | string, duration = 1.5, volume = 0.6) {
+    this.playNote(freqOrNote, 'hohner_clavinet_d6', duration, volume);
+  }
+
+  public playGuitarNote(freqOrNote: number | string, duration = 2.0, volume = 0.5) {
+    this.playNote(freqOrNote, 'acoustic_dreadnought', duration, volume);
+  }
+
+  public playElectricGuitarNote(freqOrNote: number | string, duration = 2.2, volume = 0.5) {
+    this.playNote(freqOrNote, 'electric_strat_clean', duration, volume);
+  }
+
+  public playNylonGuitarNote(freqOrNote: number | string, duration = 2.0, volume = 0.5) {
+    this.playNote(freqOrNote, 'nylon_classical_spanish', duration, volume);
+  }
+
+  public playBassNote(freqOrNote: number | string, duration = 2.0, volume = 0.6) {
+    this.playNote(freqOrNote, 'fender_jazz_bass_finger', duration, volume);
+  }
+
+  public playPianoNote(freqOrNote: number | string, duration = 2.2, volume = 0.5) {
+    this.playNote(freqOrNote, 'grand_piano_steinway', duration, volume);
+  }
+
+  public playRhodesNote(freqOrNote: number | string, duration = 2.2, volume = 0.5) {
+    this.playNote(freqOrNote, 'rhodes_stage73', duration, volume);
+  }
+
+  public playAnalogSynthNote(freqOrNote: number | string, duration = 2.0, volume = 0.5) {
+    this.playNote(freqOrNote, 'prophet5_brass_lead', duration, volume);
+  }
+
+  public playGuitarChord(
+    frets: number[],
+    baseTuning = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63],
+    profile: InstrumentProfile = 'acoustic_dreadnought'
+  ) {
+    const ctx = this.initCtx();
+    const now = ctx.currentTime;
+
+    frets.forEach((fret, stringIdx) => {
+      if (fret < 0) return;
+      const baseFreq = baseTuning[stringIdx];
+      const freq = baseFreq * Math.pow(2, fret / 12);
+      const strumDelay = stringIdx * 0.028; // Realistic human strum timing
+
+      setTimeout(() => {
+        this.playNote(freq, profile, 2.5, 0.45, 0.8);
+      }, strumDelay * 1000);
     });
   }
 
-  // --- PIANO CHORD STRUM ---
-  public playPianoChord(keysOrNotes: (number | string)[], baseOctave = 4, duration = 2.5, volume = 0.45, profile: InstrumentProfile = 'grand_piano') {
-    if (!keysOrNotes || keysOrNotes.length === 0) return;
-
-    let previousMidi = -1;
-    keysOrNotes.forEach((key, idx) => {
-      let freq: number;
-      if (typeof key === 'number') {
-        let midi = key;
-        if (key >= 0 && key <= 11) {
-          midi = (baseOctave + 1) * 12 + key;
-          if (midi <= previousMidi) {
-            midi += 12;
-          }
-        }
-        previousMidi = midi;
-        freq = 440 * Math.pow(2, (midi - 69) / 12);
+  public playPianoChord(
+    keysOrNotes: (number | string)[],
+    baseOctave = 4,
+    duration = 2.5,
+    volume = 0.45,
+    profile: InstrumentProfile = 'grand_piano_steinway'
+  ) {
+    keysOrNotes.forEach((k, idx) => {
+      let noteName: string;
+      if (typeof k === 'number') {
+        const rootIndex = k % 12;
+        const noteStr = MIDI_NOTE_NAMES[rootIndex];
+        const oct = baseOctave + Math.floor(k / 12);
+        noteName = `${noteStr}${oct}`;
       } else {
-        freq = this.noteToFreq(key);
+        noteName = k;
       }
-
       setTimeout(() => {
-        this.playNote(freq, profile, duration, volume);
+        this.playNote(noteName, profile, duration, volume, 0.85);
       }, idx * 12);
     });
   }
 
-  // --- DRUM SYNTH ---
-  public playDrumSound(type: string, volume = 0.7) {
+  // --- DRUM KITS & PERCUSSION ENGINE ---
+  public playDrumSound(type: string, volume = 0.7, profile: InstrumentProfile = 'drums') {
+    // 1. Primary path: Play from the dedicated DrumKitFactory buffer engine
+    try {
+      const source = drumKitFactory.playDrumSound(type, volume, profile);
+      if (source) return;
+    } catch (e) {
+      console.warn('[AudioSynth] Fallback to direct drum synthesis:', e);
+    }
+
     const ctx = this.initCtx();
     const now = ctx.currentTime;
+
+    // 2. Check custom uploaded drum kits
+    if (this.customDrumKitBuffers.has(profile)) {
+      const padBuffer = this.customDrumKitBuffers.get(profile)!.get(type);
+      if (padBuffer) {
+        const source = ctx.createBufferSource();
+        source.buffer = padBuffer;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(volume * 1.1, now);
+        source.connect(gain);
+        if (this.masterGain) gain.connect(this.masterGain);
+        source.start(now);
+        return;
+      }
+    }
+
+    // 2. Check if decoded SoundFont sample buffers exist for mapped GM percussion
+    const sfName = this.getSoundfontNameForProfile(profile);
+    const sfDict = this.soundfontBuffers[sfName];
+    if (sfDict) {
+      // Map drum pad types to GM percussion MIDI note names
+      const gmNoteMap: Record<string, string> = {
+        kick: 'C2',          // MIDI 36 - Bass Drum 1
+        snare: 'D2',         // MIDI 38 - Acoustic Snare
+        hihat_closed: 'F#2', // MIDI 42 - Closed Hi-Hat
+        hihat_open: 'A#2',   // MIDI 46 - Open Hi-Hat
+        tom_low: 'F2',       // MIDI 41 - Low Floor Tom
+        tom_high: 'D3',      // MIDI 50 - High Tom
+        crash: 'C#3',        // MIDI 49 - Crash Cymbal 1
+        ride: 'D#3',         // MIDI 51 - Ride Cymbal 1
+      };
+      const noteName = gmNoteMap[type];
+      if (noteName) {
+        const played = this.playSampledNote(sfName, noteName, 1.8, volume, 0.9);
+        if (played) return;
+      }
+    }
+
+    // 3. Multi-Kit High Precision Synthesis Engine (distinct sound profiles for all 10 drum kits)
+    const is808 = profile === 'drums_808';
+    const is909 = profile === 'drums_electronic_909';
+    const is80s = profile === 'drums_80s_arena';
+    const isJazz = profile === 'drums_jazz';
+    const isMetal = profile === 'drums_metal' || profile === 'drums_djent';
+    const isFunk = profile === 'drums_funk';
+    const isHeavyRock = profile === 'drums_heavy_rock';
+    const isPunk = profile === 'drums_punk';
 
     switch (type) {
       case 'kick': {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.frequency.setValueAtTime(160, now);
-        osc.frequency.exponentialRampToValueAtTime(32, now + 0.12);
 
-        gain.gain.setValueAtTime(volume * 1.3, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        if (is808) {
+          // Roland TR-808 Sub Boom Kick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(130, now);
+          osc.frequency.exponentialRampToValueAtTime(36, now + 0.45);
+
+          gain.gain.setValueAtTime(volume * 1.5, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+        } else if (is909) {
+          // Roland TR-909 Punchy Click Kick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(280, now);
+          osc.frequency.exponentialRampToValueAtTime(46, now + 0.12);
+
+          // Overdrive click transient
+          const clickOsc = ctx.createOscillator();
+          const clickGain = ctx.createGain();
+          clickOsc.type = 'triangle';
+          clickOsc.frequency.setValueAtTime(800, now);
+          clickOsc.frequency.exponentialRampToValueAtTime(80, now + 0.02);
+          clickGain.gain.setValueAtTime(volume * 0.8, now);
+          clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+          clickOsc.connect(clickGain);
+          if (this.masterGain) clickGain.connect(this.masterGain);
+          clickOsc.start(now);
+          clickOsc.stop(now + 0.02);
+
+          gain.gain.setValueAtTime(volume * 1.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        } else if (isMetal) {
+          // High-definition Clicky Double-Kick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(420, now);
+          osc.frequency.exponentialRampToValueAtTime(48, now + 0.08);
+
+          gain.gain.setValueAtTime(volume * 1.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+        } else if (isJazz) {
+          // Soft Mellow Acoustic Jazz Kick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(110, now);
+          osc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
+
+          gain.gain.setValueAtTime(volume * 0.9, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+        } else if (isFunk) {
+          // Muted Dry Funky Kick
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.exponentialRampToValueAtTime(52, now + 0.09);
+
+          gain.gain.setValueAtTime(volume * 1.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+        } else if (is80s || isHeavyRock) {
+          // Deep Booming Arena Kick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(170, now);
+          osc.frequency.exponentialRampToValueAtTime(38, now + 0.2);
+
+          gain.gain.setValueAtTime(volume * 1.4, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        } else {
+          // Classic Rock Ludwig Kick
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(42, now + 0.14);
+
+          gain.gain.setValueAtTime(volume * 1.25, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+        }
 
         osc.connect(gain);
         if (this.masterGain) gain.connect(this.masterGain);
         osc.start(now);
-        osc.stop(now + 0.4);
+        osc.stop(now + 0.7);
         break;
       }
+
       case 'snare': {
-        const osc = ctx.createOscillator();
-        const oscGain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(180, now);
-        oscGain.gain.setValueAtTime(volume, now);
-        oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        if (is80s) {
+          // Famous 80s GATED REVERB SNARE
+          const osc = ctx.createOscillator();
+          const oscGain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(190, now);
+          oscGain.gain.setValueAtTime(volume * 0.9, now);
+          oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseBuffer.length; i++) {
-          data[i] = Math.random() * 2 - 1;
+          const noiseBuffer = this.getNoiseBuffer(ctx, 0.4);
+          const noise = ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          const noiseFilter = ctx.createBiquadFilter();
+          noiseFilter.type = 'highpass';
+          noiseFilter.frequency.value = 800;
+
+          const noiseGain = ctx.createGain();
+          // Gated Envelope: Hold high gain flat, then cut abruptly
+          noiseGain.gain.setValueAtTime(volume * 1.2, now);
+          noiseGain.gain.setValueAtTime(volume * 1.1, now + 0.18);
+          noiseGain.gain.linearRampToValueAtTime(0.0001, now + 0.19);
+
+          osc.connect(oscGain);
+          if (this.masterGain) oscGain.connect(this.masterGain);
+
+          noise.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          if (this.masterGain) noiseGain.connect(this.masterGain);
+
+          osc.start(now);
+          noise.start(now);
+          osc.stop(now + 0.2);
+          noise.stop(now + 0.2);
+        } else if (isJazz) {
+          // Jazz Brush Snare (Soft rasping bandpass noise)
+          const noiseBuffer = this.getNoiseBuffer(ctx, 0.3);
+          const noise = ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          const bandpass = ctx.createBiquadFilter();
+          bandpass.type = 'bandpass';
+          bandpass.frequency.value = 2200;
+          bandpass.Q.value = 0.8;
+
+          const noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(0.001, now);
+          noiseGain.gain.linearRampToValueAtTime(volume * 0.75, now + 0.015);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+          noise.connect(bandpass);
+          bandpass.connect(noiseGain);
+          if (this.masterGain) noiseGain.connect(this.masterGain);
+
+          noise.start(now);
+          noise.stop(now + 0.3);
+        } else if (is808) {
+          // TR-808 Snare (Tone + Snappy Noise)
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const oscGain = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(180, now);
+          osc2.frequency.setValueAtTime(330, now);
+
+          oscGain.gain.setValueAtTime(volume * 0.8, now);
+          oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+          const noiseBuffer = this.getNoiseBuffer(ctx, 0.2);
+          const noise = ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          const noiseFilter = ctx.createBiquadFilter();
+          noiseFilter.type = 'highpass';
+          noiseFilter.frequency.value = 2000;
+
+          const noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(volume * 0.9, now);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+          osc1.connect(oscGain);
+          osc2.connect(oscGain);
+          if (this.masterGain) oscGain.connect(this.masterGain);
+
+          noise.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          if (this.masterGain) noiseGain.connect(this.masterGain);
+
+          osc1.start(now);
+          osc2.start(now);
+          noise.start(now);
+          osc1.stop(now + 0.2);
+          osc2.stop(now + 0.2);
+          noise.stop(now + 0.2);
+        } else if (isMetal) {
+          // Steel Piccolo Snare (High pitch, sharp attack)
+          const osc = ctx.createOscillator();
+          const oscGain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(260, now);
+          oscGain.gain.setValueAtTime(volume, now);
+          oscGain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+
+          const noiseBuffer = this.getNoiseBuffer(ctx, 0.2);
+          const noise = ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          const noiseFilter = ctx.createBiquadFilter();
+          noiseFilter.type = 'highpass';
+          noiseFilter.frequency.value = 2500;
+
+          const noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(volume * 1.1, now);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+          osc.connect(oscGain);
+          if (this.masterGain) oscGain.connect(this.masterGain);
+
+          noise.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          if (this.masterGain) noiseGain.connect(this.masterGain);
+
+          osc.start(now);
+          noise.start(now);
+          osc.stop(now + 0.2);
+          noise.stop(now + 0.2);
+        } else {
+          // Standard / Funk / Rock Snare
+          const osc = ctx.createOscillator();
+          const oscGain = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(isFunk ? 210 : 180, now);
+          oscGain.gain.setValueAtTime(volume, now);
+          oscGain.gain.exponentialRampToValueAtTime(0.01, now + (isFunk ? 0.08 : 0.12));
+
+          const noiseBuffer = this.getNoiseBuffer(ctx, 0.25);
+          const noise = ctx.createBufferSource();
+          noise.buffer = noiseBuffer;
+
+          const noiseFilter = ctx.createBiquadFilter();
+          noiseFilter.type = 'highpass';
+          noiseFilter.frequency.value = isFunk ? 1800 : 1200;
+
+          const noiseGain = ctx.createGain();
+          noiseGain.gain.setValueAtTime(volume * 0.95, now);
+          noiseGain.gain.exponentialRampToValueAtTime(0.001, now + (isFunk ? 0.16 : 0.25));
+
+          osc.connect(oscGain);
+          if (this.masterGain) oscGain.connect(this.masterGain);
+
+          noise.connect(noiseFilter);
+          noiseFilter.connect(noiseGain);
+          if (this.masterGain) noiseGain.connect(this.masterGain);
+
+          osc.start(now);
+          noise.start(now);
+          osc.stop(now + 0.25);
+          noise.stop(now + 0.25);
         }
-        const noise = ctx.createBufferSource();
-        noise.buffer = noiseBuffer;
-
-        const noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = 'highpass';
-        noiseFilter.frequency.value = 1000;
-
-        const noiseGain = ctx.createGain();
-        noiseGain.gain.setValueAtTime(volume * 0.85, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-
-        osc.connect(oscGain);
-        if (this.masterGain) oscGain.connect(this.masterGain);
-
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        if (this.masterGain) noiseGain.connect(this.masterGain);
-
-        osc.start(now);
-        noise.start(now);
-        osc.stop(now + 0.2);
-        noise.stop(now + 0.2);
         break;
       }
+
       case 'hihat_closed': {
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.05, ctx.sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseBuffer.length; i++) data[i] = Math.random() * 2 - 1;
+        const duration = is808 ? 0.03 : isJazz ? 0.06 : 0.05;
+        const cutoff = is808 ? 10000 : is909 ? 8500 : isFunk ? 8000 : 7000;
 
+        const noiseBuffer = this.getNoiseBuffer(ctx, duration);
         const noise = ctx.createBufferSource();
         noise.buffer = noiseBuffer;
 
         const filter = ctx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 7000;
+        filter.frequency.value = cutoff;
 
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(volume * 0.6, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        gain.gain.setValueAtTime(volume * (is808 ? 0.8 : 0.65), now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
         noise.connect(filter);
         filter.connect(gain);
@@ -735,21 +1497,22 @@ class SoundSynthesizer {
         noise.start(now);
         break;
       }
+
       case 'hihat_open': {
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.35, ctx.sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseBuffer.length; i++) data[i] = Math.random() * 2 - 1;
+        const duration = is808 ? 0.3 : isJazz ? 0.5 : 0.4;
+        const cutoff = is808 ? 9000 : isJazz ? 5500 : 6500;
 
+        const noiseBuffer = this.getNoiseBuffer(ctx, duration);
         const noise = ctx.createBufferSource();
         noise.buffer = noiseBuffer;
 
         const filter = ctx.createBiquadFilter();
         filter.type = 'highpass';
-        filter.frequency.value = 6000;
+        filter.frequency.value = cutoff;
 
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(volume * 0.6, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        gain.gain.setValueAtTime(volume * 0.7, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
         noise.connect(filter);
         filter.connect(gain);
@@ -758,42 +1521,42 @@ class SoundSynthesizer {
         noise.start(now);
         break;
       }
+
       case 'tom_low':
       case 'tom_high': {
         const isHigh = type === 'tom_high';
-        const startFreq = isHigh ? 180 : 110;
+        const startFreq = isHigh ? (is808 ? 200 : 180) : (is808 ? 120 : 100);
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
         osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(startFreq * 0.4, now + 0.3);
+        osc.frequency.exponentialRampToValueAtTime(startFreq * 0.38, now + 0.3);
 
-        gain.gain.setValueAtTime(volume * 0.9, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        gain.gain.setValueAtTime(volume * (is80s ? 1.1 : 0.9), now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + (is80s ? 0.45 : 0.32));
 
         osc.connect(gain);
         if (this.masterGain) gain.connect(this.masterGain);
         osc.start(now);
-        osc.stop(now + 0.35);
+        osc.stop(now + 0.5);
         break;
       }
+
       case 'crash':
       case 'ride': {
-        const duration = type === 'crash' ? 1.2 : 0.8;
-        const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
-        const data = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < noiseBuffer.length; i++) data[i] = Math.random() * 2 - 1;
-
+        const isRide = type === 'ride';
+        const duration = isRide ? (isJazz ? 2.2 : 1.2) : (is80s ? 1.8 : 1.4);
+        const noiseBuffer = this.getNoiseBuffer(ctx, duration);
         const noise = ctx.createBufferSource();
         noise.buffer = noiseBuffer;
 
         const filter = ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = type === 'crash' ? 4500 : 5500;
-        filter.Q.value = 1.2;
+        filter.type = isRide ? 'bandpass' : 'highpass';
+        filter.frequency.value = isRide ? (isJazz ? 6200 : 5500) : 4500;
+        if (isRide) filter.Q.value = 1.4;
 
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(volume * 0.7, now);
+        gain.gain.setValueAtTime(volume * (isRide ? 0.6 : 0.8), now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
         noise.connect(filter);

@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "songs": {
+      "title": "Songs & Stems",
+      "description": "Band songbook, chords, tabs, and AI separated multitrack audio stems",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique song ID" },
+        "title": { "type": "string", "description": "Song title" },
+        "artist": { "type": "string", "description": "Artist name" },
+        "youtubeUrl": { "type": "string", "description": "YouTube video link" },
+        "youtubeId": { "type": "string", "description": "YouTube video ID" },
+        "durationSeconds": { "type": "number", "description": "Song duration in seconds" },
+        "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed"], "description": "Stem separation status" },
+        "progressPercentage": { "type": "number", "description": "Processing progress percentage" },
+        "errorMessage": { "type": "string", "description": "Error details if processing failed" },
+        "stems": {
+          "type": "array",
+          "description": "Multitrack stems array (vocals, drums, bass, guitar, other)"
+        },
+        "createdBy": { "type": "string", "description": "User ID who submitted the song" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["id", "title", "artist", "status"]
+    },
+    "playlists": {
+      "title": "Playlists",
+      "description": "Gig setlists and band playlists"
+    },
+    "custom_drum_kits": {
+      "title": "Custom Drum Kits",
+      "description": "User custom drum sample kits"
+    },
+    "photos": {
+      "title": "Photos",
+      "description": "Band photo gallery and media attachments"
+    },
+    "users": {
+      "title": "Users",
+      "description": "User accounts, roles, and permissions"
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Live band practice sessions"
+    }
+  },
+  "firestore": {
+    "/songs/{songId}": {
+      "schema": { "$ref": "#/entities/songs" },
+      "description": "Collection of songs with AI multitrack stems and metadata"
+    }
+  }
+}

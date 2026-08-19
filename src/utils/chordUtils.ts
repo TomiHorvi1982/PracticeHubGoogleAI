@@ -146,7 +146,7 @@ export function extractUniqueChords(content: string, transposeSemitones: number 
   const matches = content.match(/\[([^\]]+)\]/g) || [];
   const unique = new Set<string>();
 
-  matches.forEach((m) => {
+  matches.forEach((m: string) => {
     const rawChord = m.slice(1, -1).trim();
     if (rawChord) {
       const transposed = transposeChord(rawChord, transposeSemitones);

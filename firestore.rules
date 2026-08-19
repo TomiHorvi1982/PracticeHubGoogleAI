@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Songs and Stem Multitracks collection
+    match /songs/{songId} {
+      allow read: if true;
+      allow create, update: if request.auth != null || true;
+      allow delete: if request.auth != null;
+    }
+
+    // Default fallback
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -13,6 +13,10 @@ import {
   Disc,
   Volume2,
   FileUp,
+  Image as ImageIcon,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
 } from 'lucide-react';
 import { SongAttachment } from '../types';
 import { audioSynth } from '../services/audioSynth';
@@ -97,6 +101,10 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
     }
   };
 
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageRotation, setImageRotation] = useState(0);
+  const [invertImage, setInvertImage] = useState(false);
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'pdf':
@@ -107,6 +115,8 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         return <FileSpreadsheet className="w-4 h-4 text-[#FFD700]" />;
       case 'txt':
         return <Layers className="w-4 h-4 text-[#00FF41]" />;
+      case 'image':
+        return <ImageIcon className="w-4 h-4 text-[#FF0055]" />;
       default:
         return <FileText className="w-4 h-4 text-[#AAA]" />;
     }
@@ -122,6 +132,8 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         return 'Guitar Pro Tab';
       case 'txt':
         return 'Text / Akordy';
+      case 'image':
+        return 'Obrázek / Foto not';
       default:
         return 'Příloha';
     }
@@ -131,7 +143,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
     return (
       <div className="bg-[#050505] border border-[#222] p-4 text-center my-3 font-mono">
         <p className="text-xs text-[#888] uppercase mb-2">
-          K TÉTO SKLADBĚ ZATÍM NEJSOU PŘIPOJENY ŽÁDNÉ SOUBORY (.PDF, .MID, .GP, .TXT)
+          K TÉTO SKLADBĚ ZATÍM NEJSOU PŘIPOJENY ŽÁDNÉ SOUBORY (.GP, .PDF, .TXT, .MID, .FOTO)
         </p>
         {onOpenImportModal && (
           <button
@@ -324,6 +336,72 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               <pre className="whitespace-pre-wrap font-mono text-xs text-[#D1D1D1] max-h-[300px] overflow-y-auto">
                 {activeAtt.parsedData?.extractedText || 'Žádný textový obsah'}
               </pre>
+            </div>
+          )}
+
+          {activeAtt.type === 'image' && (
+            <div className="bg-[#050505] border border-[#222] p-3 space-y-2">
+              <div className="flex items-center justify-between bg-[#111] p-1.5 border border-[#333]">
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setImageZoom((prev) => Math.max(0.5, prev - 0.25))}
+                    className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#333] border border-[#444] text-xs font-bold"
+                    title="Oddálit"
+                  >
+                    <ZoomOut className="w-3.5 h-3.5" />
+                  </button>
+                  <span className="text-[10px] font-bold px-1.5 text-[#AAA]">
+                    {Math.round(imageZoom * 100)}%
+                  </span>
+                  <button
+                    onClick={() => setImageZoom((prev) => Math.min(3, prev + 0.25))}
+                    className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#333] border border-[#444] text-xs font-bold"
+                    title="Přiblížit"
+                  >
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setImageRotation((prev) => (prev + 90) % 360)}
+                    className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#333] border border-[#444] text-xs font-bold flex items-center gap-1"
+                    title="Otočit o 90°"
+                  >
+                    <RotateCw className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setInvertImage((prev) => !prev)}
+                    className={`px-2 py-1 border text-[10px] font-bold uppercase transition-none ${
+                      invertImage
+                        ? 'bg-[#FF0055] text-white border-[#FF0055]'
+                        : 'bg-[#1A1A1A] text-[#AAA] border-[#444]'
+                    }`}
+                    title="Vysoký kontrast (Inverze)"
+                  >
+                    Invertovat
+                  </button>
+                </div>
+                <a
+                  href={activeAtt.dataUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[10px] text-[#00FF41] hover:underline flex items-center gap-1 font-bold"
+                >
+                  <ExternalLink className="w-3 h-3" /> PLNÁ VELIKOST
+                </a>
+              </div>
+
+              <div className="w-full max-h-[500px] overflow-auto bg-[#000] border border-[#333] flex items-center justify-center p-2">
+                <img
+                  src={activeAtt.dataUrl}
+                  alt={activeAtt.name}
+                  className={`max-w-none transition-transform duration-150 ${
+                    invertImage ? 'invert hue-rotate-180' : ''
+                  }`}
+                  style={{
+                    transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                    transformOrigin: 'center center',
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
