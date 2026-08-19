@@ -156,7 +156,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     }
 
     const newSong: Song = {
-      id: 'song_' + Date.now(),
+      id: crypto.randomUUID(),
       title: importSongTitle.trim() || 'Importovaná Píseň',
       artist: importSongArtist.trim() || 'Neznámý interpret',
       key: 'G',

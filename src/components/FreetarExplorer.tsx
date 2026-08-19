@@ -137,7 +137,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     }
 
     const newSong: Song = {
-      id: 'song_' + Date.now(),
+      id: crypto.randomUUID(),
       title: songData.title || songData.song || 'Skladba z Freetar',
       artist: songData.artist || 'Neznámý interpret',
       key: songData.key || 'C',

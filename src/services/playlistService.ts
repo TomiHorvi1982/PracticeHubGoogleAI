@@ -1,17 +1,55 @@
 import { PlaylistItem } from '../types';
-import {
-  setFirestoreDoc,
-  deleteFirestoreDoc,
-  subscribeFirestoreCollection,
-} from './firebase';
+import { supabase } from './supabaseClient';
+import { authService } from './authService';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type PlaylistCallback = (items: PlaylistItem[]) => void;
 
+/** `playlist_songs` row shape, widened in Phase 9 to carry a full queue
+ * entry directly (see docs/migration) — "Setlisty" is one shared queue of
+ * YouTube-video entries, optionally linked to a song, not a strict
+ * song-only join table. */
+interface PlaylistSongRow {
+  id: string;
+  song_id: string | null;
+  youtube_id: string | null;
+  title: string | null;
+  artist: string | null;
+  thumbnail_url: string | null;
+  duration: string | null;
+  added_by: string | null;
+  added_by_name: string | null;
+  notes: string | null;
+  position: number;
+  created_at: string;
+}
+
+function rowToItem(row: PlaylistSongRow): PlaylistItem {
+  return {
+    id: row.id,
+    youtubeId: row.youtube_id || '',
+    title: row.title || '',
+    artist: row.artist || '',
+    thumbnail: row.thumbnail_url || (row.youtube_id ? `https://img.youtube.com/vi/${row.youtube_id}/mqdefault.jpg` : ''),
+    duration: row.duration || '',
+    addedBy: row.added_by || '',
+    addedByName: row.added_by_name || 'Člen',
+    addedAt: new Date(row.created_at).getTime(),
+    notes: row.notes || '',
+    songId: row.song_id || undefined,
+    order: row.position,
+  };
+}
+
+const SHARED_PLAYLIST_LEGACY_ID = 'shared-setlist';
+
+/** One shared, collaborative Setlisty queue — any signed-in band member can
+ * add/reorder/remove entries (see phase9_collaborative_playlist_rls). */
 class PlaylistService {
   private items: PlaylistItem[] = [];
   private subscribers: Set<PlaylistCallback> = new Set();
-  private unsubscribeFirestore: (() => void) | null = null;
-  private isLoaded: boolean = false;
+  private playlistId: string | null = null;
+  private realtimeChannel: RealtimeChannel | null = null;
 
   constructor() {
     this.init();
@@ -37,126 +75,118 @@ class PlaylistService {
     return this.items;
   }
 
-  public setItems(items: PlaylistItem[]) {
-    this.items = items;
-    this.saveToLocalStorage();
-    this.notify();
-    this.persistAllToFirestore(items);
+  private async ensurePlaylistId(): Promise<string> {
+    if (this.playlistId) return this.playlistId;
+
+    const { data: existing } = await supabase.from('playlists').select('id').eq('legacy_id', SHARED_PLAYLIST_LEGACY_ID).maybeSingle();
+    if (existing) {
+      this.playlistId = existing.id;
+      return existing.id;
+    }
+
+    const { data: created, error } = await supabase
+      .from('playlists')
+      .insert({ legacy_id: SHARED_PLAYLIST_LEGACY_ID, name: 'Setlist', owner_id: null })
+      .select('id')
+      .single();
+    if (error || !created) {
+      throw new Error(error?.message || 'Nepodařilo se založit sdílený playlist.');
+    }
+    this.playlistId = created.id;
+    return created.id;
   }
 
-  private saveToLocalStorage() {
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem('band_playlist_cache', JSON.stringify(this.items));
-      } catch (e) {
-        console.warn('LocalStorage save error:', e);
+  private async fetchAll() {
+    try {
+      const playlistId = await this.ensurePlaylistId();
+      const { data, error } = await supabase
+        .from('playlist_songs')
+        .select('*')
+        .eq('playlist_id', playlistId)
+        .order('position', { ascending: true });
+
+      if (error) {
+        console.warn('[playlistService] Failed to load playlist:', error.message);
+        return;
       }
+      this.items = (data as PlaylistSongRow[]).map(rowToItem);
+      this.notify();
+    } catch (e: any) {
+      console.warn('[playlistService] fetchAll failed:', e.message);
     }
   }
 
   public async init() {
-    // 1. Instant local cache load
-    if (typeof localStorage !== 'undefined') {
-      const cached = localStorage.getItem('band_playlist_cache');
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed)) {
-            this.items = parsed;
-            this.notify();
-          }
-        } catch (e) {}
-      }
-    }
+    await this.fetchAll();
 
-    // 2. Real-time Cloud Sync from Firestore `playlists` collection
-    this.unsubscribeFirestore = subscribeFirestoreCollection<PlaylistItem>('playlists', (cloudItems) => {
-      if (cloudItems) {
-        // Sort items by position/order or addedAt
-        cloudItems.sort((a, b) => (a.order ?? a.addedAt) - (b.order ?? b.addedAt));
-        this.items = cloudItems;
-        this.isLoaded = true;
-        this.saveToLocalStorage();
-        this.notify();
-      }
-    });
+    this.realtimeChannel = supabase
+      .channel('playlist-songs-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'playlist_songs' }, () => {
+        this.fetchAll();
+      })
+      .subscribe();
   }
 
   public async addItem(item: Partial<PlaylistItem>): Promise<PlaylistItem> {
-    const newItem: PlaylistItem = {
-      id: item.id || 'pl_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-      youtubeId: item.youtubeId || '',
-      title: item.title || 'Nová píseň',
-      artist: item.artist || '',
-      thumbnail: item.thumbnail || (item.youtubeId ? `https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg` : ''),
-      duration: item.duration || '',
-      addedBy: item.addedBy || '',
-      addedByName: item.addedByName || 'Člen',
-      addedAt: Date.now(),
-      notes: item.notes || '',
-      songId: item.songId || undefined,
-      order: this.items.length,
-    };
-
-    // Optimistic local update
-    this.items = [...this.items, newItem];
-    this.saveToLocalStorage();
-    this.notify();
-
-    // Persist to Cloud Firestore
-    try {
-      await setFirestoreDoc('playlists', newItem.id, newItem);
-    } catch (e) {
-      console.warn('Failed to persist playlist item to Firestore:', e);
+    if (!authService.isAuthenticated()) {
+      throw new Error('Pro úpravu setlistu musíte být přihlášeni.');
     }
+    const user = authService.getCurrentUser();
+    const playlistId = await this.ensurePlaylistId();
 
+    const { data, error } = await supabase
+      .from('playlist_songs')
+      .insert({
+        playlist_id: playlistId,
+        song_id: item.songId || null,
+        youtube_id: item.youtubeId || null,
+        title: item.title || 'Nová píseň',
+        artist: item.artist || null,
+        thumbnail_url: item.thumbnail || (item.youtubeId ? `https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg` : null),
+        duration: item.duration || null,
+        added_by: user?.id || null,
+        added_by_name: user?.displayName || 'Člen',
+        notes: item.notes || null,
+        position: this.items.length,
+      })
+      .select()
+      .single();
+
+    if (error || !data) throw new Error(error?.message || 'Nepodařilo se přidat položku do setlistu.');
+
+    const newItem = rowToItem(data as PlaylistSongRow);
+    this.items = [...this.items, newItem];
+    this.notify();
     return newItem;
   }
 
   public async removeItem(itemId: string) {
-    this.items = this.items.filter((item) => item.id !== itemId);
-    this.saveToLocalStorage();
-    this.notify();
-
-    try {
-      await deleteFirestoreDoc('playlists', itemId);
-    } catch (e) {
-      console.warn('Failed to delete playlist item from Firestore:', e);
+    if (!authService.isAuthenticated()) {
+      console.warn('[playlistService] Cannot remove item while signed out.');
+      return;
     }
+    const { error } = await supabase.from('playlist_songs').delete().eq('id', itemId);
+    if (error) {
+      console.warn('[playlistService] Failed to remove item:', error.message);
+      return;
+    }
+    this.items = this.items.filter((item) => item.id !== itemId);
+    this.notify();
   }
 
   public async reorderItems(reordered: PlaylistItem[]) {
+    if (!authService.isAuthenticated()) {
+      console.warn('[playlistService] Cannot reorder while signed out.');
+      return;
+    }
     const itemsWithOrder = reordered.map((item, idx) => ({ ...item, order: idx }));
     this.items = itemsWithOrder;
-    this.saveToLocalStorage();
     this.notify();
 
-    this.persistAllToFirestore(itemsWithOrder);
-  }
-
-  public async updateItem(itemId: string, updates: Partial<PlaylistItem>) {
-    this.items = this.items.map((item) => (item.id === itemId ? { ...item, ...updates } : item));
-    this.saveToLocalStorage();
-    this.notify();
-
-    const target = this.items.find((i) => i.id === itemId);
-    if (target) {
-      try {
-        await setFirestoreDoc('playlists', itemId, target);
-      } catch (e) {
-        console.warn('Failed to update playlist item in Firestore:', e);
-      }
-    }
-  }
-
-  private async persistAllToFirestore(items: PlaylistItem[]) {
-    try {
-      for (let i = 0; i < items.length; i++) {
-        await setFirestoreDoc('playlists', items[i].id, { ...items[i], order: i }).catch(() => {});
-      }
-    } catch (e) {
-      console.warn('Failed to sync all playlist items to Firestore:', e);
-    }
+    // Persist each new position; RLS covers authorization per-row.
+    await Promise.all(
+      itemsWithOrder.map((item, idx) => supabase.from('playlist_songs').update({ position: idx }).eq('id', item.id))
+    ).catch((e) => console.warn('[playlistService] Failed to persist reorder:', e));
   }
 }
 

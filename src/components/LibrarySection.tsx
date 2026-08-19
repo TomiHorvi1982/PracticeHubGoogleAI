@@ -353,7 +353,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     };
 
     const newSong: Song = {
-      id: 'song_' + Date.now(),
+      id: crypto.randomUUID(),
       title: item.songTitle || item.name.replace(/\.[^/.]+$/, ''),
       artist: item.artist || 'Neznámý interpret',
       key: item.key || 'C',

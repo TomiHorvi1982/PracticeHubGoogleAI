@@ -88,7 +88,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
     if (!importResult) return;
 
     const newSong: Song = {
-      id: 'song_' + Date.now(),
+      id: crypto.randomUUID(),
       title: importResult.song.title || 'Importovaná Skladba',
       artist: importResult.song.artist || 'Neznámý interpret',
       key: importResult.song.key || 'C',

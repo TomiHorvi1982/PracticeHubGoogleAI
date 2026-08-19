@@ -8,3 +8,11 @@ coverage/
 !.env.example
 .superpowers/
 .worktrees/
+
+# Legacy file-store runtime artifacts (server.ts still touches these paths
+# for vestigial /api/songs, /api/playlist, /api/photos, /api/stems routes;
+# the real data path is Supabase as of Phase 9 — see docs/migration).
+data/songs.json
+data/playlist.json
+data/photos.json
+data/stems.json

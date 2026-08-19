@@ -66,7 +66,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
   const importSong = (item: OnlineSearchResult) => {
     const newSong: Song = {
-      id: 'song_' + Date.now(),
+      id: crypto.randomUUID(),
       title: item.title || 'Importovaná Píseň',
       artist: item.artist || 'Neznámý autor',
       key: item.key || 'G',

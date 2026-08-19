@@ -182,7 +182,7 @@ export const Songbook: React.FC<SongbookProps> = ({
 
   const handleCreateSong = () => {
     const newSong: Song = {
-      id: 'song_' + Date.now(),
+      id: crypto.randomUUID(),
       title: editTitle || 'Nová skladba',
       artist: editArtist || 'Neznámý interpret',
       key: editKey,
@@ -263,7 +263,7 @@ export const Songbook: React.FC<SongbookProps> = ({
         setActiveSong(updatedSongs[0]);
       } else {
         const defaultEmptySong: Song = {
-          id: 'song_' + Date.now(),
+          id: crypto.randomUUID(),
           title: 'Nová skladba',
           artist: '',
           key: 'C',

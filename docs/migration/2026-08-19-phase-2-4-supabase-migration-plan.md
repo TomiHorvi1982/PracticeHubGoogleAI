@@ -1,11 +1,21 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: **Phase 1–8 hotovo.** Phase 1–7 v `main`; "Moje knihovna" frontend hotový na branchi `my-library`, čeká na merge.
+Status: **Phase 1–9 hotovo a smergováno do `main`.** Appka už nikde nečte/nezapisuje `data/songs.json`, `data/playlist.json`, `data/photos.json` — Zpěvník, Setlisty i Fotky Kapely běží přímo nad Supabase (Postgres + Storage + Realtime).
 
-## NEXT SESSION START HERE (2026-08-19)
+## NEXT SESSION START HERE (2026-08-19, po Phase 9)
 
 Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase projektu (ne jen naplánováno):
+
+- **Phase 9 — Zpěvník, Setlisty, Fotky Kapely přepojeny na Supabase** (branch `realtime-sync`, smergováno do `main`):
+  - `src/services/songDatabaseService.ts` — přímé čtení/zápis do `songs` (žádný `/api/songs` proxy), Realtime `postgres_changes` subscribe na `songs`. Sdílený zpěvník: `owner_id null`, kdokoliv přihlášený smí přidat/upravit.
+  - `src/services/playlistService.ts` — přepsán na `playlists`/`playlist_songs`. Jeden sdílený playlist řádek (`legacy_id='shared-setlist'`, vytvoří se sám při prvním přístupu). `playlist_songs` tabulka byla rozšířena (migrace `phase9_playlist_songs_widen`) — původní striktní song-join schéma neodpovídalo realitě (`playlist.json` je plochá fronta YouTube položek, ne vazba na písně), teď má vlastní sloupce (`youtube_id/title/artist/thumbnail_url/duration/notes/added_by/added_by_name`), `song_id` nepovinný.
+  - `src/services/photoService.ts` — přepsán na `assets` (`category='band_photos'`, `asset_type='image'`) + Storage bucket `assets` pod `global/band_photos/{uuid}.{ext}`. `BandPhoto.dataUrl` je teď dlouhodobý (60denní) signed URL, ne base64 blob. Realtime subscribe na `assets` filtrovaný na `category=eq.band_photos`.
+  - **Kolaborativní RLS** (ne admin-only global, jak byl původní vzor u ostatních tabulek) — nové/upravené policies: `phase9_collaborative_songbook_rls`, `phase9_collaborative_playlist_rls`, `phase9_collaborative_band_photos_rls`, plus storage-level `phase9_storage_band_photos_rls` (jinak by nešlo nahrát soubor do `global/band_photos/...` jako běžný člen, jen jako admin). Mazání/úprava fotky omezena na autora nebo admina (`metadata->>'authorId'`), přidávání smí kdokoliv přihlášený. Policies pro `assets` INSERT/UPDATE/DELETE zkonsolidovány do jedné za akci (`phase9_consolidate_assets_policies`), aby nevznikl "multiple permissive policies" perf warning.
+  - Sedm míst v kódu (`Songbook.tsx` ×2, `LibrarySection.tsx`, `OnlineSearchModal.tsx`, `FileImportModal.tsx`, `FreetarExplorer.tsx`, `YouTubeSection.tsx`) generovalo ID písní jako `'song_' + Date.now()` — nebyl to platný Postgres `uuid`. Přepsáno na `crypto.randomUUID()`.
+  - **Skutečně otestováno end-to-end v prohlížeči** (persistovaná session `hortom82@gmail.com`), ne jen typechecked: nová píseň uložena přes UI → objevila se v `songs` s validním UUID; položka přidána do `playlist_songs` přes autentizovaný REST call (RLS ověřeno) → objevila se v UI **live přes Realtime bez refreshe**; fotka vložena přes `Ctrl+V` paste flow → nahrána do Storage (`global/band_photos/...`) → řádek v `assets` → zobrazena v galerii se správným autorem. Všechna testovací data po ověření smazána (DB i Storage).
+  - `npm run lint` (`tsc --noEmit`) čistý.
+  - Staré `/api/songs`, `/api/playlist`, `/api/photos` endpointy v `server.ts` zůstávají v kódu (nikdo je teď nevolá), + přidány `data/songs.json`/`playlist.json`/`photos.json`/`stems.json` do `.gitignore` (vestigiální runtime artefakty, které tyto staré routy stále dovedou zapsat). **Nejsou explicitně odstraněny** — bezpečný low-risk úklid pro některou z příštích fází, ne součást této.
 
 - Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety, Asset Library backend, data migrovaná, "Moje knihovna" frontend.
 - `main` branch: Phase 1–7 (Supabase Auth, `requireAuth`/`requireRole`, `/api/users*`, Storage buckety, `/api/assets*`, data migrace).
@@ -24,10 +34,12 @@ Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase pro
 
 **Až budete pokračovat:**
 
-1. Smergovat `my-library` do `main` (pokud ještě nebylo) přes `finishing-a-development-branch` postup.
-2. **Důležité — čemu appka dnes ještě NEVĚŘÍ:** Postgres teď obsahuje data (Phase 7 je tam nahrála), ale **Zpěvník/Knihovna, Setlisty a Fotky Kapely v appce pořád čtou a zapisují přes staré endpointy `/api/songs`, `/api/playlist`, `/api/photos` do `data/*.json` souborů** — ne do `songs`/`playlists`/`assets` tabulek. Jediná část appky, která reálně mluví s Postgres/Storage, je nové Auth (Phase 4) a nová "Moje knihovna" (tahle fáze). Přepojení Zpěvníku/Setlistů/Fotek na Postgres je největší zbývající kus práce — teprve pak appka přestane potřebovat `data/*.json` vůbec.
-3. Testovacího uživatele `test-clen@kapela.cz` je potřeba někdy v budoucnu buď skutečně pozvat (real invite e-mail), nebo smazat — zůstává v `invited` stavu bez možnosti přihlášení, dokud se nerozhodnete.
-4. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
+1. **Appka teď mluví s Postgres/Storage skoro všude** — Auth (Phase 4), Moje knihovna (Phase 8), Zpěvník/Setlisty/Fotky Kapely (Phase 9). Co ještě zbývá:
+   - Vyklidit vestigiální `/api/songs`, `/api/playlist`, `/api/photos` (a `/api/stems`?) endpointy v `server.ts` — nikdo je nevolá, ale pořád existují a čtou/zapisují `data/*.json`. Bezpečný low-risk úklid, ne urgentní.
+   - Stem Mixer (Phase 10) — beze změny, `stem.downloadUrl` pořád ukazuje na `generateServerStemWav`, ne na `assets`/`stem_sets` signed URL.
+   - Live Band Room (`/api/rooms/*`) — čistě in-memory, mimo scope, netřeba měnit.
+2. Testovacího uživatele `test-clen@kapela.cz` je potřeba někdy v budoucnu buď skutečně pozvat (real invite e-mail), nebo smazat — zůstává v `invited` stavu bez možnosti přihlášení, dokud se nerozhodnete.
+3. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
 
 ## Phase 4 — Auth & Authorization (dokončeno)
 
