@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
+import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -20,6 +21,77 @@ function getAIClient(): GoogleGenAI {
   return aiClient;
 }
 
+// --- Supabase Admin Client (server-only — uses the secret key, bypasses RLS) ---
+// See docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md (Phase 4).
+let supabaseAdmin: SupabaseClient | null = null;
+
+function getSupabaseAdmin(): SupabaseClient {
+  if (!supabaseAdmin) {
+    const url = process.env.VITE_SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !serviceKey) {
+      throw new Error('VITE_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY environment variables are missing.');
+    }
+    supabaseAdmin = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+  return supabaseAdmin;
+}
+
+// Augment Express's Request type with the authenticated user, set by requireAuth.
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    interface Request {
+      user?: SupabaseUser;
+    }
+  }
+}
+
+/** Verifies the Bearer token against Supabase Auth. 401s if missing/invalid. */
+async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) {
+    return res.status(401).json({ error: 'Chybí přihlašovací token.' });
+  }
+
+  try {
+    const { data, error } = await getSupabaseAdmin().auth.getUser(token);
+    if (error || !data.user) {
+      return res.status(401).json({ error: 'Neplatný nebo vypršelý token.' });
+    }
+    req.user = data.user;
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Ověření selhalo.' });
+  }
+}
+
+/** Must run after requireAuth. 403s unless the caller's profile has the given role. */
+function requireRole(role: 'admin') {
+  return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ error: 'Chybí přihlašovací token.' });
+    }
+    try {
+      const { data: profile, error } = await getSupabaseAdmin()
+        .from('profiles')
+        .select('role')
+        .eq('user_id', req.user.id)
+        .single();
+
+      if (error || !profile || profile.role !== role) {
+        return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+      }
+      next();
+    } catch (err) {
+      return res.status(403).json({ error: 'Ověření oprávnění selhalo.' });
+    }
+  };
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -33,8 +105,6 @@ async function startServer() {
 
   // --- Persistent Backend Database Stores (data/ folder) ---
   const DATA_DIR = path.join(process.cwd(), 'data');
-  const USERS_FILE = path.join(DATA_DIR, 'users.json');
-  const INVITES_FILE = path.join(DATA_DIR, 'invitations.json');
   const SONGS_FILE = path.join(DATA_DIR, 'songs.json');
   const PLAYLIST_FILE = path.join(DATA_DIR, 'playlist.json');
   const PHOTOS_FILE = path.join(DATA_DIR, 'photos.json');
@@ -45,30 +115,10 @@ async function startServer() {
     } catch (e) {}
   }
 
-  const DEFAULT_ADMIN = {
-    id: 'user-admin-hortom82',
-    email: 'hortom82@gmail.com',
-    username: 'hortom82',
-    displayName: 'Tomáš Hort (Hlavní Správce)',
-    role: 'admin',
-    permissions: {
-      canEditSongs: true,
-      canDeleteSongs: true,
-      canImportFiles: true,
-      canManageUsers: true,
-      canStartBandSession: true,
-      canManageSetlists: true,
-      canAccessTools: true,
-    },
-    password: 'Admin123!',
-    initialPassword: 'Admin123!',
-    status: 'active',
-    createdAt: Date.now() - 30 * 24 * 3600 * 1000,
-    lastLoginAt: Date.now(),
-    avatarColor: '#FF3E00',
-    instrument: 'Kytara / Leader',
-    notes: 'Hlavní administrátor systému',
-  };
+  // NOTE: users/invitations are no longer stored in data/users.json or
+  // data/invitations.json — Supabase Auth + the `profiles` table are now the
+  // source of truth (see requireAuth/requireRole above and the /api/users
+  // routes below). See docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md.
 
   const DEFAULT_SONGS = [
     {
@@ -255,8 +305,6 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
     },
   ];
 
-  let serverUsers: any[] = [DEFAULT_ADMIN];
-  let serverInvitations: any[] = [];
   let serverSongs: any[] = DEFAULT_SONGS;
   let serverPlaylist: any[] = DEFAULT_PLAYLIST;
   let serverPhotos: any[] = [
@@ -287,31 +335,6 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
       height: 500,
     }
   ];
-
-  // Load Users
-  try {
-    if (fs.existsSync(USERS_FILE)) {
-      const data = fs.readFileSync(USERS_FILE, 'utf-8');
-      serverUsers = JSON.parse(data);
-      if (!serverUsers.some((u) => u.email?.toLowerCase() === 'hortom82@gmail.com')) {
-        serverUsers.unshift(DEFAULT_ADMIN);
-      }
-    } else {
-      fs.writeFileSync(USERS_FILE, JSON.stringify(serverUsers, null, 2), 'utf-8');
-    }
-  } catch (e) {
-    console.error('Error loading users.json', e);
-  }
-
-  // Load Invitations
-  try {
-    if (fs.existsSync(INVITES_FILE)) {
-      const data = fs.readFileSync(INVITES_FILE, 'utf-8');
-      serverInvitations = JSON.parse(data);
-    }
-  } catch (e) {
-    console.error('Error loading invitations.json', e);
-  }
 
   // Load Songs Database
   try {
@@ -348,22 +371,6 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
   } catch (e) {
     console.error('Error loading photos.json', e);
   }
-
-  const saveServerUsers = () => {
-    try {
-      fs.writeFileSync(USERS_FILE, JSON.stringify(serverUsers, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Failed to save users.json', e);
-    }
-  };
-
-  const saveServerInvitations = () => {
-    try {
-      fs.writeFileSync(INVITES_FILE, JSON.stringify(serverInvitations, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Failed to save invitations.json', e);
-    }
-  };
 
   const saveServerSongs = () => {
     try {
@@ -495,8 +502,6 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
   app.get('/api/db/init', (req, res) => {
     cleanStaleOnlineUsers();
     res.json({
-      users: serverUsers,
-      invitations: serverInvitations,
       songs: serverSongs,
       playlist: serverPlaylist,
       photos: serverPhotos,
@@ -682,134 +687,141 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
   });
 
 
-  // Sync users & invitations from client / state
-  app.post('/api/auth/sync-users', (req, res) => {
-    const { users, invitations } = req.body;
-    if (Array.isArray(users) && users.length > 0) {
-      // Merge users prioritizing updated records
-      const map = new Map<string, any>(serverUsers.map((u) => [u.id, u]));
-      for (const u of users) {
-        map.set(u.id, u);
-      }
-      // Ensure admin remains admin
-      const admin = map.get('user-admin-hortom82') || DEFAULT_ADMIN;
-      admin.role = 'admin';
-      map.set('user-admin-hortom82', admin);
-      serverUsers = Array.from(map.values());
-      saveServerUsers();
+  // --- User Management API (Admin Only) ---
+  // Backed by Supabase Auth (real accounts, hashed passwords) + the
+  // `profiles` table (role/status/permissions/display data). Every route
+  // below requires a valid Supabase session AND role='admin' — see
+  // requireAuth/requireRole near the top of this file, and
+  // docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md (Phase 4).
+
+  function generateTempPassword(): string {
+    const prefixes = ['Rock', 'Guitar', 'Solo', 'Groove', 'Chord', 'Beat', 'Stage', 'Band'];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const num = Math.floor(1000 + Math.random() * 9000);
+    const symbols = ['!', '#', '$', '*', '+'];
+    const sym = symbols[Math.floor(Math.random() * symbols.length)];
+    return `${prefix}-${num}${sym}`;
+  }
+
+  // List all users (their profiles)
+  app.get('/api/users', requireAuth, requireRole('admin'), async (req, res) => {
+    const { data, error } = await getSupabaseAdmin().from('profiles').select('*').order('created_at', { ascending: false });
+    if (error) {
+      return res.status(500).json({ error: 'Nepodařilo se načíst uživatele.', details: error.message });
     }
-    if (Array.isArray(invitations)) {
-      const invMap = new Map<string, any>(serverInvitations.map((i) => [i.token || i.id, i]));
-      for (const inv of invitations) {
-        invMap.set(inv.token || inv.id, inv);
-      }
-      serverInvitations = Array.from(invMap.values());
-      saveServerInvitations();
-    }
-    res.json({ success: true, users: serverUsers, invitations: serverInvitations });
+    res.json({ users: data });
   });
 
-  // Get all users (Admin API)
-  app.get('/api/users', (req, res) => {
-    res.json({ users: serverUsers, invitations: serverInvitations });
-  });
-
-  // Create new user & invitation
-  app.post('/api/users', (req, res) => {
-    const { email, displayName, username, role, permissions, password, instrument, notes } = req.body;
+  // Create a new user (real Supabase Auth account + profile row)
+  app.post('/api/users', requireAuth, requireRole('admin'), async (req, res) => {
+    const { email, displayName, role, permissions, password, instrument, notes } = req.body;
     if (!email || !displayName) {
       return res.status(400).json({ error: 'Email a jméno jsou povinné.' });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
-    if (serverUsers.some((u) => u.email?.toLowerCase() === cleanEmail)) {
-      return res.status(409).json({ error: 'Uživatel s tímto e-mailem již existuje.' });
+    const cleanEmail = String(email).trim().toLowerCase();
+    const tempPassword = password?.trim() || generateTempPassword();
+    const admin = getSupabaseAdmin();
+
+    const { data: created, error: createError } = await admin.auth.admin.createUser({
+      email: cleanEmail,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: { display_name: displayName.trim(), role: role || 'musician', status: 'invited' },
+    });
+
+    if (createError || !created.user) {
+      const isDuplicate = createError?.message?.toLowerCase().includes('already');
+      return res
+        .status(isDuplicate ? 409 : 500)
+        .json({ error: isDuplicate ? 'Uživatel s tímto e-mailem již existuje.' : 'Nepodařilo se vytvořit uživatele.', details: createError?.message });
     }
 
-    const token = 'inv_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-    const tempPassword = password?.trim() || 'Rock-' + Math.floor(1000 + Math.random() * 9000) + '!';
+    // handle_new_user trigger already inserted a default profiles row —
+    // patch it with the admin-specified role/permissions/instrument/notes.
+    const { data: profile, error: profileError } = await admin
+      .from('profiles')
+      .update({
+        role: role || 'musician',
+        status: 'invited',
+        permissions: permissions || undefined,
+      })
+      .eq('user_id', created.user.id)
+      .select()
+      .single();
 
-    const newUser = {
-      id: 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-      email: cleanEmail,
-      username: username?.trim() || cleanEmail.split('@')[0],
-      displayName: displayName.trim(),
-      role: role || 'musician',
-      permissions: permissions || {
-        canEditSongs: role === 'admin' || role === 'editor',
-        canDeleteSongs: role === 'admin' || role === 'editor',
-        canImportFiles: role === 'admin' || role === 'editor',
-        canManageUsers: role === 'admin',
-        canStartBandSession: true,
-        canManageSetlists: role === 'admin' || role === 'editor',
-        canAccessTools: true,
-      },
-      password: tempPassword,
-      initialPassword: tempPassword,
-      status: 'invited',
-      createdAt: Date.now(),
-      invitationToken: token,
-      invitationExpiresAt: Date.now() + 30 * 24 * 3600 * 1000,
-      instrument: instrument || 'Kytara',
-      notes: notes || '',
-    };
+    if (profileError || !profile) {
+      return res.status(500).json({ error: 'Uživatel byl vytvořen, ale nepodařilo se uložit profil.', details: profileError?.message });
+    }
 
-    const newInvite = {
-      id: 'inv_' + token,
-      email: cleanEmail,
-      displayName: newUser.displayName,
-      role: newUser.role,
-      permissions: newUser.permissions,
-      temporaryPassword: tempPassword,
-      token,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 30 * 24 * 3600 * 1000,
-      status: 'pending',
-      instrument: newUser.instrument,
-      notes: newUser.notes,
-    };
-
-    serverUsers.unshift(newUser);
-    serverInvitations.unshift(newInvite);
-    saveServerUsers();
-    saveServerInvitations();
-
-    res.json({ success: true, user: newUser, invitation: newInvite });
+    res.json({ success: true, profile, temporaryPassword: tempPassword });
   });
 
-  // Update user
-  app.put('/api/users/:id', (req, res) => {
+  // Update a user's profile (role, status, display fields — never a password)
+  app.put('/api/users/:id', requireAuth, requireRole('admin'), async (req, res) => {
     const userId = req.params.id;
-    const user = serverUsers.find((u) => u.id === userId);
-    if (!user) {
+    const admin = getSupabaseAdmin();
+
+    const { data: existing } = await admin.from('profiles').select('email').eq('user_id', userId).single();
+    if (!existing) {
       return res.status(404).json({ error: 'Uživatel nenalezen.' });
     }
-
-    if (user.email?.toLowerCase() === 'hortom82@gmail.com' && req.body.role && req.body.role !== 'admin') {
+    if (existing.email?.toLowerCase() === 'hortom82@gmail.com' && req.body.role && req.body.role !== 'admin') {
       return res.status(403).json({ error: 'Hlavnímu administrátorovi nelze odebrat administrátorská práva.' });
     }
 
-    Object.assign(user, req.body);
-    saveServerUsers();
-    res.json({ success: true, user });
-  });
-
-  // Delete user
-  app.delete('/api/users/:id', (req, res) => {
-    const userId = req.params.id;
-    const user = serverUsers.find((u) => u.id === userId);
-    if (!user) {
-      return res.status(404).json({ error: 'Uživatel nenalezen.' });
+    const allowedUpdates: Record<string, unknown> = {};
+    for (const key of ['role', 'status', 'permissions', 'displayName'] as const) {
+      if (req.body[key] !== undefined) {
+        allowedUpdates[key === 'displayName' ? 'display_name' : key] = req.body[key];
+      }
     }
 
-    if (user.email?.toLowerCase() === 'hortom82@gmail.com') {
+    const { data: profile, error } = await admin.from('profiles').update(allowedUpdates).eq('user_id', userId).select().single();
+    if (error || !profile) {
+      return res.status(500).json({ error: 'Nepodařilo se upravit uživatele.', details: error?.message });
+    }
+
+    // Keep the Auth-level ban state in sync with profiles.status so a
+    // "disabled" admin action actually blocks login, not just the UI.
+    if (req.body.status === 'disabled') {
+      await admin.auth.admin.updateUserById(userId, { ban_duration: '876000h' }).catch(() => {});
+    } else if (req.body.status === 'active') {
+      await admin.auth.admin.updateUserById(userId, { ban_duration: 'none' }).catch(() => {});
+    }
+
+    res.json({ success: true, profile });
+  });
+
+  // Reset a user's password to a freshly generated one (shown once, never stored)
+  app.post('/api/users/:id/reset-password', requireAuth, requireRole('admin'), async (req, res) => {
+    const userId = req.params.id;
+    const admin = getSupabaseAdmin();
+    const tempPassword = generateTempPassword();
+
+    const { data: updated, error } = await admin.auth.admin.updateUserById(userId, { password: tempPassword });
+    if (error || !updated.user) {
+      return res.status(404).json({ error: 'Uživatel nenalezen nebo se nepodařilo resetovat heslo.', details: error?.message });
+    }
+
+    const { data: profile } = await admin.from('profiles').select('*').eq('user_id', userId).single();
+    res.json({ success: true, profile, temporaryPassword: tempPassword });
+  });
+
+  // Delete a user (Supabase cascades the profiles row via its FK)
+  app.delete('/api/users/:id', requireAuth, requireRole('admin'), async (req, res) => {
+    const userId = req.params.id;
+    const admin = getSupabaseAdmin();
+
+    const { data: existing } = await admin.from('profiles').select('email').eq('user_id', userId).single();
+    if (existing?.email?.toLowerCase() === 'hortom82@gmail.com') {
       return res.status(403).json({ error: 'Hlavního administrátora nelze smazat.' });
     }
 
-    serverUsers = serverUsers.filter((u) => u.id !== userId);
-    serverInvitations = serverInvitations.filter((i) => i.email?.toLowerCase() !== user.email?.toLowerCase());
-    saveServerUsers();
-    saveServerInvitations();
+    const { error } = await admin.auth.admin.deleteUser(userId);
+    if (error) {
+      return res.status(404).json({ error: 'Uživatel nenalezen.', details: error.message });
+    }
     res.json({ success: true });
   });
 

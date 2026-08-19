@@ -1,7 +1,19 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: **Phase 1–3 provedeno a ověřeno** (Supabase projekt `tpbkizrrizjvhzzxzfuu`, region eu-central-1). Phase 4+ čeká na rozhodnutí, zda pokračovat přímo do kódu `server.ts`/`authService.ts`.
+Status: **Phase 1–4 provedeno a ověřeno** (Supabase projekt `tpbkizrrizjvhzzxzfuu`, region eu-central-1; branch `supabase-auth-migration`).
+
+## Phase 4 — Auth & Authorization (dokončeno)
+
+- **`profiles` schéma rozšířeno** (`email`, `status`, `permissions jsonb`) a role rozšířena z `admin/user` na skutečný model appky `admin/editor/musician/viewer` — zachovává existující granularitu oprávnění místo jejího zjednodušení.
+- **`src/services/supabaseClient.ts`** — nový frontendový Supabase klient (jen `anon` klíč).
+- **`src/services/authService.ts`** — kompletně přepsán na Supabase Auth. Žádné heslo už neprochází naší vlastní vrstvou v čitelné podobě; `login`/`logout`/`changePassword` volají přímo Supabase, který hesla hashuje a ověřuje sám.
+- **`server.ts`** — nový `requireAuth`/`requireRole('admin')` middleware (ověřuje Supabase access token přes `auth.getUser()`); `/api/users*` endpointy přepsány na Supabase Admin API (`auth.admin.createUser/updateUserById/deleteUser`) + `profiles` tabulku. Starý neautorizovaný `/api/auth/sync-users` endpoint (hlavní zdroj úniku) byl odstraněn. `data/users.json`/`data/invitations.json` se už nečtou ani nezapisují.
+- **`src/components/LoginModal.tsx`** — odstraněno tlačítko "Rychlý výběr pro správce", které přímo v UI předvyplňovalo plaintextové heslo hlavního admina. "Invite" záložka přepracována na nastavení hesla po přijetí pozvánkového e-mailu (Supabase magic-link model) místo ručního zadávání tokenu a dočasného hesla.
+- **`src/components/AdminUsersModal.tsx`**, **`src/components/UserProfileModal.tsx`** — přepojeny na nové asynchronní `authService` metody, funkčně beze změny UI.
+- Ověřeno: `GET/POST/PUT/DELETE /api/users*` bez tokenu vrací `401`; starý `/api/auth/sync-users` vrací `404`; přihlašovací modal se vykresluje bez chyb a bez viditelného hesla kdekoliv v UI.
+
+**Zbývá** (vyžaduje vaše svolení, neprovedeno automaticky): vytvořit reálný první admin účet. Nejbezpečnější cesta je pozvat `hortom82@gmail.com` přes Supabase (`auth.admin.inviteUserByEmail`) — přijde e-mail s odkazem, na kterém si sami nastavíte heslo; server ani já se k němu nikdy nedostaneme. Vyžaduje to odeslání e-mailu vaším jménem, což bez výslovného svolení nedělám automaticky.
 
 ## Průběh (co je hotovo)
 

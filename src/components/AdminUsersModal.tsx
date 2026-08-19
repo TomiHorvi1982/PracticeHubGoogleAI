@@ -77,9 +77,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
   const [showQrForInvite, setShowQrForInvite] = useState<UserInvitation | null>(null);
 
   // Refresh lists
-  const loadData = () => {
-    setUsers(authService.getUsers());
-    setInvitations(authService.getInvitations());
+  const loadData = async () => {
+    const [freshUsers, freshInvitations] = await Promise.all([authService.getUsers(), authService.getInvitations()]);
+    setUsers(freshUsers);
+    setInvitations(freshInvitations);
   };
 
   useEffect(() => {
@@ -109,7 +110,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     });
   };
 
-  const handleCreateUser = (e: React.FormEvent) => {
+  const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEmail.trim() || !newName.trim()) {
       showNotification('error', 'Vyplňte prosím jméno a e-mailovou adresu.');
@@ -117,7 +118,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     }
 
     try {
-      const result = authService.createUser({
+      const result = await authService.createUser({
         email: newEmail,
         displayName: newName,
         username: newUsername || undefined,
@@ -129,7 +130,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
       });
 
       setLastCreatedInvite(result);
-      loadData();
+      await loadData();
       showNotification('success', `Uživatel ${result.user.displayName} byl vytvořen a byla vygenerována pozvánka s heslem.`);
       
       // Reset form
@@ -143,16 +144,16 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     }
   };
 
-  const handleSaveUserPermissions = (e: React.FormEvent) => {
+  const handleSaveUserPermissions = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser || !editPermissions) return;
 
     try {
-      authService.updateUser(editingUser.id, {
+      await authService.updateUser(editingUser.id, {
         role: editRole,
         permissions: editPermissions,
       });
-      loadData();
+      await loadData();
       setEditingUser(null);
       showNotification('success', `Oprávnění uživatele ${editingUser.displayName} byla úspěšně aktualizována.`);
     } catch (err: any) {
@@ -160,10 +161,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     }
   };
 
-  const handleResetPassword = (user: UserAccount) => {
+  const handleResetPassword = async (user: UserAccount) => {
     try {
-      const { newPassword } = authService.resetUserPassword(user.id);
-      loadData();
+      const { newPassword } = await authService.resetUserPassword(user.id);
+      await loadData();
       showNotification('success', `Nové heslo pro ${user.displayName} je: ${newPassword}`);
       copyToClipboard(newPassword, `reset_${user.id}`);
     } catch (err: any) {
@@ -171,11 +172,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     }
   };
 
-  const handleToggleUserStatus = (user: UserAccount) => {
+  const handleToggleUserStatus = async (user: UserAccount) => {
     try {
       const newStatus = user.status === 'disabled' ? 'active' : 'disabled';
-      authService.updateUser(user.id, { status: newStatus });
-      loadData();
+      await authService.updateUser(user.id, { status: newStatus });
+      await loadData();
       showNotification(
         'success',
         `Účet ${user.displayName} byl ${newStatus === 'disabled' ? 'zablokován' : 'aktivován'}.`
@@ -185,11 +186,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     }
   };
 
-  const handleDeleteUser = (user: UserAccount) => {
+  const handleDeleteUser = async (user: UserAccount) => {
     if (confirm(`Opravdu chcete smazat uživatele ${user.displayName} (${user.email})?`)) {
       try {
-        authService.deleteUser(user.id);
-        loadData();
+        await authService.deleteUser(user.id);
+        await loadData();
         showNotification('success', `Uživatel ${user.displayName} byl smazán.`);
       } catch (err: any) {
         showNotification('error', err.message || 'Nepodařilo se smazat uživatele.');

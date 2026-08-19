@@ -211,8 +211,6 @@ export interface UserAccount {
   displayName: string;
   role: UserRole;
   permissions: UserPermissions;
-  password?: string;
-  initialPassword?: string;
   status: 'active' | 'invited' | 'disabled';
   createdAt: number;
   lastLoginAt?: number;

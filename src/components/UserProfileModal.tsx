@@ -30,7 +30,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const roleMeta = ROLE_LABELS[user.role] || ROLE_LABELS.viewer;
   const isSuperAdmin = user.email.toLowerCase() === 'hortom82@gmail.com';
 
-  const handleChangePassword = (e: React.FormEvent) => {
+  const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -43,12 +43,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       setErrorMsg('Nová hesla se neshodují.');
       return;
     }
-    if (newPassword.length < 4) {
-      setErrorMsg('Nové heslo musí mít alespoň 4 znaky.');
+    if (newPassword.length < 6) {
+      setErrorMsg('Nové heslo musí mít alespoň 6 znaků.');
       return;
     }
 
-    const result = authService.changePassword(oldPassword, newPassword);
+    const result = await authService.changePassword(oldPassword, newPassword);
     if (result.success) {
       setSuccessMsg('Heslo bylo úspěšně změněno.');
       setOldPassword('');

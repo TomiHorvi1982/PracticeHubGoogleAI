@@ -1,9 +1,6 @@
 import { UserAccount, UserRole, UserPermissions, UserInvitation, AuthSession } from '../types';
-import {
-  setFirestoreDoc,
-  deleteFirestoreDoc,
-  subscribeFirestoreCollection,
-} from './firebase';
+import { supabase } from './supabaseClient';
+import type { Session } from '@supabase/supabase-js';
 
 export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   admin: {
@@ -71,200 +68,92 @@ export const ROLE_LABELS: Record<UserRole, { label: string; desc: string; color:
   },
 };
 
-const DEFAULT_ADMIN_USER: UserAccount = {
-  id: 'user-admin-hortom82',
-  email: 'hortom82@gmail.com',
-  username: 'hortom82',
-  displayName: 'Tomáš Hort (Hlavní Správce)',
-  role: 'admin',
-  permissions: { ...ROLE_DEFAULT_PERMISSIONS.admin },
-  password: 'Admin123!',
-  initialPassword: 'Admin123!',
-  status: 'active',
-  createdAt: Date.now() - 30 * 24 * 3600 * 1000,
-  lastLoginAt: Date.now(),
-  avatarColor: '#FF3E00',
-  instrument: 'Kytara / Leader',
-  notes: 'Hlavní administrátor systému',
-};
+/** Row shape of the `profiles` table (see docs/migration Phase 2/4). */
+interface ProfileRow {
+  id: string;
+  user_id: string;
+  display_name: string;
+  email: string | null;
+  role: UserRole;
+  status: 'active' | 'invited' | 'disabled';
+  permissions: UserPermissions;
+  created_at: string;
+  updated_at: string;
+}
 
-const INITIAL_USERS: UserAccount[] = [
-  DEFAULT_ADMIN_USER,
-  {
-    id: 'user-editor-sample',
-    email: 'kapelnik@kapela.cz',
-    username: 'kapelnik',
-    displayName: 'Petr (Kytara & Zpěv)',
-    role: 'editor',
-    permissions: { ...ROLE_DEFAULT_PERMISSIONS.editor },
-    password: 'Kapela2026!',
-    initialPassword: 'Kapela2026!',
-    status: 'active',
-    createdAt: Date.now() - 10 * 24 * 3600 * 1000,
-    lastLoginAt: Date.now() - 2 * 24 * 3600 * 1000,
-    avatarColor: '#00FF41',
-    instrument: 'Sólová kytara',
-  },
-  {
-    id: 'user-musician-sample',
-    email: 'basa@kapela.cz',
-    username: 'basa',
-    displayName: 'Marek (Baskytara)',
-    role: 'musician',
-    permissions: { ...ROLE_DEFAULT_PERMISSIONS.musician },
-    password: 'Basa2026!',
-    initialPassword: 'Basa2026!',
-    status: 'active',
-    createdAt: Date.now() - 5 * 24 * 3600 * 1000,
-    lastLoginAt: Date.now() - 1 * 24 * 3600 * 1000,
-    avatarColor: '#3B82F6',
-    instrument: 'Baskytara',
-  },
-];
+function profileToUserAccount(profile: ProfileRow): UserAccount {
+  return {
+    id: profile.user_id,
+    email: profile.email || '',
+    username: (profile.email || '').split('@')[0],
+    displayName: profile.display_name,
+    role: profile.role,
+    permissions: profile.permissions,
+    status: profile.status,
+    createdAt: new Date(profile.created_at).getTime(),
+  };
+}
 
-const STORAGE_USERS_KEY = 'strum_os_users_db_v2';
-const STORAGE_SESSION_KEY = 'strum_os_auth_session_v2';
-const STORAGE_INVITATIONS_KEY = 'strum_os_invitations_v2';
-
+/**
+ * Real Supabase-Auth-backed authentication. Passwords never touch this
+ * class or our own storage — Supabase verifies them server-side and hands
+ * back a session token, which supabase-js persists for us.
+ *
+ * See docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md (Phase 4).
+ */
 class AuthService {
-  private users: UserAccount[] = [];
-  private invitations: UserInvitation[] = [];
   private currentSession: AuthSession | null = null;
   private subscribers: Array<(session: AuthSession | null) => void> = [];
-  private unsubscribeFirestore: (() => void) | null = null;
 
   constructor() {
     this.init();
   }
 
   private async init() {
-    if (typeof localStorage === 'undefined') return;
-
-    // Load users from localStorage cache first
-    try {
-      const savedUsers = localStorage.getItem(STORAGE_USERS_KEY);
-      if (savedUsers) {
-        this.users = JSON.parse(savedUsers);
-      } else {
-        this.users = INITIAL_USERS;
-        this.saveUsersToLocal();
-      }
-    } catch (e) {
-      this.users = INITIAL_USERS;
+    const { data } = await supabase.auth.getSession();
+    if (data.session) {
+      await this.hydrateFromSupabaseSession(data.session);
     }
 
-    // Ensure admin hortom82@gmail.com always exists and has admin privileges
-    this.ensureAdminExists();
-
-    // Load invitations from local
-    try {
-      const savedInvites = localStorage.getItem(STORAGE_INVITATIONS_KEY);
-      if (savedInvites) {
-        this.invitations = JSON.parse(savedInvites);
-      }
-    } catch (e) {}
-
-    // Load active session
-    try {
-      const savedSession = localStorage.getItem(STORAGE_SESSION_KEY);
-      if (savedSession) {
-        const parsed = JSON.parse(savedSession);
-        const activeUser = this.users.find((u) => u.id === parsed.user?.id);
-        if (activeUser && activeUser.status !== 'disabled') {
-          this.currentSession = {
-            ...parsed,
-            user: activeUser,
-          };
-        } else {
-          localStorage.removeItem(STORAGE_SESSION_KEY);
-        }
-      }
-    } catch (e) {}
-
-    // Real-time Cloud Firestore sync from `users` collection
-    this.unsubscribeFirestore = subscribeFirestoreCollection<UserAccount>('users', async (cloudUsers) => {
-      if (cloudUsers && cloudUsers.length > 0) {
-        this.users = cloudUsers;
-        this.ensureAdminExists();
-        this.saveUsersToLocal();
-
-        // Refresh current active session user object if updated
-        if (this.currentSession?.user) {
-          const updatedCurr = this.users.find((u) => u.id === this.currentSession?.user.id);
-          if (updatedCurr) {
-            this.currentSession.user = updatedCurr;
-            this.saveSession();
-          }
-        }
+    supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session) {
+        await this.hydrateFromSupabaseSession(session);
       } else {
-        // Seed default users to Firestore on initial boot
-        for (const user of INITIAL_USERS) {
-          await setFirestoreDoc('users', user.id, user).catch(() => {});
-        }
+        this.currentSession = null;
+        this.notifySubscribers();
       }
     });
-
-    this.syncWithBackend();
   }
 
-  private ensureAdminExists() {
-    const adminExists = this.users.find(
-      (u) => u.email.toLowerCase() === 'hortom82@gmail.com' || u.username.toLowerCase() === 'hortom82'
-    );
-    if (!adminExists) {
-      this.users.unshift(DEFAULT_ADMIN_USER);
-      this.saveUsersToLocal();
-      setFirestoreDoc('users', DEFAULT_ADMIN_USER.id, DEFAULT_ADMIN_USER).catch(() => {});
-    } else if (adminExists.role !== 'admin' || !adminExists.permissions.canManageUsers) {
-      adminExists.role = 'admin';
-      adminExists.permissions = { ...ROLE_DEFAULT_PERMISSIONS.admin };
-      this.saveUsersToLocal();
-      setFirestoreDoc('users', adminExists.id, adminExists).catch(() => {});
-    }
-  }
+  private async hydrateFromSupabaseSession(session: Session): Promise<void> {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .single();
 
-  private saveUsersToLocal() {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_USERS_KEY, JSON.stringify(this.users));
+    if (error || !profile) {
+      console.warn('[AuthService] Could not load profile for session user:', error);
+      this.currentSession = null;
+      this.notifySubscribers();
+      return;
     }
-  }
 
-  private saveInvitationsToLocal() {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_INVITATIONS_KEY, JSON.stringify(this.invitations));
+    if (profile.status === 'disabled') {
+      // Server-side ban (see requireAuth in server.ts) already blocks API
+      // calls, but also drop the local session immediately for UX clarity.
+      await supabase.auth.signOut();
+      this.currentSession = null;
+      this.notifySubscribers();
+      return;
     }
-  }
 
-  private saveSession() {
-    if (typeof localStorage !== 'undefined') {
-      if (this.currentSession) {
-        localStorage.setItem(STORAGE_SESSION_KEY, JSON.stringify(this.currentSession));
-      } else {
-        localStorage.removeItem(STORAGE_SESSION_KEY);
-      }
-    }
+    this.currentSession = {
+      user: profileToUserAccount(profile as ProfileRow),
+      token: session.access_token,
+      loginTime: session.user.last_sign_in_at ? new Date(session.user.last_sign_in_at).getTime() : Date.now(),
+    };
     this.notifySubscribers();
-  }
-
-  private async syncWithBackend() {
-    try {
-      const res = await fetch('/api/auth/sync-users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ users: this.users, invitations: this.invitations }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.users && Array.isArray(data.users)) {
-          this.users = data.users;
-          this.saveUsersToLocal();
-        }
-        if (data.invitations && Array.isArray(data.invitations)) {
-          this.invitations = data.invitations;
-          this.saveInvitationsToLocal();
-        }
-      }
-    } catch (e) {}
   }
 
   // --- Subscription ---
@@ -281,65 +170,26 @@ class AuthService {
   }
 
   // --- Authentication ---
-  public login(identifier: string, passwordAttempt: string): { success: boolean; message?: string; session?: AuthSession } {
-    const cleanId = identifier.trim().toLowerCase();
-    const cleanPass = passwordAttempt.trim();
+  public async login(identifier: string, password: string): Promise<{ success: boolean; message?: string; session?: AuthSession }> {
+    const email = identifier.trim().toLowerCase();
 
-    const user = this.users.find(
-      (u) => u.email.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId
-    );
-
-    if (!user) {
-      return { success: false, message: 'Uživatel s tímto e-mailem nebo přezdívkou nebyl nalezen.' };
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.session) {
+      return { success: false, message: 'Nesprávný e-mail nebo heslo.' };
     }
 
-    if (user.status === 'disabled') {
-      return { success: false, message: 'Tento uživatelský účet byl zablokován správcem.' };
+    await this.hydrateFromSupabaseSession(data.session);
+    if (!this.currentSession) {
+      return { success: false, message: 'Tento účet nemá dokončený profil, nebo byl zablokován.' };
     }
 
-    const matchesPass =
-      user.password === cleanPass ||
-      user.initialPassword === cleanPass ||
-      (user.email.toLowerCase() === 'hortom82@gmail.com' && cleanPass === 'Admin123!');
-
-    if (!matchesPass) {
-      return { success: false, message: 'Nesprávné heslo. Zkontrolujte prosím zadané údaje.' };
-    }
-
-    user.lastLoginAt = Date.now();
-    if (user.status === 'invited') {
-      user.status = 'active';
-    }
-    this.saveUsersToLocal();
-    setFirestoreDoc('users', user.id, user).catch(() => {});
-
-    const token = 'token_' + Math.random().toString(36).substring(2) + Date.now();
-    const session: AuthSession = {
-      user,
-      token,
-      loginTime: Date.now(),
-    };
-
-    this.currentSession = session;
-    this.saveSession();
-
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(
-        'band_user_profile',
-        JSON.stringify({
-          name: user.displayName || user.username,
-          instrument: user.instrument || 'Kytara',
-          role: user.role,
-        })
-      );
-    }
-
-    return { success: true, session };
+    return { success: true, session: this.currentSession };
   }
 
-  public logout() {
+  public async logout(): Promise<void> {
+    await supabase.auth.signOut();
     this.currentSession = null;
-    this.saveSession();
+    this.notifySubscribers();
   }
 
   public getCurrentSession(): AuthSession | null {
@@ -366,25 +216,93 @@ class AuthService {
     return !!user.permissions?.[permission];
   }
 
-  // --- User Management (Admin Only) ---
-  public getUsers(): UserAccount[] {
-    return [...this.users];
+  /**
+   * A brand-new account created via an invite email has an active Supabase
+   * session (from the invite link) but no password yet — this sets one.
+   */
+  public async setPasswordFromInvite(newPassword: string): Promise<{ success: boolean; message?: string }> {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+    const { data } = await supabase.auth.getSession();
+    if (data.session) await this.hydrateFromSupabaseSession(data.session);
+    return { success: true };
   }
 
-  public getInvitations(): UserInvitation[] {
-    return [...this.invitations];
+  // --- Change Password (re-verifies the old one via a real sign-in) ---
+  public async changePassword(oldPassword: string, newPassword: string): Promise<{ success: boolean; message?: string }> {
+    const user = this.getCurrentUser();
+    if (!user) return { success: false, message: 'Nejste přihlášeni.' };
+
+    if (!newPassword || newPassword.trim().length < 6) {
+      return { success: false, message: 'Nové heslo musí mít alespoň 6 znaků.' };
+    }
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: oldPassword,
+    });
+    if (verifyError) {
+      return { success: false, message: 'Původní heslo není správné.' };
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword.trim() });
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    return { success: true, message: 'Heslo bylo úspěšně změněno.' };
   }
 
-  public generateRandomPassword(length = 9): string {
-    const prefixes = ['Rock', 'Guitar', 'Solo', 'Groove', 'Chord', 'Beat', 'Stage', 'Band'];
-    const randomPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const symbols = ['!', '#', '$', '*', '+'];
-    const randomSym = symbols[Math.floor(Math.random() * symbols.length)];
-    return `${randomPrefix}-${randomNum}${randomSym}`;
+  // --- Authorized fetch helper for admin-only server endpoints ---
+  private async authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
+    const token = this.currentSession?.token;
+    return fetch(path, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(init?.headers || {}),
+      },
+    });
   }
 
-  public createUser(params: {
+  // --- User Management (Admin Only — enforced server-side by requireRole('admin')) ---
+  public async getUsers(): Promise<UserAccount[]> {
+    const res = await this.authorizedFetch('/api/users');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.users || []).map(profileToUserAccount);
+  }
+
+  /**
+   * "Invitations" are simply users whose status is still 'invited' — kept as
+   * a distinct list for the existing "Invites" tab UI, but no plaintext
+   * temporary password is stored anywhere after the moment of creation.
+   */
+  public async getInvitations(): Promise<UserInvitation[]> {
+    const res = await this.authorizedFetch('/api/users');
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.users || [])
+      .filter((p: ProfileRow) => p.status === 'invited')
+      .map((p: ProfileRow) => ({
+        id: p.user_id,
+        email: p.email || '',
+        displayName: p.display_name,
+        role: p.role,
+        permissions: p.permissions,
+        temporaryPassword: '(zobrazeno pouze při vytvoření)',
+        token: p.user_id,
+        createdAt: new Date(p.created_at).getTime(),
+        expiresAt: new Date(p.created_at).getTime() + 30 * 24 * 3600 * 1000,
+        status: 'pending' as const,
+        inviteUrl: '',
+      }));
+  }
+
+  public async createUser(params: {
     email: string;
     displayName: string;
     username?: string;
@@ -393,175 +311,62 @@ class AuthService {
     password?: string;
     instrument?: string;
     notes?: string;
-    sendInviteImmediately?: boolean;
-  }): { user: UserAccount; invitation: UserInvitation } {
-    const cleanEmail = params.email.trim().toLowerCase();
-    const existing = this.users.find((u) => u.email.toLowerCase() === cleanEmail);
-    if (existing) {
-      throw new Error(`Uživatel s e-mailem ${params.email} již v systému existuje.`);
+  }): Promise<{ user: UserAccount; invitation: UserInvitation }> {
+    const res = await this.authorizedFetch('/api/users', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Nepodařilo se vytvořit uživatele.');
     }
-
-    const defaultPerms = ROLE_DEFAULT_PERMISSIONS[params.role];
-    const finalPerms: UserPermissions = {
-      ...defaultPerms,
-      ...(params.permissions || {}),
+    const user = profileToUserAccount(data.profile);
+    return {
+      user,
+      invitation: {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+        role: user.role,
+        permissions: user.permissions,
+        temporaryPassword: data.temporaryPassword,
+        token: user.id,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 30 * 24 * 3600 * 1000,
+        status: 'pending',
+        inviteUrl: '',
+      },
     };
-
-    const tempPassword = params.password?.trim() || this.generateRandomPassword();
-    const token = 'inv_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    const inviteUrl = `${origin}?invite=${token}&email=${encodeURIComponent(cleanEmail)}`;
-
-    const newUser: UserAccount = {
-      id: 'usr_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-      email: cleanEmail,
-      username: params.username?.trim() || cleanEmail.split('@')[0],
-      displayName: params.displayName.trim() || cleanEmail.split('@')[0],
-      role: params.role,
-      permissions: finalPerms,
-      password: tempPassword,
-      initialPassword: tempPassword,
-      status: 'invited',
-      createdAt: Date.now(),
-      invitedBy: this.getCurrentUser()?.displayName || 'Admin',
-      invitationToken: token,
-      invitationExpiresAt: Date.now() + 30 * 24 * 3600 * 1000,
-      avatarColor: ROLE_LABELS[params.role].color,
-      instrument: params.instrument?.trim() || 'Kytara',
-      notes: params.notes?.trim() || '',
-    };
-
-    const invitation: UserInvitation = {
-      id: 'inv_item_' + token,
-      email: cleanEmail,
-      displayName: newUser.displayName,
-      role: params.role,
-      permissions: finalPerms,
-      temporaryPassword: tempPassword,
-      token,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 30 * 24 * 3600 * 1000,
-      status: 'pending',
-      inviteUrl,
-      invitedBy: this.getCurrentUser()?.displayName || 'Admin',
-      instrument: newUser.instrument,
-      notes: newUser.notes,
-    };
-
-    this.users.unshift(newUser);
-    this.invitations.unshift(invitation);
-    this.saveUsersToLocal();
-    this.saveInvitationsToLocal();
-    setFirestoreDoc('users', newUser.id, newUser).catch(() => {});
-    this.syncWithBackend();
-
-    return { user: newUser, invitation };
   }
 
-  public updateUser(userId: string, updates: Partial<UserAccount>): UserAccount {
-    const user = this.users.find((u) => u.id === userId);
-    if (!user) throw new Error('Uživatel nebyl nalezen.');
-
-    if (user.email.toLowerCase() === 'hortom82@gmail.com' && updates.role && updates.role !== 'admin') {
-      throw new Error('Hlavnímu administrátorovi (hortom82@gmail.com) nelze odebrat administrátorská práva.');
+  public async updateUser(userId: string, updates: Partial<UserAccount>): Promise<UserAccount> {
+    const res = await this.authorizedFetch(`/api/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Nepodařilo se upravit uživatele.');
     }
-
-    Object.assign(user, updates);
-    this.saveUsersToLocal();
-    setFirestoreDoc('users', user.id, user).catch(() => {});
-
-    if (this.currentSession && this.currentSession.user.id === userId) {
-      this.currentSession.user = { ...user };
-      this.saveSession();
-    }
-
-    this.syncWithBackend();
-    return user;
+    return profileToUserAccount(data.profile);
   }
 
-  public resetUserPassword(userId: string, newPassword?: string): { user: UserAccount; newPassword: string } {
-    const user = this.users.find((u) => u.id === userId);
-    if (!user) throw new Error('Uživatel nebyl nalezen.');
-
-    const generated = newPassword?.trim() || this.generateRandomPassword();
-    user.password = generated;
-    user.initialPassword = generated;
-    this.saveUsersToLocal();
-    setFirestoreDoc('users', user.id, user).catch(() => {});
-    this.syncWithBackend();
-
-    return { user, newPassword: generated };
+  public async resetUserPassword(userId: string): Promise<{ user: UserAccount; newPassword: string }> {
+    const res = await this.authorizedFetch(`/api/users/${userId}/reset-password`, { method: 'POST' });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || 'Nepodařilo se resetovat heslo.');
+    }
+    return { user: profileToUserAccount(data.profile), newPassword: data.temporaryPassword };
   }
 
-  public deleteUser(userId: string): boolean {
-    const user = this.users.find((u) => u.id === userId);
-    if (!user) return false;
-
-    if (user.email.toLowerCase() === 'hortom82@gmail.com') {
-      throw new Error('Hlavní administrátorský účet (hortom82@gmail.com) nelze smazat.');
+  public async deleteUser(userId: string): Promise<boolean> {
+    const res = await this.authorizedFetch(`/api/users/${userId}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Nepodařilo se smazat uživatele.');
     }
-
-    this.users = this.users.filter((u) => u.id !== userId);
-    this.invitations = this.invitations.filter((i) => i.email.toLowerCase() !== user.email.toLowerCase());
-    this.saveUsersToLocal();
-    this.saveInvitationsToLocal();
-    deleteFirestoreDoc('users', userId).catch(() => {});
-    this.syncWithBackend();
-
-    if (this.currentSession && this.currentSession.user.id === userId) {
-      this.logout();
-    }
-
     return true;
-  }
-
-  // --- Accept Invitation ---
-  public redeemInvitation(tokenOrEmail: string, passwordAttempt: string): { success: boolean; message?: string; session?: AuthSession } {
-    const cleanQuery = tokenOrEmail.trim().toLowerCase();
-
-    const user = this.users.find(
-      (u) =>
-        u.invitationToken?.toLowerCase() === cleanQuery ||
-        u.email.toLowerCase() === cleanQuery ||
-        u.username.toLowerCase() === cleanQuery
-    );
-
-    if (!user) {
-      return { success: false, message: 'Pozvánka nebo uživatelský účet nebyl nalezen.' };
-    }
-
-    return this.login(user.email, passwordAttempt);
-  }
-
-  public getInvitationByToken(token: string): UserInvitation | undefined {
-    return this.invitations.find((i) => i.token === token || i.id === token);
-  }
-
-  // --- Change Password ---
-  public changePassword(oldPassword: string, newPassword: string): { success: boolean; message?: string } {
-    const user = this.getCurrentUser();
-    if (!user) return { success: false, message: 'Nejste přihlášeni.' };
-
-    if (user.password !== oldPassword && user.initialPassword !== oldPassword) {
-      return { success: false, message: 'Původní heslo není správné.' };
-    }
-
-    if (!newPassword || newPassword.trim().length < 4) {
-      return { success: false, message: 'Nové heslo musí mít alespoň 4 znaky.' };
-    }
-
-    user.password = newPassword.trim();
-    user.initialPassword = undefined;
-    this.saveUsersToLocal();
-    setFirestoreDoc('users', user.id, user).catch(() => {});
-
-    if (this.currentSession) {
-      this.currentSession.user = { ...user };
-      this.saveSession();
-    }
-
-    this.syncWithBackend();
-    return { success: true, message: 'Heslo bylo úspěšně změněno.' };
   }
 }
 

@@ -30,6 +30,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   // Invite code form states
   const [inviteToken, setInviteToken] = useState(initialInviteToken || '');
   const [invitePassword, setInvitePassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (initialInviteToken) {
@@ -43,13 +44,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleStandardLogin = (e: React.FormEvent) => {
+  const handleStandardLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
 
     if (!identifier.trim()) {
-      setErrorMsg('Zadejte prosím váš e-mail nebo přihlašovací jméno.');
+      setErrorMsg('Zadejte prosím váš e-mail.');
       return;
     }
     if (!password) {
@@ -57,7 +58,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       return;
     }
 
-    const result = authService.login(identifier, password);
+    setIsSubmitting(true);
+    const result = await authService.login(identifier, password);
+    setIsSubmitting(false);
+
     if (result.success && result.session) {
       setSuccessMsg(`Vítejte zpět, ${result.session.user.displayName}!`);
       setTimeout(() => {
@@ -69,36 +73,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const handleRedeemInvite = (e: React.FormEvent) => {
+  // Set a real password for an account created by an admin invite (Supabase
+  // establishes a session automatically when the invite email link is opened).
+  const handleSetInvitePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    if (!inviteToken.trim()) {
-      setErrorMsg('Zadejte prosím kód pozvánky nebo váš e-mail.');
-      return;
-    }
-    if (!invitePassword.trim()) {
-      setErrorMsg('Zadejte prosím heslo z pozvánky.');
+    if (!invitePassword.trim() || invitePassword.trim().length < 6) {
+      setErrorMsg('Zadejte prosím nové heslo (alespoň 6 znaků).');
       return;
     }
 
-    const result = authService.redeemInvitation(inviteToken, invitePassword);
-    if (result.success && result.session) {
-      setSuccessMsg(`Pozvánka byla úspěšně aktivována! Vítejte v kapele, ${result.session.user.displayName}.`);
+    setIsSubmitting(true);
+    const result = await authService.setPasswordFromInvite(invitePassword.trim());
+    setIsSubmitting(false);
+
+    if (result.success) {
+      const session = authService.getCurrentSession();
+      setSuccessMsg('Heslo bylo nastaveno! Vítejte v kapele.');
       setTimeout(() => {
-        onLoginSuccess(result.session!);
+        if (session) onLoginSuccess(session);
         onClose();
       }, 500);
     } else {
-      setErrorMsg(result.message || 'Neplatný kód pozvánky nebo nesprávné heslo.');
+      setErrorMsg(result.message || 'Nepodařilo se nastavit heslo. Otevřete prosím odkaz z pozvánkového e-mailu znovu.');
     }
-  };
-
-  const fillAdminCredentials = () => {
-    setIdentifier('hortom82@gmail.com');
-    setPassword('Admin123!');
-    setErrorMsg(null);
   };
 
   return (
@@ -220,76 +220,38 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#FF9F0A] hover:bg-[#ffb03a] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2"
+                disabled={isSubmitting}
+                className="w-full bg-[#FF9F0A] hover:bg-[#ffb03a] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
-                <span>Přihlásit se do studia</span>
+                <span>{isSubmitting ? 'Přihlašuji…' : 'Přihlásit se do studia'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              {/* Quick Admin Demo Button */}
-              <div className="pt-3 border-t border-white/5">
-                <div className="text-[11px] text-neutral-400 mb-2 font-medium text-center">
-                  Rychlý výběr pro správce:
-                </div>
-                <button
-                  type="button"
-                  onClick={fillAdminCredentials}
-                  className="w-full bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 hover:border-[#FF9F0A]/50 rounded-xl text-neutral-200 px-3.5 py-2.5 text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Shield className="w-4 h-4 text-[#FF9F0A]" />
-                    <div className="text-left">
-                      <div className="text-white font-bold text-xs">hortom82@gmail.com</div>
-                      <div className="text-[10px] text-neutral-400">Předvyplnit administrátorský účet</div>
-                    </div>
-                  </div>
-                  <span className="bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">
-                    Admin
-                  </span>
-                </button>
-              </div>
-
             </form>
           ) : (
-            <form onSubmit={handleRedeemInvite} className="space-y-4">
+            <form onSubmit={handleSetInvitePassword} className="space-y-4">
               <div className="bg-[#30D158]/10 border border-[#30D158]/20 rounded-2xl p-3.5 text-xs text-neutral-300 space-y-1">
                 <div className="text-[#30D158] font-bold flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" />
                   <span>Obdrželi jste pozvánku od správce?</span>
                 </div>
                 <p className="text-[11px] text-neutral-400">
-                  Zadejte kód pozvánky nebo váš registrovaný e-mail a dočasné heslo, které vám poslal administrátor kapely.
+                  Otevřete odkaz z pozvánkového e-mailu — přihlásí vás automaticky. Tady si nastavte svoje vlastní trvalé heslo.
                 </p>
               </div>
 
-              {/* Invite Token / Email */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-neutral-300 flex items-center gap-1.5">
-                  <Key className="w-3.5 h-3.5 text-[#30D158]" />
-                  <span>Kód pozvánky nebo Váš E-mail</span>
-                </label>
-                <input
-                  type="text"
-                  value={inviteToken}
-                  onChange={(e) => setInviteToken(e.target.value)}
-                  placeholder="např. inv_k8x9... nebo váš e-mail"
-                  autoFocus
-                  className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
-                />
-              </div>
-
-              {/* Temporary Password */}
+              {/* New Password */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-neutral-300 flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-[#30D158]" />
-                  <span>Heslo z pozvánky</span>
+                  <span>Nové heslo</span>
                 </label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={invitePassword}
                     onChange={(e) => setInvitePassword(e.target.value)}
-                    placeholder="např. Rock-4921!"
+                    placeholder="Alespoň 6 znaků"
+                    autoFocus
                     className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 pr-10 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
                   />
                   <button
@@ -302,12 +264,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 </div>
               </div>
 
-              {/* Submit Invite Redeem */}
+              {/* Submit */}
               <button
                 type="submit"
-                className="w-full bg-[#30D158] hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2"
+                disabled={isSubmitting}
+                className="w-full bg-[#30D158] hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
-                <span>Aktivovat pozvánku a vstoupit</span>
+                <span>{isSubmitting ? 'Ukládám…' : 'Nastavit heslo a vstoupit'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
