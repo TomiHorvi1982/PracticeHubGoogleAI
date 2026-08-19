@@ -17,10 +17,11 @@ import {
   Sliders,
   Disc3,
   PanelLeftClose,
-  PanelLeftOpen
+  PanelLeftOpen,
+  FolderOpen
 } from 'lucide-react';
 
-export type MainTabType = 
+export type MainTabType =
   | 'songbook'
   | 'library'
   | 'playlist'
@@ -34,7 +35,8 @@ export type MainTabType =
   | 'scales'
   | 'practice'
   | 'tuner'
-  | 'photos';
+  | 'photos'
+  | 'mylibrary';
 
 interface UnifiedSidebarProps {
   activeTab: MainTabType;
@@ -86,6 +88,12 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       title: 'KAPELA',
       items: [
         { id: 'photos', label: 'Fotky Kapely', icon: Camera, badge: null },
+      ],
+    },
+    {
+      title: 'MOJE DATA',
+      items: [
+        { id: 'mylibrary', label: 'Moje knihovna', icon: FolderOpen, badge: null },
       ],
     },
   ];

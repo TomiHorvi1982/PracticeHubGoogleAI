@@ -1,15 +1,18 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
 Datum: 2026-08-19
-Status: **Phase 1–7 hotovo.** Phase 1–6 v `main`; Phase 7 (data migrace) hotová na branchi `data-migration`, čeká na merge.
+Status: **Phase 1–8 hotovo.** Phase 1–7 v `main`; "Moje knihovna" frontend hotový na branchi `my-library`, čeká na merge.
 
 ## NEXT SESSION START HERE (2026-08-19)
 
 Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase projektu (ne jen naplánováno):
 
-- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety, Asset Library backend, data migrovaná.
-- `main` branch: Phase 1–6 (Supabase Auth, `requireAuth`/`requireRole`, `/api/users*`, Storage buckety, `/api/assets*`).
-- Branch `data-migration` (worktree `.worktrees/data-migration`): Phase 7 — `scripts/migrate-data.ts`, jednorázový idempotentní backfill `data/*.json` → Supabase.
+- Supabase projekt `tpbkizrrizjvhzzxzfuu` (eu-central-1) — schéma, RLS, Auth, Storage buckety, Asset Library backend, data migrovaná, "Moje knihovna" frontend.
+- `main` branch: Phase 1–7 (Supabase Auth, `requireAuth`/`requireRole`, `/api/users*`, Storage buckety, `/api/assets*`, data migrace).
+- Branch `my-library` (worktree `.worktrees/my-library`): **"Moje knihovna" frontend** — nová sekce v appce (nav "MOJE DATA" → "Moje knihovna"), volá hotové `/api/assets*` z Phase 6. `src/services/assetLibraryService.ts` (fetch + přímý upload do Storage přes signed URL) + `src/components/MyLibrarySection.tsx` (upload, seznam, filtr moje/globální/kategorie, přejmenování, mazání, stažení).
+  - **Skutečně otestováno end-to-end v prohlížeči** (ne jen napsáno): nahrán testovací soubor jako přihlášený admin → objevil se v seznamu → ověřen v DB (`status=active`, správný `owner_id`/`storage_path`) → smazán přes UI → ověřeno zmizení z DB i Storage. Nepřihlášený stav také ověřen (zobrazí se výzva k přihlášení, ne prázdná appka).
+  - Admin navíc vidí checkbox "Nahrát jako globální" (jiní uživatelé ne) — respektuje stejné vlastnictví, jaké vynucuje `/api/assets*` na serveru.
+- Branch `data-migration` (Phase 7, smergováno): `scripts/migrate-data.ts`, jednorázový idempotentní backfill `data/*.json` → Supabase.
   - **Skutečně spuštěno** (ne jen napsáno): `users.json` → 1 nový uživatel zmigrován (`test-clen@kapela.cz`, role `musician`, status `invited`, **bez hesla** — nikdo ho nikdy nezadával), admin správně přeskočen (už existoval, spárováno podle e-mailu). Ověřena idempotence druhým spuštěním (0 migrováno, 2 přeskočeno).
   - `songs.json`, `playlist.json`, `photos.json`, `stems.json` **v repu momentálně neexistují** (vznikají, jen když starý kód appky běžel a vygeneroval je) — skript je bezpečně přeskočil. Kód pro jejich migraci je napsaný a otestovaný na schématu, ale **nikdy neběžel na reálných datech**, protože žádná nejsou. Až/pokud se tyhle soubory objeví (např. po dalším běhu appky, nebo z produkčního nasazení), stačí skript znovu spustit — je idempotentní.
   - **Oprava schématu při psaní**: `songs` neměla kam uložit bohatý obsah (text, akordy, tónina, BPM, YouTube odkazy) — přidán `metadata jsonb` sloupec (migrace `phase7_songs_metadata`). `songs`/`playlists`/`stem_sets` dostaly `legacy_id text unique` sloupec a `assets` unikátní index na `metadata->>'legacy_id'` — bez toho by skript nebyl idempotentní (migrace `phase7_legacy_id_tracking`).
@@ -21,8 +24,8 @@ Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase pro
 
 **Až budete pokračovat:**
 
-1. Smergovat `data-migration` do `main` (pokud ještě nebylo) přes `finishing-a-development-branch` postup.
-2. Zbývá: **"My Library" frontend UI** (backend `/api/assets*` z Phase 6 zatím nemá žádnou obrazovku, která by ho volala) — to je teď nejužitečnější další krok, appka pořád vypadá navenek stejně jako před celou migrací.
+1. Smergovat `my-library` do `main` (pokud ještě nebylo) přes `finishing-a-development-branch` postup.
+2. **Důležité — čemu appka dnes ještě NEVĚŘÍ:** Postgres teď obsahuje data (Phase 7 je tam nahrála), ale **Zpěvník/Knihovna, Setlisty a Fotky Kapely v appce pořád čtou a zapisují přes staré endpointy `/api/songs`, `/api/playlist`, `/api/photos` do `data/*.json` souborů** — ne do `songs`/`playlists`/`assets` tabulek. Jediná část appky, která reálně mluví s Postgres/Storage, je nové Auth (Phase 4) a nová "Moje knihovna" (tahle fáze). Přepojení Zpěvníku/Setlistů/Fotek na Postgres je největší zbývající kus práce — teprve pak appka přestane potřebovat `data/*.json` vůbec.
 3. Testovacího uživatele `test-clen@kapela.cz` je potřeba někdy v budoucnu buď skutečně pozvat (real invite e-mail), nebo smazat — zůstává v `invited` stavu bez možnosti přihlášení, dokud se nerozhodnete.
 4. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
 

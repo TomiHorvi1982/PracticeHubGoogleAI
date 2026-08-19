@@ -23,6 +23,7 @@ import { AlphaTabSection } from './components/AlphaTabSection';
 import { BookmarksSection } from './components/BookmarksSection';
 import { LibrarySection } from './components/LibrarySection';
 import { StemMixerSection } from './components/StemMixerSection';
+import { MyLibrarySection } from './components/MyLibrarySection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { authService } from './services/authService';
 import { playlistService } from './services/playlistService';
@@ -364,6 +365,11 @@ function AppContent() {
 
       {/* AI STEM SEPARATION & MIXER STUDIO */}
       {activeTab === 'stemmixer' && <StemMixerSection currentUser={currentUser} />}
+
+      {/* MY LIBRARY (Supabase-backed personal/global asset storage) */}
+      {activeTab === 'mylibrary' && (
+        <MyLibrarySection currentUser={currentUser} onOpenLoginModal={() => setIsLoginModalOpen(true)} />
+      )}
 
       {/* GLOBAL PERSISTENT AUDIO PLAYER */}
       <GlobalAudioPlayer
