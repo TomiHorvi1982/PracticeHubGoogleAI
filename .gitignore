@@ -19,3 +19,4 @@ data/playlist.json
 data/photos.json
 data/stems.json
 worker/.venv
+api/_server.mjs

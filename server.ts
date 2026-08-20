@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
@@ -2324,6 +2323,9 @@ export async function startServer() {
   const { app, PORT } = await createApp();
 
   if (process.env.NODE_ENV !== 'production') {
+    // Imported lazily: `vite` is a devDependency, absent in serverless
+    // production installs. Only the local dev path ever reaches this.
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
