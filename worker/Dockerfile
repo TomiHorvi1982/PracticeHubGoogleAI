@@ -14,7 +14,12 @@ WORKDIR /app
 
 # CPU-only torch build first — Railway has no GPU, and the default PyPI
 # wheel would otherwise pull in a multi-GB CUDA build for nothing.
-RUN pip install --no-cache-dir torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+#
+# Pinned to 2.8.0: torchaudio 2.9 routes save() through TorchCodec and raises
+# "TorchCodec is required for save_with_torchcodec" at the point Demucs writes
+# the separated stems — the separation itself finishes, then throws away the
+# result. 2.8.0 still writes via the soundfile backend (installed alongside).
+RUN pip install --no-cache-dir torch==2.8.0 torchaudio==2.8.0 --index-url https://download.pytorch.org/whl/cpu
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

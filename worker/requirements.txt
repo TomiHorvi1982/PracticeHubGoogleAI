@@ -8,3 +8,7 @@
 demucs==4.0.1
 yt-dlp>=2024.8.6
 requests>=2.31
+
+# torchaudio delegates file writing to soundfile on the pinned version below
+# (see Dockerfile) — without it, saving the separated stems fails.
+soundfile>=0.12.1
