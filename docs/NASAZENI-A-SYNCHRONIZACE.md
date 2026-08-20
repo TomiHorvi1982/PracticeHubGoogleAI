@@ -14,9 +14,9 @@ Datum: 2026-08-20
 Push do `main` na GitHubu automaticky přebuilduje a nasadí aplikaci.
 
 > **Railway se už nepoužívá.** Původně tam běžela appka i worker, ale
-> předplatné bylo po splatnosti. Projekt `neverlate-studio` tam zůstal
-> nedotčený — pokud ho nechcete platit, smažte ho v Railway dashboardu,
-> jinak může dál narůstat útrata.
+> předplatné bylo po splatnosti. Projekt `neverlate-studio` je smazaný.
+> Pozor: smazání projektu **nevynuluje dlužnou částku** — tu je potřeba
+> vyřídit přímo s Railway.
 
 ### Co na Vercelu nefunguje
 
@@ -109,6 +109,39 @@ NeverLateSync/
 **Pojmenování skladeb:** `Interpret - Nazev.txt` se rozdělí na interpreta
 a název. Bez pomlčky se celý název souboru bere jako název skladby.
 
+### C) Guitar Pro taby po albech
+
+Když máte taby srovnané po albech, `scripts/import-guitarpro.ts` je nacpe
+rovnou do Zpěvníku a připojí ke správným skladbám:
+
+```bash
+bun run scripts/import-guitarpro.ts ~/Sepultura-Tabs --dry-run
+```
+
+Očekává složku, kde **název podsložky je album** a **název souboru je číslo
+a název skladby**. Interpret se vezme z názvu kořenové složky:
+
+```
+Sepultura-Tabs/               ← interpret: „Sepultura"
+├── Roots (1996)/             ← album
+│     01 Roots Bloody Roots.gp
+│     04 Ratamahatta.gp
+└── Arise (1991)/
+      01 Arise.gp
+```
+
+Skladbu spáruje podle názvu (nezáleží na diakritice ani velikosti písmen);
+když ve Zpěvníku ještě není, založí ji. Tab se nahraje do Storage a ke
+skladbě se uloží jen odkaz — soubory se tedy stahují až ve chvíli, kdy tab
+někdo opravdu otevře, ne při každém načtení Zpěvníku.
+
+Stejně jako sync-folder je **idempotentní a nikdy nemaže** — opakované
+spuštění nezaloží duplicity. Vždycky ho nejdřív pusťte s `--dry-run`
+a podívejte se, co by udělal.
+
+> Aktuálně je takto naimportováno **36 tabů** ze tří alb Sepultury
+> (Arise, Chaos A.D., Roots).
+
 **Pojmenování vzorků bicích:** `kick.wav` je prostý vzorek. Pro realistické
 bicí s více vrstvami použijte `nastroj_dynamika_rrN.wav`, kde dynamika je
 `soft`, `med_soft`, `med`, `hard` nebo `very_hard` a `rrN` je pořadí
@@ -156,9 +189,9 @@ takže opakované údery nezní identicky.
 ## 6. Co zbývá dodělat
 
 - **Živá zkušebna a presence** na Vercelu nefungují (viz sekce 1). Kdyby je
-  kapela chtěla, musela by appka běžet na trvalém serveru, ne serverless.
-- **Starý Railway projekt** `neverlate-studio` tam pořád existuje. Smažte ho,
-  ať nenarůstá útrata.
-- Chybové stavy separace (`jobs.error`) appka nezobrazuje — jsou vidět jen
-  v databázi.
+  kapela chtěla, musela by appka běžet na trvalém serveru, ne serverless —
+  nebo by se přepsaly na Supabase Realtime Presence.
+- **Zpěvník má taby, ale zatím žádné texty ani akordy.** Naimportované
+  skladby mají prázdný modul „Text a akordy" — ten je potřeba doplnit
+  ručně v appce nebo hromadně přes `sync-folder.ts` (složka `zpevnik/`).
 - Testovací uživatel `test-clen@kapela.cz` je pořád ve stavu `invited`.
