@@ -1,22 +1,110 @@
-import { CustomDrumKit, MultiLayerSampleLayer } from '../types';
+import { CustomDrumKit, CustomDrumSample, MultiLayerSampleLayer } from '../types';
 import { audioSynth } from './audioSynth';
 import { sampledDrumEngine, DrumArticulation, VelocityTier } from './SampledDrumEngine';
-import {
-  setFirestoreDoc,
-  deleteFirestoreDoc,
-  subscribeFirestoreCollection,
-  getAllFirestoreDocs,
-} from './firebase';
+import { supabase } from './supabaseClient';
+import { authService } from './authService';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 
 const DB_NAME = 'StrumCustomDrumKitsDB';
 const STORE_NAME = 'custom_kits';
 const LOCAL_STORAGE_BACKUP_KEY = 'strum_custom_drum_kits_v2';
+const STORAGE_BUCKET = 'assets';
+const CATEGORY = 'drum_kit_sample';
+
+/** One `assets` row per sample layer (see docs/migration Phase 11) — not one
+ * blob per kit. `metadata.key` is the same key format used locally
+ * (`pad:{padId}` / `layer:{articulation}:{tier}:rr{roundRobin}`), so a kit's
+ * assets can be matched back to `kit.samples`/`kit.multiLayers` directly. */
+interface DrumKitRow {
+  id: string;
+  owner_id: string | null;
+  name: string;
+  cz_name: string | null;
+  icon: string | null;
+  genre: string | null;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface DrumKitSampleAssetRow {
+  id: string;
+  storage_bucket: string;
+  storage_path: string;
+  metadata: {
+    kitId: string;
+    key: string;
+    kind: 'pad' | 'layer';
+    padId?: string;
+    articulation?: string;
+    tier?: string;
+    roundRobin?: number;
+    name: string;
+    size?: number;
+    duration?: number;
+    uploadedAt: number;
+    volume?: number;
+    pitchOffset?: number;
+  };
+}
+
+type SampleEntry = {
+  key: string;
+  kind: 'pad' | 'layer';
+  padId?: string;
+  articulation?: string;
+  tier?: string;
+  roundRobin?: number;
+  sample: CustomDrumSample | MultiLayerSampleLayer;
+};
+
+function padKey(padId: string): string {
+  return `pad:${padId}`;
+}
+function layerKeyFor(articulation: string, tier: string, roundRobin: number): string {
+  return `layer:${articulation}:${tier}:rr${roundRobin}`;
+}
+
+function collectSamples(kit: CustomDrumKit): SampleEntry[] {
+  const entries: SampleEntry[] = [];
+  for (const [padId, sample] of Object.entries(kit.samples || {})) {
+    if (sample) entries.push({ key: padKey(padId), kind: 'pad', padId, sample });
+  }
+  for (const [articulation, layers] of Object.entries(kit.multiLayers || {})) {
+    for (const layer of Object.values(layers || {})) {
+      if (layer) {
+        entries.push({
+          key: layerKeyFor(articulation, layer.tier, layer.roundRobin),
+          kind: 'layer',
+          articulation,
+          tier: layer.tier,
+          roundRobin: layer.roundRobin,
+          sample: layer,
+        });
+      }
+    }
+  }
+  return entries;
+}
+
+function dataUrlToBlob(dataUrl: string): { blob: Blob; mime: string; ext: string } {
+  const [header, base64] = dataUrl.split(',');
+  const mime = /data:(.*?);base64/.exec(header)?.[1] || 'audio/wav';
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const ext = mime.includes('wav') ? 'wav' : mime.includes('mpeg') || mime.includes('mp3') ? 'mp3' : mime.includes('ogg') ? 'ogg' : mime.includes('flac') ? 'flac' : 'm4a';
+  return { blob: new Blob([bytes], { type: mime }), mime, ext };
+}
 
 class CustomDrumKitService {
   private dbPromise: Promise<IDBDatabase> | null = null;
   private memoryKits: CustomDrumKit[] = [];
   private subscribers: Set<(kits: CustomDrumKit[]) => void> = new Set();
-  private unsubscribeFirestore: (() => void) | null = null;
+  private realtimeChannel: RealtimeChannel | null = null;
+  /** Sample keys already known to exist in Supabase, per kit — lets saveKit
+   * upload/delete only what actually changed instead of re-syncing everything. */
+  private persistedSampleKeys: Map<string, Set<string>> = new Map();
 
   constructor() {
     this.init();
@@ -51,18 +139,111 @@ class CustomDrumKitService {
       console.warn('Failed local drum kit load', e);
     }
 
-    // 2. Real-time Cloud Firestore sync from `custom_drum_kits` collection
-    this.unsubscribeFirestore = subscribeFirestoreCollection<CustomDrumKit>('custom_drum_kits', async (cloudKits) => {
-      if (cloudKits && cloudKits.length > 0) {
-        this.memoryKits = cloudKits;
-        this.notify();
-        // Save to local IndexedDB & AudioSynth
-        for (const kit of cloudKits) {
-          await this.saveToLocalIndexedDB(kit).catch(() => {});
-        }
-        this.preloadKitsIntoAudioSynth(cloudKits);
+    // 2. Real Supabase load + Realtime sync from `drum_kits`/`assets`
+    await this.fetchAll();
+    this.realtimeChannel = supabase
+      .channel('drum-kits-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'drum_kits' }, () => {
+        this.fetchAll();
+      })
+      .subscribe();
+  }
+
+  private async fetchAll() {
+    try {
+      const [{ data: kitRows, error: kitError }, { data: assetRows, error: assetError }] = await Promise.all([
+        supabase.from('drum_kits').select('*').order('created_at', { ascending: true }),
+        supabase.from('assets').select('id, storage_bucket, storage_path, metadata').eq('category', CATEGORY).eq('status', 'active'),
+      ]);
+
+      if (kitError) {
+        console.warn('[customDrumKitService] Failed to load drum kits:', kitError.message);
+        return;
       }
-    });
+
+      const assetsByKit = new Map<string, DrumKitSampleAssetRow[]>();
+      for (const row of (assetRows as DrumKitSampleAssetRow[]) || []) {
+        const kitId = row.metadata?.kitId;
+        if (!kitId) continue;
+        if (!assetsByKit.has(kitId)) assetsByKit.set(kitId, []);
+        assetsByKit.get(kitId)!.push(row);
+      }
+
+      const kits: CustomDrumKit[] = [];
+      for (const row of (kitRows as DrumKitRow[]) || []) {
+        const kit: CustomDrumKit = {
+          id: row.id,
+          name: row.name,
+          czName: row.cz_name || undefined,
+          icon: row.icon || undefined,
+          genre: row.genre || undefined,
+          description: row.description || undefined,
+          createdAt: new Date(row.created_at).getTime(),
+          updatedAt: new Date(row.updated_at).getTime(),
+          samples: {},
+          multiLayers: {},
+        };
+
+        const assets = assetsByKit.get(row.id) || [];
+        const keys = new Set<string>();
+        await Promise.all(
+          assets.map(async (asset) => {
+            keys.add(asset.metadata.key);
+            const { data: signed } = await supabase.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 3600);
+            if (!signed?.signedUrl) return;
+            let dataUrl: string;
+            try {
+              const res = await fetch(signed.signedUrl);
+              const blob = await res.blob();
+              dataUrl = await this.readFileAsDataUrl(blob);
+            } catch (e) {
+              console.warn(`[customDrumKitService] Failed to fetch sample ${asset.metadata.name}:`, e);
+              return;
+            }
+
+            const meta = asset.metadata;
+            if (meta.kind === 'pad' && meta.padId) {
+              kit.samples[meta.padId] = {
+                padId: meta.padId,
+                name: meta.name,
+                dataUrl,
+                size: meta.size,
+                duration: meta.duration,
+                volume: meta.volume,
+                pitchOffset: meta.pitchOffset,
+                uploadedAt: meta.uploadedAt,
+                tier: meta.tier as VelocityTier | undefined,
+                roundRobin: meta.roundRobin,
+              };
+            } else if (meta.kind === 'layer' && meta.articulation && meta.tier && meta.roundRobin) {
+              if (!kit.multiLayers![meta.articulation]) kit.multiLayers![meta.articulation] = {};
+              const layerKey = `${meta.tier}:rr${meta.roundRobin}`;
+              kit.multiLayers![meta.articulation][layerKey] = {
+                tier: meta.tier as MultiLayerSampleLayer['tier'],
+                roundRobin: meta.roundRobin,
+                name: meta.name,
+                dataUrl,
+                size: meta.size,
+                duration: meta.duration,
+                uploadedAt: meta.uploadedAt,
+              };
+            }
+          })
+        );
+
+        this.persistedSampleKeys.set(row.id, keys);
+        kits.push(kit);
+      }
+
+      this.memoryKits = kits;
+      this.notify();
+      for (const kit of kits) {
+        await this.saveToLocalIndexedDB(kit).catch(() => {});
+      }
+      this.preloadKitsIntoAudioSynth(kits);
+    } catch (e: any) {
+      console.warn('[customDrumKitService] fetchAll failed:', e.message);
+    }
   }
 
   private initDB(): Promise<IDBDatabase> {
@@ -147,12 +328,104 @@ class CustomDrumKitService {
     await this.saveToLocalIndexedDB(kit);
     this.saveToLocalStorage(kit);
 
-    // 3. Persist to Firestore Cloud Storage
-    try {
-      await setFirestoreDoc('custom_drum_kits', kit.id, kit);
-    } catch (err) {
-      console.warn('Firestore cloud save failed for custom drum kit:', err);
+    // 3. Persist to Supabase (shared band resource — owner_id always null)
+    if (!authService.isAuthenticated()) {
+      console.warn('[customDrumKitService] Not signed in — kit kept local-only.');
+      return;
     }
+    try {
+      await this.persistKitToSupabase(kit);
+    } catch (err) {
+      console.warn('[customDrumKitService] Supabase save failed for kit:', err);
+    }
+  }
+
+  private async persistKitToSupabase(kit: CustomDrumKit): Promise<void> {
+    const { error: upsertError } = await supabase.from('drum_kits').upsert({
+      id: kit.id,
+      owner_id: null,
+      name: kit.name,
+      cz_name: kit.czName || null,
+      icon: kit.icon || null,
+      genre: kit.genre || null,
+      description: kit.description || null,
+      updated_at: new Date(kit.updatedAt).toISOString(),
+    });
+    if (upsertError) throw new Error(upsertError.message);
+
+    const current = collectSamples(kit);
+    const currentKeys = new Set(current.map((e) => e.key));
+    const persisted = this.persistedSampleKeys.get(kit.id) || new Set<string>();
+
+    const toUpload = current.filter((e) => !persisted.has(e.key));
+    const toDelete = [...persisted].filter((k) => !currentKeys.has(k));
+
+    if (toDelete.length > 0) {
+      const { data: staleAssets } = await supabase
+        .from('assets')
+        .select('id, storage_bucket, storage_path')
+        .eq('category', CATEGORY)
+        .eq('metadata->>kitId', kit.id)
+        .in('metadata->>key', toDelete);
+      for (const asset of staleAssets || []) {
+        await supabase.storage.from(asset.storage_bucket).remove([asset.storage_path]);
+        await supabase.from('assets').delete().eq('id', asset.id);
+      }
+    }
+
+    for (const entry of toUpload) {
+      if (!entry.sample.dataUrl) continue;
+      const { blob, mime, ext } = dataUrlToBlob(entry.sample.dataUrl);
+      const assetId = crypto.randomUUID();
+      const safeKey = entry.key.replace(/[^a-zA-Z0-9:_-]/g, '_');
+      const storagePath = `global/drum_kit_samples/${kit.id}/${safeKey}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage.from(STORAGE_BUCKET).upload(storagePath, blob, {
+        contentType: mime,
+        upsert: true,
+      });
+      if (uploadError) {
+        console.warn(`[customDrumKitService] Upload failed for ${entry.key}:`, uploadError.message);
+        continue;
+      }
+
+      const metadata: DrumKitSampleAssetRow['metadata'] = {
+        kitId: kit.id,
+        key: entry.key,
+        kind: entry.kind,
+        padId: entry.padId,
+        articulation: entry.articulation,
+        tier: entry.tier,
+        roundRobin: entry.roundRobin,
+        name: entry.sample.name,
+        size: entry.sample.size,
+        duration: entry.sample.duration,
+        uploadedAt: entry.sample.uploadedAt,
+        volume: (entry.sample as CustomDrumSample).volume,
+        pitchOffset: (entry.sample as CustomDrumSample).pitchOffset,
+      };
+
+      const { error: insertError } = await supabase.from('assets').insert({
+        id: assetId,
+        owner_id: null,
+        name: entry.sample.name,
+        original_filename: entry.sample.name,
+        mime_type: mime,
+        size_bytes: blob.size,
+        storage_bucket: STORAGE_BUCKET,
+        storage_path: storagePath,
+        asset_type: 'sample',
+        category: CATEGORY,
+        status: 'active',
+        metadata,
+      });
+      if (insertError) {
+        console.warn(`[customDrumKitService] Failed to record asset for ${entry.key}:`, insertError.message);
+        await supabase.storage.from(STORAGE_BUCKET).remove([storagePath]);
+      }
+    }
+
+    this.persistedSampleKeys.set(kit.id, currentKeys);
   }
 
   public async deleteKit(id: string): Promise<void> {
@@ -175,11 +448,24 @@ class CustomDrumKitService {
       localStorage.setItem(LOCAL_STORAGE_BACKUP_KEY, JSON.stringify(kits));
     } catch (e) {}
 
-    // Delete from Firestore Cloud Storage
+    // Delete from Supabase — samples' Storage objects, their `assets` rows, then the kit row.
+    if (!authService.isAuthenticated()) return;
     try {
-      await deleteFirestoreDoc('custom_drum_kits', id);
+      const { data: assets } = await supabase
+        .from('assets')
+        .select('id, storage_bucket, storage_path')
+        .eq('category', CATEGORY)
+        .eq('metadata->>kitId', id);
+      for (const asset of assets || []) {
+        await supabase.storage.from(asset.storage_bucket).remove([asset.storage_path]);
+      }
+      if (assets && assets.length > 0) {
+        await supabase.from('assets').delete().in('id', assets.map((a) => a.id));
+      }
+      await supabase.from('drum_kits').delete().eq('id', id);
+      this.persistedSampleKeys.delete(id);
     } catch (err) {
-      console.warn('Firestore cloud delete error:', err);
+      console.warn('[customDrumKitService] Supabase delete error:', err);
     }
   }
 
@@ -309,7 +595,7 @@ class CustomDrumKitService {
 
   public createEmptyKit(name = 'Moje Vlastní Sada Bicích', genre = 'Custom'): CustomDrumKit {
     return {
-      id: `custom_kit_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: crypto.randomUUID(),
       name,
       czName: name,
       icon: '🥁',

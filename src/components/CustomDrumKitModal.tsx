@@ -173,7 +173,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
     if (!activeKit) return;
     const duplicated: CustomDrumKit = {
       ...activeKit,
-      id: `custom_kit_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      id: crypto.randomUUID(),
       name: `${activeKit.name} (Kopie)`,
       czName: `${activeKit.name} (Kopie)`,
       createdAt: Date.now(),
@@ -508,7 +508,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
         if (!imported.id || !imported.name) {
           throw new Error('Neplatný formát bicí sady');
         }
-        imported.id = `custom_kit_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+        imported.id = crypto.randomUUID();
         imported.name = `${imported.name} (Importováno)`;
 
         await customDrumKitService.saveKit(imported);

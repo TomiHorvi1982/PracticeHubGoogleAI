@@ -179,7 +179,7 @@ export interface CustomDrumSample {
 }
 
 export interface CustomDrumKit {
-  id: string; // e.g. "custom_kit_1700000000"
+  id: string; // uuid — matches the `drum_kits.id` Postgres column
   name: string;
   czName?: string;
   icon?: string;
