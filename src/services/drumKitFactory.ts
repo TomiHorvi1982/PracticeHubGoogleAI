@@ -89,7 +89,7 @@ export class DrumKitFactory {
     const loadedPads: DrumPadType[] = activeBuffers
       ? (Array.from(activeBuffers.keys()) as DrumPadType[])
       : [];
-    const isCustom = this.activeKitId.startsWith('custom_');
+    const isCustom = customDrumKitService.isCustomKitId(this.activeKitId);
     const name = this.getKitName(this.activeKitId);
 
     return {
@@ -241,7 +241,7 @@ export class DrumKitFactory {
       const ctx = audioSynth.initCtx();
       const buffers = new Map<DrumPadType, AudioBuffer>();
 
-      if (kitId.startsWith('custom_')) {
+      if (customDrumKitService.isCustomKitId(kitId)) {
         // Load custom user kit samples
         const customKit = await customDrumKitService.getKitById(kitId);
         const pads: DrumPadType[] = [
@@ -702,7 +702,7 @@ export class DrumKitFactory {
       const synthBuf = this.synthesizePadBuffer(
         ctx,
         pad,
-        (kitProfile.startsWith('custom_') ? 'drums' : kitProfile) as InstrumentProfile
+        (customDrumKitService.isCustomKitId(kitProfile) ? 'drums' : kitProfile) as InstrumentProfile
       );
       if (!this.kitBuffers.has(kitProfile)) {
         this.kitBuffers.set(kitProfile, new Map());

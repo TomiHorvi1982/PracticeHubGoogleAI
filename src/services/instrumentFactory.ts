@@ -9,6 +9,7 @@ import {
   audioSynth,
 } from './audioSynth';
 import { drumKitFactory, DrumPadType } from './drumKitFactory';
+import { customDrumKitService } from './customDrumKitService';
 import { eventBus } from './eventBus';
 
 export interface InstrumentInstance {
@@ -38,7 +39,7 @@ export class InstrumentFactory {
 
     const name = this.getInstrumentName(profile);
     const category = this.getInstrumentCategory(profile);
-    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || profile.startsWith('custom_');
+    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || customDrumKitService.isCustomKitId(profile);
 
     const instance: InstrumentInstance = {
       profile,
@@ -76,7 +77,7 @@ export class InstrumentFactory {
     profile: InstrumentProfile,
     onProgress?: (pct: number) => void
   ): Promise<void> {
-    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || profile.startsWith('custom_');
+    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || customDrumKitService.isCustomKitId(profile);
 
     if (isDrumProfile) {
       try {
@@ -167,7 +168,7 @@ export class InstrumentFactory {
    * Check if instrument is loaded in memory
    */
   public isInstrumentLoaded(profile: InstrumentProfile): boolean {
-    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || profile.startsWith('custom_');
+    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || customDrumKitService.isCustomKitId(profile);
     if (isDrumProfile) {
       return drumKitFactory.isKitLoaded(profile);
     }
@@ -178,7 +179,7 @@ export class InstrumentFactory {
    * Check if instrument is currently downloading/decoding
    */
   public isInstrumentLoading(profile: InstrumentProfile): boolean {
-    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || profile.startsWith('custom_');
+    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || customDrumKitService.isCustomKitId(profile);
     if (isDrumProfile) {
       return drumKitFactory.getState().isLoading;
     }
@@ -189,7 +190,7 @@ export class InstrumentFactory {
    * Get loading progress percentage (1-100) or null
    */
   public getLoadingProgress(profile: InstrumentProfile): number | null {
-    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || profile.startsWith('custom_');
+    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || customDrumKitService.isCustomKitId(profile);
     if (isDrumProfile) {
       return drumKitFactory.isKitLoaded(profile) ? null : 50;
     }
@@ -200,7 +201,7 @@ export class InstrumentFactory {
    * Check if instrument samples are cached locally in IndexedDB / Cache API
    */
   public async isInstrumentCachedLocally(profile: InstrumentProfile): Promise<boolean> {
-    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || profile.startsWith('custom_');
+    const isDrumProfile = profile === 'drums' || profile.startsWith('drums_') || customDrumKitService.isCustomKitId(profile);
     if (isDrumProfile) {
       return true;
     }

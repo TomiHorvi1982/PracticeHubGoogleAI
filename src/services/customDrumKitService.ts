@@ -240,6 +240,12 @@ class CustomDrumKitService {
       for (const kit of kits) {
         await this.saveToLocalIndexedDB(kit).catch(() => {});
       }
+      // Supabase is the source of truth: drop locally cached kits that no
+      // longer exist there (deleted here or by another band member).
+      // Without this they linger in IndexedDB forever and get re-fed to the
+      // audio engines on every load, which surfaces as endless
+      // "Failed to decode sample" errors for a kit the user already deleted.
+      await this.pruneLocalKits(new Set(kits.map((k) => k.id))).catch(() => {});
       this.preloadKitsIntoAudioSynth(kits);
     } catch (e: any) {
       console.warn('[customDrumKitService] fetchAll failed:', e.message);
@@ -288,6 +294,19 @@ class CustomDrumKitService {
 
   public getAllKits(): CustomDrumKit[] {
     return this.memoryKits;
+  }
+
+  /**
+   * Is this id a user-created drum kit (as opposed to a built-in `drums`
+   * / `drums_*` kit, or some non-drum instrument profile)?
+   *
+   * Kit ids used to carry a `custom_` prefix, which callers pattern-matched
+   * on. They are plain UUIDs since the Supabase migration (`drum_kits.id`
+   * is a uuid column), so membership in the loaded kit list is now the only
+   * reliable test — never re-introduce a prefix check.
+   */
+  public isCustomKitId(id: string): boolean {
+    return this.memoryKits.some((k) => k.id === id);
   }
 
   public async getKitById(id: string): Promise<CustomDrumKit | null> {
@@ -467,6 +486,31 @@ class CustomDrumKitService {
     } catch (err) {
       console.warn('[customDrumKitService] Supabase delete error:', err);
     }
+  }
+
+  /** Removes locally cached kits whose ids aren't in `keepIds`, from both
+   * IndexedDB and the localStorage backup, and unloads their audio buffers. */
+  private async pruneLocalKits(keepIds: Set<string>): Promise<void> {
+    const localKits = await this.getAllKitsFromLocal();
+    const stale = localKits.filter((k) => !keepIds.has(k.id));
+    if (stale.length === 0) return;
+
+    for (const kit of stale) {
+      audioSynth.unloadCustomKit(kit.id);
+      sampledDrumEngine.unloadCustomKit(kit.id);
+      try {
+        const db = await this.initDB();
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        transaction.objectStore(STORE_NAME).delete(kit.id);
+      } catch (e) {
+        // ignore — cache pruning is best-effort
+      }
+    }
+
+    try {
+      const remaining = this.getFromLocalStorage().filter((k) => keepIds.has(k.id));
+      localStorage.setItem(LOCAL_STORAGE_BACKUP_KEY, JSON.stringify(remaining));
+    } catch (e) {}
   }
 
   private async saveToLocalIndexedDB(kit: CustomDrumKit): Promise<void> {

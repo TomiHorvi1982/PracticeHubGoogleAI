@@ -1143,19 +1143,47 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
     }
 
     const videosList = Array.from(resultsMap.values());
-    if (videosList.length > 0) {
-      return videosList;
+
+    // Verify each scraped id against YouTube's oEmbed endpoint and use the
+    // REAL video title. The scraper takes the first result of a text search,
+    // which is regularly a different song, and the titles above are
+    // constructed from the query rather than read from YouTube — so without
+    // this step the app confidently shows a wrong video under a made-up name.
+    const verified: ServerYouTubeVideo[] = [];
+    await Promise.all(
+      videosList.map(async (video) => {
+        try {
+          const res = await fetch(
+            `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${video.id}&format=json`
+          );
+          if (!res.ok) return;
+          const data: any = await res.json();
+          const realTitle: string = data?.title || '';
+          const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+          const haystack = norm(realTitle);
+          // Keep it only if the real title actually mentions the song (and
+          // the artist, when we were given one).
+          const titleMatches = !title || haystack.includes(norm(title));
+          const artistMatches = !artist || haystack.includes(norm(artist)) || norm(data?.author_name || '').includes(norm(artist));
+          if (titleMatches && artistMatches) {
+            verified.push({ ...video, title: realTitle });
+          }
+        } catch {
+          // Unreachable/embedding-disabled video — drop it rather than guess.
+        }
+      })
+    );
+
+    if (verified.length > 0) {
+      return verified;
     }
 
-    // Fallback if scraping is blocked
-    return [
-      {
-        id: '6hzrDeceEKc',
-        title: `${artist} - ${title} (Oficiální klip / Vyhledat na YouTube)`,
-        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(artist + ' ' + title)}`,
-        type: 'official',
-      },
-    ];
+    // Nothing could be verified. Return an empty list rather than a
+    // placeholder: this previously returned Oasis' "Wonderwall" video id
+    // labelled as whatever the user searched for, so a failed scrape looked
+    // exactly like a successful one and attached the wrong video to songs.
+    console.warn(`[youtube] No verifiable result for "${artist} - ${title}".`);
+    return [];
   }
 
   // YouTube Dedicated Search Endpoint

@@ -30,6 +30,19 @@ const DRUM_PADS: DrumPad[] = [
   { id: 'ride', name: 'Činel Ride', keyLabel: 'F', soundType: 'ride' },
 ];
 
+/**
+ * Does this instrument play back real recorded multi-samples?
+ *
+ * Almost all of them do: audioSynth.preloadInstrument() resolves a preset's
+ * `soundfont` field to a real FluidR3_GM sample set and streams it from the
+ * midi-js-soundfonts CDN (cached in IndexedDB), falling back to modelled
+ * synthesis only while that download is still in flight. This used to be
+ * checked as `inst.id.endsWith('_sf')`, which only three legacy profile ids
+ * ever satisfied — so the UI mislabelled ~200 sampled instruments "(Synth)".
+ */
+const usesRealSamples = (inst: { id: string; soundfont?: string }): boolean =>
+  Boolean(inst.soundfont) || inst.id.endsWith('_sf');
+
 const PRESET_LOOPS: Record<string, { name: string; bpm: number; kit: InstrumentProfile; grid: Record<string, boolean[]> }> = {
   rock: {
     name: 'Rock Classic 4/4',
@@ -710,7 +723,7 @@ export const VirtualInstruments: React.FC = () => {
                       <optgroup key={category.id} label={`${category.icon} ${category.name}`}>
                         {categoryInstruments.map((inst) => (
                           <option key={inst.id} value={inst.id}>
-                            {inst.icon} {inst.czName || inst.name} {inst.id.endsWith('_sf') ? '(HQ Vzorky)' : '(Synth)'}
+                            {inst.icon} {inst.czName || inst.name} {usesRealSamples(inst) ? '(HQ Vzorky)' : '(Synth)'}
                           </option>
                         ))}
                       </optgroup>
@@ -1345,7 +1358,7 @@ export const VirtualInstruments: React.FC = () => {
                                   <Zap className="w-3 h-3 text-[#30D158]" />
                                   <span>V keši</span>
                                 </span>
-                              ) : inst.id.endsWith('_sf') ? (
+                              ) : usesRealSamples(inst) ? (
                                 <span className="text-[9px] font-bold text-neutral-300 bg-white/5 px-2 py-0.5 rounded-md border border-white/10 whitespace-nowrap">
                                   HQ Vzorky
                                 </span>
