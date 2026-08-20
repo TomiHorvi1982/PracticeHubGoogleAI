@@ -101,6 +101,15 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     }
   };
 
+  const handleDeleteStemSet = async (song: StemSongDocument) => {
+    if (!window.confirm(`Opravdu odstranit "${song.title}"? Smažou se i případné nahrané stopy.`)) return;
+    try {
+      await stemAudioService.deleteStemSet(song.id);
+    } catch (err: any) {
+      setSubmitError(err.message || 'Nepodařilo se odstranit sadu stop.');
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
@@ -392,6 +401,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 {songs.map((s) => {
                   const isSelected = selectedSong?.id === s.id;
                   const isProcessing = s.status === 'processing';
+                  const isFailed = s.status === 'failed';
 
                   return (
                     <button
@@ -420,7 +430,30 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                             <Clock className="w-3 h-3" /> {s.progressPercentage}%
                           </span>
                         )}
+
+                        {isFailed && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold flex items-center gap-1 shrink-0">
+                            <AlertCircle className="w-3 h-3" /> Selhalo
+                          </span>
+                        )}
                       </div>
+
+                      {isFailed && (
+                        <div className="space-y-1.5">
+                          <p className="text-[10px] text-rose-300/80 leading-snug line-clamp-3">
+                            {s.errorMessage || 'Separace selhala.'}
+                          </p>
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteStemSet(s); }}
+                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleDeleteStemSet(s); } }}
+                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400 hover:text-rose-300 cursor-pointer"
+                          >
+                            Odstranit
+                          </span>
+                        </div>
+                      )}
 
                       {isProcessing && (
                         <div className="space-y-1">
@@ -476,6 +509,15 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                       </>
                     )}
                   </span>
+                </div>
+              ) : selectedSong.status === 'failed' ? (
+                <div className="text-right text-[11px] text-rose-400 max-w-xs">
+                  <div className="font-semibold flex items-center justify-end gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> Separace selhala
+                  </div>
+                  <div className="text-rose-300/70 text-[10px] mt-0.5 leading-snug">
+                    {selectedSong.errorMessage || 'Důvod se nepodařilo zjistit.'}
+                  </div>
                 </div>
               ) : (
                 <div className="text-right font-mono text-amber-400 text-[11px] animate-pulse">

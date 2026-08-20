@@ -2162,7 +2162,7 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       admin.from('songs').select('title, artist, metadata').eq('id', stemSetRow.song_id).maybeSingle(),
       admin
         .from('jobs')
-        .select('progress, status')
+        .select('progress, status, error')
         .eq('stem_set_id', stemSetRow.id)
         .order('created_at', { ascending: false })
         .limit(1)
@@ -2203,6 +2203,9 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       durationSeconds: songRow?.metadata?.durationSeconds || 210,
       status,
       progressPercentage: status === 'completed' ? 100 : jobRow?.progress ?? 0,
+      // Why it failed, so the UI can say so instead of showing a dead entry
+      // as perpetually "in progress" (see StemMixerSection).
+      errorMessage: status === 'failed' ? jobRow?.error || 'Separace selhala z neznámého důvodu.' : undefined,
       stems,
       createdAt: new Date(stemSetRow.created_at).getTime(),
       updatedAt: new Date(stemSetRow.updated_at).getTime(),
@@ -2228,6 +2231,55 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       return res.status(404).json({ error: 'Píseň se stopy nenalezena.' });
     }
     res.json({ song: await shapeStemSet(admin, stemSet) });
+  });
+
+  // Delete a stem set: its Storage objects, `assets`/`stems` rows, the
+  // `jobs` history and the stem set itself. Also removes the placeholder
+  // `songs` row auto-created for a stem-only YouTube import
+  // (status 'archived', metadata.source 'stem-import'), which exists purely
+  // to satisfy stem_sets.song_id and would otherwise be orphaned. A song
+  // that is a real songbook entry is never touched.
+  app.delete('/api/stems/:id', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: stemSet } = await admin.from('stem_sets').select('*').eq('id', req.params.id).maybeSingle();
+    if (!stemSet) {
+      return res.status(404).json({ error: 'Sada stop nenalezena.' });
+    }
+
+    try {
+      const { data: stemRows } = await admin
+        .from('stems')
+        .select('asset_id, assets(storage_bucket, storage_path)')
+        .eq('stem_set_id', stemSet.id);
+
+      for (const row of (stemRows as any[]) || []) {
+        if (row.assets) {
+          await admin.storage.from(row.assets.storage_bucket).remove([row.assets.storage_path]);
+        }
+      }
+
+      await admin.from('stems').delete().eq('stem_set_id', stemSet.id);
+      const assetIds = ((stemRows as any[]) || []).map((r) => r.asset_id).filter(Boolean);
+      if (assetIds.length > 0) {
+        await admin.from('assets').delete().in('id', assetIds);
+      }
+      await admin.from('jobs').delete().eq('stem_set_id', stemSet.id);
+      await admin.from('stem_sets').delete().eq('id', stemSet.id);
+
+      const { data: song } = await admin
+        .from('songs')
+        .select('id, status, metadata')
+        .eq('id', stemSet.song_id)
+        .maybeSingle();
+      if (song?.status === 'archived' && song?.metadata?.source === 'stem-import') {
+        await admin.from('songs').delete().eq('id', song.id);
+      }
+
+      res.json({ success: true });
+    } catch (err: any) {
+      console.error('[stems] Failed to delete stem set:', err.message);
+      res.status(500).json({ error: 'Nepodařilo se smazat sadu stop.', details: err.message });
+    }
   });
 
   // Start new YouTube AI Stem Separation process

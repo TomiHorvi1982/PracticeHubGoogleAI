@@ -183,6 +183,23 @@ class StemAudioService {
     return data.song;
   }
 
+  /** Deletes a stem set (and its audio) server-side, then refreshes the
+   * list. Used to clear out failed separations, which would otherwise sit
+   * in the mixer forever with no stems. */
+  public async deleteStemSet(id: string): Promise<void> {
+    const res = await authorizedFetch(`/api/stems/${id}`, { method: 'DELETE' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Nepodařilo se smazat sadu stop.');
+    }
+    if (this.selectedSong?.id === id) {
+      this.stop();
+      this.selectedSong = null;
+      this.audioReady = false;
+    }
+    await this.fetchSongs();
+  }
+
   public selectSongByTitleOrArtist(title: string, artist?: string): boolean {
     if (!this.songs.length) return false;
     const cleanTitle = title.toLowerCase().trim();
