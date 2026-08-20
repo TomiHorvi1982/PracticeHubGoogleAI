@@ -54,6 +54,39 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const ROOT = path.resolve(process.argv[2] || process.env.SYNC_FOLDER || './NeverLateSync');
 const CHECK_ONLY = process.argv.includes('--check') || process.argv.includes('--dry-run');
 
+/**
+ * `--only zpevnik,fotky` omezí běh na vyjmenované sekce. Bez něj běží
+ * všechny. Užitečné, když se má nahrát jen část složky — třeba proto, že
+ * `nahravky/` a `bici-sady/` se do volného tarifu nevejdou.
+ */
+const onlyIdx = process.argv.indexOf('--only');
+const ONLY: Set<string> | null =
+  onlyIdx > -1 && process.argv[onlyIdx + 1]
+    ? new Set(process.argv[onlyIdx + 1].split(',').map((s) => s.trim()).filter(Boolean))
+    : null;
+
+/**
+ * `--force` přepočítá i soubory, které se od minule nezměnily. Obsah na
+ * disku je stejný, ale skript z něj může odvodit něco jiného — po opravě
+ * chyby v parsování názvů je tohle jediná cesta, jak srovnat, co už je
+ * nahrané, bez ručního mazání.
+ */
+const FORCE = process.argv.includes('--force');
+
+/** `--kit "Název sady"` omezí bici-sady/ na jednu sadu místo všech. */
+const kitIdx = process.argv.indexOf('--kit');
+const KIT = kitIdx > -1 ? process.argv[kitIdx + 1] : null;
+
+const SEKCE = ['zpevnik', 'noty-tabs', 'nahravky', 'fotky', 'bici-sady'];
+if (ONLY) {
+  const nezname = [...ONLY].filter((s) => !SEKCE.includes(s));
+  if (nezname.length) {
+    console.error(`BLOCKED: neznámá sekce v --only: ${nezname.join(', ')}`);
+    console.error(`Povolené: ${SEKCE.join(', ')}`);
+    process.exit(1);
+  }
+}
+
 if (!fs.existsSync(ROOT)) {
   console.error(`BLOCKED: sync folder does not exist: ${ROOT}`);
   console.error('Pass the folder path as an argument, or set SYNC_FOLDER in .env.');
@@ -164,7 +197,7 @@ async function syncSongbook(report: Report) {
         }
       }
 
-      if (existing && existing.metadata?.sourceHash === hash) {
+      if (existing && !FORCE && existing.metadata?.sourceHash === hash) {
         report.skipped++;
         continue;
       }
@@ -218,6 +251,7 @@ const LIBRARY_SPECS: AssetSpec[] = [
 
 async function syncLibraryAssets(report: Report) {
   for (const spec of LIBRARY_SPECS) {
+    if (ONLY && !ONLY.has(spec.dir)) continue;
     const dir = path.join(ROOT, spec.dir);
     const files = walk(dir).filter((f) => spec.exts.has(path.extname(f).toLowerCase()));
 
@@ -229,7 +263,7 @@ async function syncLibraryAssets(report: Report) {
       try {
         const { data: existing } = await admin.from('assets').select('id, storage_path, metadata').eq('metadata->>legacy_id', legacyId).maybeSingle();
 
-        if (existing && existing.metadata?.sourceHash === hash) {
+        if (existing && !FORCE && existing.metadata?.sourceHash === hash) {
           report.skipped++;
           continue;
         }
@@ -290,7 +324,7 @@ async function syncPhotos(report: Report) {
     try {
       const { data: existing } = await admin.from('assets').select('id, storage_path, metadata').eq('metadata->>legacy_id', legacyId).maybeSingle();
 
-      if (existing && existing.metadata?.sourceHash === hash) {
+      if (existing && !FORCE && existing.metadata?.sourceHash === hash) {
         report.skipped++;
         continue;
       }
@@ -341,7 +375,13 @@ const TIERS = new Set(['soft', 'med_soft', 'med', 'hard', 'very_hard']);
 
 // "snare_hard_rr1" -> layer; "kick" -> legacy pad
 function parseSampleFilename(stem: string): { kind: 'pad'; padId: string } | { kind: 'layer'; articulation: string; tier: string; roundRobin: number } {
-  const match = stem.match(/^(.+)_(soft|med_soft|med|hard|very_hard)_rr(\d+)$/i);
+  // Dvě dynamiky jsou příponou jiné — `very_hard` končí na `hard`,
+  // `med_soft` na `soft`. S hladovým prefixem a krátkou variantou napřed by
+  // se `hihat_closed_very_hard_rr1` rozpadlo na artikulaci
+  // „hihat_closed_very" a dynamiku „hard", takže by ta nejsilnější vrstva
+  // skončila jako samostatný pad, který appka nikde nezobrazí. Proto líný
+  // prefix a delší varianty jako první.
+  const match = stem.match(/^(.+?)_(very_hard|med_soft|hard|med|soft)_rr(\d+)$/i);
   if (match && TIERS.has(match[2].toLowerCase())) {
     return { kind: 'layer', articulation: match[1], tier: match[2].toLowerCase(), roundRobin: parseInt(match[3], 10) };
   }
@@ -354,6 +394,7 @@ async function syncDrumKits(report: Report) {
 
   for (const kitFolder of fs.readdirSync(dir, { withFileTypes: true })) {
     if (!kitFolder.isDirectory() || kitFolder.name.startsWith('.')) continue;
+    if (KIT && kitFolder.name !== KIT) continue;
     const kitName = kitFolder.name;
     const kitDir = path.join(dir, kitName);
     const kitLegacyId = `sync:drumkit:${kitName}`;
@@ -384,7 +425,7 @@ async function syncDrumKits(report: Report) {
         const parsed = parseSampleFilename(stem);
 
         const { data: existing } = await admin.from('assets').select('id, storage_path, metadata').eq('metadata->>legacy_id', legacyId).maybeSingle();
-        if (existing && existing.metadata?.sourceHash === hash) {
+        if (existing && !FORCE && existing.metadata?.sourceHash === hash) {
           report.skipped++;
           continue;
         }
@@ -549,23 +590,35 @@ async function main() {
     return;
   }
 
-  console.log(`Synchronizuji z: ${ROOT}\n`);
+  console.log(`Synchronizuji z: ${ROOT}`);
+  if (ONLY) console.log(`Jen sekce: ${[...ONLY].join(', ')}`);
+  console.log('');
+
+  const bezi = (sekce: string) => !ONLY || ONLY.has(sekce);
 
   const songReport = freshReport();
-  await syncSongbook(songReport);
-  printReport('Zpěvník (zpevnik/)', songReport);
+  if (bezi('zpevnik')) {
+    await syncSongbook(songReport);
+    printReport('Zpěvník (zpevnik/)', songReport);
+  }
 
   const libraryReport = freshReport();
-  await syncLibraryAssets(libraryReport);
-  printReport('Moje knihovna (noty-tabs/, nahravky/)', libraryReport);
+  if (bezi('noty-tabs') || bezi('nahravky')) {
+    await syncLibraryAssets(libraryReport);
+    printReport('Moje knihovna (noty-tabs/, nahravky/)', libraryReport);
+  }
 
   const photoReport = freshReport();
-  await syncPhotos(photoReport);
-  printReport('Fotky Kapely (fotky/)', photoReport);
+  if (bezi('fotky')) {
+    await syncPhotos(photoReport);
+    printReport('Fotky Kapely (fotky/)', photoReport);
+  }
 
   const drumReport = freshReport();
-  await syncDrumKits(drumReport);
-  printReport('Bicí sady (bici-sady/)', drumReport);
+  if (bezi('bici-sady')) {
+    await syncDrumKits(drumReport);
+    printReport('Bicí sady (bici-sady/)', drumReport);
+  }
 
   const totalFailed = songReport.failed + libraryReport.failed + photoReport.failed + drumReport.failed;
   console.log(totalFailed > 0 ? `\nHotovo s ${totalFailed} chybami — viz výpis výše.` : '\nHotovo, beze chyb.');
