@@ -1,6 +1,19 @@
 import * as Tone from 'tone';
 import { StemSongDocument, SongStem } from '../types';
 import { generateSynchronizedStems } from './stemAudioGenerator';
+import { authService } from './authService';
+
+async function authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
+  const token = authService.getCurrentSession()?.token;
+  return fetch(path, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers || {}),
+    },
+  });
+}
 
 export interface ChannelState {
   volume: number;      // dB (-60 to +6)
@@ -92,7 +105,7 @@ class StemAudioService {
 
   public async fetchSongs(): Promise<StemSongDocument[]> {
     try {
-      const res = await fetch('/api/stems');
+      const res = await authorizedFetch('/api/stems');
       if (res.ok) {
         const data = await res.json();
         this.songs = data.songs || [];
@@ -151,6 +164,23 @@ class StemAudioService {
     if (song.status === 'completed' && song.stems && song.stems.length > 0) {
       this.setupAudioNodes(song);
     }
+  }
+
+  /** Kicks off server-side stem generation for a YouTube URL (see
+   * server.ts `/api/stems/process`) and selects the new (still-processing)
+   * song so the UI can show its progress. */
+  public async processYoutubeUrl(youtubeUrl: string, title?: string, artist?: string): Promise<StemSongDocument> {
+    const res = await authorizedFetch('/api/stems/process', {
+      method: 'POST',
+      body: JSON.stringify({ youtubeUrl, title, artist }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.song) {
+      throw new Error(data.error || 'Nepodařilo se zahájit separaci.');
+    }
+    await this.fetchSongs();
+    this.selectSong(data.song, true);
+    return data.song;
   }
 
   public selectSongByTitleOrArtist(title: string, artist?: string): boolean {

@@ -1,11 +1,21 @@
 # Phase 2–4: Migrace NeverLate Studio na Supabase
 
-Datum: 2026-08-19
-Status: **Phase 1–9 hotovo a smergováno do `main`.** Appka už nikde nečte/nezapisuje `data/songs.json`, `data/playlist.json`, `data/photos.json` — Zpěvník, Setlisty i Fotky Kapely běží přímo nad Supabase (Postgres + Storage + Realtime).
+Datum: 2026-08-20
+Status: **Phase 1–10 hotovo a smergováno do `main`.** Appka už nikde nečte/nezapisuje `data/songs.json`, `data/playlist.json`, `data/photos.json`, `data/stems.json` — Zpěvník, Setlisty, Fotky Kapely i AI Stem Mixážní Pult běží přímo nad Supabase (Postgres + Storage + Realtime). Server je bezestavový co se týče těchto čtyř entit.
 
-## NEXT SESSION START HERE (2026-08-19, po Phase 9)
+## NEXT SESSION START HERE (2026-08-20, po Phase 10 + úklidu)
 
 Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase projektu (ne jen naplánováno):
+
+- **Phase 10 + úklid vestigiálních endpointů** (branch `phase10-cleanup`, smergováno do `main`):
+  - **Odstraněny** staré `/api/songs*`, `/api/playlist*`, `/api/photos*` REST endpointy ze `server.ts` (nikdo je od Phase 9 nevolal) spolu s celým file-store scaffoldingem (`DEFAULT_SONGS`/`DEFAULT_PLAYLIST`/`serverPhotos`, `data/songs.json`/`playlist.json`/`photos.json` čtení/zápis, `saveServerSongs/Playlist/Photos`). `/api/db/init` a `/api/live/heartbeat` už nevrací mrtvá pole `songs`/`playlist`/`photos`/`playlistCount`/`songsCount` — `src/services/liveSyncService.ts` je nikdy nepoužíval. `/api/media/lyrics` (Media Center) teď při `songId` čte `songs.metadata.content` přímo ze Supabase místo z bývalého `serverSongs` pole.
+  - **Phase 10 — AI Stem Mixážní Pult přepojen na Supabase**: `/api/stems`, `/api/stems/:id`, `/api/stems/process` v `server.ts` teď čtou/zapisují `stem_sets`/`stems`/`jobs`/`assets` (service-role klient, stejný vzor jako `/api/assets*` z Phase 6), místo `data/stems.json`. `stem.downloadUrl` je teď 1hodinový signed Storage URL (bucket `audio`, cesta `global/stems/{stemSetId}/{stemType}.wav`), ne Express-streamovaný buffer — odstraněny `/api/stems/audio/:stemType` a `/api/stems/audio/:songId/:stemType`. **Zvuk stop je pořád syntetizovaný** (`generateServerStemWav`, beze změny) — skutečná Demucs/AI separace zůstává mimo scope, jak plán vždy říkal.
+    - `stem_sets.song_id` je `NOT NULL` (cizí klíč), ale stem-only import z YouTube nemá vlastní skladbu ve Zpěvníku — server proto založí/najde `songs` řádek se `status='archived'` (mimo dosah `songDatabaseService`, který čte jen `status='active'`) a `metadata.source='stem-import'`, idempotentně přes `metadata->>youtubeId`. Neplete se to s reálnými písněmi kapely.
+    - Postup zpracování (15 % → 40 % → 75 % → 100 %) zůstal zachovaný kvůli UX, teď ale řízený přes reálný `jobs` řádek (`progress` sloupec), ne `setTimeout` mutující pole v paměti.
+    - Tři endpointy nově vyžadují `requireAuth` (dřív byly bez autentizace — reálná díra, teď opravená). `src/services/stemAudioService.ts` a `src/components/StemMixerSection.tsx`/`ModularStemsMixer.tsx` upraveny tak, aby posílaly Bearer token a **refetchovaly na mount komponenty** — service je modulový singleton, jehož konstruktor volá `fetchSongs()` při načtení appky, tedy dřív, než se obnoví Supabase session (stejná třída chyby jako `PASSWORD_RECOVERY` bug z Phase 4). Bez tohoto refetche by seznam stop zůstal navždy prázdný po 401.
+    - Výchozí 3 fake demo skladby (Pohoda/Wonderwall/Stánky s předpřipravenými "dokončenými" stopami) **už appka nenačítá** — mixér teď startuje s 0 skladbami, dokud někdo reálně nezpracuje YouTube odkaz. Záměrná změna chování, ne bug.
+  - **Skutečně otestováno end-to-end v prohlížeči**: stem separace spuštěna pro reálné YouTube URL → `stem_sets`/`jobs`/`songs` (`archived`) řádky vznikly → po ~5 s `status='completed'` → 5 `assets` řádků + reálné `.wav` soubory v `audio` bucketu (`global/stems/...`) → mixér UI vykreslil 5 kanálů a Tone.js přehrával přes skutečné signed Storage URL (200, ne fallback syntéza). Testovací data po ověření smazána (DB i Storage). `curl` ověřeno, že staré `/api/songs`/`/api/playlist`/`/api/photos` vracejí SPA `text/html` fallback (skutečně nikde nezůstaly navěšené), ne JSON.
+  - `npm run lint` (`tsc --noEmit`) čistý na `main` po mergi. Supabase advisors beze změny (jen předchozí neškodný `auth_leaked_password_protection` WARN) — žádné nové migrace v této fázi, vše přes stávající service-role server routy.
 
 - **Phase 9 — Zpěvník, Setlisty, Fotky Kapely přepojeny na Supabase** (branch `realtime-sync`, smergováno do `main`):
   - `src/services/songDatabaseService.ts` — přímé čtení/zápis do `songs` (žádný `/api/songs` proxy), Realtime `postgres_changes` subscribe na `songs`. Sdílený zpěvník: `owner_id null`, kdokoliv přihlášený smí přidat/upravit.
@@ -34,12 +44,11 @@ Co je **živé a funkční právě teď**, ověřeno v produkčním Supabase pro
 
 **Až budete pokračovat:**
 
-1. **Appka teď mluví s Postgres/Storage skoro všude** — Auth (Phase 4), Moje knihovna (Phase 8), Zpěvník/Setlisty/Fotky Kapely (Phase 9). Co ještě zbývá:
-   - Vyklidit vestigiální `/api/songs`, `/api/playlist`, `/api/photos` (a `/api/stems`?) endpointy v `server.ts` — nikdo je nevolá, ale pořád existují a čtou/zapisují `data/*.json`. Bezpečný low-risk úklid, ne urgentní.
-   - Stem Mixer (Phase 10) — beze změny, `stem.downloadUrl` pořád ukazuje na `generateServerStemWav`, ne na `assets`/`stem_sets` signed URL.
-   - Live Band Room (`/api/rooms/*`) — čistě in-memory, mimo scope, netřeba měnit.
-2. Testovacího uživatele `test-clen@kapela.cz` je potřeba někdy v budoucnu buď skutečně pozvat (real invite e-mail), nebo smazat — zůstává v `invited` stavu bez možnosti přihlášení, dokud se nerozhodnete.
-3. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
+1. **Appka teď mluví s Postgres/Storage prakticky všude** — Auth (Phase 4), Moje knihovna (Phase 8), Zpěvník/Setlisty/Fotky Kapely (Phase 9), AI Stem Mixážní Pult (Phase 10). Co zbývá, je záměrně malé:
+   - Skutečná AI/Demucs separace stop — dnešní stopy jsou pořád syntetizované (`generateServerStemWav`), reálná separace nikdy nebyla v scope žádné fáze. Samostatný, mnohem větší projekt.
+   - Live Band Room (`/api/rooms/*`, `/api/live/*`) — čistě in-memory, mimo scope, netřeba měnit.
+   - Testovacího uživatele `test-clen@kapela.cz` je potřeba někdy v budoucnu buď skutečně pozvat (real invite e-mail), nebo smazat — zůstává v `invited` stavu bez možnosti přihlášení, dokud se nerozhodnete.
+2. Standardní postup: nový worktree, `cp ../../.env .env`, `bun install`, implementace, `npm run lint`, ruční test, merge.
 
 ## Phase 4 — Auth & Authorization (dokončeno)
 

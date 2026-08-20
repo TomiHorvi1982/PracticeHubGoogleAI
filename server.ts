@@ -1,6 +1,5 @@
 import express from 'express';
 import path from 'path';
-import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
@@ -103,298 +102,13 @@ async function startServer() {
     res.json({ status: 'ok', time: new Date().toISOString() });
   });
 
-  // --- Persistent Backend Database Stores (data/ folder) ---
-  const DATA_DIR = path.join(process.cwd(), 'data');
-  const SONGS_FILE = path.join(DATA_DIR, 'songs.json');
-  const PLAYLIST_FILE = path.join(DATA_DIR, 'playlist.json');
-  const PHOTOS_FILE = path.join(DATA_DIR, 'photos.json');
-
-  if (!fs.existsSync(DATA_DIR)) {
-    try {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
-    } catch (e) {}
-  }
-
-  // NOTE: users/invitations are no longer stored in data/users.json or
-  // data/invitations.json — Supabase Auth + the `profiles` table are now the
-  // source of truth (see requireAuth/requireRole above and the /api/users
-  // routes below). See docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md.
-
-  const DEFAULT_SONGS = [
-    {
-      id: 's1',
-      title: 'Stánky',
-      artist: 'Jan a František Nedvědové',
-      key: 'G',
-      tuning: 'Standard (EADGBe)',
-      bpm: 85,
-      capo: 0,
-      chordsUsed: ['G', 'C', 'Em', 'D', 'D7'],
-      notes: 'Česká kytarová klasika k táboráku i do zkušebny.',
-      content: `[G]U stánků na levnou [C]krásu
-[G]postávají a [Em]smějí se [D]času,
-[G]s cigaretou a s [C]holkou, co nemá [G]kam [D]jít.[G]
-
-[G]Vrací se domů [C]ráno,
-[G]se zlou se potká [Em]všude, kde je [D]psáno,
-[G]že láska bez pe[C]něz k nicomnosti [G]je.[D][G]
-
-Refrén:
-A [C]stánky na levnou [D7]krásu
-[G]stále tu [Em]budou stoj[Am]et,
-však [D7]lidé se mění a [G]mizejí v dál.`,
-      createdAt: Date.now() - 3600000 * 24,
-      updatedAt: Date.now() - 3600000 * 24,
-      author: 'Kytarista Tom',
-      youtubeVideos: [
-        {
-          id: '2m-fJb_S3O0',
-          title: 'Nedvědi - Stánky (Oficiální videoklip)',
-          url: 'https://www.youtube.com/watch?v=2m-fJb_S3O0',
-          type: 'official',
-        },
-        {
-          id: '3N3U7x2y4Zk',
-          title: 'Brontosauři - Stánky (Akordy a text pro kytaru)',
-          url: 'https://www.youtube.com/watch?v=3N3U7x2y4Zk',
-          type: 'backingtrack',
-        },
-      ],
-    },
-    {
-      id: 's2',
-      title: 'Pohoda',
-      artist: 'Kabát',
-      key: 'D',
-      tuning: 'Standard (EADGBe)',
-      bpm: 128,
-      capo: 0,
-      chordsUsed: ['D', 'G', 'A', 'Em', 'C'],
-      notes: 'Energický kapelový rockový nářez.',
-      content: `Intro: [D] [G] [D] [A]
-
-[D]Když se u nás chlapi poperou, tak [G]jenom nožem a nebo sekerou,
-[D]vždycky jenom poctivě, [A]žádná zákeřnost!
-[D]A až se všichni pozabíjí, [G]víno a pivo si nalijí,
-[D]bude u nás pohoda, [A]máme toho dost!
-
-Refrén:
-Vezmi [G]láhev a [A]pojď sem k [D]nám,
-[G]já ti zprávu [A]dobrou [D]dám!
-Bude [G]pohoda [A]u nás v [D]pivovaru,
-[Em]všechny starosti [C]pustíme z hlavy [A]ven!`,
-      createdAt: Date.now() - 3600000 * 12,
-      updatedAt: Date.now() - 3600000 * 12,
-      author: 'Kapela Rockers',
-      youtubeVideos: [
-        {
-          id: 'cZ5w4dM_c0c',
-          title: 'Kabát - Pohoda (Oficiální klip)',
-          url: 'https://www.youtube.com/watch?v=cZ5w4dM_c0c',
-          type: 'official',
-        },
-        {
-          id: 'gR9Y40kLw00',
-          title: 'Kabát - Pohoda (Backing track s textem a akordy)',
-          url: 'https://www.youtube.com/watch?v=gR9Y40kLw00',
-          type: 'backingtrack',
-        },
-      ],
-    },
-    {
-      id: 's3',
-      title: 'Wonderwall',
-      artist: 'Oasis',
-      key: 'Em',
-      tuning: 'Standard (EADGBe)',
-      bpm: 88,
-      capo: 2,
-      chordsUsed: ['Em', 'G', 'D', 'C', 'A'],
-      notes: 'Hrajte s kapodastrem na 2. pražci.',
-      content: `[Em7]Today is gonna be the day that they're [G]gonna throw it back to you,
-[Dsus4]By now you should've somehow reali[A7sus4]sed what you gotta do.
-[Em7]I don't believe that anybody [G]feels the way I do [Dsus4]about you [A7sus4]now.
-
-[C]And all the roads we [D]have to walk are [Em7]winding,
-[C]And all the lights that [D]lead us there are [Em7]blinding.
-[C]There are many [D]things that I would [G]like to say to [Em7]you but I don't know [Dsus4]how.
-
-Refrén:
-[C]Because maybe[Em7] [G]
-You're gonna be the one that [Em7]saves me? [C]
-And after [Em7]all, [G]
-You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
-      createdAt: Date.now() - 3600000 * 6,
-      updatedAt: Date.now() - 3600000 * 6,
-      author: 'Noel Gallagher',
-      youtubeVideos: [
-        {
-          id: '6hzrDeceEKc',
-          title: 'Oasis - Wonderwall (Official Video)',
-          url: 'https://www.youtube.com/watch?v=6hzrDeceEKc',
-          type: 'official',
-        },
-        {
-          id: 'mQ9J6CAnG8o',
-          title: 'Wonderwall - Guitar Backing Track with Chords',
-          url: 'https://www.youtube.com/watch?v=mQ9J6CAnG8o',
-          type: 'backingtrack',
-        },
-      ],
-    },
-  ];
-
-  const DEFAULT_PLAYLIST = [
-    {
-      id: 'pl_1',
-      youtubeId: 'cZ5w4dM_c0c',
-      title: 'Kabát - Pohoda (Oficiální videoklip)',
-      artist: 'Kabát',
-      thumbnail: 'https://img.youtube.com/vi/cZ5w4dM_c0c/mqdefault.jpg',
-      duration: '3:45',
-      addedBy: 'user-admin-hortom82',
-      addedByName: 'Tomáš Hort',
-      addedAt: Date.now() - 3600000 * 5,
-      songId: 's2',
-    },
-    {
-      id: 'pl_2',
-      youtubeId: '6hzrDeceEKc',
-      title: 'Oasis - Wonderwall (Official Music Video)',
-      artist: 'Oasis',
-      thumbnail: 'https://img.youtube.com/vi/6hzrDeceEKc/mqdefault.jpg',
-      duration: '4:38',
-      addedBy: 'user-admin-hortom82',
-      addedByName: 'Tomáš Hort',
-      addedAt: Date.now() - 3600000 * 4,
-      songId: 's3',
-    },
-    {
-      id: 'pl_3',
-      youtubeId: '2m-fJb_S3O0',
-      title: 'Nedvědi - Stánky (Originální nahrávka)',
-      artist: 'Jan a František Nedvědovi',
-      thumbnail: 'https://img.youtube.com/vi/2m-fJb_S3O0/mqdefault.jpg',
-      duration: '2:58',
-      addedBy: 'user-admin-hortom82',
-      addedByName: 'Tomáš Hort',
-      addedAt: Date.now() - 3600000 * 3,
-      songId: 's1',
-    },
-    {
-      id: 'pl_4',
-      youtubeId: 'hTWKbfoikeg',
-      title: 'Nirvana - Smells Like Teen Spirit (Official Music Video)',
-      artist: 'Nirvana',
-      thumbnail: 'https://img.youtube.com/vi/hTWKbfoikeg/mqdefault.jpg',
-      duration: '4:38',
-      addedBy: 'user-admin-hortom82',
-      addedByName: 'Tomáš Hort',
-      addedAt: Date.now() - 3600000 * 2,
-    },
-    {
-      id: 'pl_5',
-      youtubeId: 'g4ouPGGLI6Q',
-      title: 'AC/DC - Highway to Hell (Official Video)',
-      artist: 'AC/DC',
-      thumbnail: 'https://img.youtube.com/vi/g4ouPGGLI6Q/mqdefault.jpg',
-      duration: '3:28',
-      addedBy: 'user-admin-hortom82',
-      addedByName: 'Tomáš Hort',
-      addedAt: Date.now() - 3600000 * 1,
-    },
-  ];
-
-  let serverSongs: any[] = DEFAULT_SONGS;
-  let serverPlaylist: any[] = DEFAULT_PLAYLIST;
-  let serverPhotos: any[] = [
-    {
-      id: 'photo_sample_1',
-      title: 'Akordový list a poznámky ze zkoušky',
-      type: 'photo',
-      dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%231a1a1a"/><rect x="40" y="40" width="720" height="520" rx="8" fill="%230d0d0d" stroke="%23333" stroke-width="2"/><text x="80" y="100" fill="%23FF3E00" font-family="monospace" font-weight="bold" font-size="28">POZNAMKY ZE ZKOUSKY - AKORDY</text><line x1="80" y1="120" x2="720" y2="120" stroke="%23333" stroke-width="2"/><text x="80" y="180" fill="%2300FF41" font-family="monospace" font-size="20">1. Stanky (G - C - Em - D - D7)</text><text x="80" y="220" fill="%2300FF41" font-family="monospace" font-size="20">2. Pohoda (D - G - A - Em - C)</text><text x="80" y="260" fill="%2300FF41" font-family="monospace" font-size="20">3. Wonderwall (Em7 - G - Dsus4 - A7sus4)</text><rect x="80" y="310" width="640" height="180" rx="6" fill="%23141414" stroke="%23FF3E00" stroke-width="1.5"/><text x="110" y="360" fill="%23fff" font-family="monospace" font-size="18">DOPORUCENI PRO KAPELU:</text><text x="110" y="400" fill="%23aaa" font-family="monospace" font-size="16">- Zpev: druhy hlas v refrenu posunout o tercii vys</text><text x="110" y="440" fill="%23aaa" font-family="monospace" font-size="16">- Bici: prechod na cinely pred solo pasazi</text></svg>',
-      authorId: 'user-admin-hortom82',
-      authorName: 'Tomáš Hort',
-      createdAt: Date.now() - 3600000 * 8,
-      notes: 'Foto z tabule ve zkušebně s akordy a poznámkami pro kapelu.',
-      tags: ['Akordy', 'Zkouška'],
-      width: 800,
-      height: 600,
-    },
-    {
-      id: 'photo_sample_2',
-      title: 'Printscreen nastavení DAW a kytarových efektů',
-      type: 'screenshot',
-      dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"><rect width="800" height="500" fill="%230a0a0a"/><rect x="20" y="20" width="760" height="460" rx="8" fill="%23121212" stroke="%2300FF41" stroke-width="1.5"/><rect x="20" y="20" width="760" height="45" rx="8" fill="%231a1a1a"/><circle cx="50" cy="42" r="6" fill="%23FF3E00"/><circle cx="70" cy="42" r="6" fill="%23ffbb00"/><circle cx="90" cy="42" r="6" fill="%2300FF41"/><text x="120" y="48" fill="%23fff" font-family="monospace" font-size="16" font-weight="bold">DAW GUITAR RIG / PEDALBOARD CAPTURE</text><rect x="50" y="90" width="210" height="150" rx="6" fill="%231f1a14" stroke="%23FF3E00" stroke-width="2"/><text x="70" y="130" fill="%23FF3E00" font-family="monospace" font-weight="bold" font-size="18">OVERDRIVE</text><text x="70" y="165" fill="%23fff" font-family="monospace" font-size="14">Gain: 6.5</text><text x="70" y="195" fill="%23fff" font-family="monospace" font-size="14">Tone: 7.0</text><rect x="290" y="90" width="210" height="150" rx="6" fill="%23141f1a" stroke="%2300FF41" stroke-width="2"/><text x="310" y="130" fill="%2300FF41" font-family="monospace" font-weight="bold" font-size="18">CHORUS / MOD</text><text x="310" y="165" fill="%23fff" font-family="monospace" font-size="14">Rate: 2.2 Hz</text><text x="310" y="195" fill="%23fff" font-family="monospace" font-size="14">Depth: 45%</text><rect x="530" y="90" width="210" height="150" rx="6" fill="%2314141f" stroke="%233b82f6" stroke-width="2"/><text x="550" y="130" fill="%233b82f6" font-family="monospace" font-weight="bold" font-size="18">DELAY &amp; REVERB</text><text x="550" y="165" fill="%23fff" font-family="monospace" font-size="14">Time: 380 ms</text><text x="550" y="195" fill="%23fff" font-family="monospace" font-size="14">Mix: 25%</text><rect x="50" y="270" width="690" height="170" rx="6" fill="%23080808" stroke="%23333"/><text x="80" y="320" fill="%2300FF41" font-family="monospace" font-size="16">MAIN MASTER BUS: -3.2 dB (True Peak Limiter)</text><text x="80" y="360" fill="%23888" font-family="monospace" font-size="14">Printscreen z PC zachycený během zkoušení nového aparátu.</text></svg>',
-      authorId: 'user-admin-hortom82',
-      authorName: 'Tomáš Hort',
-      createdAt: Date.now() - 3600000 * 4,
-      notes: 'Snímek obrazovky z PC s nastavením virtuálního pedalboardu a efektů pro sóla.',
-      tags: ['Printscreen', 'Vybavení'],
-      width: 800,
-      height: 500,
-    }
-  ];
-
-  // Load Songs Database
-  try {
-    if (fs.existsSync(SONGS_FILE)) {
-      const data = fs.readFileSync(SONGS_FILE, 'utf-8');
-      serverSongs = JSON.parse(data);
-    } else {
-      fs.writeFileSync(SONGS_FILE, JSON.stringify(serverSongs, null, 2), 'utf-8');
-    }
-  } catch (e) {
-    console.error('Error loading songs.json', e);
-  }
-
-  // Load Playlist Database
-  try {
-    if (fs.existsSync(PLAYLIST_FILE)) {
-      const data = fs.readFileSync(PLAYLIST_FILE, 'utf-8');
-      serverPlaylist = JSON.parse(data);
-    } else {
-      fs.writeFileSync(PLAYLIST_FILE, JSON.stringify(serverPlaylist, null, 2), 'utf-8');
-    }
-  } catch (e) {
-    console.error('Error loading playlist.json', e);
-  }
-
-  // Load Photos Database
-  try {
-    if (fs.existsSync(PHOTOS_FILE)) {
-      const data = fs.readFileSync(PHOTOS_FILE, 'utf-8');
-      serverPhotos = JSON.parse(data);
-    } else {
-      fs.writeFileSync(PHOTOS_FILE, JSON.stringify(serverPhotos, null, 2), 'utf-8');
-    }
-  } catch (e) {
-    console.error('Error loading photos.json', e);
-  }
-
-  const saveServerSongs = () => {
-    try {
-      fs.writeFileSync(SONGS_FILE, JSON.stringify(serverSongs, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Failed to save songs.json', e);
-    }
-  };
-
-  const saveServerPlaylist = () => {
-    try {
-      fs.writeFileSync(PLAYLIST_FILE, JSON.stringify(serverPlaylist, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Failed to save playlist.json', e);
-    }
-  };
-
-  const saveServerPhotos = () => {
-    try {
-      fs.writeFileSync(PHOTOS_FILE, JSON.stringify(serverPhotos, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Failed to save photos.json', e);
-    }
-  };
+  // NOTE: Songbook (`songs`), Setlisty (`playlists`/`playlist_songs`), and
+  // Band Photos (`assets`) all live in Supabase as of Phase 9 — the frontend
+  // talks to them directly (see src/services/songDatabaseService.ts,
+  // playlistService.ts, photoService.ts). The old file-backed
+  // /api/songs, /api/playlist, /api/photos REST API and its data/*.json
+  // stores were removed in Phase 10 cleanup — nothing called them anymore.
+  // See docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md.
 
   // --- Real-time In-Memory Presence & Live Playback Sync ---
   interface ActiveOnlineUser {
@@ -427,9 +141,9 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
   const activeOnlineUsers = new Map<string, ActiveOnlineUser>();
   let sharedPlaybackState: SharedPlaybackState = {
     isPlaying: false,
-    currentItemId: serverPlaylist[0]?.id || null,
-    youtubeId: serverPlaylist[0]?.youtubeId || null,
-    title: serverPlaylist[0]?.title || null,
+    currentItemId: null,
+    youtubeId: null,
+    title: null,
     currentTime: 0,
     duration: 0,
     mode: 'normal',
@@ -473,8 +187,6 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
     res.json({
       onlineUsers: Array.from(activeOnlineUsers.values()),
       playbackState: sharedPlaybackState,
-      playlistCount: serverPlaylist.length,
-      songsCount: serverSongs.length,
     });
   });
 
@@ -502,190 +214,10 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
   app.get('/api/db/init', (req, res) => {
     cleanStaleOnlineUsers();
     res.json({
-      songs: serverSongs,
-      playlist: serverPlaylist,
-      photos: serverPhotos,
       onlineUsers: Array.from(activeOnlineUsers.values()),
       playbackState: sharedPlaybackState,
     });
   });
-
-  // --- REST API for Shared YouTube Playlist ---
-  app.get('/api/playlist', (req, res) => {
-    res.json({ playlist: serverPlaylist });
-  });
-
-  app.post('/api/playlist', (req, res) => {
-    const { item } = req.body;
-    if (!item || !item.youtubeId) {
-      return res.status(400).json({ error: 'Chybí platné YouTube video.' });
-    }
-
-    const newItem = {
-      id: item.id || 'pl_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-      youtubeId: item.youtubeId,
-      title: item.title || 'YouTube Video',
-      artist: item.artist || '',
-      thumbnail: item.thumbnail || `https://img.youtube.com/vi/${item.youtubeId}/mqdefault.jpg`,
-      duration: item.duration || '',
-      addedBy: item.addedBy || '',
-      addedByName: item.addedByName || 'Člen',
-      addedAt: Date.now(),
-      notes: item.notes || '',
-      songId: item.songId || undefined,
-    };
-
-    serverPlaylist.push(newItem);
-    saveServerPlaylist();
-
-    res.json({ success: true, item: newItem, playlist: serverPlaylist });
-  });
-
-  app.post('/api/playlist/batch', (req, res) => {
-    const { items } = req.body;
-    if (Array.isArray(items)) {
-      serverPlaylist = items;
-      saveServerPlaylist();
-    }
-    res.json({ success: true, playlist: serverPlaylist });
-  });
-
-  app.put('/api/playlist/:id', (req, res) => {
-    const itemId = req.params.id;
-    const index = serverPlaylist.findIndex((p) => p.id === itemId);
-    if (index === -1) {
-      return res.status(404).json({ error: 'Položka playlistu nenalezena.' });
-    }
-    serverPlaylist[index] = { ...serverPlaylist[index], ...req.body };
-    saveServerPlaylist();
-    res.json({ success: true, item: serverPlaylist[index], playlist: serverPlaylist });
-  });
-
-  app.delete('/api/playlist/:id', (req, res) => {
-    const itemId = req.params.id;
-    serverPlaylist = serverPlaylist.filter((p) => p.id !== itemId);
-    saveServerPlaylist();
-    res.json({ success: true, playlist: serverPlaylist });
-  });
-
-  app.post('/api/playlist/reorder', (req, res) => {
-    const { playlist } = req.body;
-    if (Array.isArray(playlist)) {
-      serverPlaylist = playlist;
-      saveServerPlaylist();
-    }
-    res.json({ success: true, playlist: serverPlaylist });
-  });
-
-  // --- REST API for Songbook Database ---
-  app.get('/api/songs', (req, res) => {
-    res.json({ songs: serverSongs });
-  });
-
-  app.post('/api/songs', (req, res) => {
-    const { song } = req.body;
-    if (!song || !song.title) {
-      return res.status(400).json({ error: 'Chybí název písně.' });
-    }
-
-    const newSong = {
-      ...song,
-      id: song.id || 's_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-      createdAt: song.createdAt || Date.now(),
-      updatedAt: Date.now(),
-    };
-
-    const existingIndex = serverSongs.findIndex((s) => s.id === newSong.id);
-    if (existingIndex >= 0) {
-      serverSongs[existingIndex] = newSong;
-    } else {
-      serverSongs.unshift(newSong);
-    }
-
-    saveServerSongs();
-    res.json({ success: true, song: newSong, songs: serverSongs });
-  });
-
-  app.post('/api/songs/sync', (req, res) => {
-    const { songs } = req.body;
-    if (Array.isArray(songs) && songs.length > 0) {
-      const map = new Map<string, any>(serverSongs.map((s) => [s.id, s]));
-      for (const s of songs) {
-        map.set(s.id, s);
-      }
-      serverSongs = Array.from(map.values());
-      saveServerSongs();
-    }
-    res.json({ success: true, songs: serverSongs });
-  });
-
-  app.put('/api/songs/:id', (req, res) => {
-    const songId = req.params.id;
-    const index = serverSongs.findIndex((s) => s.id === songId);
-    if (index === -1) {
-      return res.status(404).json({ error: 'Píseň nenalezena.' });
-    }
-    serverSongs[index] = { ...serverSongs[index], ...req.body, updatedAt: Date.now() };
-    saveServerSongs();
-    res.json({ success: true, song: serverSongs[index], songs: serverSongs });
-  });
-
-  app.delete('/api/songs/:id', (req, res) => {
-    const songId = req.params.id;
-    serverSongs = serverSongs.filter((s) => s.id !== songId);
-    saveServerSongs();
-    res.json({ success: true, songs: serverSongs });
-  });
-
-  // --- REST API for Band Photos & Screenshots ---
-  app.get('/api/photos', (req, res) => {
-    res.json({ photos: serverPhotos });
-  });
-
-  app.post('/api/photos', (req, res) => {
-    const { photo } = req.body;
-    if (!photo || !photo.dataUrl) {
-      return res.status(400).json({ error: 'Chybí obrazová data snímku.' });
-    }
-
-    const newPhoto = {
-      id: photo.id || 'ph_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6),
-      title: photo.title || 'Snímek ' + new Date().toLocaleDateString('cs-CZ'),
-      dataUrl: photo.dataUrl,
-      type: photo.type || 'photo',
-      authorId: photo.authorId || '',
-      authorName: photo.authorName || 'Člen Kapely',
-      createdAt: photo.createdAt || Date.now(),
-      notes: photo.notes || '',
-      tags: Array.isArray(photo.tags) ? photo.tags : [],
-      width: photo.width || undefined,
-      height: photo.height || undefined,
-    };
-
-    serverPhotos.unshift(newPhoto);
-    saveServerPhotos();
-
-    res.json({ success: true, photo: newPhoto, photos: serverPhotos });
-  });
-
-  app.put('/api/photos/:id', (req, res) => {
-    const photoId = req.params.id;
-    const index = serverPhotos.findIndex((p) => p.id === photoId);
-    if (index === -1) {
-      return res.status(404).json({ error: 'Snímek nenalezen.' });
-    }
-    serverPhotos[index] = { ...serverPhotos[index], ...req.body };
-    saveServerPhotos();
-    res.json({ success: true, photo: serverPhotos[index], photos: serverPhotos });
-  });
-
-  app.delete('/api/photos/:id', (req, res) => {
-    const photoId = req.params.id;
-    serverPhotos = serverPhotos.filter((p) => p.id !== photoId);
-    saveServerPhotos();
-    res.json({ success: true, photos: serverPhotos });
-  });
-
 
   // --- User Management API (Admin Only) ---
   // Backed by Supabase Auth (real accounts, hashed passwords) + the
@@ -1721,11 +1253,17 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
         return res.status(400).json({ error: 'Chybí název skladby' });
       }
 
-      // Check if song exists in serverSongs with chords
+      // Check if the song exists in the songbook with chord/lyric content
+      // (`songs.metadata.content` — see songDatabaseService.ts / Phase 9).
       if (songId) {
-        const found = serverSongs.find((s) => s.id === songId);
-        if (found && found.content) {
-          const lines = found.content.split('\n').filter((l) => l.trim().length > 0);
+        const { data: songRow } = await getSupabaseAdmin()
+          .from('songs')
+          .select('metadata')
+          .eq('id', songId)
+          .maybeSingle();
+        const content = songRow?.metadata?.content as string | undefined;
+        if (content) {
+          const lines = content.split('\n').filter((l) => l.trim().length > 0);
           const totalDur = 200; // estimated duration in seconds
           const lineDur = totalDur / Math.max(lines.length, 1);
           const lyrics = lines.map((text, idx) => ({
@@ -2565,7 +2103,12 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
   });
 
   // --- AI STEM SEPARATION & MIXER API ENDPOINTS ---
-  const STEMS_FILE = path.join(DATA_DIR, 'stems.json');
+  // Phase 10: `stem.downloadUrl` is now a signed Supabase Storage URL backed
+  // by real `stem_sets`/`stems`/`assets` rows (audio bucket, category
+  // 'stem_mix') instead of an Express-streamed buffer from an in-memory
+  // store. The audio itself is still synthesized below — real Demucs/AI
+  // separation is explicitly out of scope for this phase, see
+  // docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md (Phase 10).
 
   // Server-Side 16-bit WAV PCM Audio Generator for Stems
   function generateServerStemWav(stemType: string, durationSec: number = 30): Buffer {
@@ -2742,151 +2285,126 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     return buffer;
   }
 
-  const DEFAULT_STEM_SONGS = [
-    {
-      id: 'stem_pohoda',
-      youtubeUrl: 'https://www.youtube.com/watch?v=cZ5w4dM_c0c',
-      youtubeId: 'cZ5w4dM_c0c',
-      title: 'Pohoda',
-      artist: 'Kabát',
-      durationSeconds: 225,
-      status: 'completed',
-      progressPercentage: 100,
-      createdAt: Date.now() - 3600000 * 12,
-      updatedAt: Date.now() - 3600000 * 12,
-      stems: [
-        { id: 'vocals', name: 'Zpěv (Lead Vocals)', storagePath: 'stems/stem_pohoda/vocals.wav', downloadUrl: '/api/stems/audio/stem_pohoda/vocals', format: 'wav', bitrateKbps: 192 },
-        { id: 'guitar', name: 'Elektrická & Akustická Kytara', storagePath: 'stems/stem_pohoda/guitar.wav', downloadUrl: '/api/stems/audio/stem_pohoda/guitar', format: 'wav', bitrateKbps: 192 },
-        { id: 'bass', name: 'Baskytara (Bass Line)', storagePath: 'stems/stem_pohoda/bass.wav', downloadUrl: '/api/stems/audio/stem_pohoda/bass', format: 'wav', bitrateKbps: 192 },
-        { id: 'drums', name: 'Bicí souprava (Drums)', storagePath: 'stems/stem_pohoda/drums.wav', downloadUrl: '/api/stems/audio/stem_pohoda/drums', format: 'wav', bitrateKbps: 192 },
-        { id: 'other', name: 'Ostatní nástroje & Synth', storagePath: 'stems/stem_pohoda/other.wav', downloadUrl: '/api/stems/audio/stem_pohoda/other', format: 'wav', bitrateKbps: 192 },
-      ]
-    },
-    {
-      id: 'stem_wonderwall',
-      youtubeUrl: 'https://www.youtube.com/watch?v=6hzrDeceEKc',
-      youtubeId: '6hzrDeceEKc',
-      title: 'Wonderwall',
-      artist: 'Oasis',
-      durationSeconds: 258,
-      status: 'completed',
-      progressPercentage: 100,
-      createdAt: Date.now() - 3600000 * 6,
-      updatedAt: Date.now() - 3600000 * 6,
-      stems: [
-        { id: 'vocals', name: 'Zpěv (Liam Gallagher)', storagePath: 'stems/stem_wonderwall/vocals.wav', downloadUrl: '/api/stems/audio/stem_wonderwall/vocals', format: 'wav', bitrateKbps: 192 },
-        { id: 'guitar', name: 'Akustická Kytara (Noel Gallagher)', storagePath: 'stems/stem_wonderwall/guitar.wav', downloadUrl: '/api/stems/audio/stem_wonderwall/guitar', format: 'wav', bitrateKbps: 192 },
-        { id: 'bass', name: 'Baskytara', storagePath: 'stems/stem_wonderwall/bass.wav', downloadUrl: '/api/stems/audio/stem_wonderwall/bass', format: 'wav', bitrateKbps: 192 },
-        { id: 'drums', name: 'Bicí & Tamburína', storagePath: 'stems/stem_wonderwall/drums.wav', downloadUrl: '/api/stems/audio/stem_wonderwall/drums', format: 'wav', bitrateKbps: 192 },
-        { id: 'other', name: 'Smyčce & Cellos', storagePath: 'stems/stem_wonderwall/other.wav', downloadUrl: '/api/stems/audio/stem_wonderwall/other', format: 'wav', bitrateKbps: 192 },
-      ]
-    },
-    {
-      id: 'stem_stanky',
-      youtubeUrl: 'https://www.youtube.com/watch?v=2m-fJb_S3O0',
-      youtubeId: '2m-fJb_S3O0',
-      title: 'Stánky',
-      artist: 'Jan a František Nedvědové',
-      durationSeconds: 178,
-      status: 'completed',
-      progressPercentage: 100,
-      createdAt: Date.now() - 3600000 * 2,
-      updatedAt: Date.now() - 3600000 * 2,
-      stems: [
-        { id: 'vocals', name: 'Hlavní & Druhý Hlas (Zpěv)', storagePath: 'stems/stem_stanky/vocals.wav', downloadUrl: '/api/stems/audio/stem_stanky/vocals', format: 'wav', bitrateKbps: 192 },
-        { id: 'guitar', name: 'Španělská Akustická Kytara', storagePath: 'stems/stem_stanky/guitar.wav', downloadUrl: '/api/stems/audio/stem_stanky/guitar', format: 'wav', bitrateKbps: 192 },
-        { id: 'bass', name: 'Akustická Baskytara', storagePath: 'stems/stem_stanky/bass.wav', downloadUrl: '/api/stems/audio/stem_stanky/bass', format: 'wav', bitrateKbps: 192 },
-        { id: 'drums', name: 'Rytmika / Percussion', storagePath: 'stems/stem_stanky/drums.wav', downloadUrl: '/api/stems/audio/stem_stanky/drums', format: 'wav', bitrateKbps: 192 },
-        { id: 'other', name: 'Harmonika & Atmosféra', storagePath: 'stems/stem_stanky/other.wav', downloadUrl: '/api/stems/audio/stem_stanky/other', format: 'wav', bitrateKbps: 192 },
-      ]
-    }
+  const STEM_TYPES: { id: string; name: string }[] = [
+    { id: 'vocals', name: 'Zpěv (Lead Vocals)' },
+    { id: 'guitar', name: 'Kytara (Guitar)' },
+    { id: 'bass', name: 'Baskytara (Bass)' },
+    { id: 'drums', name: 'Bicí (Drums)' },
+    { id: 'other', name: 'Ostatní nástroje (Other/Synth)' },
   ];
 
-  let serverStems: any[] = DEFAULT_STEM_SONGS;
+  /** Generates the 5 synthetic stems for a stem set and uploads them to the
+   * `audio` Storage bucket, inserting an `assets` row + a `stems` row for
+   * each (see docs/migration Phase 10). Runs after `stem_sets` already
+   * exists so a failed/slow upload never leaves an orphaned stem set. */
+  async function generateAndUploadStems(stemSetId: string) {
+    const admin = getSupabaseAdmin();
+    for (const st of STEM_TYPES) {
+      try {
+        const wavBuf = generateServerStemWav(st.id, 30);
+        const assetId = crypto.randomUUID();
+        const storagePath = `global/stems/${stemSetId}/${st.id}.wav`;
 
-  try {
-    if (fs.existsSync(STEMS_FILE)) {
-      const data = fs.readFileSync(STEMS_FILE, 'utf-8');
-      serverStems = JSON.parse(data);
-      // Ensure default songs exist and all URLs are upgraded to local endpoints
-      serverStems.forEach((song) => {
-        if (song.stems) {
-          song.stems.forEach((st: any) => {
-            if (st.downloadUrl?.includes('tonejs.github.io')) {
-              st.downloadUrl = `/api/stems/audio/${song.id}/${st.id}`;
-            }
-          });
-        }
-      });
-      for (const defSong of DEFAULT_STEM_SONGS) {
-        if (!serverStems.some((s) => s.id === defSong.id)) {
-          serverStems.unshift(defSong);
-        }
+        const { error: uploadError } = await admin.storage.from('audio').upload(storagePath, wavBuf, {
+          contentType: 'audio/wav',
+          upsert: true,
+        });
+        if (uploadError) throw uploadError;
+
+        await admin.from('assets').insert({
+          id: assetId,
+          owner_id: null,
+          name: `${st.name}.wav`,
+          original_filename: `${st.id}.wav`,
+          mime_type: 'audio/wav',
+          size_bytes: wavBuf.length,
+          storage_bucket: 'audio',
+          storage_path: storagePath,
+          asset_type: 'stem',
+          category: 'stem_mix',
+          status: 'active',
+          metadata: { stemType: st.id, stemSetId },
+        });
+
+        await admin.from('stems').insert({ stem_set_id: stemSetId, asset_id: assetId, stem_type: st.id });
+      } catch (err: any) {
+        console.error(`[stems] Failed to generate/upload stem "${st.id}" for stem set ${stemSetId}:`, err.message);
       }
-      fs.writeFileSync(STEMS_FILE, JSON.stringify(serverStems, null, 2), 'utf-8');
-    } else {
-      fs.writeFileSync(STEMS_FILE, JSON.stringify(serverStems, null, 2), 'utf-8');
     }
-  } catch (e) {
-    console.error('Error loading stems.json', e);
   }
 
-  const saveServerStems = () => {
-    try {
-      fs.writeFileSync(STEMS_FILE, JSON.stringify(serverStems, null, 2), 'utf-8');
-    } catch (e) {
-      console.error('Failed to save stems.json', e);
-    }
-  };
+  /** Shapes one `stem_sets` row (+ its song, jobs, stems/assets) into the
+   * StemSongDocument the frontend expects, with signed download URLs. */
+  async function shapeStemSet(admin: SupabaseClient, stemSetRow: any): Promise<any> {
+    const [{ data: songRow }, { data: jobRow }, { data: stemRows }] = await Promise.all([
+      admin.from('songs').select('title, artist, metadata').eq('id', stemSetRow.song_id).maybeSingle(),
+      admin
+        .from('jobs')
+        .select('progress, status')
+        .eq('stem_set_id', stemSetRow.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      admin.from('stems').select('stem_type, assets(storage_bucket, storage_path)').eq('stem_set_id', stemSetRow.id),
+    ]);
 
-  // Stem Audio Direct Stream Endpoints
-  app.get('/api/stems/audio/:stemType', (req, res) => {
-    try {
-      const stemType = req.params.stemType || 'guitar';
-      const wavBuf = generateServerStemWav(stemType, 30);
-      res.setHeader('Content-Type', 'audio/wav');
-      res.setHeader('Content-Length', wavBuf.length);
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return res.send(wavBuf);
-    } catch (err: any) {
-      return res.status(500).send('Error generating stem audio: ' + err.message);
+    const stems = await Promise.all(
+      (stemRows || []).map(async (row: any) => {
+        const asset = row.assets;
+        const { data: signed } = asset
+          ? await admin.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 3600)
+          : { data: null };
+        const label = STEM_TYPES.find((t) => t.id === row.stem_type)?.name || row.stem_type;
+        return {
+          id: row.stem_type,
+          name: label,
+          storagePath: asset?.storage_path || '',
+          downloadUrl: signed?.signedUrl || '',
+          format: 'wav',
+          bitrateKbps: 192,
+        };
+      })
+    );
+
+    return {
+      id: stemSetRow.id,
+      youtubeUrl: songRow?.metadata?.youtubeUrl || '',
+      youtubeId: songRow?.metadata?.youtubeId || '',
+      title: songRow?.title || 'Neznámá skladba',
+      artist: songRow?.artist || '',
+      durationSeconds: songRow?.metadata?.durationSeconds || 210,
+      status: stemSetRow.status,
+      progressPercentage: stemSetRow.status === 'completed' ? 100 : jobRow?.progress ?? 15,
+      stems,
+      createdAt: new Date(stemSetRow.created_at).getTime(),
+      updatedAt: new Date(stemSetRow.updated_at).getTime(),
+    };
+  }
+
+  // Get list of stem songs (stem sets), newest first
+  app.get('/api/stems', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: stemSets, error } = await admin.from('stem_sets').select('*').order('created_at', { ascending: false });
+    if (error) {
+      return res.status(500).json({ error: 'Nepodařilo se načíst stopy.', details: error.message });
     }
+    const songs = await Promise.all((stemSets || []).map((s) => shapeStemSet(admin, s)));
+    res.json({ songs });
   });
 
-  app.get('/api/stems/audio/:songId/:stemType', (req, res) => {
-    try {
-      const stemType = req.params.stemType || 'guitar';
-      const wavBuf = generateServerStemWav(stemType, 30);
-      res.setHeader('Content-Type', 'audio/wav');
-      res.setHeader('Content-Length', wavBuf.length);
-      res.setHeader('Accept-Ranges', 'bytes');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return res.send(wavBuf);
-    } catch (err: any) {
-      return res.status(500).send('Error generating stem audio: ' + err.message);
-    }
-  });
-
-  // Get list of stem songs
-  app.get('/api/stems', (req, res) => {
-    res.json({ songs: serverStems });
-  });
-
-  // Get specific stem song details
-  app.get('/api/stems/:id', (req, res) => {
-    const song = serverStems.find((s) => s.id === req.params.id);
-    if (!song) {
+  // Get specific stem set details
+  app.get('/api/stems/:id', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: stemSet } = await admin.from('stem_sets').select('*').eq('id', req.params.id).maybeSingle();
+    if (!stemSet) {
       return res.status(404).json({ error: 'Píseň se stopy nenalezena.' });
     }
-    res.json({ song });
+    res.json({ song: await shapeStemSet(admin, stemSet) });
   });
 
   // Start new YouTube AI Stem Separation process
-  app.post('/api/stems/process', async (req, res) => {
-    const { youtubeUrl, title, artist, userId } = req.body;
+  app.post('/api/stems/process', requireAuth, async (req, res) => {
+    const { youtubeUrl, title, artist } = req.body;
     if (!youtubeUrl) {
       return res.status(400).json({ error: 'Chybí YouTube adresa (URL).' });
     }
@@ -2898,57 +2416,91 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       ytId = match[1];
     }
 
-    const songId = 'stem_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 6);
+    const admin = getSupabaseAdmin();
     const songTitle = title?.trim() || `YouTube Song (${ytId})`;
     const songArtist = artist?.trim() || 'Neznámý umělec';
 
-    const newSongDoc = {
-      id: songId,
-      youtubeUrl,
-      youtubeId: ytId,
-      title: songTitle,
-      artist: songArtist,
-      durationSeconds: 210,
-      status: 'processing',
-      progressPercentage: 15,
-      createdBy: userId || 'user-admin-hortom82',
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      stems: [
-        { id: 'vocals', name: 'Zpěv (Lead Vocals)', storagePath: `stems/${songId}/vocals.wav`, downloadUrl: `/api/stems/audio/${songId}/vocals`, format: 'wav', bitrateKbps: 192 },
-        { id: 'guitar', name: 'Kytara (Guitar)', storagePath: `stems/${songId}/guitar.wav`, downloadUrl: `/api/stems/audio/${songId}/guitar`, format: 'wav', bitrateKbps: 192 },
-        { id: 'bass', name: 'Baskytara (Bass)', storagePath: `stems/${songId}/bass.wav`, downloadUrl: `/api/stems/audio/${songId}/bass`, format: 'wav', bitrateKbps: 192 },
-        { id: 'drums', name: 'Bicí (Drums)', storagePath: `stems/${songId}/drums.wav`, downloadUrl: `/api/stems/audio/${songId}/drums`, format: 'wav', bitrateKbps: 192 },
-        { id: 'other', name: 'Ostatní nástroje (Other/Synth)', storagePath: `stems/${songId}/other.wav`, downloadUrl: `/api/stems/audio/${songId}/other`, format: 'wav', bitrateKbps: 192 },
-      ],
-    };
+    try {
+      // Stem sets need a real `songs` row (song_id is NOT NULL). Stem-only
+      // imports don't belong in the shared Songbook, so they're stored
+      // `status: 'archived'` — invisible to songDatabaseService's
+      // `status = 'active'` query — and reused across repeat imports of the
+      // same YouTube video via `metadata->>youtubeId`.
+      const { data: existingSong } = await admin
+        .from('songs')
+        .select('id')
+        .eq('metadata->>youtubeId', ytId)
+        .eq('status', 'archived')
+        .maybeSingle();
 
-    serverStems.unshift(newSongDoc);
-    saveServerStems();
+      let songId = existingSong?.id;
+      if (!songId) {
+        const { data: newSong, error: songError } = await admin
+          .from('songs')
+          .insert({
+            id: crypto.randomUUID(),
+            title: songTitle,
+            artist: songArtist,
+            owner_id: null,
+            status: 'archived',
+            source_type: 'external',
+            metadata: { youtubeUrl, youtubeId: ytId, durationSeconds: 210, source: 'stem-import' },
+          })
+          .select('id')
+          .single();
+        if (songError || !newSong) throw new Error(songError?.message || 'Nepodařilo se založit skladbu pro separaci.');
+        songId = newSong.id;
+      }
 
-    // Asynchronous background pipeline steps simulation (10% -> 35% -> 70% -> 100%)
-    setTimeout(() => {
-      newSongDoc.progressPercentage = 40;
-      newSongDoc.status = 'processing';
-      newSongDoc.updatedAt = Date.now();
-      saveServerStems();
-    }, 1500);
+      const { data: stemSet, error: stemSetError } = await admin
+        .from('stem_sets')
+        .insert({ id: crypto.randomUUID(), song_id: songId, status: 'processing', model: 'synthetic-v1' })
+        .select()
+        .single();
+      if (stemSetError || !stemSet) throw new Error(stemSetError?.message || 'Nepodařilo se založit sadu stop.');
 
-    setTimeout(() => {
-      newSongDoc.progressPercentage = 75;
-      newSongDoc.status = 'processing';
-      newSongDoc.updatedAt = Date.now();
-      saveServerStems();
-    }, 3500);
+      const { data: job } = await admin
+        .from('jobs')
+        .insert({
+          id: crypto.randomUUID(),
+          type: 'stem_separation',
+          status: 'processing',
+          owner_id: req.user!.id,
+          song_id: songId,
+          stem_set_id: stemSet.id,
+          progress: 15,
+          metadata: {},
+        })
+        .select()
+        .single();
 
-    setTimeout(() => {
-      newSongDoc.progressPercentage = 100;
-      newSongDoc.status = 'completed';
-      newSongDoc.updatedAt = Date.now();
-      saveServerStems();
-    }, 5500);
+      res.json({ success: true, song: await shapeStemSet(admin, stemSet) });
 
-    res.json({ success: true, song: newSongDoc, songs: serverStems });
+      // Asynchronous background pipeline steps simulation (15% -> 40% -> 75% -> 100%),
+      // matching the previous UX — the actual generation still runs at 100%.
+      const jobId = job?.id;
+      setTimeout(async () => {
+        if (jobId) await admin.from('jobs').update({ progress: 40 }).eq('id', jobId);
+      }, 1500);
+
+      setTimeout(async () => {
+        if (jobId) await admin.from('jobs').update({ progress: 75 }).eq('id', jobId);
+      }, 3500);
+
+      setTimeout(async () => {
+        await generateAndUploadStems(stemSet.id);
+        await admin.from('stem_sets').update({ status: 'completed', updated_at: new Date().toISOString() }).eq('id', stemSet.id);
+        if (jobId) {
+          await admin
+            .from('jobs')
+            .update({ status: 'completed', progress: 100, completed_at: new Date().toISOString() })
+            .eq('id', jobId);
+        }
+      }, 5500);
+    } catch (err: any) {
+      console.error('[stems] Failed to start separation:', err.message);
+      res.status(500).json({ error: 'Nepodařilo se zahájit separaci.', details: err.message });
+    }
   });
 
   // Vite middleware or production static serving

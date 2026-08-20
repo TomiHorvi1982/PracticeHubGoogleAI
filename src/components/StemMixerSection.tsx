@@ -54,6 +54,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     const unsub = stemAudioService.subscribe((state) => {
       setAudioState(state);
     });
+    // The service's own initial fetch (at module load) usually fires before
+    // the Supabase session is restored and 401s — refetch now, on mount,
+    // when we're sure the user is actually signed in.
+    stemAudioService.fetchSongs();
     return () => unsub();
   }, []);
 
@@ -82,30 +86,14 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/stems/process', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          youtubeUrl: youtubeUrl.trim(),
-          title: customTitle.trim() || undefined,
-          artist: customArtist.trim() || undefined,
-          userId: currentUser?.id,
-        }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Nepodařilo se zahájit separaci.');
-      }
-
-      const data = await res.json();
-      if (data.song) {
-        await stemAudioService.fetchSongs();
-        stemAudioService.selectSong(data.song);
-        setYoutubeUrl('');
-        setCustomTitle('');
-        setCustomArtist('');
-      }
+      await stemAudioService.processYoutubeUrl(
+        youtubeUrl.trim(),
+        customTitle.trim() || undefined,
+        customArtist.trim() || undefined
+      );
+      setYoutubeUrl('');
+      setCustomTitle('');
+      setCustomArtist('');
     } catch (err: any) {
       setSubmitError(err.message || 'Chyba při odesílání požadavku.');
     } finally {

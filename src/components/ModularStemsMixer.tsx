@@ -38,6 +38,10 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({ song, onOp
     const unsub = stemAudioService.subscribe((state) => {
       setAudioState(state);
     });
+    // The service's own initial fetch (at module load) usually fires before
+    // the Supabase session is restored and 401s — refetch now, on mount,
+    // when we're sure the user is actually signed in.
+    stemAudioService.fetchSongs();
     return () => unsub();
   }, []);
 
