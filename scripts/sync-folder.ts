@@ -52,6 +52,7 @@ const admin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 });
 
 const ROOT = path.resolve(process.argv[2] || process.env.SYNC_FOLDER || './NeverLateSync');
+const CHECK_ONLY = process.argv.includes('--check') || process.argv.includes('--dry-run');
 
 if (!fs.existsSync(ROOT)) {
   console.error(`BLOCKED: sync folder does not exist: ${ROOT}`);
@@ -104,6 +105,7 @@ const MIME_BY_EXT: Record<string, string> = {
   '.pdf': 'application/pdf',
   '.gp': 'application/octet-stream', '.gp3': 'application/octet-stream', '.gp4': 'application/octet-stream',
   '.gp5': 'application/octet-stream', '.gpx': 'application/octet-stream',
+  '.mid': 'audio/midi', '.midi': 'audio/midi',
   '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif',
 };
 
@@ -123,6 +125,16 @@ function parseTitleArtist(fileStem: string): { title: string; artist: string } {
   return { title: fileStem.trim(), artist: 'Neznámý interpret' };
 }
 
+/** Porovnání názvů odolné vůči diakritice, číslování a interpunkci. */
+function normTitle(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/^\d+[.\s-]*/, '') // odřízne „03. " na začátku
+    .replace(/[^a-z0-9]/g, '');
+}
+
 async function syncSongbook(report: Report) {
   const dir = path.join(ROOT, 'zpevnik');
   const files = walk(dir).filter((f) => SONG_EXTS.has(path.extname(f).toLowerCase()));
@@ -134,7 +146,23 @@ async function syncSongbook(report: Report) {
     const { title, artist } = parseTitleArtist(path.basename(file, path.extname(file)));
 
     try {
-      const { data: existing } = await admin.from('songs').select('id, metadata').eq('legacy_id', legacyId).maybeSingle();
+      let { data: existing } = await admin.from('songs').select('id, metadata').eq('legacy_id', legacyId).maybeSingle();
+
+      // Skladba už ve zpěvníku být může — jen se do ní dostala jinudy (import
+      // tabů, ruční zadání), takže nese jiné `legacy_id`. Bez tohohle kroku by
+      // se text uložil do nové skladby a v knihovně by vznikl duplikát, který
+      // má text bez tabu vedle tabu bez textu.
+      if (!existing) {
+        const { data: kandidati } = await admin
+          .from('songs')
+          .select('id, title, metadata')
+          .eq('status', 'active');
+        const shoda = (kandidati || []).find((s) => normTitle(s.title) === normTitle(title));
+        if (shoda) {
+          existing = shoda;
+          await admin.from('songs').update({ legacy_id: legacyId }).eq('id', shoda.id);
+        }
+      }
 
       if (existing && existing.metadata?.sourceHash === hash) {
         report.skipped++;
@@ -144,7 +172,10 @@ async function syncSongbook(report: Report) {
       const metadata = { ...(existing?.metadata || {}), content, sourceHash: hash };
 
       if (existing) {
-        const { error } = await admin.from('songs').update({ title, artist, metadata }).eq('id', existing.id);
+        // Název a interpret se přepisují jen u skladeb, které z téhle složky
+        // vznikly. U skladby spárované podle názvu by filename mohl být horší
+        // než to, co už v appce je („1. RefuseResist" vs „Refuse Resist").
+        const { error } = await admin.from('songs').update({ metadata }).eq('id', existing.id);
         if (error) throw new Error(error.message);
         report.updated++;
       } else {
@@ -181,6 +212,7 @@ interface AssetSpec {
 const LIBRARY_SPECS: AssetSpec[] = [
   { dir: 'noty-tabs', exts: new Set(['.pdf']), category: 'pdf', assetType: 'pdf', bucket: 'assets' },
   { dir: 'noty-tabs', exts: new Set(['.gp', '.gp3', '.gp4', '.gp5', '.gpx']), category: 'guitar_pro', assetType: 'guitar_pro', bucket: 'assets' },
+  { dir: 'noty-tabs', exts: new Set(['.mid', '.midi']), category: 'midi', assetType: 'midi', bucket: 'assets' },
   { dir: 'nahravky', exts: new Set(['.wav', '.mp3', '.flac', '.m4a', '.ogg']), category: 'recordings', assetType: 'recording', bucket: 'audio' },
 ];
 
@@ -407,7 +439,116 @@ async function syncDrumKits(report: Report) {
   }
 }
 
+// --- kontrola bez zápisu (--check) ---
+
+/**
+ * Projde složku a řekne, co by se nahrálo a co by se tiše přeskočilo,
+ * aniž by se čehokoli dotkl. Slouží k tomu, aby se dala struktura na disku
+ * srovnat dřív, než se pustí ostrý běh na gigabajtech dat.
+ */
+function checkFolder() {
+  const FREE_TIER_BYTES = 1024 ** 3; // Supabase Free: 1 GB Storage
+  const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
+  const size = (f: string) => fs.statSync(f).size;
+  const sum = (files: string[]) => files.reduce((a, f) => a + size(f), 0);
+
+  console.log(`Kontroluji: ${ROOT}`);
+  console.log('*** KONTROLA — nic se nezapisuje ***\n');
+
+  let nahraje = 0;
+  const problemy: string[] = [];
+
+  // zpevnik/
+  const zpevnikVse = walk(path.join(ROOT, 'zpevnik'));
+  const zpevnikOk = zpevnikVse.filter((f) => SONG_EXTS.has(path.extname(f).toLowerCase()));
+  const zpevnikNe = zpevnikVse.filter((f) => !SONG_EXTS.has(path.extname(f).toLowerCase()));
+  nahraje += sum(zpevnikOk);
+  console.log(`zpevnik/        ${zpevnikOk.length} skladeb (${mb(sum(zpevnikOk))}), ${zpevnikNe.length} ignorováno`);
+  for (const f of zpevnikOk.slice(0, 5)) {
+    const { title, artist } = parseTitleArtist(path.basename(f, path.extname(f)));
+    console.log(`                  „${title}" — ${artist}`);
+  }
+  if (zpevnikNe.length) {
+    const exts = [...new Set(zpevnikNe.map((f) => path.extname(f).toLowerCase() || '(bez přípony)'))];
+    problemy.push(
+      `zpevnik/: ${zpevnikNe.length} souborů se nenahraje (${exts.join(', ')}). ` +
+        `Přijímají se jen ${[...SONG_EXTS].join(', ')}.`
+    );
+  }
+
+  // noty-tabs/ + nahravky/
+  for (const dir of ['noty-tabs', 'nahravky']) {
+    const vse = walk(path.join(ROOT, dir));
+    const specs = LIBRARY_SPECS.filter((s) => s.dir === dir);
+    const podporovane = new Set(specs.flatMap((s) => [...s.exts]));
+    const ok = vse.filter((f) => podporovane.has(path.extname(f).toLowerCase()));
+    const ne = vse.filter((f) => !podporovane.has(path.extname(f).toLowerCase()));
+    nahraje += sum(ok);
+    console.log(`${dir.padEnd(15)} ${ok.length} souborů (${mb(sum(ok))}), ${ne.length} ignorováno`);
+    if (ne.length) {
+      const exts = [...new Set(ne.map((f) => path.extname(f).toLowerCase() || '(bez přípony)'))];
+      problemy.push(
+        `${dir}/: ${ne.length} souborů se nenahraje (${exts.join(', ')}). ` +
+          `Přijímají se jen ${[...podporovane].join(', ')}.`
+      );
+    }
+  }
+
+  // fotky/
+  const fotkyVse = walk(path.join(ROOT, 'fotky'));
+  const fotkyOk = fotkyVse.filter((f) => PHOTO_EXTS.has(path.extname(f).toLowerCase()));
+  nahraje += sum(fotkyOk);
+  console.log(`fotky/          ${fotkyOk.length} fotek (${mb(sum(fotkyOk))}), ${fotkyVse.length - fotkyOk.length} ignorováno`);
+
+  // bici-sady/
+  const kitDir = path.join(ROOT, 'bici-sady');
+  if (fs.existsSync(kitDir)) {
+    for (const kit of fs.readdirSync(kitDir, { withFileTypes: true })) {
+      if (!kit.isDirectory() || kit.name.startsWith('.')) continue;
+      const vzorky = walk(path.join(kitDir, kit.name)).filter((f) =>
+        KIT_SAMPLE_EXTS.has(path.extname(f).toLowerCase())
+      );
+      const vrstvy = vzorky.filter(
+        (f) => parseSampleFilename(path.basename(f, path.extname(f))).kind === 'layer'
+      );
+      nahraje += sum(vzorky);
+      console.log(
+        `bici-sady/${kit.name}: ${vzorky.length} vzorků (${mb(sum(vzorky))}), ` +
+          `z toho ${vrstvy.length} s vrstvenými názvy`
+      );
+      if (vzorky.length && vrstvy.length === 0) {
+        const ukazka = path.basename(vzorky[0]);
+        problemy.push(
+          `bici-sady/${kit.name}: žádný vzorek nemá tvar nastroj_dynamika_rrN.wav ` +
+            `(např. „${ukazka}"). Nahrají se jako samostatné pady, které appka nepřiřadí ` +
+            `k žádnému bubnu — sada zůstane nehratelná.`
+        );
+      }
+    }
+  }
+
+  console.log(`\nCelkem by se nahrálo: ${mb(nahraje)}`);
+  if (nahraje > FREE_TIER_BYTES) {
+    problemy.push(
+      `Objem dat (${mb(nahraje)}) přesahuje 1 GB, které má Supabase ve Free tarifu. ` +
+        `Ostrý běh by v půlce začal selhávat — je potřeba vybrat, co se nahraje, nebo přejít na placený tarif.`
+    );
+  }
+
+  if (problemy.length) {
+    console.log(`\nProblémy (${problemy.length}):`);
+    for (const p of problemy) console.log(`\n  • ${p}`);
+  } else {
+    console.log('\nŽádné problémy — složka je připravená k nahrání.');
+  }
+}
+
 async function main() {
+  if (CHECK_ONLY) {
+    checkFolder();
+    return;
+  }
+
   console.log(`Synchronizuji z: ${ROOT}\n`);
 
   const songReport = freshReport();
