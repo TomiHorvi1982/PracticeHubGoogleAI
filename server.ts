@@ -91,7 +91,14 @@ function requireRole(role: 'admin') {
   };
 }
 
-async function startServer() {
+/**
+ * Builds the Express app with every API route registered, but does NOT
+ * listen and does NOT attach any static/Vite handling - those differ per
+ * host. Local dev adds Vite middleware + listen (bottom of this file);
+ * Vercel imports this from api/index.ts and lets its own static hosting
+ * serve dist/. See docs/NASAZENI-A-SYNCHRONIZACE.md.
+ */
+export async function createApp() {
   const app = express();
   // Hosting platforms (Railway, Render, Fly…) assign the port at runtime and
   // route to it — a hardcoded port makes the deployed app unreachable.
@@ -2304,7 +2311,18 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
   });
 
-  // Vite middleware or production static serving
+  return { app, PORT };
+}
+
+/**
+ * Local development / self-hosted entry point. Adds Vite middleware (dev) or
+ * static file serving (self-hosted production build) and starts listening.
+ * Skipped on Vercel, where api/index.ts imports createApp() instead and
+ * Vercel serves dist/ itself.
+ */
+export async function startServer() {
+  const { app, PORT } = await createApp();
+
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({
       server: { middlewareMode: true },
@@ -2320,8 +2338,12 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🎸 Guitar & Band Hub server listnenig on http://0.0.0.0:${PORT}`);
+    console.log(`Guitar & Band Hub server listening on http://0.0.0.0:${PORT}`);
   });
 }
 
-startServer();
+// Only auto-start when run as a real server process, never when imported by
+// a serverless handler.
+if (!process.env.VERCEL) {
+  startServer();
+}

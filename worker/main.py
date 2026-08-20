@@ -27,6 +27,7 @@ scripts/migrate-data.ts-style tooling).
 """
 
 import os
+import sys
 import time
 import uuid
 import shutil
@@ -43,6 +44,22 @@ SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "10"))
 DEMUCS_MODEL = os.environ.get("DEMUCS_MODEL", "htdemucs_6s")
+# Optional torch device. Left empty, Demucs picks CUDA if present else CPU.
+# Set to "mps" on Apple Silicon for Metal GPU acceleration, which is far
+# faster than CPU (see worker/run-local.sh).
+DEMUCS_DEVICE = os.environ.get("DEMUCS_DEVICE", "").strip()
+
+
+def _tool(name: str) -> str:
+    """Resolve a helper executable that ships alongside this interpreter.
+
+    Bare names like "yt-dlp" resolve via PATH, which in a virtualenv that
+    hasn't been "activated" finds the *system* copy instead of the one this
+    worker installed — an older yt-dlp there fails on videos the pinned one
+    handles fine. Docker hid this because everything was global.
+    """
+    candidate = os.path.join(os.path.dirname(sys.executable), name)
+    return candidate if os.path.exists(candidate) else name
 
 REST_URL = f"{SUPABASE_URL}/rest/v1"
 STORAGE_URL = f"{SUPABASE_URL}/storage/v1"
@@ -143,7 +160,7 @@ def fail_job(job_id: str, stem_set_id: str, message: str):
 def download_audio(youtube_url: str, out_dir: str) -> str:
     out_template = str(Path(out_dir) / "source.%(ext)s")
     subprocess.run(
-        ["yt-dlp", "-x", "--audio-format", "wav", "--audio-quality", "0", "-o", out_template, youtube_url],
+        [_tool("yt-dlp"), "-x", "--audio-format", "wav", "--audio-quality", "0", "-o", out_template, youtube_url],
         check=True,
         capture_output=True,
         text=True,
@@ -156,8 +173,12 @@ def download_audio(youtube_url: str, out_dir: str) -> str:
 
 
 def run_demucs(audio_path: str, out_dir: str) -> Path:
+    cmd = [sys.executable, "-m", "demucs", "-n", DEMUCS_MODEL, "-o", out_dir]
+    if DEMUCS_DEVICE:
+        cmd += ["-d", DEMUCS_DEVICE]
+    cmd.append(audio_path)
     subprocess.run(
-        ["python", "-m", "demucs", "-n", DEMUCS_MODEL, "-o", out_dir, audio_path],
+        cmd,
         check=True,
         capture_output=True,
         text=True,
@@ -177,7 +198,7 @@ def merge_piano_into_other(stem_dir: Path):
     merged = stem_dir / "other_merged.wav"
     subprocess.run(
         [
-            "ffmpeg", "-y",
+            _tool("ffmpeg"), "-y",
             "-i", str(other), "-i", str(piano),
             "-filter_complex", "amix=inputs=2:duration=longest:dropout_transition=0",
             str(merged),
