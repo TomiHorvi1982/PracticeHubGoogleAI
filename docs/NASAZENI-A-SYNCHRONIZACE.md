@@ -110,7 +110,17 @@ takže opakované údery nezní identicky.
   kapela a přežijí odhlášení.
 - **AI separace stop**: skutečný Demucs (model `htdemucs_6s`) běžící na
   Railway. Vložíte YouTube odkaz, worker skladbu stáhne a rozdělí na 5 stop.
-  **Trvá to 15–30 minut** — běží na CPU, ne na GPU.
+  **Trvá to zhruba 35–40 minut** — běží na CPU, ne na GPU. Naměřeno na
+  reálné skladbě (Sepultura — Roots Bloody Roots, ~5 min): 37 minut od
+  zařazení do fronty po nahrání všech 5 stop do Storage.
+
+> **Limit, na který si dejte pozor:** worker ukončí Demucs po 30 minutách
+> (`timeout=1800` v `worker/main.py`). Pětiminutová skladba se do limitu
+> vešla jen těsně. Delší nebo hustěji nahraná skladba ho může překročit a
+> úloha skončí jako `failed`. Až to nastane, jsou tři cesty: zvýšit limit
+> (a smířit se s 45+ min na skladbu), přepnout `DEMUCS_MODEL` na `htdemucs`
+> (4 stopy místo 5, výrazně rychlejší), nebo separaci přesunout na placenou
+> GPU službu, kde jde o vteřiny.
 
 ## 5. Náklady
 
