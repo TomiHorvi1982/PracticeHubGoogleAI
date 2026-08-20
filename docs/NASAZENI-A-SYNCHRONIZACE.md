@@ -6,13 +6,38 @@ Datum: 2026-08-20
 
 | Co | Kde | Poznámka |
 |---|---|---|
-| **Aplikace** | https://neverlate-app-production.up.railway.app | Railway projekt `neverlate-studio`, služba `neverlate-app` |
-| **Separace stop** | Railway služba `demucs-worker` | Běží nepřetržitě, polluje frontu úloh |
-| **Databáze, přihlašování, soubory** | Supabase `tpbkizrrizjvhzzxzfuu` | eu-central-1 |
+| **Aplikace** | https://practice-hub-google-ai.vercel.app | Vercel projekt `practice-hub-google-ai`, zdarma |
+| **Separace stop** | váš Mac, `./worker/run-local.sh` | Spouštíte ručně, když potřebujete |
+| **Databáze, přihlašování, soubory** | Supabase `tpbkizrrizjvhzzxzfuu` | eu-central-1, zdarma |
 | **Zdrojový kód** | github.com/TomiHorvi1982/PracticeHubGoogleAI | větev `main` |
 
-Push do `main` na GitHubu automaticky přebuilduje a nasadí. Změny jen ve
-složce `worker/` restartují pouze worker, ne aplikaci.
+Push do `main` na GitHubu automaticky přebuilduje a nasadí aplikaci.
+
+> **Railway se už nepoužívá.** Původně tam běžela appka i worker, ale
+> předplatné bylo po splatnosti. Projekt `neverlate-studio` tam zůstal
+> nedotčený — pokud ho nechcete platit, smažte ho v Railway dashboardu,
+> jinak může dál narůstat útrata.
+
+### Co na Vercelu nefunguje
+
+Vercel běží bezstavově (serverless), takže **Živá zkušebna a zobrazení
+„kdo je právě online" nefungují** — ty potřebují trvale běžící server,
+který si pamatuje připojené členy. Všechno ostatní — Zpěvník, Setlisty,
+Fotky, Moje knihovna, virtuální nástroje, mixážní pult — funguje normálně,
+protože jde přímo do Supabase.
+
+### Proměnné prostředí na Vercelu
+
+Nastavují se v **Vercel → projekt → Settings → Environment Variables**.
+Po každé změně je **nutný nový deploy** — Vercel je načítá jen při
+nasazení, u běžící aplikace se změna sama neprojeví.
+
+| Proměnná | K čemu | Povinná |
+|---|---|---|
+| `VITE_SUPABASE_URL` | adresa databáze (zapéká se do frontendu) | ano |
+| `VITE_SUPABASE_ANON_KEY` | veřejný klíč (zapéká se do frontendu) | ano |
+| `SUPABASE_SERVICE_ROLE_KEY` | serverové operace: správa uživatelů, Moje knihovna, stopy | ano |
+| `GEMINI_API_KEY` | jen vyhledávání akordů online | ne |
 
 ## 2. Soukromí
 
@@ -109,31 +134,31 @@ takže opakované údery nezní identicky.
   Supabase (tabulka `drum_kits` + vzorky v `assets`), takže je uvidí celá
   kapela a přežijí odhlášení.
 - **AI separace stop**: skutečný Demucs (model `htdemucs_6s`) běžící na
-  Railway. Vložíte YouTube odkaz, worker skladbu stáhne a rozdělí na 5 stop.
-  **Trvá to zhruba 35–40 minut** — běží na CPU, ne na GPU. Naměřeno na
-  reálné skladbě (Sepultura — Roots Bloody Roots, ~5 min): 37 minut od
-  zařazení do fronty po nahrání všech 5 stop do Storage.
+  vašem Macu. Spustíte `./worker/run-local.sh`, v appce vložíte YouTube
+  odkaz a worker skladbu stáhne a rozdělí na 5 stop.
 
-> **Limit, na který si dejte pozor:** worker ukončí Demucs po 30 minutách
-> (`timeout=1800` v `worker/main.py`). Pětiminutová skladba se do limitu
-> vešla jen těsně. Delší nebo hustěji nahraná skladba ho může překročit a
-> úloha skončí jako `failed`. Až to nastane, jsou tři cesty: zvýšit limit
-> (a smířit se s 45+ min na skladbu), přepnout `DEMUCS_MODEL` na `htdemucs`
-> (4 stopy místo 5, výrazně rychlejší), nebo separaci přesunout na placenou
-> GPU službu, kde jde o vteřiny.
+  Na Apple Silicon (M1 Pro) používá **GPU akceleraci přes Metal (MPS)** a
+  samotná separace trvá **jednotky minut**. Pro srovnání: stejná skladba
+  na Railway CPU trvala 37 minut.
+
+  Worker nemusí běžet pořád — úlohy počkají ve frontě, dokud ho nespustíte.
+  Nepotřebuje veřejnou adresu ani otevřené porty, protože si sám tahá práci
+  ze Supabase.
 
 ## 5. Náklady
 
 | Služba | Tarif | Co platíte |
 |---|---|---|
 | Supabase | Free | 500 MB databáze, 1 GB souborů. Projekt se uspí po 7 dnech nečinnosti. |
-| Railway | Podle spotřeby | Dvě běžící služby. Worker běží pořád (polluje frontu), takže i bez separací generuje malý základní náklad. |
+| Vercel | Hobby (zdarma) | Pro soukromou appku pro 5 lidí se do limitů pohodlně vejdete. |
+| Separace stop | zdarma | Běží na vašem Macu, neplatíte nic. |
 
 ## 6. Co zbývá dodělat
 
-- **Gemini AI klíč** není na Railway nastavený — AI funkce (generování textů,
-  návrhy akordů) proto na nasazené verzi zatím nefungují. Doplňte ho v
-  Railway → služba `neverlate-app` → Variables jako `GEMINI_API_KEY`.
+- **Živá zkušebna a presence** na Vercelu nefungují (viz sekce 1). Kdyby je
+  kapela chtěla, musela by appka běžet na trvalém serveru, ne serverless.
+- **Starý Railway projekt** `neverlate-studio` tam pořád existuje. Smažte ho,
+  ať nenarůstá útrata.
 - Chybové stavy separace (`jobs.error`) appka nezobrazuje — jsou vidět jen
   v databázi.
 - Testovací uživatel `test-clen@kapela.cz` je pořád ve stavu `invited`.
