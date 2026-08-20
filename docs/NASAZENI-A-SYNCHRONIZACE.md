@@ -75,8 +75,23 @@ Skript `scripts/sync-folder.ts` projde složku na vašem disku a nahraje
 všechno do databáze. Spouštíte ho ručně, když připojíte disk:
 
 ```bash
-bun run scripts/sync-folder.ts /Volumes/VasDisk/NeverLateSync
+bun run scripts/sync-folder.ts /Volumes/PortableSSD/NeverLateSync --check
 ```
+
+`--check` nejdřív ukáže, co by se nahrálo, co by se tiše přeskočilo a kolik
+to celkem zabere — a ničeho se nedotkne. **Pouštějte ho vždycky první.**
+Ostrý běh je stejný příkaz bez `--check`.
+
+Když se celá složka do volného tarifu nevejde, dají se sekce pouštět
+zvlášť. `--kit` navíc omezí bicí na jednu sadu:
+
+```bash
+bun run scripts/sync-folder.ts /Volumes/PortableSSD/NeverLateSync --only zpevnik,noty-tabs,fotky
+```
+
+`--force` přepočítá i soubory, které se od minule nezměnily. Potřebujete ho
+jen výjimečně — třeba když se opraví chyba ve čtení názvů a je nutné srovnat,
+co už je nahrané.
 
 #### Struktura složek
 
@@ -91,6 +106,7 @@ NeverLateSync/
 ├── noty-tabs/                  → Moje knihovna
 │     cokoliv.pdf                   PDF noty
 │     cokoliv.gp5                   Guitar Pro (.gp .gp3 .gp4 .gp5 .gpx)
+│     cokoliv.mid                   MIDI (.mid .midi)
 │
 ├── nahravky/                   → Moje knihovna (nahrávky)
 │     zkouska.wav                   .wav .mp3 .flac .m4a .ogg
@@ -142,6 +158,58 @@ a podívejte se, co by udělal.
 > Aktuálně je takto naimportováno **36 tabů** ze tří alb Sepultury
 > (Arise, Chaos A.D., Roots).
 
+### D) Texty písní z Wordu
+
+Skript sync-folder čte jen prostý text — `.docx` je zabalený ZIP a zahodí ho.
+Převod řeší `scripts/docx-to-txt.ts`. Uloží `.txt` vedle originálu pod
+názvem, který sync-folder pozná, a název skladby vezme ze zpěvníku, pokud
+tam už je (v souborech bývá „RefuseResist" tam, kde appka má „Refuse Resist"):
+
+```bash
+bun run scripts/docx-to-txt.ts /Volumes/PortableSSD/NeverLateSync/zpevnik --artist Sepultura
+```
+
+Text se pak doplní **do existující skladby**, ne vedle ní — sync-folder
+skladbu najde podle názvu, i když se do zpěvníku dostala jinudy (třeba
+s tabem). Duplikáty tím pádem nevznikají.
+
+### E) Bicí vzorky z velké knihovny
+
+Sample knihovny mají stovky souborů na jeden buben a pojmenované je mají po
+značce a artikulaci (`Ludwig_Bassdrum_24_Standard_100a.wav`). Appka ale
+potřebuje `pad_dynamika_rrN.wav`, aby věděla, který pad vzorek obsluhuje.
+`scripts/pick-drum-samples.ts` z knihovny vybere pár vzorků na každý pad
+a zkopíruje je pod správnými názvy do nové složky sady:
+
+```bash
+bun run scripts/pick-drum-samples.ts "/Volumes/PortableSSD/NeverLateSync/bici-sady/Moje Rock Sada" "/Volumes/PortableSSD/NeverLateSync/bici-sady/Rock Sada (vyber)"
+```
+
+Vzorky rozloží přes dostupné hlasitosti, takže pad reaguje na sílu úderu.
+Originály nechává být. Sadu pak nahrajete:
+
+```bash
+bun run scripts/sync-folder.ts /Volumes/PortableSSD/NeverLateSync --only bici-sady --kit "Rock Sada (vyber)"
+```
+
+### F) Hotové rozseparované stopy do mixážního pultu
+
+Když stopy už máte (Moises, Stem Roller, RipX…), nemusí se skladba hnát přes
+separaci znovu. `scripts/import-stems.ts` je napojí na skladbu jako hotovou
+sadu — worker se vůbec nespustí:
+
+```bash
+bun run scripts/import-stems.ts "/Volumes/PortableSSD/NeverLateSync/nahravky/04. Amen-Eb minor-81bpm-444hz" --song "Amen" --dry-run
+```
+
+Pult umí pět stop: **vocals, drums, bass, guitar, other**. Zdrojové složky
+jich mívají víc, takže se skládají podle názvu souboru: `lead` a `rhythm` se
+smíchají do jedné kytary, metronom se zahodí, stejně jako druhý export
+označený `(2)` — ten by hrál dvakrát hlasitěji než zbytek.
+
+**Stopy se převádějí do MP3.** Jedna skladba v nekomprimovaném WAV má přes
+půl gigabajtu, což je víc než celý volný tarif; v MP3 zabere ~30 MB.
+
 **Pojmenování vzorků bicích:** `kick.wav` je prostý vzorek. Pro realistické
 bicí s více vrstvami použijte `nastroj_dynamika_rrN.wav`, kde dynamika je
 `soft`, `med_soft`, `med`, `hard` nebo `very_hard` a `rrN` je pořadí
@@ -191,7 +259,17 @@ takže opakované údery nezní identicky.
 - **Živá zkušebna a presence** na Vercelu nefungují (viz sekce 1). Kdyby je
   kapela chtěla, musela by appka běžet na trvalém serveru, ne serverless —
   nebo by se přepsaly na Supabase Realtime Presence.
-- **Zpěvník má taby, ale zatím žádné texty ani akordy.** Naimportované
-  skladby mají prázdný modul „Text a akordy" — ten je potřeba doplnit
-  ručně v appce nebo hromadně přes `sync-folder.ts` (složka `zpevnik/`).
+- **Texty má zatím 12 skladeb z 37** (album Chaos A.D.). U zbylých je modul
+  „Text a akordy" prázdný — doplní se stejnou cestou jako ostatní, jakmile
+  budou soubory na disku.
+- **Akordy nemá zatím žádná skladba.** Texty jsou naimportované jako prostý
+  text, bez značek akordů. Kdo je chce, musí je doplnit v appce, nebo dodat
+  soubory ve formátu ChordPro (`.chordpro` / `.cho` / `.crd`), který
+  sync-folder taky čte.
+- **Do volného tarifu se nevejde všechno.** Aktuálně je zabráno ~355 MB
+  z 1 GB. Na disku zůstává ~5,8 GB, které se nenahrály: zbytek
+  rozseparovaných stop (37 skladeb) a plná knihovna bicích vzorků
+  (1 729 souborů). Ve WAV se tam nevejdou ani při přechodu na placený
+  tarif rozumně — cesta vede přes MP3 (viz `import-stems.ts`) nebo přes
+  výběr toho, co kapela opravdu zkouší.
 - Testovací uživatel `test-clen@kapela.cz` je pořád ve stavu `invited`.
