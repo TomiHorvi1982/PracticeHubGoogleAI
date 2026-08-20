@@ -1,6 +1,10 @@
 # torch/torchaudio (CPU wheels) are installed separately in the Dockerfile
 # before this file, so pip doesn't pull a CUDA build demucs would otherwise
 # prefer.
+#
+# Talks to Supabase over plain HTTP (requests) rather than the supabase-py
+# SDK — that SDK's client-side key format validation rejects this project's
+# new-format sb_secret_... service role key. See main.py's module docstring.
 demucs==4.0.1
 yt-dlp>=2024.8.6
-supabase==2.9.1
+requests>=2.31

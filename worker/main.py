@@ -17,6 +17,13 @@ guitar/piano/other — one more stem than the app's 5-stem mixer UI expects.
 `piano` is mixed into `other` via ffmpeg so every song still produces
 exactly vocals/guitar/bass/drums/other, matching `SongStem`/`StemAudioService`
 on the frontend without any UI changes.
+
+Talks to Supabase's REST/Storage HTTP APIs directly with `requests` rather
+than the `supabase-py` SDK — that SDK's client-side key validation rejects
+this project's new-format `sb_secret_...` service role key (a library
+compatibility issue, not a real auth problem — the same key works fine
+against the REST API directly, as used here and throughout this app's own
+scripts/migrate-data.ts-style tooling).
 """
 
 import os
@@ -28,15 +35,22 @@ import subprocess
 import traceback
 from pathlib import Path
 from datetime import datetime, timezone
+from urllib.parse import quote
 
-from supabase import create_client, Client
+import requests
 
-SUPABASE_URL = os.environ["SUPABASE_URL"]
+SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
 SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 POLL_INTERVAL_SECONDS = int(os.environ.get("POLL_INTERVAL_SECONDS", "10"))
 DEMUCS_MODEL = os.environ.get("DEMUCS_MODEL", "htdemucs_6s")
 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+REST_URL = f"{SUPABASE_URL}/rest/v1"
+STORAGE_URL = f"{SUPABASE_URL}/storage/v1"
+HEADERS = {
+    "apikey": SUPABASE_SERVICE_ROLE_KEY,
+    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+    "Content-Type": "application/json",
+}
 
 STEM_NAMES = {
     "vocals": "Zpěv (Lead Vocals)",
@@ -52,46 +66,78 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def db_select(table: str, params: dict) -> list:
+    res = requests.get(f"{REST_URL}/{table}", headers=HEADERS, params=params, timeout=30)
+    res.raise_for_status()
+    return res.json()
+
+
+def db_update(table: str, filter_col: str, filter_val: str, body: dict, extra_params: dict | None = None) -> list:
+    params = {filter_col: f"eq.{filter_val}"}
+    if extra_params:
+        params.update(extra_params)
+    headers = {**HEADERS, "Prefer": "return=representation"}
+    res = requests.patch(f"{REST_URL}/{table}", headers=headers, params=params, json=body, timeout=30)
+    res.raise_for_status()
+    return res.json()
+
+
+def db_insert(table: str, body: dict):
+    headers = {**HEADERS, "Prefer": "return=representation"}
+    res = requests.post(f"{REST_URL}/{table}", headers=headers, json=body, timeout=30)
+    res.raise_for_status()
+    return res.json()
+
+
+def storage_upload(bucket: str, path: str, data: bytes, content_type: str):
+    headers = {
+        "apikey": SUPABASE_SERVICE_ROLE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
+        "Content-Type": content_type,
+        "x-upsert": "true",
+    }
+    res = requests.post(f"{STORAGE_URL}/object/{bucket}/{quote(path)}", headers=headers, data=data, timeout=120)
+    res.raise_for_status()
+
+
 def claim_next_job():
     """Fetch the oldest queued job and atomically flip it to `processing`.
-    The conditional `.eq('status', 'queued')` on the update means a second
-    worker replica racing for the same job simply gets an empty result —
-    safe even though we only ever run one replica today."""
-    res = (
-        supabase.table("jobs")
-        .select("*")
-        .eq("type", "stem_separation")
-        .eq("status", "queued")
-        .order("created_at")
-        .limit(1)
-        .execute()
+    The conditional filter on the update means a second worker replica
+    racing for the same job simply gets an empty result back — safe even
+    though we only ever run one replica today."""
+    rows = db_select(
+        "jobs",
+        {
+            "select": "*",
+            "type": "eq.stem_separation",
+            "status": "eq.queued",
+            "order": "created_at.asc",
+            "limit": "1",
+        },
     )
-    rows = res.data or []
     if not rows:
         return None
     job = rows[0]
-    updated = (
-        supabase.table("jobs")
-        .update({"status": "processing", "started_at": now_iso()})
-        .eq("id", job["id"])
-        .eq("status", "queued")
-        .execute()
+    updated = db_update(
+        "jobs",
+        "id",
+        job["id"],
+        {"status": "processing", "started_at": now_iso()},
+        extra_params={"status": "eq.queued"},
     )
-    if not updated.data:
+    if not updated:
         return None  # another replica claimed it first
     return job
 
 
 def set_job_progress(job_id: str, progress: int):
-    supabase.table("jobs").update({"progress": progress}).eq("id", job_id).execute()
+    db_update("jobs", "id", job_id, {"progress": progress})
 
 
 def fail_job(job_id: str, stem_set_id: str, message: str):
     print(f"[worker] Job {job_id} failed: {message}")
-    supabase.table("jobs").update(
-        {"status": "failed", "error": message[:500], "completed_at": now_iso()}
-    ).eq("id", job_id).execute()
-    supabase.table("stem_sets").update({"status": "failed"}).eq("id", stem_set_id).execute()
+    db_update("jobs", "id", job_id, {"status": "failed", "error": message[:500], "completed_at": now_iso()})
+    db_update("stem_sets", "id", stem_set_id, {"status": "failed"})
 
 
 def download_audio(youtube_url: str, out_dir: str) -> str:
@@ -148,12 +194,11 @@ def upload_stem(stem_set_id: str, stem_type: str, file_path: str):
     with open(file_path, "rb") as f:
         data = f.read()
 
-    supabase.storage.from_("audio").upload(
-        storage_path, data, {"content-type": "audio/wav", "upsert": "true"}
-    )
+    storage_upload("audio", storage_path, data, "audio/wav")
 
     asset_id = str(uuid.uuid4())
-    supabase.table("assets").insert(
+    db_insert(
+        "assets",
         {
             "id": asset_id,
             "owner_id": None,
@@ -167,11 +212,9 @@ def upload_stem(stem_set_id: str, stem_type: str, file_path: str):
             "category": "stem_mix",
             "status": "active",
             "metadata": {"stemType": stem_type, "stemSetId": stem_set_id},
-        }
-    ).execute()
-    supabase.table("stems").insert(
-        {"stem_set_id": stem_set_id, "asset_id": asset_id, "stem_type": stem_type}
-    ).execute()
+        },
+    )
+    db_insert("stems", {"stem_set_id": stem_set_id, "asset_id": asset_id, "stem_type": stem_type})
 
 
 def process_job(job: dict):
@@ -200,12 +243,8 @@ def process_job(job: dict):
                 raise RuntimeError(f"Demucs did not produce {stem_type}.wav")
             upload_stem(stem_set_id, stem_type, str(file_path))
 
-        supabase.table("stem_sets").update(
-            {"status": "completed", "updated_at": now_iso()}
-        ).eq("id", stem_set_id).execute()
-        supabase.table("jobs").update(
-            {"status": "completed", "progress": 100, "completed_at": now_iso()}
-        ).eq("id", job_id).execute()
+        db_update("stem_sets", "id", stem_set_id, {"status": "completed", "updated_at": now_iso()})
+        db_update("jobs", "id", job_id, {"status": "completed", "progress": 100, "completed_at": now_iso()})
         print(f"[worker] Job {job_id} completed.")
     except subprocess.CalledProcessError as e:
         fail_job(job_id, stem_set_id, f"{e.cmd[0]} exited {e.returncode}: {(e.stderr or '')[-400:]}")
