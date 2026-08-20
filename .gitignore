@@ -20,3 +20,5 @@ data/photos.json
 data/stems.json
 worker/.venv
 api/_server.mjs
+.claude/scheduled_tasks.lock
+.claude/*.lock
