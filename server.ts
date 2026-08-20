@@ -2103,188 +2103,13 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
   });
 
   // --- AI STEM SEPARATION & MIXER API ENDPOINTS ---
-  // Phase 10: `stem.downloadUrl` is now a signed Supabase Storage URL backed
-  // by real `stem_sets`/`stems`/`assets` rows (audio bucket, category
-  // 'stem_mix') instead of an Express-streamed buffer from an in-memory
-  // store. The audio itself is still synthesized below — real Demucs/AI
-  // separation is explicitly out of scope for this phase, see
-  // docs/migration/2026-08-19-phase-2-4-supabase-migration-plan.md (Phase 10).
-
-  // Server-Side 16-bit WAV PCM Audio Generator for Stems
-  function generateServerStemWav(stemType: string, durationSec: number = 30): Buffer {
-    const sampleRate = 44100;
-    const numSamples = Math.floor(sampleRate * durationSec);
-    const samplesL = new Float32Array(numSamples);
-    const samplesR = new Float32Array(numSamples);
-    const bpm = 108;
-    const secPerBeat = 60 / bpm;
-    const barDuration = secPerBeat * 4;
-
-    const chordNotes = [
-      { root: 49.00, chord: [98.00, 123.47, 146.83, 196.00, 246.94, 392.00] }, // G
-      { root: 73.42, chord: [146.83, 220.00, 293.66, 369.99, 440.00] },         // D
-      { root: 41.20, chord: [82.41, 123.47, 164.81, 196.00, 246.94, 329.63] },  // Em
-      { root: 65.41, chord: [130.81, 164.81, 196.00, 261.63, 329.63] },         // C
-    ];
-
-    if (stemType === 'drums') {
-      for (let i = 0; i < numSamples; i++) {
-        const t = i / sampleRate;
-        const beatPos = (t / secPerBeat) % 4;
-        let dL = 0;
-        let dR = 0;
-
-        // Kick on beats 1 & 3
-        if (beatPos < 0.25 || (beatPos >= 2.0 && beatPos < 2.25)) {
-          const kickT = (beatPos < 0.25 ? beatPos : beatPos - 2.0) * secPerBeat;
-          if (kickT < 0.35) {
-            const pitch = 50 + 110 * Math.exp(-kickT * 32);
-            dL += Math.sin(2 * Math.PI * pitch * kickT) * Math.exp(-kickT * 12) * 0.9;
-            dR += dL;
-          }
-        }
-        // Snare on beats 2 & 4
-        if ((beatPos >= 1.0 && beatPos < 1.25) || (beatPos >= 3.0 && beatPos < 3.25)) {
-          const snareT = (beatPos >= 3.0 ? beatPos - 3.0 : beatPos - 1.0) * secPerBeat;
-          if (snareT < 0.35) {
-            const tone = Math.sin(2 * Math.PI * (180 * Math.exp(-snareT * 20)) * snareT) * Math.exp(-snareT * 18);
-            const noise = (Math.random() * 2 - 1) * Math.exp(-snareT * 12) * 0.7;
-            dL += (tone + noise) * 0.75;
-            dR += (tone + noise) * 0.75;
-          }
-        }
-        // Hi-Hat on 8th notes
-        const eighthPos = (beatPos * 2) % 1;
-        if (eighthPos < 0.2) {
-          const hhT = eighthPos * (secPerBeat / 2);
-          if (hhT < 0.08) {
-            const hhNoise = (Math.random() * 2 - 1) * Math.exp(-hhT * 48) * 0.3;
-            dL += hhNoise * 0.7;
-            dR += hhNoise * 1.0;
-          }
-        }
-        samplesL[i] = Math.tanh(dL);
-        samplesR[i] = Math.tanh(dR);
-      }
-    } else if (stemType === 'bass') {
-      for (let i = 0; i < numSamples; i++) {
-        const t = i / sampleRate;
-        const barIdx = Math.floor(t / barDuration) % 4;
-        const chord = chordNotes[barIdx];
-        const beatPos = (t / secPerBeat) % 4;
-        const noteT = (beatPos % 0.5) * secPerBeat;
-        const env = Math.exp(-noteT * 4.2);
-        const osc = Math.sin(2 * Math.PI * chord.root * t) + Math.sin(2 * Math.PI * chord.root * 2 * t) * 0.4;
-        const val = Math.tanh(osc * env * 1.2) * 0.75;
-        samplesL[i] = val;
-        samplesR[i] = val;
-      }
-    } else if (stemType === 'guitar') {
-      const strums = [0.0, 0.75, 1.5, 2.0, 2.75, 3.5];
-      for (let i = 0; i < numSamples; i++) {
-        const t = i / sampleRate;
-        const barIdx = Math.floor(t / barDuration) % 4;
-        const chord = chordNotes[barIdx];
-        const beatPos = (t / secPerBeat) % 4;
-        let gL = 0;
-        let gR = 0;
-
-        for (let s = 0; s < strums.length; s++) {
-          const sBeat = strums[s];
-          if (beatPos >= sBeat && beatPos < sBeat + 0.8) {
-            const strumT = (beatPos - sBeat) * secPerBeat;
-            if (strumT >= 0 && strumT < 1.2) {
-              chord.chord.forEach((freq, idx) => {
-                const sDel = idx * 0.012;
-                const stringT = strumT - sDel;
-                if (stringT > 0 && stringT < 1.1) {
-                  const val = Math.sin(2 * Math.PI * freq * stringT) * Math.exp(-stringT * 3.5);
-                  gL += val * 0.25;
-                  gR += val * 0.25;
-                }
-              });
-            }
-          }
-        }
-        samplesL[i] = Math.tanh(gL * 0.8);
-        samplesR[i] = Math.tanh(gR * 0.8);
-      }
-    } else if (stemType === 'vocals') {
-      const melody = [
-        [293.66, 392.00, 493.88, 440.00],
-        [369.99, 440.00, 587.33, 554.37],
-        [329.63, 392.00, 493.88, 392.00],
-        [329.63, 392.00, 523.25, 493.88],
-      ];
-      for (let i = 0; i < numSamples; i++) {
-        const t = i / sampleRate;
-        const barIdx = Math.floor(t / barDuration) % 4;
-        const beatPos = (t / secPerBeat) % 4;
-        const noteIdx = Math.min(3, Math.floor(beatPos));
-        const freq = melody[barIdx][noteIdx];
-        const noteT = (beatPos % 1.0) * secPerBeat;
-        const env = Math.sin(Math.PI * Math.min(1.0, noteT / (secPerBeat * 0.95)));
-        const vib = 1 + Math.sin(2 * Math.PI * 5.5 * t) * 0.012;
-        const val = Math.sin(2 * Math.PI * freq * vib * t) + Math.sin(2 * Math.PI * freq * 2 * vib * t) * 0.5;
-        const out = Math.tanh(val * env * 1.1) * 0.75;
-        samplesL[i] = out;
-        samplesR[i] = out;
-      }
-    } else {
-      // Other / Synth
-      for (let i = 0; i < numSamples; i++) {
-        const t = i / sampleRate;
-        const barIdx = Math.floor(t / barDuration) % 4;
-        const chord = chordNotes[barIdx];
-        const env = Math.sin(Math.PI * ((t % barDuration) / barDuration));
-        let sum = 0;
-        chord.chord.slice(1, 4).forEach((freq) => {
-          sum += Math.sin(2 * Math.PI * freq * t) * 0.3;
-        });
-        const out = Math.tanh(sum * env) * 0.6;
-        samplesL[i] = out;
-        samplesR[i] = out;
-      }
-    }
-
-    // Convert to 16-bit WAV PCM Buffer
-    const numChannels = 2;
-    const bitsPerSample = 16;
-    const blockAlign = (numChannels * bitsPerSample) / 8;
-    const byteRate = sampleRate * blockAlign;
-    const dataSize = numSamples * blockAlign;
-    const totalSize = 44 + dataSize;
-    const buffer = Buffer.alloc(totalSize);
-
-    buffer.write('RIFF', 0);
-    buffer.writeUInt32LE(totalSize - 8, 4);
-    buffer.write('WAVE', 8);
-
-    buffer.write('fmt ', 12);
-    buffer.writeUInt32LE(16, 16);
-    buffer.writeUInt16LE(1, 20);
-    buffer.writeUInt16LE(numChannels, 22);
-    buffer.writeUInt32LE(sampleRate, 24);
-    buffer.writeUInt32LE(byteRate, 28);
-    buffer.writeUInt16LE(blockAlign, 32);
-    buffer.writeUInt16LE(bitsPerSample, 34);
-
-    buffer.write('data', 36);
-    buffer.writeUInt32LE(dataSize, 40);
-
-    let offset = 44;
-    for (let i = 0; i < numSamples; i++) {
-      const sL = Math.max(-1, Math.min(1, samplesL[i]));
-      const sR = Math.max(-1, Math.min(1, samplesR[i]));
-      const intL = sL < 0 ? sL * 0x8000 : sL * 0x7fff;
-      const intR = sR < 0 ? sR * 0x8000 : sR * 0x7fff;
-      buffer.writeInt16LE(Math.floor(intL), offset);
-      buffer.writeInt16LE(Math.floor(intR), offset + 2);
-      offset += 4;
-    }
-    return buffer;
-  }
-
+  // Phase 10: `stem.downloadUrl` is a signed Supabase Storage URL backed by
+  // real `stem_sets`/`stems`/`assets` rows (audio bucket, category
+  // 'stem_mix'). Phase 13: separation itself is now real — this route only
+  // enqueues a `jobs` row; a separate Python worker (worker/, deployed on
+  // Railway) polls for pending stem_separation jobs, downloads the audio,
+  // runs Demucs (htdemucs_6s), and uploads the actual stems. See
+  // docs/migration/2026-08-20-phase13-demucs-worker-plan.md.
   const STEM_TYPES: { id: string; name: string }[] = [
     { id: 'vocals', name: 'Zpěv (Lead Vocals)' },
     { id: 'guitar', name: 'Kytara (Guitar)' },
@@ -2292,46 +2117,6 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     { id: 'drums', name: 'Bicí (Drums)' },
     { id: 'other', name: 'Ostatní nástroje (Other/Synth)' },
   ];
-
-  /** Generates the 5 synthetic stems for a stem set and uploads them to the
-   * `audio` Storage bucket, inserting an `assets` row + a `stems` row for
-   * each (see docs/migration Phase 10). Runs after `stem_sets` already
-   * exists so a failed/slow upload never leaves an orphaned stem set. */
-  async function generateAndUploadStems(stemSetId: string) {
-    const admin = getSupabaseAdmin();
-    for (const st of STEM_TYPES) {
-      try {
-        const wavBuf = generateServerStemWav(st.id, 30);
-        const assetId = crypto.randomUUID();
-        const storagePath = `global/stems/${stemSetId}/${st.id}.wav`;
-
-        const { error: uploadError } = await admin.storage.from('audio').upload(storagePath, wavBuf, {
-          contentType: 'audio/wav',
-          upsert: true,
-        });
-        if (uploadError) throw uploadError;
-
-        await admin.from('assets').insert({
-          id: assetId,
-          owner_id: null,
-          name: `${st.name}.wav`,
-          original_filename: `${st.id}.wav`,
-          mime_type: 'audio/wav',
-          size_bytes: wavBuf.length,
-          storage_bucket: 'audio',
-          storage_path: storagePath,
-          asset_type: 'stem',
-          category: 'stem_mix',
-          status: 'active',
-          metadata: { stemType: st.id, stemSetId },
-        });
-
-        await admin.from('stems').insert({ stem_set_id: stemSetId, asset_id: assetId, stem_type: st.id });
-      } catch (err: any) {
-        console.error(`[stems] Failed to generate/upload stem "${st.id}" for stem set ${stemSetId}:`, err.message);
-      }
-    }
-  }
 
   /** Shapes one `stem_sets` row (+ its song, jobs, stems/assets) into the
    * StemSongDocument the frontend expects, with signed download URLs. */
@@ -2366,6 +2151,12 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       })
     );
 
+    // stem_sets.status has a 'queued' state the DB needs (distinct from
+    // 'processing' for the worker's own bookkeeping) but the frontend
+    // StemSongDocument type predates it — map both onto 'processing' so
+    // existing UI polling (`status === 'processing'`) keeps working.
+    const status = stemSetRow.status === 'queued' ? 'processing' : stemSetRow.status;
+
     return {
       id: stemSetRow.id,
       youtubeUrl: songRow?.metadata?.youtubeUrl || '',
@@ -2373,8 +2164,8 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       title: songRow?.title || 'Neznámá skladba',
       artist: songRow?.artist || '',
       durationSeconds: songRow?.metadata?.durationSeconds || 210,
-      status: stemSetRow.status,
-      progressPercentage: stemSetRow.status === 'completed' ? 100 : jobRow?.progress ?? 15,
+      status,
+      progressPercentage: status === 'completed' ? 100 : jobRow?.progress ?? 0,
       stems,
       createdAt: new Date(stemSetRow.created_at).getTime(),
       updatedAt: new Date(stemSetRow.updated_at).getTime(),
@@ -2454,49 +2245,28 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
 
       const { data: stemSet, error: stemSetError } = await admin
         .from('stem_sets')
-        .insert({ id: crypto.randomUUID(), song_id: songId, status: 'processing', model: 'synthetic-v1' })
+        .insert({ id: crypto.randomUUID(), song_id: songId, status: 'queued', model: 'htdemucs_6s' })
         .select()
         .single();
       if (stemSetError || !stemSet) throw new Error(stemSetError?.message || 'Nepodařilo se založit sadu stop.');
 
-      const { data: job } = await admin
-        .from('jobs')
-        .insert({
-          id: crypto.randomUUID(),
-          type: 'stem_separation',
-          status: 'processing',
-          owner_id: req.user!.id,
-          song_id: songId,
-          stem_set_id: stemSet.id,
-          progress: 15,
-          metadata: {},
-        })
-        .select()
-        .single();
+      // Real separation runs off-process: a Python worker (worker/,
+      // deployed on Railway) polls for `queued` stem_separation jobs,
+      // downloads the YouTube audio, runs Demucs, and uploads the actual
+      // stems. This route's job is done once the job row exists — see
+      // docs/migration/2026-08-20-phase13-demucs-worker-plan.md.
+      await admin.from('jobs').insert({
+        id: crypto.randomUUID(),
+        type: 'stem_separation',
+        status: 'queued',
+        owner_id: req.user!.id,
+        song_id: songId,
+        stem_set_id: stemSet.id,
+        progress: 0,
+        metadata: { youtubeUrl, youtubeId: ytId },
+      });
 
       res.json({ success: true, song: await shapeStemSet(admin, stemSet) });
-
-      // Asynchronous background pipeline steps simulation (15% -> 40% -> 75% -> 100%),
-      // matching the previous UX — the actual generation still runs at 100%.
-      const jobId = job?.id;
-      setTimeout(async () => {
-        if (jobId) await admin.from('jobs').update({ progress: 40 }).eq('id', jobId);
-      }, 1500);
-
-      setTimeout(async () => {
-        if (jobId) await admin.from('jobs').update({ progress: 75 }).eq('id', jobId);
-      }, 3500);
-
-      setTimeout(async () => {
-        await generateAndUploadStems(stemSet.id);
-        await admin.from('stem_sets').update({ status: 'completed', updated_at: new Date().toISOString() }).eq('id', stemSet.id);
-        if (jobId) {
-          await admin
-            .from('jobs')
-            .update({ status: 'completed', progress: 100, completed_at: new Date().toISOString() })
-            .eq('id', jobId);
-        }
-      }, 5500);
     } catch (err: any) {
       console.error('[stems] Failed to start separation:', err.message);
       res.status(500).json({ error: 'Nepodařilo se zahájit separaci.', details: err.message });

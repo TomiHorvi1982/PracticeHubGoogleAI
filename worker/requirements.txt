@@ -1,0 +1,6 @@
+# torch/torchaudio (CPU wheels) are installed separately in the Dockerfile
+# before this file, so pip doesn't pull a CUDA build demucs would otherwise
+# prefer.
+demucs==4.0.1
+yt-dlp>=2024.8.6
+supabase==2.9.1
