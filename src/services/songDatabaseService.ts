@@ -1,4 +1,4 @@
-import { Song } from '../types';
+import { Song, SongAttachment } from '../types';
 import { supabase } from './supabaseClient';
 import { authService } from './authService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -36,10 +36,60 @@ function rowToSong(row: SongRow): Song {
   } as Song;
 }
 
+/**
+ * Attachments imported in bulk keep their bytes in Storage and carry a
+ * `storagePath` instead of an inline base64 `dataUrl`, so the songbook fetch
+ * doesn't drag megabytes of tabs along with it. The UI only knows about
+ * `dataUrl`, so hand it a signed URL — one batched call for every attachment
+ * in the whole songbook rather than one per file.
+ */
+async function resolveStoredAttachments(songs: Song[]): Promise<void> {
+  const byBucket = new Map<string, Set<string>>();
+  for (const song of songs) {
+    for (const att of song.attachments || []) {
+      if (!att.storagePath || att.dataUrl) continue;
+      const bucket = att.storageBucket || 'assets';
+      if (!byBucket.has(bucket)) byBucket.set(bucket, new Set());
+      byBucket.get(bucket)!.add(att.storagePath);
+    }
+  }
+  if (byBucket.size === 0) return;
+
+  const urls = new Map<string, string>();
+  for (const [bucket, paths] of byBucket) {
+    // 12 hours: long enough that a practice session never sees a link expire,
+    // short enough that a leaked URL doesn't stay useful.
+    const { data, error } = await supabase.storage.from(bucket).createSignedUrls([...paths], 60 * 60 * 12);
+    if (error) {
+      console.warn(`[songDatabaseService] Failed to sign ${bucket} attachments:`, error.message);
+      continue;
+    }
+    for (const entry of data || []) {
+      if (entry.path && entry.signedUrl) urls.set(`${bucket}/${entry.path}`, entry.signedUrl);
+    }
+  }
+
+  for (const song of songs) {
+    if (!song.attachments) continue;
+    song.attachments = song.attachments.map((att) => {
+      if (!att.storagePath || att.dataUrl) return att;
+      const url = urls.get(`${att.storageBucket || 'assets'}/${att.storagePath}`);
+      return url ? { ...att, dataUrl: url } : att;
+    });
+  }
+}
+
 function songToRowUpdate(song: Song) {
   const metadata: Record<string, any> = {};
   for (const [key, value] of Object.entries(song)) {
     if (!CORE_FIELDS.has(key)) metadata[key] = value;
+  }
+  // Signed URLs resolved at load time expire; storing one would leave a dead
+  // link behind. The `storagePath` is the durable reference — keep only that.
+  if (Array.isArray(metadata.attachments)) {
+    metadata.attachments = (metadata.attachments as SongAttachment[]).map((att) =>
+      att.storagePath ? { ...att, dataUrl: '' } : att
+    );
   }
   return { title: song.title, artist: song.artist || null, metadata };
 }
@@ -91,7 +141,9 @@ class SongDatabaseService {
       console.warn('[songDatabaseService] Failed to load songs:', error.message);
       return;
     }
-    this.songs = (data as SongRow[]).map(rowToSong);
+    const songs = (data as SongRow[]).map(rowToSong);
+    await resolveStoredAttachments(songs);
+    this.songs = songs;
     this.notify();
   }
 
@@ -120,6 +172,7 @@ class SongDatabaseService {
       const { data, error } = await supabase.from('songs').update(update).eq('id', song.id).select().single();
       if (error) throw new Error(error.message);
       const updated = rowToSong(data as SongRow);
+      await resolveStoredAttachments([updated]);
       this.songs = this.songs.map((s) => (s.id === updated.id ? updated : s));
       this.notify();
       return updated;
@@ -132,6 +185,7 @@ class SongDatabaseService {
       .single();
     if (error) throw new Error(error.message);
     const created = rowToSong(data as SongRow);
+    await resolveStoredAttachments([created]);
     this.songs = [created, ...this.songs];
     this.notify();
     return created;

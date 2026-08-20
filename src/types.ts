@@ -45,6 +45,13 @@ export interface SongAttachment {
   name: string;
   type: 'pdf' | 'midi' | 'guitarpro' | 'txt' | 'image' | 'audio';
   dataUrl: string; // Base64 or Object URL
+  /**
+   * Set on attachments whose bytes live in Supabase Storage rather than
+   * inline in `dataUrl` — bulk imports use this so the songbook fetch stays
+   * small. `dataUrl` is filled in with a signed URL when the song loads.
+   */
+  storageBucket?: string;
+  storagePath?: string;
   size?: number;
   uploadedAt: number;
   parsedData?: {
