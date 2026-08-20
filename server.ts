@@ -93,7 +93,10 @@ function requireRole(role: 'admin') {
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  // Hosting platforms (Railway, Render, Fly…) assign the port at runtime and
+  // route to it — a hardcoded port makes the deployed app unreachable.
+  // Falls back to 3000 for local development.
+  const PORT = Number(process.env.PORT) || 3000;
 
   app.use(express.json({ limit: '20mb' }));
 
