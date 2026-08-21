@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as alphaTab from '@coderline/alphatab';
+import { loadTabSoundfont } from '../services/tabSoundfontService';
 import {
   Play,
   Pause,
@@ -30,6 +31,50 @@ interface GuitarProPlayerProps {
   filename: string;
   artist?: string;
   bpm?: number;
+}
+
+/**
+ * Verze se drží té nainstalované schválně. S `@latest` by si přehrávač
+ * tahal notové písmo z jiného vydání, než na které je zbytek zkompilovaný,
+ * a rozbila by ho cizí aktualizace.
+ */
+const ALPHATAB_VERSION = '1.8.4';
+const FONT_DIRECTORY = `https://cdn.jsdelivr.net/npm/@coderline/alphatab@${ALPHATAB_VERSION}/dist/font/`;
+const FALLBACK_SOUNDFONT = `https://cdn.jsdelivr.net/npm/@coderline/alphatab@${ALPHATAB_VERSION}/dist/soundfont/sonivox.sf3`;
+
+/**
+ * Tabulatura může přijít dvěma cestami: jako base64 z právě nahraného
+ * souboru, nebo jako odkaz do Storage u tabů, které už jsou ve zpěvníku.
+ * Dřív se počítalo jen s base64, takže `atob` nad adresou spadl a taby ze
+ * zpěvníku se nezobrazily vůbec.
+ */
+async function fetchScoreBytes(source: string): Promise<Uint8Array> {
+  if (/^https?:\/\//i.test(source)) {
+    const res = await fetch(source);
+    if (!res.ok) {
+      throw new Error(`Soubor se nepodařilo stáhnout z knihovny (HTTP ${res.status}).`);
+    }
+    const bytes = new Uint8Array(await res.arrayBuffer());
+    if (bytes.length === 0) throw new Error('Stažený soubor je prázdný (0 bajtů).');
+    return bytes;
+  }
+
+  let base64 = source;
+  if (base64.includes(',')) base64 = base64.split(',')[1];
+  base64 = base64.trim().replace(/\s/g, '');
+  if (base64.includes('%')) base64 = decodeURIComponent(base64);
+
+  let binary: string;
+  try {
+    binary = atob(base64);
+  } catch {
+    throw new Error('Soubor je poškozený — nepodařilo se ho dekódovat.');
+  }
+
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  if (bytes.length === 0) throw new Error('Nahrávaná tabulatura je prázdná nebo poškozená (0 bajtů).');
+  return bytes;
 }
 
 export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
@@ -175,36 +220,30 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
     // This resolves the double-mounting blank screen / silent fail in React 18 & 19
     containerRef.current.innerHTML = '';
 
+    let cancelled = false;
+
     try {
-      // Decode and sanitize base64 dataUrl to Uint8Array
-      let cleanBase64 = dataUrl;
-      if (cleanBase64.includes(',')) {
-        cleanBase64 = cleanBase64.split(',')[1];
-      }
-      cleanBase64 = cleanBase64.trim().replace(/\s/g, '');
-      if (cleanBase64.includes('%')) {
-        cleanBase64 = decodeURIComponent(cleanBase64);
-      }
-
-      const binaryString = atob(cleanBase64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-
-      if (bytes.length === 0) {
-        throw new Error('Nahrávaná tabulatura je prázdná nebo poškozená (0 bajtů).');
-      }
-
       // Settings setup
       const settings = new alphaTab.Settings();
-      settings.core.fontDirectory = 'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/font/';
+      settings.core.fontDirectory = FONT_DIRECTORY;
       settings.player.enablePlayer = true;
-      settings.player.soundFont =
-        'https://cdn.jsdelivr.net/npm/@coderline/alphatab@latest/dist/soundfont/sonivox.sf2';
+      // Vestavěná banka je záchranná síť: nastaví se rovnou, aby tabulatura
+      // hrála i kdyby se ta pořádná nestáhla, a přepíše se, jakmile dorazí.
+      settings.player.soundFont = FALLBACK_SOUNDFONT;
 
       const api = new alphaTab.AlphaTabApi(containerRef.current, settings);
       apiRef.current = api;
+
+      // Pořádná zvuková banka (38 MB) se tahá až po vykreslení a mimo
+      // hlavní cestu — noty mají být na obrazovce hned, ne až po stažení.
+      loadTabSoundfont()
+        .then((bytes) => {
+          if (cancelled || !bytes || !apiRef.current) return;
+          apiRef.current.loadSoundFont(bytes, false);
+        })
+        .catch(() => {
+          /* hraje se dál na vestavěnou banku */
+        });
 
       // Event listeners
       api.scoreLoaded.on((score) => {
@@ -237,10 +276,22 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         setTotalTime(args.endTime / 1000);
       });
 
-      // Load score bytes
-      api.load(bytes);
+      // Tabulatura se načítá asynchronně — ze zpěvníku se musí nejdřív
+      // stáhnout ze Storage, u nahraného souboru jde jen o dekódování.
+      fetchScoreBytes(dataUrl)
+        .then((bytes) => {
+          if (cancelled) return;
+          api.load(bytes);
+        })
+        .catch((err: any) => {
+          if (cancelled) return;
+          console.error('Failed to load Guitar Pro file:', err);
+          setLoadError(err?.message || String(err));
+          setIsLoading(false);
+        });
 
       return () => {
+        cancelled = true;
         try {
           api.destroy();
         } catch (e) {
