@@ -177,9 +177,21 @@ async function main() {
 
   // --- rejstřík ---
   console.log('\nZapisuji rejstřík…');
-  const { data: existing, error: exErr } = await admin.from('tab_library').select('rel_path, status');
-  if (exErr) throw new Error(exErr.message);
-  const known = new Map((existing || []).map((r: any) => [r.rel_path, r.status]));
+  // PostgREST vrací nejvýš 1000 řádků na dotaz. Bez stránkování by kontrola
+  // „co už je v rejstříku" viděla jen prvních tisíc ze čtyřiasedmdesáti —
+  // a `--upload` by pak znovu nahrával soubory, které už nahrané jsou.
+  const known = new Map<string, string>();
+  const STRANKA = 1000;
+  for (let od = 0; ; od += STRANKA) {
+    const { data, error } = await admin
+      .from('tab_library')
+      .select('rel_path, status')
+      .order('rel_path')
+      .range(od, od + STRANKA - 1);
+    if (error) throw new Error(error.message);
+    for (const r of data || []) known.set((r as any).rel_path, (r as any).status);
+    if (!data || data.length < STRANKA) break;
+  }
 
   const nove = files.filter((f) => !known.has(f.relPath));
   let zapsano = 0;
