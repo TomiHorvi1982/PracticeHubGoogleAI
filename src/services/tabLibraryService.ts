@@ -73,28 +73,20 @@ export const tabLibraryService = {
     return (data || []).map(mapRow);
   },
 
-  /** Interpreti začínající daným písmenem; `#` vrátí ty, co nezačínají písmenem. */
+  /**
+   * Interpreti začínající daným písmenem; `#` vrátí ty, co nezačínají písmenem.
+   *
+   * Počítá se v databázi. Stahovat řádky a sčítat je tady by nefungovalo —
+   * jedno písmeno jich má přes sedm tisíc, takže by se seznam usekl na
+   * limitu dotazu a počty by byly tiše špatně.
+   */
   async artistsByLetter(letter: string): Promise<{ artist: string; count: number }[]> {
-    const like = letter === '#' ? null : `${escapeLike(letter)}%`;
-    let q = supabase.from('tab_library').select('artist');
-    if (like) q = q.ilike('artist', like);
-    const { data, error } = await q.limit(5000);
+    const { data, error } = await supabase.rpc('tab_library_artists', { letter });
     if (error) {
       console.warn('[tabLibrary] Výpis interpretů selhal:', error.message);
       return [];
     }
-
-    const counts = new Map<string, number>();
-    for (const r of data || []) {
-      const a = (r as any).artist as string;
-      // Pro `#` se filtruje až tady — v SQL by to znamenalo regulární výraz
-      // a ten by neuměl diakritiku tak, jak bychom čekali.
-      if (!like && /^\p{L}/u.test(a)) continue;
-      counts.set(a, (counts.get(a) || 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([artist, count]) => ({ artist, count }))
-      .sort((a, b) => a.artist.localeCompare(b.artist, 'cs'));
+    return (data || []).map((r: any) => ({ artist: r.artist, count: Number(r.tab_count) }));
   },
 
   async byArtist(artist: string): Promise<TabLibraryEntry[]> {
