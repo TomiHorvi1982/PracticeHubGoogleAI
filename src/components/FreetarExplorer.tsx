@@ -25,6 +25,7 @@ import {
   Volume2,
 } from 'lucide-react';
 import { Song, SongAttachment } from '../types';
+import { tabLibraryService, TabLibraryEntry } from '../services/tabLibraryService';
 
 interface FreetarExplorerProps {
   onSongImported: (song: Song) => void;
@@ -40,9 +41,11 @@ interface FreetarSearchResult {
   rating: string | number | null;
   type: string;
   /** Odkud výsledek přišel — určuje, kterým endpointem se stahuje obsah. */
-  source?: 'ultimate-guitar' | 'freetar';
+  source?: 'ultimate-guitar' | 'freetar' | 'library';
   /** `false` u placených verzí (Pro/Official), jejichž obsah UG nevydá. */
   viewable?: boolean;
+  /** Jen u výsledků z vlastní sbírky — původní záznam pro stažení souboru. */
+  libraryEntry?: TabLibraryEntry;
 }
 
 export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
@@ -93,6 +96,26 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
     const potize: string[] = [];
 
+    // Vlastní sbírka jde první — co má kapela na disku, je vždycky lepší
+    // než cizí verze z internetu. Nezdržuje: hledá se v databázi, ne přes web.
+    let vlastni: FreetarSearchResult[] = [];
+    try {
+      const nalezene = await tabLibraryService.search(term.trim());
+      vlastni = nalezene.map((e) => ({
+        id: `lib_${e.id}`,
+        artist: e.artist,
+        song: e.title,
+        url: e.relPath,
+        rating: null,
+        type: e.format.toUpperCase(),
+        source: 'library' as const,
+        viewable: e.stored,
+        libraryEntry: e,
+      }));
+    } catch (e: any) {
+      potize.push(`Vlastní sbírka: ${e?.message || 'nedostupná'}.`);
+    }
+
     try {
       for (const zdroj of zdroje) {
         try {
@@ -101,14 +124,18 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           const results: FreetarSearchResult[] = Array.isArray(data.results) ? data.results : [];
 
           if (results.length > 0) {
-            setSearchResults(results.map((r) => ({ ...r, source: r.source || zdroj.source })));
+            setSearchResults([
+              ...vlastni,
+              ...results.map((r) => ({ ...r, source: r.source || zdroj.source })),
+            ]);
             setSearchError(null);
-            if (potize.length) {
-              setStatusMessage({
-                type: 'success',
-                text: `Nalezeno přes ${zdroj.nazev}. ${potize.join(' ')}`,
-              });
-            }
+            setStatusMessage({
+              type: 'success',
+              text:
+                `${vlastni.length ? `${vlastni.length} z vlastní sbírky, ` : ''}` +
+                `${results.length} z ${zdroj.nazev}.` +
+                (potize.length ? ` ${potize.join(' ')}` : ''),
+            });
             return;
           }
 
@@ -122,10 +149,19 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         }
       }
 
+      // Internetové zdroje selhaly — vlastní sbírka může mít výsledky i tak.
+      if (vlastni.length > 0) {
+        setSearchResults(vlastni);
+        setSearchError(null);
+        setStatusMessage({
+          type: 'success',
+          text: `${vlastni.length} z vlastní sbírky. Online zdroje nic nevrátily: ${potize.join(' ')}`,
+        });
+        return;
+      }
+
       setSearchResults([]);
-      setSearchError(
-        `Pro „${term}" se nic nenašlo.\n${potize.join('\n')}`
-      );
+      setSearchError(`Pro „${term}" se nic nenašlo.\n${potize.join('\n')}`);
     } finally {
       setIsSearching(false);
     }
@@ -137,6 +173,18 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     result.source === 'freetar' ? '/api/freetar-tab' : '/api/ug-tab';
 
   const handlePreviewTab = async (result: FreetarSearchResult) => {
+    if (result.source === 'library') {
+      // Guitar Pro soubor je binární — jako text ho ukázat nejde. Otevře se
+      // v přehrávači tabulatur, takže se musí nejdřív dostat do zpěvníku.
+      setStatusMessage({
+        type: result.libraryEntry?.stored ? 'success' : 'error',
+        text: result.libraryEntry?.stored
+          ? `„${result.song}" je Guitar Pro soubor. Dejte „Do Zpěvníku" a otevře se v přehrávači tabulatur.`
+          : `„${result.song}" je zatím jen v rejstříku — soubor nahrán není. Nahrajte ho skriptem index-tab-library.ts s přepínačem --upload.`,
+      });
+      return;
+    }
+
     if (result.viewable === false) {
       setStatusMessage({
         type: 'error',
@@ -163,7 +211,58 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   };
 
   // Import directly to Songbook
+  /**
+   * Tabulatura z vlastní sbírky je Guitar Pro soubor, ne text s akordy —
+   * do zpěvníku se proto připojí jako příloha odkazem do úložiště, přesně
+   * jako u hromadného importu tabů. Přehrávač si ji pak vykreslí.
+   */
+  const handleImportLibraryEntry = async (entry: TabLibraryEntry) => {
+    setStatusMessage(null);
+    const url = await tabLibraryService.fileUrl(entry);
+    if (!url) {
+      setStatusMessage({
+        type: 'error',
+        text: `Soubor „${entry.title}" ještě není nahraný — je zatím jen v rejstříku sbírky.`,
+      });
+      return;
+    }
+
+    const newSong: Song = {
+      id: crypto.randomUUID(),
+      title: entry.title,
+      artist: entry.artist,
+      key: 'C',
+      bpm: 120,
+      content: '',
+      chordsUsed: [],
+      attachments: [
+        {
+          id: crypto.randomUUID(),
+          name: `${entry.title}.${entry.format}`,
+          type: 'guitarpro',
+          dataUrl: url,
+          storageBucket: entry.storageBucket || 'assets',
+          storagePath: entry.storagePath || undefined,
+          size: entry.sizeBytes || undefined,
+          uploadedAt: Date.now(),
+        } as SongAttachment,
+      ],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    onSongImported(newSong);
+    setStatusMessage({
+      type: 'success',
+      text: `„${entry.artist} — ${entry.title}" přidán do zpěvníku i s tabulaturou.`,
+    });
+  };
+
   const handleImportToSongbook = async (resultOrSong: FreetarSearchResult | any) => {
+    if (resultOrSong.source === 'library' && resultOrSong.libraryEntry) {
+      return handleImportLibraryEntry(resultOrSong.libraryEntry);
+    }
+
     setStatusMessage(null);
     let songData = resultOrSong;
 
