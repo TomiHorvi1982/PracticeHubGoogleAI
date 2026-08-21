@@ -35,10 +35,14 @@ interface FreetarSearchResult {
   id: string;
   artist: string;
   song: string;
-  path: string;
+  path?: string;
   url: string;
-  rating: string;
+  rating: string | number | null;
   type: string;
+  /** Odkud výsledek přišel — určuje, kterým endpointem se stahuje obsah. */
+  source?: 'ultimate-guitar' | 'freetar';
+  /** `false` u placených verzí (Pro/Official), jejichž obsah UG nevydá. */
+  viewable?: boolean;
 }
 
 export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
@@ -79,32 +83,72 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     setSearchError(null);
     setStatusMessage(null);
 
-    try {
-      const res = await fetch(`/api/freetar-search?q=${encodeURIComponent(term.trim())}`);
-      const data = await res.json();
+    // Hledá se přímo na Ultimate Guitar. Freetar je jen jeho frontend a jeho
+    // proxy začala vracet prázdno, takže na něj spoléhat nejde — zůstává jako
+    // záloha pro případ, že by UG odmítl odpovědět.
+    const zdroje: { nazev: string; url: string; source: 'ultimate-guitar' | 'freetar' }[] = [
+      { nazev: 'Ultimate Guitar', url: '/api/ug-search', source: 'ultimate-guitar' },
+      { nazev: 'Freetar.de', url: '/api/freetar-search', source: 'freetar' },
+    ];
 
-      if (data.results && Array.isArray(data.results)) {
-        setSearchResults(data.results);
-        if (data.results.length === 0) {
-          setSearchError(`Pro "${term}" nebyly na Freetar.de nalezeny žádné tabulatury. Zkuste jiný název nebo interpreta.`);
+    const potize: string[] = [];
+
+    try {
+      for (const zdroj of zdroje) {
+        try {
+          const res = await fetch(`${zdroj.url}?q=${encodeURIComponent(term.trim())}`);
+          const data = await res.json();
+          const results: FreetarSearchResult[] = Array.isArray(data.results) ? data.results : [];
+
+          if (results.length > 0) {
+            setSearchResults(results.map((r) => ({ ...r, source: r.source || zdroj.source })));
+            setSearchError(null);
+            if (potize.length) {
+              setStatusMessage({
+                type: 'success',
+                text: `Nalezeno přes ${zdroj.nazev}. ${potize.join(' ')}`,
+              });
+            }
+            return;
+          }
+
+          potize.push(
+            data.error
+              ? `${zdroj.nazev}: ${data.error}`
+              : `${zdroj.nazev}: nic nenašel.`
+          );
+        } catch (e: any) {
+          potize.push(`${zdroj.nazev}: ${e?.message || 'nedostupný'}.`);
         }
-      } else {
-        setSearchError(data.error || 'Chyba při vyhledávání tabulatur.');
       }
-    } catch (err: any) {
-      console.error('Freetar search error:', err);
-      setSearchError('Nepodařilo se připojit k vyhledávači Freetar: ' + (err?.message || 'Neznámá chyba'));
+
+      setSearchResults([]);
+      setSearchError(
+        `Pro „${term}" se nic nenašlo.\n${potize.join('\n')}`
+      );
     } finally {
       setIsSearching(false);
     }
   };
 
   // Preview or fetch tab content from Freetar
+  /** Obsah tabulatury si každý zdroj podává jinak, tvar odpovědi je ale stejný. */
+  const tabEndpointFor = (result: FreetarSearchResult) =>
+    result.source === 'freetar' ? '/api/freetar-tab' : '/api/ug-tab';
+
   const handlePreviewTab = async (result: FreetarSearchResult) => {
+    if (result.viewable === false) {
+      setStatusMessage({
+        type: 'error',
+        text: `„${result.song}" je placená verze (${result.type}) — její obsah Ultimate Guitar nevydá. Zkuste jinou verzi ze seznamu.`,
+      });
+      return;
+    }
+
     setIsLoadingTab(true);
     setTabTranspose(0);
     try {
-      const res = await fetch(`/api/freetar-tab?url=${encodeURIComponent(result.url)}`);
+      const res = await fetch(`${tabEndpointFor(result)}?url=${encodeURIComponent(result.url)}`);
       const data = await res.json();
       if (data.success && data.song) {
         setPreviewTab(data.song);
@@ -123,16 +167,26 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     setStatusMessage(null);
     let songData = resultOrSong;
 
-    if (resultOrSong.path && resultOrSong.url) {
-      // It's a search result row, fetch full tab first
+    // Řádek z výsledků nese jen odkaz, obsah se musí došáhnout. Rozpozná se
+    // podle toho, že ještě nemá `content` — dřív se testovalo `path`, které
+    // ale výsledky z Ultimate Guitar nemají, takže by se importovala
+    // prázdná skladba.
+    if (resultOrSong.url && !resultOrSong.content) {
       try {
-        const res = await fetch(`/api/freetar-tab?url=${encodeURIComponent(resultOrSong.url)}`);
+        const res = await fetch(`${tabEndpointFor(resultOrSong)}?url=${encodeURIComponent(resultOrSong.url)}`);
         const data = await res.json();
         if (data.success && data.song) {
           songData = data.song;
+        } else {
+          setStatusMessage({
+            type: 'error',
+            text: data.error || 'Obsah tabulatury se nepodařilo stáhnout.',
+          });
+          return;
         }
-      } catch (e) {
-        console.error('Fetch tab error:', e);
+      } catch (e: any) {
+        setStatusMessage({ type: 'error', text: 'Chyba při stahování tabulatury: ' + e?.message });
+        return;
       }
     }
 

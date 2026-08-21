@@ -1504,6 +1504,159 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
     }
   });
 
+  // --- Ultimate Guitar ---
+  //
+  // Freetar je jen frontend k ultimate-guitar.com a chodí tam přes vlastní
+  // proxy (proxy.freetar.de). Ta začala na každý dotaz vracet prázdno, takže
+  // vyhledávání ve Freetaru přestalo fungovat — na naší straně to opravit
+  // nejde. Chodíme proto na Ultimate Guitar rovnou.
+  //
+  // UG si data vkládá do stránky jako JSON v atributu `data-content` na
+  // `<div class="js-store">`. Je to stejný zdroj, ze kterého četl Freetar.
+
+  const UG_HEADERS = {
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+
+  /** Dekóduje entity z HTML atributu — JSON v `data-content` je jimi celý prošpikovaný. */
+  function decodeHtmlAttr(s: string): string {
+    return s
+      .replace(/&quot;/g, '"')
+      .replace(/&#0?39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&#(\d+);/g, (_, d) => String.fromCharCode(parseInt(d, 10)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
+      .replace(/&amp;/g, '&'); // až nakonec, jinak by rozbil entity výše
+  }
+
+  async function fetchUgStore(url: string): Promise<any> {
+    const r = await fetch(url, { headers: UG_HEADERS });
+    if (!r.ok) throw new Error(`Ultimate Guitar odpověděl HTTP ${r.status}`);
+    const html = await r.text();
+    const m = html.match(/class="js-store"\s+data-content="([\s\S]*?)"\s*>/);
+    if (!m) {
+      // Typicky když UG požádá o ověření prohlížeče nebo zablokuje IP.
+      throw new Error('Ultimate Guitar nevrátil data — pravděpodobně blokuje tento server.');
+    }
+    return JSON.parse(decodeHtmlAttr(m[1]));
+  }
+
+  /** Typy, které jdou v appce zobrazit. „Pro" a „Official" jsou placené a vrací se jen jako informace. */
+  const UG_VIEWABLE = new Set(['Tabs', 'Chords', 'Bass Tabs', 'Drum Tabs', 'Ukulele Chords', 'Power']);
+
+  app.get('/api/ug-search', async (req, res) => {
+    const query = String(req.query.q || req.query.search_term || '').trim();
+    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10) || 1);
+    if (!query) return res.json({ success: true, query: '', results: [], totalPages: 0 });
+
+    try {
+      const url = `https://www.ultimate-guitar.com/search.php?search_type=title&value=${encodeURIComponent(
+        query
+      )}&page=${page}`;
+      const data = await fetchUgStore(url);
+      const pageData = data?.store?.page?.data || {};
+      const raw: any[] = Array.isArray(pageData.results) ? pageData.results : [];
+
+      const results = raw
+        .filter((r) => r?.tab_url && r?.song_name)
+        // Výsledky bez typu míří na `/pro/?…` — to nejsou tabulatury, ale
+        // reklama na placenou aplikaci UG. V seznamu nemají co dělat.
+        .filter((r) => r.type && !String(r.tab_url).includes('/pro/?'))
+        .map((r) => ({
+          id: `ug_${r.id ?? r.tab_url}`,
+          artist: r.artist_name || '',
+          song: r.song_name || '',
+          url: r.tab_url as string,
+          type: r.type as string,
+          rating: typeof r.rating === 'number' ? Math.round(r.rating * 100) / 100 : null,
+          votes: r.votes ?? null,
+          version: r.version ?? null,
+          tuning: r.tonality_name || null,
+          viewable: UG_VIEWABLE.has(r.type),
+          source: 'ultimate-guitar' as const,
+        }));
+
+      res.json({
+        success: true,
+        query,
+        page,
+        totalPages: pageData?.pagination?.total ?? 1,
+        count: results.length,
+        results,
+      });
+    } catch (err: any) {
+      console.error('UG search error:', err?.message);
+      res.status(502).json({
+        error: err?.message || 'Vyhledávání na Ultimate Guitar selhalo.',
+        source: 'ultimate-guitar',
+        results: [],
+      });
+    }
+  });
+
+  app.get('/api/ug-tab', async (req, res) => {
+    const url = String(req.query.url || '').trim();
+    if (!/^https:\/\/(tabs\.)?ultimate-guitar\.com\//.test(url)) {
+      return res.status(400).json({ error: 'Očekávám odkaz na ultimate-guitar.com.' });
+    }
+
+    try {
+      const data = await fetchUgStore(url);
+      const pageData = data?.store?.page?.data || {};
+      const tab = pageData.tab || {};
+      const view = pageData.tab_view || {};
+      const content = view?.wiki_tab?.content || '';
+
+      if (!content) {
+        return res.status(404).json({
+          error:
+            tab.type === 'Pro' || tab.type === 'Official'
+              ? 'Tohle je placená verze (Pro/Official) — její obsah Ultimate Guitar nevydá.'
+              : 'Tabulatura neobsahuje žádný text.',
+          type: tab.type || null,
+        });
+      }
+
+      // UG značkuje akordy `[ch]Am[/ch]` a tabulaturové bloky `[tab]…[/tab]`.
+      // Akordy jdou proto vytáhnout přesně, ne hádat regulárem z textu.
+      const chordsUsed = Array.from(
+        new Set(Array.from(content.matchAll(/\[ch\](.*?)\[\/ch\]/g), (m: any) => m[1].trim()))
+      ).filter(Boolean);
+      const plain = content.replace(/\[\/?(?:ch|tab)\]/g, '');
+
+      // Stejný tvar jako /api/freetar-tab, aby s ním appka uměla bez rozlišování zdroje.
+      res.json({
+        success: true,
+        song: {
+          title: tab.song_name || '',
+          artist: tab.artist_name || '',
+          key: tab.tonality_name || '',
+          bpm: 120,
+          capo: view?.meta?.capo ? String(view.meta.capo) : '',
+          tuning: view?.meta?.tuning?.value || 'E A D G B E',
+          content: plain,
+          chordsUsed,
+          sourceUrl: url,
+          sourceName: 'Ultimate Guitar',
+        },
+        meta: {
+          type: tab.type || null,
+          difficulty: tab.difficulty || null,
+          tuningName: view?.meta?.tuning?.name || null,
+          rating: tab.rating ?? null,
+        },
+      });
+    } catch (err: any) {
+      console.error('UG tab error:', err?.message);
+      res.status(502).json({ error: err?.message || 'Načtení tabulatury selhalo.' });
+    }
+  });
+
   // Freetar.de Native Search API Endpoint
   app.get('/api/freetar-search', async (req, res) => {
     const rawQuery = (req.query.q || req.query.search_term || '') as string;
