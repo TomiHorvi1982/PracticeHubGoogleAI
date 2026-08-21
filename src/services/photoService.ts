@@ -2,6 +2,7 @@ import { BandPhoto } from '../types';
 import { supabase } from './supabaseClient';
 import { authService } from './authService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { fileUrlService } from './fileUrlService';
 
 type PhotoCallback = (photos: BandPhoto[]) => void;
 
@@ -90,13 +91,11 @@ class PhotoService {
   }
 
   private async rowToPhoto(row: AssetRow): Promise<BandPhoto> {
-    const { data: signed } = await supabase.storage
-      .from(row.storage_bucket)
-      .createSignedUrl(row.storage_path, 60 * 60 * 24 * 60); // 60 days
+    const signedUrl = await fileUrlService.getOne(row.storage_bucket, row.storage_path);
     return {
       id: row.id,
       title: row.name,
-      dataUrl: signed?.signedUrl || '',
+      dataUrl: signedUrl || '',
       type: row.metadata.photoType || 'upload',
       authorId: row.metadata.authorId || '',
       authorName: row.metadata.authorName || 'Člen',

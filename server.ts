@@ -3,6 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { isR2Configured, signedDownloadUrl, deleteObject as r2Delete } from './r2';
 
 dotenv.config();
 
@@ -48,6 +49,41 @@ declare global {
 }
 
 /** Verifies the Bearer token against Supabase Auth. 401s if missing/invalid. */
+
+/**
+ * Soubory kapely leží v Cloudflare R2 (`storage_bucket === 'r2'`), starší
+ * záznamy ještě v Supabase Storage. Tahle dvojice to skrývá, aby volající
+ * nemusel řešit, odkud soubor je.
+ *
+ * Podepisování R2 vyžaduje tajný klíč, takže musí zůstat na serveru —
+ * proto si klient odkazy vyžádá přes /api/files/sign a nepodepisuje si je sám.
+ */
+async function signStorageUrl(bucket: string, key: string, expiresIn = 60 * 60 * 12): Promise<string | null> {
+  if (bucket === 'r2') {
+    if (!isR2Configured) return null;
+    try {
+      return await signedDownloadUrl(key, expiresIn);
+    } catch (e: any) {
+      console.warn('[storage] R2 podpis selhal:', e?.message);
+      return null;
+    }
+  }
+  const { data, error } = await getSupabaseAdmin().storage.from(bucket).createSignedUrl(key, expiresIn);
+  if (error) {
+    console.warn('[storage] Supabase podpis selhal:', error.message);
+    return null;
+  }
+  return data?.signedUrl || null;
+}
+
+async function removeStorageObject(bucket: string, key: string): Promise<void> {
+  if (bucket === 'r2') {
+    if (isR2Configured) await r2Delete(key);
+    return;
+  }
+  await getSupabaseAdmin().storage.from(bucket).remove([key]);
+}
+
 async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -490,6 +526,40 @@ export async function createApp() {
   });
 
   // List assets visible to the caller: their own + all global ones, optionally filtered.
+  /**
+   * Podepsané odkazy na soubory pro prohlížeč.
+   *
+   * Klient si je podepsat nemůže: R2 k tomu potřebuje tajný klíč, který se
+   * do balíčku staženého návštěvníkem nesmí dostat. Posílá se dávka, protože
+   * zpěvník otevírá desítky příloh naráz a jeden dotaz na soubor by byl
+   * zbytečný provoz.
+   *
+   * Vyžaduje přihlášení — bez něj by se odkazy na soukromá data rozdávaly
+   * komukoliv, kdo zná cestu.
+   */
+  app.post('/api/files/sign', requireAuth, async (req, res) => {
+    const items = Array.isArray(req.body?.items) ? req.body.items : [];
+    if (items.length === 0) return res.json({ urls: {} });
+    if (items.length > 200) {
+      return res.status(400).json({ error: 'Najednou lze podepsat nejvýš 200 souborů.' });
+    }
+
+    const expiresIn = Math.min(Math.max(Number(req.body?.expiresIn) || 60 * 60 * 12, 60), 60 * 60 * 24);
+    const urls: Record<string, string> = {};
+
+    await Promise.all(
+      items.map(async (it: any) => {
+        const bucket = String(it?.bucket || '');
+        const key = String(it?.path || '');
+        if (!bucket || !key) return;
+        const url = await signStorageUrl(bucket, key, expiresIn);
+        if (url) urls[`${bucket}/${key}`] = url;
+      })
+    );
+
+    res.json({ urls });
+  });
+
   app.get('/api/assets', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
     const ownerFilter = req.query.owner as string | undefined; // 'mine' | 'global' | undefined (both)
@@ -528,8 +598,8 @@ export async function createApp() {
       return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
     }
 
-    const { data: signed } = await admin.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 3600);
-    res.json({ asset, download_url: signed?.signedUrl || null });
+    const downloadUrl = await signStorageUrl(asset.storage_bucket, asset.storage_path, 3600);
+    res.json({ asset, download_url: downloadUrl });
   });
 
   // Update an asset's display metadata (never storage_path/owner_id/bucket).
@@ -570,7 +640,7 @@ export async function createApp() {
       return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
     }
 
-    await admin.storage.from(asset.storage_bucket).remove([asset.storage_path]);
+    await removeStorageObject(asset.storage_bucket, asset.storage_path);
     const { error } = await admin.from('assets').delete().eq('id', req.params.id);
     if (error) {
       return res.status(500).json({ error: 'Nepodařilo se smazat asset.', details: error.message });
@@ -2326,15 +2396,15 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     const stems = await Promise.all(
       (stemRows || []).map(async (row: any) => {
         const asset = row.assets;
-        const { data: signed } = asset
-          ? await admin.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 3600)
-          : { data: null };
+        const downloadUrl = asset
+          ? await signStorageUrl(asset.storage_bucket, asset.storage_path, 3600)
+          : null;
         const label = STEM_TYPES.find((t) => t.id === row.stem_type)?.name || row.stem_type;
         return {
           id: row.stem_type,
           name: label,
           storagePath: asset?.storage_path || '',
-          downloadUrl: signed?.signedUrl || '',
+          downloadUrl: downloadUrl || '',
           format: 'wav',
           bitrateKbps: 192,
         };
@@ -2407,7 +2477,7 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
 
       for (const row of (stemRows as any[]) || []) {
         if (row.assets) {
-          await admin.storage.from(row.assets.storage_bucket).remove([row.assets.storage_path]);
+          await removeStorageObject(row.assets.storage_bucket, row.assets.storage_path);
         }
       }
 

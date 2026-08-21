@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { fileUrlService } from './fileUrlService';
 
 /**
  * Zvuková banka pro přehrávač Guitar Pro tabulatur.
@@ -82,15 +83,13 @@ async function writeCache(bytes: Uint8Array): Promise<void> {
 let inFlight: Promise<Uint8Array | null> | null = null;
 
 async function download(): Promise<Uint8Array | null> {
-  const { data, error } = await supabase.storage
-    .from(STORAGE_BUCKET)
-    .createSignedUrl(STORAGE_PATH, 60 * 30);
-  if (error || !data?.signedUrl) {
-    console.warn('[tabSoundfont] Podepsaný odkaz se nepodařilo získat:', error?.message);
+  const url = await fileUrlService.getOne(STORAGE_BUCKET, STORAGE_PATH);
+  if (!url) {
+    console.warn('[tabSoundfont] Podepsaný odkaz se nepodařilo získat.');
     return null;
   }
 
-  const res = await fetch(data.signedUrl);
+  const res = await fetch(url);
   if (!res.ok) {
     console.warn(`[tabSoundfont] Stažení selhalo: HTTP ${res.status}`);
     return null;

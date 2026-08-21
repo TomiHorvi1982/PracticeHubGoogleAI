@@ -4,6 +4,7 @@ import { sampledDrumEngine, DrumArticulation, VelocityTier } from './SampledDrum
 import { supabase } from './supabaseClient';
 import { authService } from './authService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { fileUrlService } from './fileUrlService';
 
 const DB_NAME = 'StrumCustomDrumKitsDB';
 const STORE_NAME = 'custom_kits';
@@ -189,11 +190,11 @@ class CustomDrumKitService {
         await Promise.all(
           assets.map(async (asset) => {
             keys.add(asset.metadata.key);
-            const { data: signed } = await supabase.storage.from(asset.storage_bucket).createSignedUrl(asset.storage_path, 3600);
-            if (!signed?.signedUrl) return;
+            const signedUrl = await fileUrlService.getOne(asset.storage_bucket, asset.storage_path);
+            if (!signedUrl) return;
             let dataUrl: string;
             try {
-              const res = await fetch(signed.signedUrl);
+              const res = await fetch(signedUrl);
               const blob = await res.blob();
               dataUrl = await this.readFileAsDataUrl(blob);
             } catch (e) {

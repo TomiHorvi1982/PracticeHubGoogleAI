@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { fileUrlService } from './fileUrlService';
 
 /**
  * Vlastní sbírka Guitar Pro tabulatur (tabulka `tab_library`).
@@ -109,13 +110,6 @@ export const tabLibraryService = {
    */
   async fileUrl(entry: TabLibraryEntry): Promise<string | null> {
     if (!entry.stored || !entry.storagePath) return null;
-    const { data, error } = await supabase.storage
-      .from(entry.storageBucket || 'assets')
-      .createSignedUrl(entry.storagePath, 60 * 60 * 12);
-    if (error || !data?.signedUrl) {
-      console.warn('[tabLibrary] Podepsaný odkaz se nepodařilo získat:', error?.message);
-      return null;
-    }
-    return data.signedUrl;
+    return fileUrlService.getOne(entry.storageBucket || 'assets', entry.storagePath);
   },
 };

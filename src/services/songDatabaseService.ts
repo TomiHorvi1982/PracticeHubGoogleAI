@@ -2,6 +2,7 @@ import { Song, SongAttachment } from '../types';
 import { supabase } from './supabaseClient';
 import { authService } from './authService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
+import { fileUrlService, FileRef } from './fileUrlService';
 
 type SongsCallback = (songs: Song[]) => void;
 
@@ -55,19 +56,14 @@ async function resolveStoredAttachments(songs: Song[]): Promise<void> {
   }
   if (byBucket.size === 0) return;
 
-  const urls = new Map<string, string>();
+  // Podepisuje server: soubory jsou v R2 a podpis k nim vyžaduje tajný
+  // klíč, který v prohlížeči být nesmí. Jde to jednou dávkou za celý
+  // zpěvník, ne dotaz na přílohu.
+  const refs: FileRef[] = [];
   for (const [bucket, paths] of byBucket) {
-    // 12 hours: long enough that a practice session never sees a link expire,
-    // short enough that a leaked URL doesn't stay useful.
-    const { data, error } = await supabase.storage.from(bucket).createSignedUrls([...paths], 60 * 60 * 12);
-    if (error) {
-      console.warn(`[songDatabaseService] Failed to sign ${bucket} attachments:`, error.message);
-      continue;
-    }
-    for (const entry of data || []) {
-      if (entry.path && entry.signedUrl) urls.set(`${bucket}/${entry.path}`, entry.signedUrl);
-    }
+    for (const p of paths) refs.push({ bucket, path: p });
   }
+  const urls = await fileUrlService.getMany(refs);
 
   for (const song of songs) {
     if (!song.attachments) continue;
