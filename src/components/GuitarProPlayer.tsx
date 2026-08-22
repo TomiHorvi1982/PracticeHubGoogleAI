@@ -234,12 +234,28 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       const api = new alphaTab.AlphaTabApi(containerRef.current, settings);
       apiRef.current = api;
 
-      // Pořádná zvuková banka (38 MB) se tahá až po vykreslení a mimo
-      // hlavní cestu — noty mají být na obrazovce hned, ne až po stažení.
+      // Zvuková banka se nasazuje AŽ po dokončeném vykreslení.
+      //
+      // Nasazení banky doprostřed vykreslování ho shodí: partitura se
+      // rozparsuje, stopy se vypíšou, ale plocha zůstane prázdná — uživatel
+      // vidí bílé pole a nikde žádná chyba. Poprvé to projde, protože se
+      // 38 MB stahuje déle než trvá vykreslení; podruhé je banka v paměti
+      // prohlížeče, nasadí se okamžitě a tab se přestane zobrazovat.
+      let vykresleno = false;
+      let cekajiciBanka: Uint8Array | null = null;
+
+      const nasadBanku = () => {
+        if (!vykresleno || !cekajiciBanka || cancelled || !apiRef.current) return;
+        const bytes = cekajiciBanka;
+        cekajiciBanka = null;
+        apiRef.current.loadSoundFont(bytes, false);
+      };
+
       loadTabSoundfont()
         .then((bytes) => {
-          if (cancelled || !bytes || !apiRef.current) return;
-          apiRef.current.loadSoundFont(bytes, false);
+          if (cancelled || !bytes) return;
+          cekajiciBanka = bytes;
+          nasadBanku();
         })
         .catch(() => {
           /* hraje se dál na vestavěnou banku */
@@ -265,6 +281,8 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
       api.renderFinished.on(() => {
         setIsLoading(false);
+        vykresleno = true;
+        nasadBanku();
       });
 
       api.playerStateChanged.on((args) => {
