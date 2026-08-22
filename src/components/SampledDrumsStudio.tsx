@@ -8,7 +8,6 @@ import {
   DrumMixerChannelConfig,
   VELOCITY_RANGES,
 } from '../services/SampledDrumEngine';
-import { DRUM_KITS, DrumKitOption } from '../data/drumKits';
 import { drumKitFactory } from '../services/drumKitFactory';
 import { customDrumKitService } from '../services/customDrumKitService';
 import { CustomDrumKit } from '../types';
@@ -85,6 +84,19 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
 }) => {
   const [activeKitId, setActiveKitId] = useState<string>(sampledDrumEngine.getActiveKitId());
   const [customKits, setCustomKits] = useState<CustomDrumKit[]>([]);
+
+  /**
+   * Engine si pamatuje naposledy vybranou sadu, což bývá některá z
+   * vestavěných syntetizovaných. Ty se ale už nenabízejí — bez tohohle
+   * přepnutí by výběr ukazoval prázdno a pady by dál hrály náhradní zvuk
+   * místo nahraných vzorků.
+   */
+  useEffect(() => {
+    if (customKits.length === 0) return;
+    if (customKits.some((k) => k.id === activeKitId)) return;
+    handleKitChange(customKits[0].id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customKits, activeKitId]);
   const [activeVoiceEvent, setActiveVoiceEvent] = useState<DrumVoiceEvent | null>(null);
   const [voiceHistory, setVoiceHistory] = useState<DrumVoiceEvent[]>([]);
   const [selectedVelocityTier, setSelectedVelocityTier] = useState<VelocityTier>('med');
@@ -267,8 +279,6 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
     });
   };
 
-  const activeKitObj = DRUM_KITS.find((k) => k.id === activeKitId);
-
   return (
     <div className="space-y-5">
       {/* 1. TOP BAR: Drum Kit Selector, Engine Mode, Humanize Presets, Library Navigation */}
@@ -317,21 +327,17 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                 onChange={(e) => handleKitChange(e.target.value)}
                 className="bg-[#1C1C1E] text-white font-bold text-xs p-1.5 rounded-xl border border-white/10 outline-none cursor-pointer focus:border-[#FF9F0A]"
               >
-                <optgroup label="Akustické &amp; Studiové sady">
-                  {DRUM_KITS.map((k) => (
-                    <option key={k.id} value={k.id}>
-                      {k.icon} {k.czName}
+                {/* Nabízejí se jen vlastní sady. Vestavěné syntetizované sady
+                    se do výběru nedávají — pady, na které si uživatel namapuje
+                    vlastní vzorky, mají hrát ty vzorky, ne náhradní zvuk. */}
+                {customKits.length === 0 ? (
+                  <option value="">Zatím žádná sada — nahrajte vzorky</option>
+                ) : (
+                  customKits.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.icon || '🥁'} {c.name}
                     </option>
-                  ))}
-                </optgroup>
-                {customKits.length > 0 && (
-                  <optgroup label="Uživatelské sady (My Library)">
-                    {customKits.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.icon || '🥁'} {c.name}
-                      </option>
-                    ))}
-                  </optgroup>
+                  ))
                 )}
               </select>
             </div>
