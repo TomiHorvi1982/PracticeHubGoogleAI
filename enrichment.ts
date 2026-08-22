@@ -494,3 +494,157 @@ export async function doplnPisen(
     poznamky,
   };
 }
+
+/** Text tabulatury z Ultimate Guitar, i s akordy v hranatých závorkách. */
+export async function stahniUgTab(url: string): Promise<{ obsah: string; akordy: string[] } | null> {
+  try {
+    const data = await ugStore(url);
+    const obsahRaw: string = data?.store?.page?.data?.tab_view?.wiki_tab?.content || '';
+    if (!obsahRaw) return null;
+
+    const akordy = [...new Set(Array.from(obsahRaw.matchAll(/\[ch\](.*?)\[\/ch\]/g), (m: any) => m[1].trim()))];
+    // UG značí akordy `[ch]G[/ch]`; zpěvník používá `[G]`, což je zápis,
+    // kterému rozumí modul Text a akordy.
+    const obsah = obsahRaw
+      .replace(/\[ch\](.*?)\[\/ch\]/g, (_, a) => `[${a.trim()}]`)
+      .replace(/\[\/?tab\]/g, '')
+      .trim();
+    return { obsah, akordy };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Zapíše nálezy ke skladbě.
+ *
+ * Ručně zadané hodnoty se nepřepisují. Za vlastní se považuje jen to, co
+ * doplňování samo dřív vyplnilo — vede si o tom seznam v `metadata.derived`,
+ * stejně jako obnova textů z Wordu.
+ */
+export async function pripojNalezy(
+  songId: string,
+  vysledek: VysledekDoplneni
+): Promise<{ pripojeno: string[]; nabidnuto: number }> {
+  const admin = supabaseAdmin();
+  const { data: song } = await admin.from('songs').select('metadata').eq('id', songId).single();
+  if (!song) return { pripojeno: [], nabidnuto: 0 };
+
+  const md: Record<string, any> = song.metadata || {};
+  const odvozene: string[] = Array.isArray(md.derived) ? md.derived : [];
+  const smiPsat = (pole: string) => !md[pole] || odvozene.includes(pole);
+
+  const nove: Record<string, any> = {};
+  const pripojeno: string[] = [];
+
+  // Text s akordy z Ultimate Guitar má přednost před samotným textem —
+  // akordy nad slovy jsou to, s čím se hraje, ne text sám o sobě.
+  const akordovy = vysledek.jiste.find((n) => n.druh === 'akordy' && n.odkaz.url);
+  if (akordovy?.odkaz.url && smiPsat('content')) {
+    const tab = await stahniUgTab(akordovy.odkaz.url);
+    if (tab && tab.obsah.length > 60) {
+      nove.content = tab.obsah;
+      pripojeno.push('content');
+      if (tab.akordy.length && smiPsat('chordsUsed')) {
+        nove.chordsUsed = tab.akordy;
+        pripojeno.push('chordsUsed');
+      }
+    }
+  }
+
+  // Text z lrclib jen tehdy, když akordová verze nedorazila.
+  if (!nove.content) {
+    const text = vysledek.jiste.find((n) => n.druh === 'text' && n.odkaz.obsah);
+    if (text?.odkaz.obsah && smiPsat('content')) {
+      nove.content = text.odkaz.obsah;
+      pripojeno.push('content');
+    }
+  }
+
+  // Tónina z akordů, když ji soubor neuvedl.
+  const akordy: string[] = nove.chordsUsed || md.chordsUsed || [];
+  if (akordy.length >= 3 && smiPsat('key')) {
+    const { odhadniToninu } = await import('./src/services/songEnrichment');
+    const odhad = odhadniToninu(akordy);
+    if (odhad) {
+      nove.key = odhad.tonina;
+      pripojeno.push('key');
+    }
+  }
+
+  const tempo = [...vysledek.jiste, ...vysledek.navrhy].find((n) => n.tempo)?.tempo;
+  if (tempo && smiPsat('bpm')) {
+    nove.bpm = tempo;
+    pripojeno.push('bpm');
+  }
+
+  // Guitar Pro z lokální sbírky se připojí odkazem, ne kopií — soubor už
+  // v úložišti leží a druhá kopie by jen zabrala místo.
+  const stavajici = Array.isArray(md.attachments) ? md.attachments : [];
+  const jizPripojene = new Set(stavajici.map((a: any) => a.storagePath).filter(Boolean));
+  const prilohy = vysledek.jiste
+    .filter((n) => n.druh === 'guitar_pro' && n.odkaz.tabLibraryId && n.odkaz.url)
+    .filter((n) => !jizPripojene.has(n.odkaz.url))
+    .slice(0, 3)
+    .map((n) => ({
+      id: n.odkaz.tabLibraryId!,
+      name: n.nazev,
+      type: 'guitarpro' as const,
+      dataUrl: '',
+      storageBucket: 'r2',
+      storagePath: n.odkaz.url!,
+      uploadedAt: Date.now(),
+    }));
+
+  if (prilohy.length) {
+    nove.attachments = [...stavajici, ...prilohy];
+    pripojeno.push(`${prilohy.length}× tabulatura`);
+  }
+
+  // Tabulatury z Ultimate Guitar, které se nepoužily jako text písně.
+  // Bez tohohle by se ztratily: mezi jistými nálezy jsou, ale příloha z nich
+  // není (leží na webu, ne v úložišti), takže by zápis prošel a zahodil je.
+  const stavajiciOdkazy = Array.isArray(md.links) ? md.links : [];
+  const znameUrl = new Set(stavajiciOdkazy.map((o: any) => o.url));
+  const noveOdkazy = vysledek.jiste
+    .filter((n) => n.odkaz.url?.startsWith('http') && n.odkaz.url !== akordovy?.odkaz.url)
+    .filter((n) => !znameUrl.has(n.odkaz.url))
+    .map((n) => ({
+      id: `ug_${Math.abs(hashText(n.odkaz.url!))}`,
+      title: n.nazev,
+      url: n.odkaz.url!,
+      category: n.druh === 'akordy' ? ('chords' as const) : ('tab' as const),
+    }));
+  if (noveOdkazy.length) {
+    nove.links = [...stavajiciOdkazy, ...noveOdkazy];
+    pripojeno.push(`${noveOdkazy.length}× odkaz`);
+  }
+
+  // Nejisté nálezy se ukládají k písni jako nabídka, ne jako data.
+  nove.navrhy = vysledek.navrhy.map((n) => ({
+    druh: n.druh,
+    nazev: n.nazev,
+    zdroj: n.zdroj,
+    jistota: Math.round(n.jistota * 100) / 100,
+    odkaz: n.odkaz,
+  }));
+  nove.doplneno = { kdy: new Date().toISOString(), poznamky: vysledek.poznamky };
+
+  const poleKUlozeni = pripojeno.filter((p) => !p.includes('×'));
+  await admin
+    .from('songs')
+    .update({
+      metadata: { ...md, ...nove, derived: [...new Set([...odvozene, ...poleKUlozeni])] },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', songId);
+
+  return { pripojeno, nabidnuto: vysledek.navrhy.length };
+}
+
+/** Krátký otisk textu — slouží jen k odlišení odkazů, ne k bezpečnosti. */
+function hashText(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return h;
+}

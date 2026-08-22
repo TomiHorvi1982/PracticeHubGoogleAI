@@ -3,6 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { doplnPisen, pripojNalezy, rozeberNazev } from './enrichment';
 import { isR2Configured, signedDownloadUrl, getObjectBytes, deleteObject as r2Delete } from './r2';
 
 dotenv.config();
@@ -937,6 +938,41 @@ export async function createApp() {
     res.setHeader('Content-Type', odpoved.contentType || 'application/octet-stream');
     res.setHeader('Cache-Control', 'private, max-age=300');
     res.send(Buffer.from(odpoved.body));
+  });
+
+  /**
+   * Dohledá k písni materiály a připojí, co je jisté.
+   *
+   * Trvá to sekundy: hledá se ve třech zdrojích a mezi dotazy ven se čeká,
+   * protože Ultimate Guitar ani lrclib nejsou naše služby. Klient si proto
+   * odpověď nemá vynucovat na popředí — má ji brát jako výsledek úlohy.
+   */
+  app.post('/api/songs/:id/enrich', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: song } = await admin
+      .from('songs')
+      .select('id, title, artist')
+      .eq('id', req.params.id)
+      .single();
+    if (!song) return res.status(404).json({ error: 'Skladba nenalezena.' });
+
+    try {
+      // Název může být pořád ve tvaru, v jakém přišel z YouTube.
+      const zNazvu = rozeberNazev(song.title);
+      const interpret =
+        song.artist && song.artist !== 'Neznámý interpret' ? song.artist : zNazvu.interpret;
+      if (!interpret) {
+        return res.status(422).json({
+          error: 'U skladby není interpret a nejde vyčíst z názvu — bez něj nemá hledání kde začít.',
+        });
+      }
+
+      const vysledek = await doplnPisen(interpret, zNazvu.nazev || song.title);
+      const zapis = await pripojNalezy(song.id, vysledek);
+      res.json({ ...vysledek, ...zapis });
+    } catch (e: any) {
+      res.status(500).json({ error: 'Doplňování selhalo.', details: e?.message });
+    }
   });
 
   // Get one asset's metadata + a short-lived signed download URL.
