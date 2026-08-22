@@ -1052,47 +1052,64 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
       }
 
       const html = await fetchRes.text();
-      const videoIds: string[] = [];
-      const videoIdRegex = /"videoId"\s*:\s*"([a-zA-Z0-9_-]{11})"/g;
-      let match;
-      while ((match = videoIdRegex.exec(html)) !== null) {
-        const id = match[1];
-        if (!videoIds.includes(id)) {
-          videoIds.push(id);
-        }
-        if (videoIds.length >= 30) break;
-      }
 
-      const titles: string[] = [];
-      const titleRegex = /"title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"/g;
-      let titleMatch;
-      while ((titleMatch = titleRegex.exec(html)) !== null) {
-        const t = titleMatch[1];
-        if (!titles.includes(t) && t !== 'Video') {
-          titles.push(t);
-        }
-        if (titles.length >= 30) break;
-      }
-
+      // ID i název se berou ze STEJNÉHO objektu.
+      //
+      // Dřív se HTML procházelo dvakrát nezávisle — jednou pro `"videoId"`,
+      // jednou pro `"title"` — a výsledky se párovaly podle pořadí. Jenže
+      // `videoId` je v odpovědi i u playlistů, doporučených a náhledů,
+      // zatímco `title` i u nadpisů sekcí a jmen kanálů, takže se obě řady
+      // rozejdou a název jednoho videa dostane ID jiného. Uživatel pak
+      // klikne na jednu skladbu a spustí se druhá.
       const videos: any[] = [];
       const maxResults = 15;
-      for (let i = 0; i < Math.min(videoIds.length, maxResults); i++) {
-        const id = videoIds[i];
-        if (!id || id.length !== 11) continue;
-        
-        const titleStr = titles[i] || `${query} - Video ${i + 1}`;
-        const cleanTitle = titleStr
-          .replace(/\\u0026/g, '&')
-          .replace(/\\"/g, '"')
-          .replace(/\\'/g, "'");
 
-        videos.push({
-          id,
-          title: cleanTitle,
-          url: `https://www.youtube.com/watch?v=${id}`,
-          thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
-          type: 'backingtrack',
-          addedAt: Date.now()
+      const initial = html.match(/var ytInitialData\s*=\s*(\{.*?\});\s*<\/script>/s);
+      if (initial) {
+        const videna = new Set<string>();
+
+        const projdi = (uzel: any): void => {
+          if (videos.length >= maxResults) return;
+          if (Array.isArray(uzel)) {
+            for (const v of uzel) projdi(v);
+            return;
+          }
+          if (!uzel || typeof uzel !== 'object') return;
+
+          const id = uzel.videoId;
+          const nadpis = uzel.title;
+          if (typeof id === 'string' && id.length === 11 && nadpis && typeof nadpis === 'object' && !videna.has(id)) {
+            const text = nadpis.runs?.[0]?.text ?? nadpis.simpleText;
+            if (typeof text === 'string' && text.trim()) {
+              videna.add(id);
+              videos.push({
+                id,
+                title: text,
+                url: `https://www.youtube.com/watch?v=${id}`,
+                thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
+                duration: uzel.lengthText?.simpleText || undefined,
+                channel: uzel.ownerText?.runs?.[0]?.text || uzel.longBylineText?.runs?.[0]?.text || undefined,
+                type: 'backingtrack',
+                addedAt: Date.now(),
+              });
+            }
+          }
+
+          for (const v of Object.values(uzel)) projdi(v);
+        };
+
+        try {
+          projdi(JSON.parse(initial[1]));
+        } catch (e: any) {
+          console.warn('[youtube] ytInitialData se nepodařilo přečíst:', e?.message);
+        }
+      }
+
+      if (videos.length === 0) {
+        // Radši nic než spárovat názvy s cizími odkazy.
+        return res.status(502).json({
+          error: 'YouTube vrátil odpověď, ze které nešlo přečíst výsledky.',
+          videos: [],
         });
       }
 
