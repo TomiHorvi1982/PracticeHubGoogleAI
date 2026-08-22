@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MidiPlayerPanel } from './MidiPlayerPanel';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
 import { instrumentFactory } from '../services/instrumentFactory';
 import { drumKitFactory } from '../services/drumKitFactory';
@@ -191,7 +192,7 @@ const BASE_PIANO_LAYOUT = [
 ];
 
 export const VirtualInstruments: React.FC = () => {
-  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'guitar_tools'>('piano');
+  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'midi' | 'guitar_tools'>('piano');
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
   const [isSoundLibraryOpen, setIsSoundLibraryOpen] = useState(false);
   const [soundLibCategory, setSoundLibCategory] = useState<string>('all');
@@ -627,6 +628,17 @@ export const VirtualInstruments: React.FC = () => {
               <span>Bicí</span>
             </button>
             <button
+              onClick={() => setActiveInstTab('midi')}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeInstTab === 'midi'
+                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Music className={`w-3.5 h-3.5 ${activeInstTab === 'midi' ? 'text-[#FF9F0A]' : ''}`} />
+              <span>MIDI</span>
+            </button>
+            <button
               onClick={() => setActiveInstTab('guitar_tools')}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeInstTab === 'guitar_tools'
@@ -640,6 +652,9 @@ export const VirtualInstruments: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* MIDI PŘEHRÁVAČ */}
+      {activeInstTab === 'midi' && <MidiPlayerPanel />}
 
       {/* 🎹 PIANO TAB */}
       {activeInstTab === 'piano' && (
