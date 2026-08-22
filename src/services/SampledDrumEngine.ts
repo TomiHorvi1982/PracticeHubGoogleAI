@@ -1136,10 +1136,15 @@ export class SampledDrumEngine {
   public triggerPad(
     articulation: DrumArticulation,
     rawVelocity: number = 100,
-    kitId: string = this.activeKitId
+    kitId: string = this.activeKitId,
+    atTime?: number
   ): AudioBufferSourceNode | null {
     const ctx = this.ensureAudioGraph();
-    const now = ctx.currentTime;
+    // `atTime` je čas na audio hodinách, kdy má úder znít. Looper si takhle
+    // plánuje dopředu — kdyby se spoléhal na časovač prohlížeče, groove by
+    // se rozjížděl, protože ten se zpožďuje o desítky milisekund a na
+    // bicích je to slyšet okamžitě.
+    const now = atTime !== undefined ? Math.max(atTime, ctx.currentTime) : ctx.currentTime;
 
     // 1. Calculate Exact Velocity (1..127) & Velocity Tier
     let midiVelocity = rawVelocity <= 1.0 ? Math.round(rawVelocity * 127) : Math.round(rawVelocity);
@@ -1258,10 +1263,14 @@ export class SampledDrumEngine {
   /**
    * Translates standard MIDI Note Numbers (e.g. 36 = Kick, 38 = Snare, 42 = Closed HH) into drum articulations
    */
-  public triggerMidiNote(midiNote: number, velocity: number = 100): AudioBufferSourceNode | null {
+  public triggerMidiNote(
+    midiNote: number,
+    velocity: number = 100,
+    atTime?: number
+  ): AudioBufferSourceNode | null {
     const art = this.midiNoteToArticulation(midiNote);
     if (!art) return null;
-    return this.triggerPad(art, velocity);
+    return this.triggerPad(art, velocity, this.activeKitId, atTime);
   }
 
   public midiNoteToArticulation(midiNote: number): DrumArticulation | null {

@@ -635,6 +635,242 @@ export async function createApp() {
     res.json({ assets: data, total: count ?? data?.length ?? 0, limit, offset });
   });
 
+  // --- BICÍ GROOVY -----------------------------------------------------
+  //
+  // Sbírka bicích MIDI má přes pět tisíc souborů, ale jen zhruba čtvrtinu
+  // různých grooves — každý je uložený několikrát v různých formátech
+  // (Type 0, Type 1, GM, Groove Clips…). Prohlížeč tedy nemůže dostat
+  // seznam tak, jak leží v databázi; musel by v něm člověk šestkrát míjet
+  // tentýž „Ballad 01“.
+  //
+  // Členění taky není ve sloupcích — je v cestě k souboru, kterou
+  // sync-folder uložil do `metadata.legacy_id`. Rozebírá se tady, aby
+  // prohlížeč nestahoval pět tisíc řádků a netřídil je sám.
+
+  interface DrumPackDef {
+    id: string;
+    prefix: string;
+    label: string;
+  }
+
+  const DRUM_PACKS: DrumPackDef[] = [
+    { id: 'mdl', prefix: 'MDL Tone Ultimate Heavy MIDI Grooves', label: 'MDL Tone — Heavy' },
+    { id: 'smartloops', prefix: 'Smart.Loops.MIDI.Drums.Loops.Complete.MIDI-AudioP2P', label: 'Smart Loops' },
+  ];
+
+  interface GrooveEntry {
+    id: string;
+    name: string;
+    pack: string;
+    packLabel: string;
+    group: string;
+    style: string;
+    role: 'groove' | 'fill' | 'intro' | 'end';
+    bars: number | null;
+    bpm: number | null;
+    variant: string;
+  }
+
+  /**
+   * Pořadí formátů od nejlépe hratelného. Engine mapuje standardní GM
+   * čísla not, takže varianta psaná pro GM sedne bez dohadování; „Manual“
+   * bývá jen dokumentace k balíku.
+   */
+  function skoreVarianty(cesta: string): number {
+    const c = cesta.toLowerCase();
+    if (c.includes('general midi') || /\/gm\//.test(c)) return 1;
+    if (c.includes('type 0')) return 2;
+    if (c.includes('type 1')) return 3;
+    if (c.includes('gm enhanced')) return 4;
+    if (c.includes('groove clips')) return 5;
+    if (c.includes('manual')) return 9;
+    return 6;
+  }
+
+  /** Rozebere cestu k souboru na styl, roli, délku a tempo. */
+  function rozeberGroove(id: string, nazev: string, legacyId: string): GrooveEntry | null {
+    const cesta = String(legacyId || '').replace(/^sync:/, '');
+    const pack = DRUM_PACKS.find((p) => cesta.startsWith(p.prefix));
+    if (!pack) return null;
+
+    const zbytek = cesta.slice(pack.prefix.length).replace(/^\//, '');
+    const segmenty = zbytek.split('/');
+    const soubor = segmenty.pop() || nazev;
+    const zaklad = soubor.replace(/\.midi?$/i, '');
+
+    // Tempo nese u MDL Tone název složky („Song 06 166bpm“).
+    let bpm: number | null = null;
+    const mBpm = zbytek.match(/(\d{2,3})\s*bpm/i);
+    if (mBpm) bpm = parseInt(mBpm[1], 10);
+
+    // Délka smyčky bývá v závorce za názvem („(2 bars)“).
+    let bars: number | null = null;
+    const mBars = zaklad.match(/\((\d+)\s*bars?\)/i);
+    if (mBars) bars = parseInt(mBars[1], 10);
+
+    // Role: co je přechod (fill) a co doprovod. Rozlišuje se podle slova
+    // v názvu, protože obojí leží ve stejné složce.
+    //
+    // Podtržítka se musí nejdřív nahradit mezerami. `_` je totiž pro
+    // regulární výraz slovní znak, takže `\bFILL\b` na „Song_06_Fill_01“
+    // nesedne a všechny přechody by se tvářily jako doprovody.
+    const citelny = zaklad.replace(/_/g, ' ');
+    const velky = citelny.toUpperCase();
+    let role: GrooveEntry['role'] = 'groove';
+    if (/\bFILL\b/.test(velky)) role = 'fill';
+    else if (/\b(INTRO|COUNT)\b/.test(velky)) role = 'intro';
+    else if (/\b(END|ENDING|OUTRO)\b/.test(velky)) role = 'end';
+
+    // Styl = název bez pořadového čísla, závorky s takty a slov o roli.
+    // Z „Latin Rap 06 (2 bars)“ zbude „Latin Rap“ a ze „Song_06_Fill_01“
+    // „Song 06“ — obojí se pak dá seskupit s ostatními ze stejné rodiny.
+    const style =
+      citelny
+        .replace(/\(\s*\d+\s*bars?\s*\)/gi, '')
+        .replace(/\b(BUILDUP|PICKUP|HAT|RIDE|CRASH|TOM|HALF|DOUBLE)?\s*\b(FILL|GROOVE|INTRO|END|ENDING|OUTRO|COUNT)\b/gi, ' ')
+        .replace(/[\s-]*\d+\s*$/g, '')
+        .replace(/\s+/g, ' ')
+        .trim() || citelny;
+
+    // Skupina, pod kterou se položka v prohlížeči zařadí. U MDL Tone je to
+    // skladba s tempem, u Smart Loops díl sbírky a případná sada.
+    const kit = segmenty.find((s) => /kit$/i.test(s));
+    const vol = segmenty.find((s) => /^vol/i.test(s));
+    const group = [vol, kit].filter(Boolean).join(' · ') || segmenty[0] || pack.label;
+
+    return {
+      id,
+      name: zaklad,
+      pack: pack.id,
+      packLabel: pack.label,
+      group,
+      style,
+      role,
+      bars,
+      bpm,
+      variant: zbytek,
+    };
+  }
+
+  /**
+   * Rozebraná sbírka. Drží se v paměti, protože se při každém psaní do
+   * hledání nemá znovu stahovat a znovu parsovat pět tisíc cest.
+   */
+  let grooveCache: { entries: GrooveEntry[]; builtAt: number } | null = null;
+  const GROOVE_CACHE_MS = 10 * 60 * 1000;
+
+  async function nactiGroovy(): Promise<GrooveEntry[]> {
+    if (grooveCache && Date.now() - grooveCache.builtAt < GROOVE_CACHE_MS) {
+      return grooveCache.entries;
+    }
+
+    const admin = getSupabaseAdmin();
+    const syrove: { id: string; name: string; legacy: string }[] = [];
+
+    for (const pack of DRUM_PACKS) {
+      let od = 0;
+      for (;;) {
+        // PostgREST vrací po tisíci řádcích, takže se musí stránkovat —
+        // jinak by se sbírka tvářila, že má přesně tisíc grooves.
+        const { data, error } = await admin
+          .from('assets')
+          .select('id,name,metadata')
+          .eq('status', 'active')
+          .eq('category', 'midi')
+          .like('metadata->>legacy_id', `sync:${pack.prefix}%`)
+          .range(od, od + 999);
+        if (error) throw new Error(error.message);
+        if (!data || data.length === 0) break;
+        for (const a of data) {
+          syrove.push({ id: a.id, name: a.name, legacy: String((a.metadata as any)?.legacy_id || '') });
+        }
+        if (data.length < 1000) break;
+        od += 1000;
+      }
+    }
+
+    // Sloučení formátových variant. Klíč nese i sadu (Percussion / Dry
+    // Studio), protože ta mění obsazení nástrojů — to jsou dva různé
+    // grooves, ne dvě kopie jednoho.
+    const nejlepsi = new Map<string, GrooveEntry>();
+    for (const r of syrove) {
+      const e = rozeberGroove(r.id, r.name, r.legacy);
+      if (!e) continue;
+      const kit = e.variant.split('/').find((s) => /kit$/i.test(s)) || '';
+      const klic = `${e.pack}|${kit.toLowerCase()}|${e.name.toLowerCase()}`;
+      const stavajici = nejlepsi.get(klic);
+      if (!stavajici || skoreVarianty(e.variant) < skoreVarianty(stavajici.variant)) {
+        nejlepsi.set(klic, e);
+      }
+    }
+
+    const entries = [...nejlepsi.values()].sort(
+      (a, b) => a.packLabel.localeCompare(b.packLabel) || a.style.localeCompare(b.style) || a.name.localeCompare(b.name)
+    );
+    grooveCache = { entries, builtAt: Date.now() };
+    return entries;
+  }
+
+  // Členění sbírky: balíky a styly i s počty, aby šlo klikat místo psaní.
+  app.get('/api/drum-grooves/facets', requireAuth, async (_req, res) => {
+    try {
+      const entries = await nactiGroovy();
+      const packy = new Map<string, { id: string; label: string; count: number; styles: Map<string, number> }>();
+
+      for (const e of entries) {
+        if (!packy.has(e.pack)) {
+          packy.set(e.pack, { id: e.pack, label: e.packLabel, count: 0, styles: new Map() });
+        }
+        const p = packy.get(e.pack)!;
+        p.count++;
+        p.styles.set(e.style, (p.styles.get(e.style) || 0) + 1);
+      }
+
+      res.json({
+        total: entries.length,
+        packs: [...packy.values()].map((p) => ({
+          id: p.id,
+          label: p.label,
+          count: p.count,
+          styles: [...p.styles.entries()]
+            .map(([style, count]) => ({ style, count }))
+            .sort((a, b) => b.count - a.count || a.style.localeCompare(b.style)),
+        })),
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: 'Nepodařilo se načíst členění grooves.', details: e.message });
+    }
+  });
+
+  app.get('/api/drum-grooves', requireAuth, async (req, res) => {
+    try {
+      const entries = await nactiGroovy();
+      const pack = String(req.query.pack || '').trim();
+      const style = String(req.query.style || '').trim();
+      const role = String(req.query.role || '').trim();
+      const search = String(req.query.search || '').trim().toLowerCase();
+      const limit = Math.min(Math.max(parseInt(String(req.query.limit || '100'), 10) || 100, 1), 300);
+      const offset = Math.max(parseInt(String(req.query.offset || '0'), 10) || 0, 0);
+
+      const filtrovane = entries.filter((e) => {
+        if (pack && e.pack !== pack) return false;
+        if (style && e.style !== style) return false;
+        if (role && e.role !== role) return false;
+        if (search && !e.name.toLowerCase().includes(search) && !e.style.toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      res.json({
+        grooves: filtrovane.slice(offset, offset + limit),
+        total: filtrovane.length,
+        limit,
+        offset,
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: 'Nepodařilo se načíst grooves.', details: e.message });
+    }
+  });
+
   // Get one asset's metadata + a short-lived signed download URL.
   app.get('/api/assets/:id', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();

@@ -1,33 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   sampledDrumEngine,
   DrumArticulation,
-  VelocityTier,
-  DrumVoiceEvent,
   DrumMixerChannelName,
   DrumMixerChannelConfig,
-  VELOCITY_RANGES,
 } from '../services/SampledDrumEngine';
 import { drumKitFactory } from '../services/drumKitFactory';
 import { customDrumKitService } from '../services/customDrumKitService';
+import { drumGrooveService, Groove, GroovePackFacet, LoopState } from '../services/drumGrooveService';
+import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import { CustomDrumKit } from '../types';
 import {
   Disc,
-  Volume2,
-  VolumeX,
-  Sparkles,
   Sliders,
   Play,
-  Pause,
-  RotateCcw,
-  Layers,
-  Wand2,
-  Activity,
-  Zap,
-  Info,
-  Laptop,
-  Check,
-  FolderOpen
+  Square,
+  Repeat,
+  Search,
+  Loader2,
+  X,
+  Plus,
+  FolderOpen,
+  ChevronDown,
+  Music4,
 } from 'lucide-react';
 
 interface SampledDrumsStudioProps {
@@ -37,58 +32,70 @@ interface SampledDrumsStudioProps {
 
 interface PadTriggerDef {
   id: DrumArticulation;
-  name: string;
   czName: string;
   keyLabel: string;
   category: 'kick' | 'snare' | 'hihat' | 'toms' | 'cymbals' | 'perc';
   icon: string;
-  midiNote: number;
 }
 
 const DRUM_PAD_GRID: PadTriggerDef[] = [
-  // Kick & Snares
-  { id: 'kick', name: 'Kick Drum', czName: 'Kopák (Center)', keyLabel: 'Q', category: 'kick', icon: '🥁', midiNote: 36 },
-  { id: 'snare', name: 'Snare Center', czName: 'Virbl (Střed)', keyLabel: 'W', category: 'snare', icon: '🪘', midiNote: 38 },
-  { id: 'snare_rimshot', name: 'Snare Rimshot', czName: 'Virbl (Rimshot)', keyLabel: 'E', category: 'snare', icon: '💥', midiNote: 40 },
-  { id: 'snare_sidestick', name: 'Snare Cross-Stick', czName: 'Virbl (Side-Stick)', keyLabel: 'R', category: 'snare', icon: '🪵', midiNote: 37 },
-
-  // Hi-Hats
-  { id: 'hihat_closed', name: 'Hi-Hat Closed', czName: 'Hi-Hat (Zavřená)', keyLabel: 'A', category: 'hihat', icon: '🪙', midiNote: 42 },
-  { id: 'hihat_semi', name: 'Hi-Hat Semi-Open', czName: 'Hi-Hat (Polootevřená)', keyLabel: 'S', category: 'hihat', icon: '✨', midiNote: 23 },
-  { id: 'hihat_open', name: 'Hi-Hat Open', czName: 'Hi-Hat (Otevřená)', keyLabel: 'D', category: 'hihat', icon: '🌟', midiNote: 46 },
-  { id: 'hihat_pedal', name: 'Hi-Hat Pedal Chick', czName: 'Hi-Hat (Pedál)', keyLabel: 'F', category: 'hihat', icon: '🦶', midiNote: 44 },
-
-  // Toms
-  { id: 'tom_high', name: 'High Rack Tom', czName: 'Malý přechod 10"', keyLabel: 'T', category: 'toms', icon: '🪘', midiNote: 48 },
-  { id: 'tom_mid', name: 'Mid Rack Tom', czName: 'Střední přechod 12"', keyLabel: 'Y', category: 'toms', icon: '🪘', midiNote: 45 },
-  { id: 'tom_low', name: 'Floor Tom', czName: 'Kotel 16"', keyLabel: 'U', category: 'toms', icon: '🥁', midiNote: 41 },
-
-  // Cymbals
-  { id: 'crash_left', name: 'Crash Cymbal 16"', czName: 'Crash činel 16"', keyLabel: 'G', category: 'cymbals', icon: '💥', midiNote: 49 },
-  { id: 'crash_right', name: 'Crash Cymbal 18"', czName: 'Crash činel 18"', keyLabel: 'H', category: 'cymbals', icon: '⚡', midiNote: 57 },
-  { id: 'ride_bow', name: 'Ride Cymbal (Bow)', czName: 'Ride (Tělo)', keyLabel: 'J', category: 'cymbals', icon: '🛸', midiNote: 51 },
-  { id: 'ride_bell', name: 'Ride Cymbal (Bell)', czName: 'Ride (Zvon)', keyLabel: 'K', category: 'cymbals', icon: '🔔', midiNote: 53 },
-  { id: 'china', name: 'China Cymbal', czName: 'China činel', keyLabel: 'L', category: 'cymbals', icon: '🔥', midiNote: 52 },
-  { id: 'splash', name: 'Splash Cymbal', czName: 'Splash činel', keyLabel: 'Z', category: 'cymbals', icon: '💦', midiNote: 55 },
-
-  // Percussion
-  { id: 'tambourine', name: 'Tambourine', czName: 'Tamburína', keyLabel: 'X', category: 'perc', icon: '🪇', midiNote: 54 },
-  { id: 'cowbell', name: 'Cowbell', czName: 'Kravský zvonec', keyLabel: 'C', category: 'perc', icon: '🛎️', midiNote: 56 },
-  { id: 'shaker', name: 'Studio Shaker', czName: 'Šejkr', keyLabel: 'V', category: 'perc', icon: '🧂', midiNote: 69 },
-  { id: 'handclap', name: 'Hand Clap', czName: 'Tlesknutí', keyLabel: 'B', category: 'perc', icon: '👏', midiNote: 39 },
+  { id: 'kick', czName: 'Kopák', keyLabel: 'Q', category: 'kick', icon: '🥁' },
+  { id: 'snare', czName: 'Virbl', keyLabel: 'W', category: 'snare', icon: '🪘' },
+  { id: 'snare_rimshot', czName: 'Virbl — rimshot', keyLabel: 'E', category: 'snare', icon: '💥' },
+  { id: 'snare_sidestick', czName: 'Virbl — side-stick', keyLabel: 'R', category: 'snare', icon: '🪵' },
+  { id: 'hihat_closed', czName: 'Hi-hat zavřená', keyLabel: 'A', category: 'hihat', icon: '🪙' },
+  { id: 'hihat_semi', czName: 'Hi-hat pootevřená', keyLabel: 'S', category: 'hihat', icon: '✨' },
+  { id: 'hihat_open', czName: 'Hi-hat otevřená', keyLabel: 'D', category: 'hihat', icon: '🌟' },
+  { id: 'hihat_pedal', czName: 'Hi-hat pedál', keyLabel: 'F', category: 'hihat', icon: '🦶' },
+  { id: 'tom_high', czName: 'Přechod malý', keyLabel: 'T', category: 'toms', icon: '🪘' },
+  { id: 'tom_mid', czName: 'Přechod střední', keyLabel: 'Y', category: 'toms', icon: '🪘' },
+  { id: 'tom_low', czName: 'Kotel', keyLabel: 'U', category: 'toms', icon: '🥁' },
+  { id: 'crash_left', czName: 'Crash 16"', keyLabel: 'G', category: 'cymbals', icon: '💥' },
+  { id: 'crash_right', czName: 'Crash 18"', keyLabel: 'H', category: 'cymbals', icon: '⚡' },
+  { id: 'ride_bow', czName: 'Ride', keyLabel: 'J', category: 'cymbals', icon: '🛸' },
+  { id: 'ride_bell', czName: 'Ride — zvon', keyLabel: 'K', category: 'cymbals', icon: '🔔' },
+  { id: 'china', czName: 'China', keyLabel: 'L', category: 'cymbals', icon: '🔥' },
+  { id: 'splash', czName: 'Splash', keyLabel: 'Z', category: 'cymbals', icon: '💦' },
+  { id: 'tambourine', czName: 'Tamburína', keyLabel: 'X', category: 'perc', icon: '🪇' },
+  { id: 'cowbell', czName: 'Zvonec', keyLabel: 'C', category: 'perc', icon: '🛎️' },
+  { id: 'shaker', czName: 'Šejkr', keyLabel: 'V', category: 'perc', icon: '🧂' },
+  { id: 'handclap', czName: 'Tlesknutí', keyLabel: 'B', category: 'perc', icon: '👏' },
 ];
+
+/** Barva rámečku podle dílu sady — kopák modrý, virbl jantarový a tak dál. */
+const BARVA_PADU: Record<PadTriggerDef['category'], string> = {
+  kick: 'from-blue-950/30 border-blue-500/20 hover:border-blue-400/50',
+  snare: 'from-amber-950/30 border-amber-500/20 hover:border-amber-400/50',
+  hihat: 'from-emerald-950/30 border-emerald-500/20 hover:border-emerald-400/50',
+  toms: 'from-purple-950/30 border-purple-500/20 hover:border-purple-400/50',
+  cymbals: 'from-yellow-950/30 border-yellow-500/20 hover:border-yellow-400/50',
+  perc: 'from-neutral-900/60 border-white/10 hover:border-white/25',
+};
+
+/** Kolik variant zvuku smí mít jeden pad. Víc než pět už nikdo nerozezná. */
+const MAX_VARIANT = 5;
+
+const POPIS_ROLE: Record<string, string> = {
+  groove: 'Doprovod',
+  fill: 'Přechod',
+  intro: 'Nájezd',
+  end: 'Zakončení',
+};
 
 export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
   onOpenCustomKitModal,
   onNavigateToLibrary,
 }) => {
-  const [activeKitId, setActiveKitId] = useState<string>(sampledDrumEngine.getActiveKitId());
-  const [customKits, setCustomKits] = useState<CustomDrumKit[]>([]);
+  const [kit, setKit] = useState<CustomDrumKit | null>(null);
+  const [mixerConfig, setMixerConfig] = useState<Record<DrumMixerChannelName, DrumMixerChannelConfig>>(
+    sampledDrumEngine.getMixerConfig()
+  );
+  const [poslednirPad, setPoslednirPad] = useState<DrumArticulation | null>(null);
 
   /**
-   * Úrovně pro ukazatele u faderů. Odečítají se z enginu ve smyčce
-   * vykreslování, ne přes interval — tím jde v krok se snímky obrazovky
-   * a při skryté kartě se prohlížeč sám zastaví.
+   * Úrovně pro ukazatele u faderů. Odečítají se ve smyčce vykreslování, ne
+   * přes interval — jdou tak v krok se snímky obrazovky a při skryté kartě
+   * se prohlížeč sám zastaví.
    */
   const [urovne, setUrovne] = useState<Record<string, number>>({});
 
@@ -107,616 +114,695 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
     };
   }, []);
 
-  /**
-   * Engine si pamatuje naposledy vybranou sadu, což bývá některá z
-   * vestavěných syntetizovaných. Ty se ale už nenabízejí — bez tohohle
-   * přepnutí by výběr ukazoval prázdno a pady by dál hrály náhradní zvuk
-   * místo nahraných vzorků.
-   */
+  // --- SADA ---------------------------------------------------------------
+  // Sada je jedna. Engine si ale pamatuje naposledy vybranou, což bývá
+  // některá z vestavěných syntetizovaných — ty se už nenabízejí, takže se
+  // musí přepnout, jinak by pady hrály náhradní zvuk místo vzorků.
   useEffect(() => {
-    if (customKits.length === 0) return;
-    if (customKits.some((k) => k.id === activeKitId)) return;
-    handleKitChange(customKits[0].id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [customKits, activeKitId]);
-  const [activeVoiceEvent, setActiveVoiceEvent] = useState<DrumVoiceEvent | null>(null);
-  const [voiceHistory, setVoiceHistory] = useState<DrumVoiceEvent[]>([]);
-  const [selectedVelocityTier, setSelectedVelocityTier] = useState<VelocityTier>('med');
-  const [testPadVelocity, setTestPadVelocity] = useState<number>(85);
-  const [lastTriggeredPad, setLastTriggeredPad] = useState<DrumArticulation>('snare');
-
-  // Mixer State
-  const [mixerConfig, setMixerConfig] = useState<Record<DrumMixerChannelName, DrumMixerChannelConfig>>(
-    sampledDrumEngine.getMixerConfig()
-  );
-  const [activeMixerTab, setActiveMixerTab] = useState<'faders' | 'eq' | 'fx'>('faders');
-
-  // Humanize State
-  const [humanize, setHumanize] = useState(sampledDrumEngine.getHumanizeSettings());
-
-  // Sequencer State
-  const [bpm, setBpm] = useState(120);
-  const [isPlayingSeq, setIsPlayingSeq] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const seqTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const stepRef = useRef(0);
-
-  // 16-step grid with velocity numbers (0 = off, 40 = ghost, 80 = normal, 120 = accent)
-  const [seqGrid, setSeqGrid] = useState<Record<string, number[]>>(() => {
-    const grid: Record<string, number[]> = {
-      kick: [120, 0, 0, 0, 0, 0, 80, 0, 120, 0, 0, 0, 0, 0, 80, 0],
-      snare: [0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 120, 0, 0, 35],
-      hihat_closed: [80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80],
-      hihat_open: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0],
-      tom_high: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      tom_low: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      crash_left: [120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-      ride_bow: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    const nastav = async (kits: CustomDrumKit[]) => {
+      const prvni = kits[0] || null;
+      setKit(prvni);
+      if (prvni && sampledDrumEngine.getActiveKitId() !== prvni.id) {
+        await drumKitFactory.switchKit(prvni.id);
+      }
     };
-    return grid;
-  });
+    void nastav(customDrumKitService.getAllKits());
+    const odhlas = customDrumKitService.subscribe((kits) => void nastav(kits));
+    return odhlas;
+  }, []);
 
-  // Subscribe to Drum Engine Voices & State
   useEffect(() => {
-    const unsubVoice = sampledDrumEngine.subscribeVoice((event) => {
-      setActiveVoiceEvent(event);
-      setVoiceHistory((prev) => [event, ...prev.slice(0, 9)]);
-      setLastTriggeredPad(event.articulation);
-    });
-
-    const unsubState = sampledDrumEngine.subscribeState(() => {
+    const odhlasStav = sampledDrumEngine.subscribeState(() => {
       setMixerConfig(sampledDrumEngine.getMixerConfig());
-      setHumanize(sampledDrumEngine.getHumanizeSettings());
-      setActiveKitId(sampledDrumEngine.getActiveKitId());
     });
-
-    // Load custom kits
-    setCustomKits(customDrumKitService.getAllKits());
-    const unsubCustom = customDrumKitService.subscribe(setCustomKits);
-
+    const odhlasHlas = sampledDrumEngine.subscribeVoice((e) => setPoslednirPad(e.articulation));
     return () => {
-      unsubVoice();
-      unsubState();
-      unsubCustom();
+      odhlasStav();
+      odhlasHlas();
     };
   }, []);
 
-  // Sequencer playback loop
+  // --- LOOPER -------------------------------------------------------------
+  const [loop, setLoop] = useState<LoopState>(drumGrooveService.getState());
+  useEffect(() => drumGrooveService.subscribe(setLoop), []);
+
+  // Když uživatel odejde jinam, smyčka nesmí hrát dál na pozadí.
+  useEffect(() => () => drumGrooveService.stop(), []);
+
+  // --- PROHLÍŽEČ GROOVES --------------------------------------------------
+  const [facets, setFacets] = useState<GroovePackFacet[]>([]);
+  const [celkemVeSbirce, setCelkemVeSbirce] = useState(0);
+  const [pack, setPack] = useState('');
+  const [styl, setStyl] = useState('');
+  const [role, setRole] = useState('');
+  const [hledani, setHledani] = useState('');
+  const [grooves, setGrooves] = useState<Groove[]>([]);
+  const [celkemNalezeno, setCelkemNalezeno] = useState(0);
+  const [nacitamSeznam, setNacitamSeznam] = useState(false);
+  const [chybaSbirky, setChybaSbirky] = useState<string | null>(null);
+  const [rozbaleny, setRozbaleny] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!isPlayingSeq) {
-      if (seqTimerRef.current) clearInterval(seqTimerRef.current);
-      stepRef.current = 0;
-      setCurrentStep(0);
-      return;
-    }
+    drumGrooveService
+      .facets()
+      .then((f) => {
+        setFacets(f.packs);
+        setCelkemVeSbirce(f.total);
+        if (f.packs.length && !pack) setRozbaleny(f.packs[0].id);
+      })
+      .catch((e) => setChybaSbirky(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const stepIntervalMs = (60 / bpm / 4) * 1000;
-    seqTimerRef.current = setInterval(() => {
-      const step = stepRef.current;
-      setCurrentStep(step);
+  // Hledání čeká, až člověk dopíše. Dotaz na každé písmeno by poslal pět
+  // požadavků na slovo a seznam by pod rukama poskakoval.
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setNacitamSeznam(true);
+      drumGrooveService
+        .browse({ pack, style: styl, role, search: hledani, limit: 150 })
+        .then((r) => {
+          setGrooves(r.grooves);
+          setCelkemNalezeno(r.total);
+          setChybaSbirky(null);
+        })
+        .catch((e) => setChybaSbirky(e.message))
+        .finally(() => setNacitamSeznam(false));
+    }, 250);
+    return () => clearTimeout(t);
+  }, [pack, styl, role, hledani]);
 
-      // Trigger all active instruments on this step with their programmed velocity
-      Object.entries(seqGrid).forEach(([artKey, stepVals]) => {
-        const vel = stepVals[step];
-        if (vel > 0) {
-          sampledDrumEngine.triggerPad(artKey as DrumArticulation, vel, activeKitId);
-        }
+  const vyberGroove = useCallback((g: Groove) => {
+    void drumGrooveService.load(g, true);
+  }, []);
+
+  // --- VÝBĚR VZORKŮ K PADŮM ----------------------------------------------
+  const [otevrenyPad, setOtevrenyPad] = useState<DrumArticulation | null>(null);
+  const [vzorky, setVzorky] = useState<LibraryAsset[]>([]);
+  const [hledaniVzorku, setHledaniVzorku] = useState('');
+  const [nacitamVzorky, setNacitamVzorky] = useState(false);
+  const [pridavam, setPridavam] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!otevrenyPad) return;
+    setNacitamVzorky(true);
+    assetLibraryService
+      .listPage({ category: 'drum_kit_sample', search: hledaniVzorku || undefined, limit: 120, sort: 'name' })
+      .then((r) => setVzorky(r.assets))
+      .catch(() => setVzorky([]))
+      .finally(() => setNacitamVzorky(false));
+  }, [otevrenyPad, hledaniVzorku]);
+
+  /** Varianty, které pad právě má — z vícevrstvé mapy sady. */
+  const variantyPadu = useCallback(
+    (art: DrumArticulation) => {
+      const vrstvy = kit?.multiLayers?.[art];
+      if (!vrstvy) return [] as { klic: string; name: string }[];
+      return Object.entries(vrstvy).map(([klic, v]) => ({ klic, name: v.name }));
+    },
+    [kit]
+  );
+
+  const pridejVzorek = async (art: DrumArticulation, asset: LibraryAsset) => {
+    if (!kit) return;
+    const stavajici = variantyPadu(art);
+    if (stavajici.length >= MAX_VARIANT) return;
+
+    setPridavam(asset.id);
+    try {
+      const url = await assetLibraryService.getDownloadUrl(asset.id);
+      if (!url) throw new Error('Knihovna nevrátila odkaz na soubor.');
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const dataUrl = await customDrumKitService.readFileAsDataUrl(blob);
+
+      // Varianty jedné hlasitosti se střídají (round-robin), aby opakovaný
+      // úder nezněl pokaždé úplně stejně. Nové číslo je první volné.
+      const obsazena = new Set(stavajici.map((v) => v.klic));
+      let rr = 1;
+      while (obsazena.has(`hard:rr${rr}`) && rr <= MAX_VARIANT) rr++;
+
+      const aktualizovana = await customDrumKitService.addMultiLayerSample(kit.id, art, {
+        tier: 'hard',
+        roundRobin: rr,
+        name: asset.name,
+        dataUrl,
+        size: Number(asset.size_bytes || 0),
+        uploadedAt: Date.now(),
       });
 
-      stepRef.current = (step + 1) % 16;
-    }, stepIntervalMs);
-
-    return () => {
-      if (seqTimerRef.current) clearInterval(seqTimerRef.current);
-    };
-  }, [isPlayingSeq, bpm, seqGrid, activeKitId]);
-
-  // Handle Pad Trigger
-  const handleTriggerPad = (articulation: DrumArticulation, velocity?: number) => {
-    const vel = velocity !== undefined ? velocity : testPadVelocity;
-    sampledDrumEngine.triggerPad(articulation, vel, activeKitId);
+      if (aktualizovana) {
+        setKit(aktualizovana);
+        // Bez tohohle by se nový zvuk ozval až po přenačtení stránky.
+        await sampledDrumEngine.preloadCustomKit(aktualizovana);
+      }
+    } catch {
+      /* chyba se projeví tím, že varianta nepřibude */
+    } finally {
+      setPridavam(null);
+    }
   };
 
-  // Keyboard shortcut listener
+  const odeberVzorek = async (art: DrumArticulation, klic: string) => {
+    if (!kit) return;
+    const [tier, rr] = klic.split(':');
+    const aktualizovana = await customDrumKitService.removeMultiLayerSample(
+      kit.id,
+      art,
+      tier as any,
+      parseInt(rr.replace('rr', ''), 10)
+    );
+    if (aktualizovana) setKit(aktualizovana);
+  };
+
+  // --- HRANÍ --------------------------------------------------------------
+  const zahrajPad = useCallback((art: DrumArticulation) => {
+    sampledDrumEngine.triggerPad(art, 100);
+  }, []);
+
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const naKlavesu = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      const key = e.key.toUpperCase();
-      const pad = DRUM_PAD_GRID.find((p) => p.keyLabel === key);
+      const pad = DRUM_PAD_GRID.find((p) => p.keyLabel === e.key.toUpperCase());
       if (pad) {
         e.preventDefault();
-        handleTriggerPad(pad.id);
+        zahrajPad(pad.id);
       }
     };
+    window.addEventListener('keydown', naKlavesu);
+    return () => window.removeEventListener('keydown', naKlavesu);
+  }, [zahrajPad]);
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeKitId, testPadVelocity]);
-
-  // Kit Change Handler
-  const handleKitChange = async (kitId: string) => {
-    setActiveKitId(kitId);
-    await drumKitFactory.switchKit(kitId);
-  };
-
-  // Preset Grooves
-  const handleLoadGroove = (type: 'rock' | 'funk' | 'metal' | 'shuffle' | 'disco') => {
-    const newGrid: Record<string, number[]> = {
-      kick: Array(16).fill(0),
-      snare: Array(16).fill(0),
-      hihat_closed: Array(16).fill(0),
-      hihat_open: Array(16).fill(0),
-      tom_high: Array(16).fill(0),
-      tom_low: Array(16).fill(0),
-      crash_left: Array(16).fill(0),
-      ride_bow: Array(16).fill(0),
-    };
-
-    if (type === 'rock') {
-      newGrid.kick = [120, 0, 0, 0, 0, 0, 85, 0, 120, 0, 0, 0, 0, 0, 85, 0];
-      newGrid.snare = [0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 120, 0, 0, 40];
-      newGrid.hihat_closed = [85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85, 85];
-      newGrid.crash_left = [120, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-      setBpm(118);
-    } else if (type === 'funk') {
-      newGrid.kick = [120, 0, 45, 0, 0, 0, 80, 0, 0, 95, 0, 0, 0, 40, 85, 0];
-      newGrid.snare = [0, 0, 0, 35, 120, 0, 0, 40, 0, 0, 40, 0, 120, 0, 0, 0];
-      newGrid.hihat_closed = [90, 40, 70, 40, 90, 40, 70, 40, 90, 40, 70, 40, 90, 40, 70, 40];
-      newGrid.hihat_open = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 110, 0];
-      setBpm(105);
-    } else if (type === 'metal') {
-      newGrid.kick = [120, 100, 120, 100, 120, 100, 120, 100, 120, 100, 120, 100, 120, 100, 120, 100];
-      newGrid.snare = [0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 120, 0, 0, 0];
-      newGrid.ride_bow = [95, 0, 95, 0, 95, 0, 95, 0, 95, 0, 95, 0, 95, 0, 95, 0];
-      newGrid.crash_left = [120, 0, 0, 0, 0, 0, 0, 0, 110, 0, 0, 0, 0, 0, 0, 0];
-      setBpm(145);
-    } else if (type === 'shuffle') {
-      newGrid.kick = [120, 0, 0, 0, 0, 0, 80, 0, 120, 0, 0, 0, 0, 0, 80, 0];
-      newGrid.snare = [0, 0, 0, 35, 120, 0, 0, 35, 0, 0, 0, 35, 120, 0, 0, 35];
-      newGrid.hihat_closed = [100, 0, 70, 0, 100, 0, 70, 0, 100, 0, 70, 0, 100, 0, 70, 0];
-      setBpm(128);
-    } else if (type === 'disco') {
-      newGrid.kick = [120, 0, 0, 0, 120, 0, 0, 0, 120, 0, 0, 0, 120, 0, 0, 0];
-      newGrid.snare = [0, 0, 0, 0, 120, 0, 0, 0, 0, 0, 0, 0, 120, 0, 0, 0];
-      newGrid.hihat_open = [0, 0, 110, 0, 0, 0, 110, 0, 0, 0, 110, 0, 0, 0, 110, 0];
-      newGrid.hihat_closed = [80, 0, 0, 0, 80, 0, 0, 0, 80, 0, 0, 0, 80, 0, 0, 0];
-      setBpm(120);
-    }
-
-    setSeqGrid(newGrid);
-  };
-
-  // Toggle step velocity
-  const handleToggleStep = (inst: string, stepIdx: number) => {
-    setSeqGrid((prev) => {
-      const line = [...(prev[inst] || Array(16).fill(0))];
-      const cur = line[stepIdx];
-      let next = 0;
-      if (cur === 0) next = 80; // Normal
-      else if (cur === 80) next = 120; // Accent
-      else if (cur === 120) next = 35; // Ghost Note
-      else next = 0; // Off
-      line[stepIdx] = next;
-      return { ...prev, [inst]: line };
-    });
-  };
+  const aktivniPack = facets.find((p) => p.id === pack);
 
   return (
     <div className="space-y-5">
-      {/* 1. TOP BAR: Drum Kit Selector, Engine Mode, Humanize Presets, Library Navigation */}
-      <div className="bg-[#16161A]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="p-2.5 bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30 rounded-2xl">
-              <Disc className="w-6 h-6 text-[#FF9F0A]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
-                  Sampled Drum Engine
-                </h2>
-                <span className="bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/30 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> Multi-Velocity &amp; Round-Robin Active
-                </span>
-              </div>
-              <p className="text-xs text-neutral-400">
-                Skutečné audio vzorky bicích s dynamickými vrstvami a eliminací machine-gun efektu.
-              </p>
-            </div>
+      {/* 1. LOOPER — přehrávač grooves z knihovny */}
+      <div className="bg-[#16161A]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Music4 className="w-4 h-4 text-[#FF9F0A]" /> Groovy z knihovny
+            </h3>
+            <p className="text-[11px] text-neutral-400">
+              {celkemVeSbirce > 0
+                ? `${celkemVeSbirce.toLocaleString('cs')} grooves ve sbírce. Vyber a hraje hned dokola.`
+                : 'Sbírka bicích MIDI z knihovny.'}
+            </p>
           </div>
-
-          {/* Quick Actions & Kit Chooser */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Library / Custom Kit Link */}
-            {onOpenCustomKitModal && (
-              <button
-                onClick={onOpenCustomKitModal}
-                className="flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
-                title="Spravovat vlastní vzorky a sady bicích"
-              >
-                <FolderOpen className="w-3.5 h-3.5 text-[#FF9F0A]" />
-                <span>My Library &bull; Sady bicích</span>
-              </button>
-            )}
-
-            {/* Drum Kit Profile Select */}
-            <div className="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-2xl border border-white/10">
-              <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-                Sada:
-              </span>
-              <select
-                value={activeKitId}
-                onChange={(e) => handleKitChange(e.target.value)}
-                className="bg-[#1C1C1E] text-white font-bold text-xs p-1.5 rounded-xl border border-white/10 outline-none cursor-pointer focus:border-[#FF9F0A]"
-              >
-                {/* Nabízejí se jen vlastní sady. Vestavěné syntetizované sady
-                    se do výběru nedávají — pady, na které si uživatel namapuje
-                    vlastní vzorky, mají hrát ty vzorky, ne náhradní zvuk. */}
-                {customKits.length === 0 ? (
-                  <option value="">Zatím žádná sada — nahrajte vzorky</option>
-                ) : (
-                  customKits.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.icon || '🥁'} {c.name}
-                    </option>
-                  ))
-                )}
-              </select>
-            </div>
-          </div>
+          {onNavigateToLibrary && (
+            <button
+              onClick={onNavigateToLibrary}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-bold text-neutral-300 transition-all cursor-pointer"
+            >
+              <FolderOpen className="w-3.5 h-3.5" /> Knihovna
+            </button>
+          )}
         </div>
 
-        {/* Real-time Voice & Round-Robin Telemetry Strip */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-2 border-t border-white/[0.06] text-xs">
-          {/* Active Trigger Monitor */}
-          <div className="bg-black/50 border border-white/10 px-3 py-2 rounded-xl flex items-center justify-between">
-            <span className="text-neutral-400 text-[11px] font-semibold flex items-center gap-1.5">
-              <Activity className="w-3.5 h-3.5 text-[#FF9F0A]" /> Poslední úder:
-            </span>
-            {activeVoiceEvent ? (
-              <span className="font-mono font-bold text-white flex items-center gap-1.5">
-                <span className="text-[#FF9F0A]">{activeVoiceEvent.articulation}</span>
-                <span className="bg-white/10 px-1.5 py-0.5 rounded text-[10px] text-neutral-300">
-                  Vel: {activeVoiceEvent.velocity}
-                </span>
-                <span className="bg-[#30D158]/20 text-[#30D158] border border-[#30D158]/40 px-1.5 py-0.5 rounded text-[10px]">
-                  RR #{activeVoiceEvent.roundRobinIndex}
-                </span>
-              </span>
-            ) : (
-              <span className="text-neutral-500 italic">Čekání na úder...</span>
-            )}
+        {chybaSbirky && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-3 text-[12px] text-red-300">
+            {chybaSbirky}
           </div>
+        )}
 
-          {/* Velocity Tier Indicator */}
-          <div className="bg-black/50 border border-white/10 px-3 py-2 rounded-xl flex items-center justify-between">
-            <span className="text-neutral-400 text-[11px] font-semibold flex items-center gap-1.5">
-              <Layers className="w-3.5 h-3.5 text-[#30D158]" /> Vrstva zvuku:
-            </span>
-            <span className="font-mono font-bold text-[#30D158] uppercase">
-              {activeVoiceEvent ? activeVoiceEvent.velocityTier.replace('_', ' ') : 'Medium (mf)'}
-            </span>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+          {/* Členění sbírky */}
+          <div className="space-y-2">
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                value={hledani}
+                onChange={(e) => setHledani(e.target.value)}
+                placeholder="Hledat groove…"
+                className="w-full bg-black/50 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[12px] text-white placeholder-neutral-500 outline-none focus:border-[#FF9F0A]/50"
+              />
+            </div>
 
-          {/* Humanize Intensity Selector */}
-          <div className="bg-black/50 border border-white/10 px-3 py-2 rounded-xl flex items-center justify-between gap-2">
-            <span className="text-neutral-400 text-[11px] font-semibold flex items-center gap-1.5 whitespace-nowrap">
-              <Wand2 className="w-3.5 h-3.5 text-purple-400" /> Humanize:
-            </span>
-            <div className="flex items-center gap-1">
+            <div className="flex gap-1">
               {[
-                { label: '0%', val: 0 },
-                { label: '10%', val: 0.1 },
-                { label: '25%', val: 0.25 },
-                { label: '50%', val: 0.5 },
-              ].map((h) => (
+                { id: '', label: 'Vše' },
+                { id: 'groove', label: 'Doprovody' },
+                { id: 'fill', label: 'Přechody' },
+              ].map((r) => (
                 <button
-                  key={h.label}
-                  onClick={() => sampledDrumEngine.setHumanizeIntensity(h.val)}
-                  className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold transition-all cursor-pointer ${
-                    humanize.intensity === h.val
-                      ? 'bg-purple-600 text-white shadow-sm'
-                      : 'bg-white/5 hover:bg-white/10 text-neutral-400'
+                  key={r.id}
+                  onClick={() => setRole(r.id)}
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                    role === r.id ? 'bg-[#FF9F0A] text-black' : 'bg-white/5 hover:bg-white/10 text-neutral-300'
                   }`}
                 >
-                  {h.label}
+                  {r.label}
                 </button>
               ))}
             </div>
+
+            <div className="bg-black/40 border border-white/10 rounded-2xl p-2 max-h-[340px] overflow-y-auto space-y-1 scrollbar-thin">
+              <button
+                onClick={() => {
+                  setPack('');
+                  setStyl('');
+                }}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  !pack ? 'bg-white/15 text-white' : 'text-neutral-400 hover:bg-white/5'
+                }`}
+              >
+                Všechny balíky
+              </button>
+
+              {facets.map((p) => (
+                <div key={p.id}>
+                  <button
+                    onClick={() => {
+                      setPack(p.id);
+                      setStyl('');
+                      setRozbaleny(rozbaleny === p.id ? null : p.id);
+                    }}
+                    className={`w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                      pack === p.id ? 'bg-[#FF9F0A]/15 text-[#FF9F0A]' : 'text-neutral-300 hover:bg-white/5'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 truncate">
+                      <ChevronDown
+                        className={`w-3 h-3 shrink-0 transition-transform ${rozbaleny === p.id ? '' : '-rotate-90'}`}
+                      />
+                      <span className="truncate">{p.label}</span>
+                    </span>
+                    <span className="text-[9px] font-mono text-neutral-500 shrink-0">{p.count}</span>
+                  </button>
+
+                  {rozbaleny === p.id && (
+                    <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/10 pl-2">
+                      {p.styles.map((s) => (
+                        <button
+                          key={s.style}
+                          onClick={() => {
+                            setPack(p.id);
+                            setStyl(styl === s.style ? '' : s.style);
+                          }}
+                          className={`w-full flex items-center justify-between gap-2 px-2 py-1 rounded-md text-[10px] transition-all cursor-pointer ${
+                            styl === s.style
+                              ? 'bg-white/15 text-white font-bold'
+                              : 'text-neutral-400 hover:bg-white/5'
+                          }`}
+                        >
+                          <span className="truncate">{s.style}</span>
+                          <span className="font-mono text-neutral-600 shrink-0">{s.count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Seznam a přehrávání */}
+          <div className="space-y-3">
+            {/* Transport */}
+            <div className="bg-black/50 border border-white/10 rounded-2xl p-3 space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={() => drumGrooveService.toggle()}
+                  disabled={!loop.groove || loop.nacita}
+                  className={`p-3 rounded-2xl transition-all cursor-pointer shadow-lg disabled:opacity-30 disabled:cursor-not-allowed ${
+                    loop.hraje ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-[#30D158] hover:bg-[#28b84d] text-black'
+                  }`}
+                  title={loop.hraje ? 'Zastavit' : 'Přehrát'}
+                >
+                  {loop.nacita ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : loop.hraje ? (
+                    <Square className="w-5 h-5 fill-current" />
+                  ) : (
+                    <Play className="w-5 h-5 fill-current" />
+                  )}
+                </button>
+
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-bold text-white truncate">
+                    {loop.groove ? loop.groove.name : 'Nic nevybráno'}
+                  </div>
+                  <div className="text-[10px] text-neutral-400 truncate">
+                    {loop.groove
+                      ? `${loop.groove.packLabel} · ${loop.groove.style}${
+                          loop.groove.bars ? ` · ${loop.groove.bars} t.` : ''
+                        }`
+                      : 'Vyber groove ze seznamu vpravo.'}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => drumGrooveService.setLoop(!loop.loop)}
+                  className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                    loop.loop
+                      ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]/50 text-[#FF9F0A]'
+                      : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
+                  }`}
+                  title={loop.loop ? 'Smyčka zapnutá' : 'Smyčka vypnutá'}
+                >
+                  <Repeat className="w-4 h-4" />
+                </button>
+
+                <div className="flex items-center gap-2 bg-black/60 px-3 py-1.5 rounded-xl border border-white/10">
+                  <span className="text-[10px] font-bold text-neutral-400">Tempo</span>
+                  <input
+                    type="number"
+                    min={40}
+                    max={300}
+                    value={loop.bpm}
+                    onChange={(e) => drumGrooveService.setBpm(parseInt(e.target.value, 10) || loop.bpm)}
+                    className="w-14 bg-[#1C1C1E] text-white font-mono font-bold text-xs p-1 rounded-lg border border-white/10 text-center outline-none"
+                  />
+                  <span className="text-[9px] font-mono text-neutral-500">BPM</span>
+                  {loop.puvodniBpm !== loop.bpm && (
+                    <button
+                      onClick={() => drumGrooveService.setBpm(loop.puvodniBpm)}
+                      className="text-[9px] font-mono text-[#FF9F0A] hover:underline cursor-pointer"
+                      title="Zpět na tempo ze souboru"
+                    >
+                      ↺ {loop.puvodniBpm}
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Ukazatel pozice ve smyčce */}
+              <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#FF9F0A] rounded-full"
+                  style={{ width: `${Math.round(loop.pozice * 100)}%`, transition: 'width 60ms linear' }}
+                />
+              </div>
+
+              {/* Které díly sady hrát */}
+              {loop.obsazene.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mr-1">Hraje:</span>
+                  {loop.obsazene.map((art) => {
+                    const pad = DRUM_PAD_GRID.find((p) => p.id === art);
+                    const vypnuty = loop.vypnute.has(art);
+                    return (
+                      <button
+                        key={art}
+                        onClick={() => drumGrooveService.togglePart(art)}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer border ${
+                          vypnuty
+                            ? 'bg-transparent border-white/10 text-neutral-600 line-through'
+                            : 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+                        }`}
+                        title={vypnuty ? 'Zapnout' : 'Vypnout'}
+                      >
+                        {pad?.czName || art}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Seznam grooves */}
+            <div className="bg-black/40 border border-white/10 rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-white/[0.06]">
+                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                  {aktivniPack ? aktivniPack.label : 'Vše'}
+                  {styl && ` · ${styl}`}
+                </span>
+                <span className="text-[10px] font-mono text-neutral-500">
+                  {nacitamSeznam ? '…' : `${Math.min(grooves.length, celkemNalezeno)} z ${celkemNalezeno}`}
+                </span>
+              </div>
+
+              <div className="max-h-[300px] overflow-y-auto scrollbar-thin divide-y divide-white/[0.04]">
+                {grooves.length === 0 && !nacitamSeznam && (
+                  <div className="p-6 text-center text-[12px] text-neutral-500">
+                    {celkemVeSbirce === 0
+                      ? 'Ve sbírce zatím nejsou žádné bicí groovy — nahrávání MIDI ještě běží.'
+                      : 'Nic neodpovídá.'}
+                  </div>
+                )}
+
+                {grooves.map((g) => {
+                  const aktivni = loop.groove?.id === g.id;
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => vyberGroove(g)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-all cursor-pointer ${
+                        aktivni ? 'bg-[#FF9F0A]/15' : 'hover:bg-white/5'
+                      }`}
+                    >
+                      <div
+                        className={`w-1 h-8 rounded-full shrink-0 ${
+                          aktivni && loop.hraje ? 'bg-[#30D158] animate-pulse' : aktivni ? 'bg-[#FF9F0A]' : 'bg-white/10'
+                        }`}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className={`text-[12px] font-bold truncate ${aktivni ? 'text-[#FF9F0A]' : 'text-white'}`}>
+                          {g.name}
+                        </div>
+                        <div className="text-[10px] text-neutral-500 truncate">
+                          {g.style} · {POPIS_ROLE[g.role] || g.role}
+                          {g.group ? ` · ${g.group}` : ''}
+                        </div>
+                      </div>
+                      <div className="text-[10px] font-mono text-neutral-500 shrink-0 text-right">
+                        {g.bpm ? <div>{g.bpm} BPM</div> : null}
+                        {g.bars ? <div className="text-neutral-600">{g.bars} t.</div> : null}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 2. INTERACTIVE DRUM PADS & VELOCITY TESTER */}
+      {/* 2. PADY — hraní a výběr zvuků */}
       <div className="bg-[#16161A]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
-        {/* Section Header with Velocity Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Disc className="w-4 h-4 text-[#FF9F0A]" /> Interaktivní bicí podložky &amp; Artikulace
+              <Disc className="w-4 h-4 text-[#FF9F0A]" /> Sada {kit ? `— ${kit.czName || kit.name}` : ''}
             </h3>
             <p className="text-[11px] text-neutral-400">
-              Klávesové zkratky na PC klávesnici (Q, W, E, R, A, S, D, F...) pro živé hraní.
+              Klikni nebo hraj z klávesnice (Q, W, E, A, S, D…). Šipkou u padu vybereš, čím hraje.
             </p>
           </div>
-
-          {/* Test Dynamic Velocity Tier Selector */}
-          <div className="flex items-center gap-1.5 bg-black/60 p-1.5 rounded-2xl border border-white/10 flex-wrap">
-            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1.5">
-              Dynamika úderu:
-            </span>
-            {[
-              { tier: 'soft', vel: 25, label: 'pp (Jemný)' },
-              { tier: 'med_soft', vel: 50, label: 'p (Mírný)' },
-              { tier: 'med', vel: 80, label: 'mf (Střední)' },
-              { tier: 'hard', vel: 105, label: 'f (Silný)' },
-              { tier: 'very_hard', vel: 125, label: 'ff (Maximální)' },
-            ].map((v) => (
-              <button
-                key={v.tier}
-                onClick={() => {
-                  setSelectedVelocityTier(v.tier as VelocityTier);
-                  setTestPadVelocity(v.vel);
-                }}
-                className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
-                  testPadVelocity === v.vel
-                    ? 'bg-[#FF9F0A] text-black shadow-md shadow-[#FF9F0A]/20'
-                    : 'bg-white/5 hover:bg-white/10 text-neutral-300'
-                }`}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
+          {onOpenCustomKitModal && (
+            <button
+              onClick={onOpenCustomKitModal}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[11px] font-bold text-neutral-300 transition-all cursor-pointer"
+            >
+              <Sliders className="w-3.5 h-3.5" /> Správa sady
+            </button>
+          )}
         </div>
 
-        {/* Drum Pads Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
           {DRUM_PAD_GRID.map((pad) => {
-            const isJustTriggered = activeVoiceEvent?.articulation === pad.id;
+            const varianty = variantyPadu(pad.id);
+            const prave = poslednirPad === pad.id;
 
             return (
-              <button
-                key={pad.id}
-                onClick={() => handleTriggerPad(pad.id)}
-                className={`relative group flex flex-col justify-between p-3.5 h-28 rounded-2xl border text-left transition-all active:scale-95 cursor-pointer shadow-lg select-none ${
-                  isJustTriggered
-                    ? 'bg-gradient-to-br from-[#FF9F0A]/30 to-orange-950/40 border-[#FF9F0A] shadow-[0_0_20px_rgba(255,159,10,0.4)] ring-2 ring-[#FF9F0A]'
-                    : pad.category === 'kick'
-                    ? 'bg-gradient-to-b from-blue-950/30 to-black/60 border-blue-500/20 hover:border-blue-400/50'
-                    : pad.category === 'snare'
-                    ? 'bg-gradient-to-b from-amber-950/30 to-black/60 border-amber-500/20 hover:border-amber-400/50'
-                    : pad.category === 'hihat'
-                    ? 'bg-gradient-to-b from-emerald-950/30 to-black/60 border-emerald-500/20 hover:border-emerald-400/50'
-                    : pad.category === 'toms'
-                    ? 'bg-gradient-to-b from-purple-950/30 to-black/60 border-purple-500/20 hover:border-purple-400/50'
-                    : pad.category === 'cymbals'
-                    ? 'bg-gradient-to-b from-yellow-950/30 to-black/60 border-yellow-500/20 hover:border-yellow-400/50'
-                    : 'bg-gradient-to-b from-neutral-900/60 to-black/60 border-white/10 hover:border-white/25'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-lg">{pad.icon}</span>
-                  <span className="px-2 py-0.5 bg-black/80 border border-white/20 text-[#FF9F0A] font-mono text-[10px] font-black rounded-lg uppercase shadow-inner">
-                    {pad.keyLabel}
-                  </span>
-                </div>
+              <div key={pad.id} className="relative">
+                <button
+                  onClick={() => zahrajPad(pad.id)}
+                  className={`w-full flex flex-col justify-between p-3.5 h-[104px] rounded-2xl border text-left transition-all active:scale-95 cursor-pointer shadow-lg select-none bg-gradient-to-b to-black/60 ${
+                    prave
+                      ? 'from-[#FF9F0A]/30 border-[#FF9F0A] shadow-[0_0_20px_rgba(255,159,10,0.4)]'
+                      : BARVA_PADU[pad.category]
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg">{pad.icon}</span>
+                    <span className="px-2 py-0.5 bg-black/80 border border-white/20 text-[#FF9F0A] font-mono text-[10px] font-black rounded-lg">
+                      {pad.keyLabel}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="text-[12px] font-bold text-white truncate">{pad.czName}</div>
+                    <div className="text-[10px] text-neutral-400">
+                      {varianty.length > 0 ? (
+                        <span className="text-[#30D158]">
+                          {varianty.length} {varianty.length === 1 ? 'zvuk' : varianty.length < 5 ? 'zvuky' : 'zvuků'}
+                        </span>
+                      ) : (
+                        <span className="text-neutral-600">bez zvuku</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
 
-                <div>
-                  <div className="text-[12px] font-bold text-white truncate group-hover:text-[#FF9F0A] transition-colors">
-                    {pad.czName}
-                  </div>
-                  <div className="text-[10px] text-neutral-400 truncate flex items-center justify-between">
-                    <span>{pad.name}</span>
-                    <span className="text-[9px] font-mono text-neutral-500">M:{pad.midiNote}</span>
-                  </div>
-                </div>
-              </button>
+                <button
+                  onClick={() => setOtevrenyPad(otevrenyPad === pad.id ? null : pad.id)}
+                  className="absolute bottom-2.5 right-2.5 p-1 rounded-lg bg-black/70 border border-white/15 text-neutral-400 hover:text-[#FF9F0A] hover:border-[#FF9F0A]/50 transition-all cursor-pointer"
+                  title="Vybrat zvuky"
+                >
+                  <ChevronDown className={`w-3 h-3 transition-transform ${otevrenyPad === pad.id ? 'rotate-180' : ''}`} />
+                </button>
+              </div>
             );
           })}
         </div>
+
+        {/* Výběr zvuků pro jeden pad */}
+        {otevrenyPad && (
+          <div className="bg-black/60 border border-[#FF9F0A]/30 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-[13px] font-bold text-white">
+                  Zvuky pro {DRUM_PAD_GRID.find((p) => p.id === otevrenyPad)?.czName}
+                </h4>
+                <p className="text-[10px] text-neutral-400">
+                  Až {MAX_VARIANT} vzorků. Střídají se, aby opakovaný úder nezněl pokaždé stejně.
+                </p>
+              </div>
+              <button
+                onClick={() => setOtevrenyPad(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 transition-all cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Co pad hraje teď */}
+            <div className="flex flex-wrap gap-1.5">
+              {variantyPadu(otevrenyPad).length === 0 && (
+                <span className="text-[11px] text-neutral-500">Zatím žádný zvuk — vyber z knihovny níž.</span>
+              )}
+              {variantyPadu(otevrenyPad).map((v) => (
+                <span
+                  key={v.klic}
+                  className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-[#30D158]/15 border border-[#30D158]/40 rounded-lg text-[10px] font-bold text-[#30D158]"
+                >
+                  <span className="truncate max-w-[160px]">{v.name}</span>
+                  <button
+                    onClick={() => void odeberVzorek(otevrenyPad, v.klic)}
+                    className="p-0.5 rounded hover:bg-red-500/20 hover:text-red-400 transition-all cursor-pointer"
+                    title="Odebrat"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            {/* Nabídka z knihovny */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                value={hledaniVzorku}
+                onChange={(e) => setHledaniVzorku(e.target.value)}
+                placeholder="Hledat vzorek v knihovně…"
+                className="w-full bg-black/50 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[12px] text-white placeholder-neutral-500 outline-none focus:border-[#FF9F0A]/50"
+              />
+            </div>
+
+            <div className="max-h-[180px] overflow-y-auto scrollbar-thin grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
+              {nacitamVzorky && <span className="text-[11px] text-neutral-500 p-2">Načítám…</span>}
+              {!nacitamVzorky && vzorky.length === 0 && (
+                <span className="text-[11px] text-neutral-500 p-2">
+                  V knihovně nejsou žádné vzorky bicích.
+                </span>
+              )}
+              {vzorky.map((a) => {
+                const plno = variantyPadu(otevrenyPad).length >= MAX_VARIANT;
+                return (
+                  <button
+                    key={a.id}
+                    onClick={() => void pridejVzorek(otevrenyPad, a)}
+                    disabled={plno || pridavam === a.id}
+                    className="flex items-center gap-2 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    {pridavam === a.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin text-[#FF9F0A] shrink-0" />
+                    ) : (
+                      <Plus className="w-3 h-3 text-neutral-500 shrink-0" />
+                    )}
+                    <span className="text-[11px] text-neutral-200 truncate">{a.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* 3. MULTI-CHANNEL STUDIO DRUM MIXER (Logic / EZdrummer DAW Style) */}
+      {/* 3. FADERY */}
       <div className="bg-[#16161A]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
-          <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-[#30D158]" /> Studiový vícestopý mixážní pult (Drum Mixer)
-            </h3>
-            <p className="text-[11px] text-neutral-400">
-              Samostatné kanály s Gainem, Panoramou, Mute/Solo, 3-pásmovým ekvalizérem a prostorovým reverbem.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10">
-            {(['faders', 'eq', 'fx'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveMixerTab(tab)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  activeMixerTab === tab
-                    ? 'bg-white/15 text-white shadow-sm'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                {tab === 'faders' ? '🎚️ Fadery & Panning' : tab === 'eq' ? '🎛️ 3-Pásmový EQ' : '✨ Reverb & Comp'}
-              </button>
-            ))}
-          </div>
+        <div className="border-b border-white/[0.08] pb-3">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-[#30D158]" /> Mix
+          </h3>
+          <p className="text-[11px] text-neutral-400">Hlasitost, panorama a ztlumení jednotlivých dílů sady.</p>
         </div>
 
-        {/* Mixer Channels Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {(Object.keys(mixerConfig) as DrumMixerChannelName[]).map((chName) => {
             const ch = mixerConfig[chName];
-            const isKick = chName === 'kick';
-            const isSnare = chName === 'snare';
+            const uroven = urovne[chName] || 0;
 
             return (
               <div
                 key={chName}
                 className="bg-black/60 border border-white/10 p-3 rounded-2xl flex flex-col justify-between space-y-3 shadow-md"
               >
-                {/* Channel Header */}
                 <div className="text-center border-b border-white/[0.06] pb-2">
                   <div className="text-[11px] font-black text-white truncate">{ch.czLabel}</div>
-                  <div className="text-[9px] font-mono text-neutral-400 uppercase tracking-widest">{chName}</div>
                 </div>
 
-                {/* TAB 1: FADERS & PANNING */}
-                {activeMixerTab === 'faders' && (
-                  <div className="flex flex-col items-center space-y-3 py-1">
-                    {/* Vertical Volume Fader */}
-                    <div className="h-36 flex items-center justify-center relative w-full gap-2">
-                      {/* Ukazatel hlasitosti: roste zdola, jako na mixu. */}
-                      <div className="h-32 w-1.5 rounded-full bg-black/60 border border-white/10 overflow-hidden flex flex-col justify-end shrink-0">
-                        <div
-                          className={`w-full rounded-full transition-[height] duration-75 ${
-                            (urovne[chName] || 0) > 0.85
-                              ? 'bg-[#FF453A]'
-                              : (urovne[chName] || 0) > 0.6
-                                ? 'bg-[#FF9F0A]'
-                                : 'bg-[#30D158]'
-                          }`}
-                          style={{ height: `${Math.round((urovne[chName] || 0) * 100)}%` }}
-                        />
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="1.5"
-                        step="0.02"
-                        value={ch.volume}
-                        onChange={(e) => sampledDrumEngine.setChannelVolume(chName, parseFloat(e.target.value))}
-                        className="w-32 h-2 -rotate-90 origin-center cursor-pointer accent-[#FF9F0A]"
-                        title={`Hlasitost: ${Math.round(ch.volume * 100)}%`}
+                <div className="flex flex-col items-center space-y-3 py-1">
+                  <div className="h-36 flex items-center justify-center relative w-full gap-2">
+                    {/* Ukazatel hlasitosti: roste zdola, jako na mixu. */}
+                    <div className="h-32 w-1.5 rounded-full bg-black/60 border border-white/10 overflow-hidden flex flex-col justify-end shrink-0">
+                      <div
+                        className={`w-full rounded-full transition-[height] duration-75 ${
+                          uroven > 0.85 ? 'bg-[#FF453A]' : uroven > 0.6 ? 'bg-[#FF9F0A]' : 'bg-[#30D158]'
+                        }`}
+                        style={{ height: `${Math.round(uroven * 100)}%` }}
                       />
                     </div>
-
-                    <div className="text-[11px] font-mono font-bold text-neutral-200">
-                      {Math.round(ch.volume * 100)}%
-                    </div>
-
-                    {/* Pan Slider */}
-                    <div className="w-full space-y-1">
-                      <div className="flex justify-between text-[9px] font-mono text-neutral-400">
-                        <span>L</span>
-                        <span>Pan: {ch.pan > 0 ? `+${ch.pan}` : ch.pan === 0 ? 'C' : ch.pan}</span>
-                        <span>R</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="-1"
-                        max="1"
-                        step="0.05"
-                        value={ch.pan}
-                        onChange={(e) => sampledDrumEngine.setChannelPan(chName, parseFloat(e.target.value))}
-                        className="w-full h-1.5 cursor-pointer accent-[#30D158]"
-                      />
-                    </div>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1.5"
+                      step="0.02"
+                      value={ch.volume}
+                      onChange={(e) => sampledDrumEngine.setChannelVolume(chName, parseFloat(e.target.value))}
+                      className="w-32 h-2 -rotate-90 origin-center cursor-pointer accent-[#FF9F0A]"
+                      title={`Hlasitost: ${Math.round(ch.volume * 100)}%`}
+                    />
                   </div>
-                )}
 
-                {/* TAB 2: 3-BAND EQ */}
-                {activeMixerTab === 'eq' && (
-                  <div className="space-y-2 py-1 text-[10px]">
-                    <div className="space-y-1">
-                      <div className="flex justify-between font-mono text-neutral-300">
-                        <span>High (7.5k)</span>
-                        <span className="text-[#FF9F0A]">{ch.highGain > 0 ? `+${ch.highGain}` : ch.highGain}dB</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        step="0.5"
-                        value={ch.highGain}
-                        onChange={(e) =>
-                          sampledDrumEngine.setChannelEQ(chName, ch.lowGain, ch.midGain, parseFloat(e.target.value))
-                        }
-                        className="w-full h-1 cursor-pointer accent-[#FF9F0A]"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex justify-between font-mono text-neutral-300">
-                        <span>Mid (1.2k)</span>
-                        <span className="text-[#30D158]">{ch.midGain > 0 ? `+${ch.midGain}` : ch.midGain}dB</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        step="0.5"
-                        value={ch.midGain}
-                        onChange={(e) =>
-                          sampledDrumEngine.setChannelEQ(chName, ch.lowGain, parseFloat(e.target.value), ch.highGain)
-                        }
-                        className="w-full h-1 cursor-pointer accent-[#30D158]"
-                      />
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex justify-between font-mono text-neutral-300">
-                        <span>Low (110Hz)</span>
-                        <span className="text-blue-400">{ch.lowGain > 0 ? `+${ch.lowGain}` : ch.lowGain}dB</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="-12"
-                        max="12"
-                        step="0.5"
-                        value={ch.lowGain}
-                        onChange={(e) =>
-                          sampledDrumEngine.setChannelEQ(chName, parseFloat(e.target.value), ch.midGain, ch.highGain)
-                        }
-                        className="w-full h-1 cursor-pointer accent-blue-400"
-                      />
-                    </div>
+                  <div className="text-[11px] font-mono font-bold text-neutral-200">
+                    {Math.round(ch.volume * 100)}%
                   </div>
-                )}
 
-                {/* TAB 3: REVERB SEND & FX */}
-                {activeMixerTab === 'fx' && (
-                  <div className="space-y-3 py-2 text-[10px]">
-                    <div className="space-y-1">
-                      <div className="flex justify-between font-mono text-neutral-300">
-                        <span>Room Reverb</span>
-                        <span className="text-purple-400">{Math.round(ch.reverbSend * 100)}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.05"
-                        value={ch.reverbSend}
-                        onChange={(e) => sampledDrumEngine.setChannelReverbSend(chName, parseFloat(e.target.value))}
-                        className="w-full h-1.5 cursor-pointer accent-purple-400"
-                      />
+                  <div className="w-full space-y-1">
+                    <div className="flex justify-between text-[9px] font-mono text-neutral-400">
+                      <span>L</span>
+                      <span>{ch.pan > 0 ? `+${ch.pan}` : ch.pan === 0 ? 'C' : ch.pan}</span>
+                      <span>R</span>
                     </div>
-
-                    <div className="bg-white/5 p-2 rounded-lg border border-white/5 space-y-1 text-[9px] font-mono text-neutral-400">
-                      <div className="flex justify-between">
-                        <span>Comp Thresh:</span>
-                        <span className="text-white">{ch.compThreshold} dB</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Comp Ratio:</span>
-                        <span className="text-white">{ch.compRatio}:1</span>
-                      </div>
-                    </div>
+                    <input
+                      type="range"
+                      min="-1"
+                      max="1"
+                      step="0.05"
+                      value={ch.pan}
+                      onChange={(e) => sampledDrumEngine.setChannelPan(chName, parseFloat(e.target.value))}
+                      className="w-full h-1.5 cursor-pointer accent-[#30D158]"
+                    />
                   </div>
-                )}
+                </div>
 
-                {/* Mute & Solo Toggles */}
                 <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-white/[0.06]">
                   <button
                     onClick={() => sampledDrumEngine.setChannelMute(chName, !ch.mute)}
                     className={`py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
-                      ch.mute
-                        ? 'bg-red-500 text-white shadow-sm'
-                        : 'bg-white/5 hover:bg-white/10 text-neutral-400'
+                      ch.mute ? 'bg-red-500 text-white' : 'bg-white/5 hover:bg-white/10 text-neutral-400'
                     }`}
                   >
                     MUTE
@@ -724,125 +810,11 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                   <button
                     onClick={() => sampledDrumEngine.setChannelSolo(chName, !ch.solo)}
                     className={`py-1 rounded-lg text-[10px] font-black transition-all cursor-pointer ${
-                      ch.solo
-                        ? 'bg-amber-400 text-black shadow-sm'
-                        : 'bg-white/5 hover:bg-white/10 text-neutral-400'
+                      ch.solo ? 'bg-amber-400 text-black' : 'bg-white/5 hover:bg-white/10 text-neutral-400'
                     }`}
                   >
                     SOLO
                   </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. MULTI-VELOCITY STEP SEQUENCER & GROOVE PLAYER */}
-      <div className="bg-[#16161A]/90 backdrop-blur-xl border border-white/10 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-white/[0.08] pb-3">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsPlayingSeq(!isPlayingSeq)}
-              className={`p-3 rounded-2xl flex items-center justify-center transition-all cursor-pointer shadow-lg ${
-                isPlayingSeq
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-[#30D158] hover:bg-[#28b84d] text-black font-black'
-              }`}
-            >
-              {isPlayingSeq ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
-            </button>
-            <div>
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                16-Krokový Groover &amp; Sekvencer
-              </h3>
-              <p className="text-[11px] text-neutral-400">
-                Kliknutím cyklujte dynamiku kroku: Vypnuto &rarr; Normální (mf) &rarr; Akcent (ff) &rarr; Ghost Note (pp).
-              </p>
-            </div>
-          </div>
-
-          {/* BPM & Presets */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-2 bg-black/50 px-3 py-1.5 rounded-xl border border-white/10">
-              <span className="text-[11px] font-bold text-neutral-400">Tempo:</span>
-              <input
-                type="number"
-                min="40"
-                max="240"
-                value={bpm}
-                onChange={(e) => setBpm(parseInt(e.target.value) || 120)}
-                className="w-14 bg-[#1C1C1E] text-white font-mono font-bold text-xs p-1 rounded-lg border border-white/10 text-center outline-none"
-              />
-              <span className="text-[10px] font-mono text-neutral-500">BPM</span>
-            </div>
-
-            <div className="flex items-center gap-1 bg-black/50 p-1 rounded-xl border border-white/10 flex-wrap">
-              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider px-1">Presety:</span>
-              {[
-                { id: 'rock', label: 'Rock 4/4' },
-                { id: 'funk', label: 'Funk Pocket' },
-                { id: 'metal', label: 'Metal Blast' },
-                { id: 'shuffle', label: 'Shuffle' },
-                { id: 'disco', label: 'Disco' },
-              ].map((g) => (
-                <button
-                  key={g.id}
-                  onClick={() => handleLoadGroove(g.id as any)}
-                  className="px-2 py-0.5 bg-white/5 hover:bg-white/15 text-neutral-300 text-[10px] font-bold rounded-lg transition-all cursor-pointer"
-                >
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 16-Step Sequencer Grid */}
-        <div className="space-y-2 overflow-x-auto pb-2 scrollbar-thin">
-          {Object.keys(seqGrid).map((instKey) => {
-            const padDef = DRUM_PAD_GRID.find((p) => p.id === instKey);
-            const line = seqGrid[instKey];
-
-            return (
-              <div key={instKey} className="flex items-center gap-2 min-w-[650px]">
-                {/* Track Label */}
-                <div className="w-32 flex items-center justify-between text-xs font-bold text-neutral-200 bg-black/40 px-2.5 py-1.5 rounded-xl border border-white/5">
-                  <span className="truncate">{padDef?.czName || instKey}</span>
-                  <span className="text-[10px]">{padDef?.icon || '🥁'}</span>
-                </div>
-
-                {/* 16 Step Buttons */}
-                <div className="flex-1 grid grid-cols-16 gap-1">
-                  {line.map((val, stepIdx) => {
-                    const isCurrent = isPlayingSeq && currentStep === stepIdx;
-                    const isQuarter = stepIdx % 4 === 0;
-
-                    return (
-                      <button
-                        key={stepIdx}
-                        onClick={() => handleToggleStep(instKey, stepIdx)}
-                        className={`h-8 rounded-lg font-mono text-[9px] font-black transition-all cursor-pointer flex items-center justify-center border ${
-                          isCurrent
-                            ? 'ring-2 ring-white scale-105 z-10'
-                            : ''
-                        } ${
-                          val === 120
-                            ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] shadow-md shadow-[#FF9F0A]/30'
-                            : val === 80
-                            ? 'bg-[#30D158] text-black border-[#30D158]'
-                            : val === 35
-                            ? 'bg-purple-900/60 text-purple-200 border-purple-500/40'
-                            : isQuarter
-                            ? 'bg-white/10 hover:bg-white/20 border-white/10 text-neutral-600'
-                            : 'bg-black/40 hover:bg-white/10 border-white/5 text-neutral-700'
-                        }`}
-                        title={`Krok ${stepIdx + 1}: ${val === 0 ? 'Vypnuto' : val === 120 ? 'Akcent (ff)' : val === 80 ? 'Normální (mf)' : 'Ghost (pp)'}`}
-                      >
-                        {val > 0 ? (val === 120 ? 'FF' : val === 80 ? 'MF' : 'PP') : isQuarter ? '•' : ''}
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
             );
