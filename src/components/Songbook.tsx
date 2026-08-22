@@ -17,13 +17,11 @@ import { SongModularWorkspace } from './SongModularWorkspace';
 import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 
 interface SongbookProps {
-  onOpenCameraModal: () => void;
   customNewSong?: Song | null;
   onSelectSongForYoutube?: (song: Song) => void;
 }
 
 export const Songbook: React.FC<SongbookProps> = ({
-  onOpenCameraModal,
   customNewSong,
   onSelectSongForYoutube,
 }) => {

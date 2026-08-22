@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem, BandPhoto } from './types';
+import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem } from './types';
 import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType } from './components/layout/UnifiedSidebar';
-import { CaptureModal } from './components/CaptureModal';
 import { LoginModal } from './components/LoginModal';
 import { AdminUsersModal } from './components/AdminUsersModal';
 import { UserProfileModal } from './components/UserProfileModal';
 import { GlobalAudioPlayer } from './components/GlobalAudioPlayer';
 import { PlaylistSection } from './components/PlaylistSection';
-import { PhotosSection } from './components/PhotosSection';
 import { Songbook } from './components/Songbook';
 import { YouTubeSection } from './components/YouTubeSection';
 import { Tuner } from './components/Tuner';
@@ -25,7 +23,6 @@ import { MyLibrarySection } from './components/MyLibrarySection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { authService } from './services/authService';
 import { playlistService } from './services/playlistService';
-import { photoService } from './services/photoService';
 import { songDatabaseService } from './services/songDatabaseService';
 
 function AppContent() {
@@ -59,9 +56,6 @@ function AppContent() {
   const [playbackMode, setPlaybackMode] = useState<'normal' | 'loop-one' | 'loop-all' | 'shuffle'>('normal');
 
   // Shared Photos
-  const [photos, setPhotos] = useState<BandPhoto[]>(() => photoService.getPhotos());
-  const [isCaptureModalOpen, setIsCaptureModalOpen] = useState(false);
-  const [captureModalMode, setCaptureModalMode] = useState<'camera' | 'screenshot' | 'upload'>('camera');
 
   // Real-time Live Band state
 
@@ -110,14 +104,6 @@ function AppContent() {
       setPlaylist(updatedItems);
     });
     return unsubPlaylist;
-  }, []);
-
-  // Subscribe to Band Photos changes
-  useEffect(() => {
-    const unsubPhotos = photoService.subscribe((updatedPhotos) => {
-      setPhotos(updatedPhotos);
-    });
-    return unsubPhotos;
   }, []);
 
   // Playlist handlers
@@ -185,33 +171,9 @@ function AppContent() {
         />
       )}
 
-      {/* PHOTOS SECTION */}
-      {activeTab === 'photos' && (
-        <PhotosSection
-          photos={photos}
-          currentUser={currentUser}
-          onOpenCameraCapture={() => {
-            setCaptureModalMode('camera');
-            setIsCaptureModalOpen(true);
-          }}
-          onOpenScreenCapture={() => {
-            setCaptureModalMode('screenshot');
-            setIsCaptureModalOpen(true);
-          }}
-          onOpenUploadCapture={() => {
-            setCaptureModalMode('upload');
-            setIsCaptureModalOpen(true);
-          }}
-        />
-      )}
-
       {/* SONGBOOK SECTION */}
       {activeTab === 'songbook' && (
         <Songbook
-          onOpenCameraModal={() => {
-            setCaptureModalMode('camera');
-            setIsCaptureModalOpen(true);
-          }}
           onSelectSongForYoutube={(song) => {
             setActiveSong(song);
             if (song.youtubeVideos && song.youtubeVideos.length > 0) {
@@ -337,17 +299,6 @@ function AppContent() {
       />
 
       {/* Modals */}
-
-      <CaptureModal
-        isOpen={isCaptureModalOpen}
-        onClose={() => setIsCaptureModalOpen(false)}
-        currentUser={currentUser}
-        initialMode={captureModalMode}
-        onPhotoCaptured={() => {
-          setPhotos(photoService.getPhotos());
-          setActiveTab('photos');
-        }}
-      />
 
       <LoginModal
         isOpen={isLoginModalOpen}

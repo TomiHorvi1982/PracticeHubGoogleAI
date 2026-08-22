@@ -35,7 +35,7 @@ export type MainTabType =
   | 'scales'
   | 'practice'
   | 'tuner'
-  | 'photos'
+
   | 'mylibrary';
 
 interface UnifiedSidebarProps {
@@ -87,7 +87,6 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     {
       title: 'KAPELA',
       items: [
-        { id: 'photos', label: 'Fotky Kapely', icon: Camera, badge: null },
       ],
     },
     {

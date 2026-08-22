@@ -384,6 +384,6 @@ export interface MediaPlaybackState {
   lyricsIndex: number;
 }
 
-export type TabType = 'songbook' | 'playlist' | 'photos' | 'youtube' | 'mediacenter' | 'library' | 'alphatab' | 'freetar' | 'bookmarks' | 'tuner' | 'scales' | 'instruments' | 'practice' | 'stemmixer';
+export type TabType = 'songbook' | 'playlist' | 'youtube' | 'mediacenter' | 'library' | 'alphatab' | 'freetar' | 'bookmarks' | 'tuner' | 'scales' | 'instruments' | 'practice' | 'stemmixer';
 
 
