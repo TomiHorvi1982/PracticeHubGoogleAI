@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PitchDetector, PitchData } from '../services/tuner';
+import { PitchDetector, PitchData, REFERENCE_A_RANGE } from '../services/tuner';
 import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { audioSynth } from '../services/audioSynth';
 import {
@@ -34,6 +34,7 @@ export const Tuner: React.FC = () => {
   const [isCustomMode, setIsCustomMode] = useState(false);
   const [customMidis, setCustomMidis] = useState<number[]>([40, 45, 50, 55, 59, 64]);
   const [micError, setMicError] = useState<string | null>(null);
+  const [referenceA, setReferenceA] = useState<number>(REFERENCE_A_RANGE.default);
   const pitchDetectorRef = useRef<PitchDetector | null>(null);
 
   // --- METRONOME STATE ---
@@ -137,6 +138,15 @@ export const Tuner: React.FC = () => {
     }
   };
 
+  // Referenci je potřeba předat i běžícímu detektoru — jinak by se změna
+  // projevila až po vypnutí a zapnutí mikrofonu.
+  useEffect(() => {
+    pitchDetectorRef.current?.setReferenceA(referenceA);
+  }, [referenceA]);
+
+  /** Kmitočty strun platí pro A = 440 Hz; při jiné referenci se posunou se stejným poměrem. */
+  const naReferenci = (freq440: number) => (freq440 * referenceA) / REFERENCE_A_RANGE.default;
+
   const playReferencePitch = (freq: number) => {
     audioSynth.playNote(freq, 'acoustic_guitar', 2.0, 0.8);
   };
@@ -149,13 +159,18 @@ export const Tuner: React.FC = () => {
       }
     : selectedTuning;
 
+  // Porovnává se v centech, ne v hertzech. Pevná mez 15 Hz znamenala u
+  // hlubokého E skoro tři půltóny, kdežto u vysokého sotva půl — na basových
+  // strunách chytala i sousední tón, na vysokých nechytala ani rozladěnou
+  // strunu. Sto centů je půltón, tedy „nejbližší struna, a to jednoznačně".
   let activeStringIndex = -1;
   if (pitch) {
-    let minDiff = Infinity;
-    activeTuning.frequencies.forEach((freq, idx) => {
-      const diff = Math.abs(pitch.frequency - freq);
-      if (diff < minDiff && diff < 15) {
-        minDiff = diff;
+    let minCents = Infinity;
+    activeTuning.frequencies.forEach((freq440, idx) => {
+      const cil = naReferenci(freq440);
+      const rozdil = Math.abs(1200 * Math.log2(pitch.frequency / cil));
+      if (rozdil < minCents && rozdil < 100) {
+        minCents = rozdil;
         activeStringIndex = idx;
       }
     });
@@ -183,6 +198,31 @@ export const Tuner: React.FC = () => {
           <p className="text-xs text-neutral-400 mt-1">
             Spusťte mikrofon a zahrajte na libovolnou strunu pro rychlé naladění s přesností na centy.
           </p>
+        </div>
+
+        {/* Referenční A */}
+        <div className="flex items-center gap-2 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
+          <span className="text-xs text-neutral-400 font-medium px-2">Referenční A:</span>
+          <input
+            type="range"
+            min={REFERENCE_A_RANGE.min}
+            max={REFERENCE_A_RANGE.max}
+            step={1}
+            value={referenceA}
+            onChange={(e) => setReferenceA(parseInt(e.target.value, 10))}
+            className="w-24 accent-[#FF9F0A] cursor-pointer"
+            title={`${referenceA} Hz`}
+          />
+          <span className="text-xs font-mono font-bold text-white w-14 text-right">{referenceA} Hz</span>
+          {referenceA !== REFERENCE_A_RANGE.default && (
+            <button
+              onClick={() => setReferenceA(REFERENCE_A_RANGE.default)}
+              className="text-[10px] font-bold text-neutral-400 hover:text-white px-1.5 cursor-pointer"
+              title="Zpět na 440 Hz"
+            >
+              ↺
+            </button>
+          )}
         </div>
 
         {/* Tuning Preset Selector */}
@@ -388,7 +428,7 @@ export const Tuner: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
           {activeTuning.notes.map((noteName, idx) => {
             const stringNum = 6 - idx;
-            const freq = activeTuning.frequencies[idx];
+            const freq = naReferenci(activeTuning.frequencies[idx]);
             const isMatched = activeStringIndex === idx;
 
             return (

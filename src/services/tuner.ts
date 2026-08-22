@@ -1,4 +1,4 @@
-import { TunerEngine } from '../utils/tunerEngine';
+import { TunerEngine, REFERENCE_A_RANGE, clampReferenceA } from '../utils/tunerEngine';
 
 /**
  * Detekce výšky tónu pro ladičku.
@@ -21,7 +21,8 @@ export interface PitchData {
   stringIndex?: number; // 0 = šestá struna (E2) … 5 = první struna (E4)
 }
 
-/** Standardní ladění kytary, od nejhlubší struny. */
+/** Standardní ladění kytary, od nejhlubší struny. Slouží jen jako výchozí
+ *  vodítko — vybrané ladění si obrazovka ladičky páruje sama. */
 const GUITAR_FREQS = [82.41, 110.0, 146.83, 196.0, 246.94, 329.63];
 
 /**
@@ -43,8 +44,20 @@ function matchString(frequency: number): number | undefined {
   return index;
 }
 
+export { REFERENCE_A_RANGE };
+
 export class PitchDetector {
   private engine: TunerEngine | null = null;
+  private referenceA = REFERENCE_A_RANGE.default;
+
+  /**
+   * Referenční A v hertzech. Jde měnit i za běhu — posun reference musí být
+   * slyšet hned, ne až po novém spuštění mikrofonu.
+   */
+  public setReferenceA(value: number): void {
+    this.referenceA = clampReferenceA(value);
+    this.engine?.setReferenceA(this.referenceA);
+  }
 
   /**
    * Spustí poslech. Vrací `false`, když se mikrofon nepodařilo otevřít —
@@ -53,6 +66,7 @@ export class PitchDetector {
   public async start(onPitchDetected: (data: PitchData | null) => void): Promise<boolean> {
     try {
       const engine = new TunerEngine();
+      engine.setReferenceA(this.referenceA);
 
       // Engine hlásí odchylku vůči nejbližšímu půltónu — stejně jako to
       // dělala původní ladička, takže se UI chová dál stejně. Ke které

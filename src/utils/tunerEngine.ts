@@ -8,9 +8,12 @@
 // strun ráda ukáže tón o oktávu výš. Tenhle engine používá YIN
 // s mediánovým filtrem, což je na kytaru výrazně spolehlivější.
 //
-// Změny oproti originálu: odstraněna závislost na jejich `storageMigration`
-// (jediné použití nahrazeno rovnocennou funkcí níže), aby engine nevlekl
-// zbytek jejich projektu.
+// Změny oproti originálu:
+//  - odstraněna závislost na jejich `storageMigration` (jediné použití
+//    nahrazeno rovnocennou funkcí níže), aby engine nevlekl zbytek projektu;
+//  - běžící analýza volala `frequencyToPitch()` bez referenčního A, takže
+//    počítala vždy proti 440 Hz, přestože engine jinde referenci podporuje.
+//    Doplněno `setReferenceA()` a hodnota se do analýzy předává.
 
 import type { BuiltInTuningPresetId, DetectedPitch, StoredTuningPreset, TunerFrame, TuningPreset, TuningPresetId, TuningTarget } from "../types/tuner";
 
@@ -350,6 +353,13 @@ function midiToPitch(midi: number): { note: string; octave: number; label: strin
 }
 
 export class TunerEngine {
+  /** Referenční A. Mění se za běhu — ladění podle jiné reference je běžné. */
+  private referenceA = REFERENCE_A_RANGE.default;
+
+  setReferenceA(value: number): void {
+    this.referenceA = clampReferenceA(value);
+  }
+
   private audioContext: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
   private animationFrameId: number | null = null;
@@ -447,7 +457,7 @@ export class TunerEngine {
           this.missedFrames = 0;
           const correctedFrequency = this.correctOctaveJump(detection.frequency);
           const frequency = this.smoothFrequency(correctedFrequency);
-          const pitch = frequencyToPitch(frequency);
+          const pitch = frequencyToPitch(frequency, this.referenceA);
           this.lastPitch = {
             ...pitch,
             clarity: detection.clarity,
