@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { LibrarySection } from './components/LibrarySection';
 import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem } from './types';
 import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
@@ -18,7 +19,6 @@ import { FreetarExplorer } from './components/FreetarExplorer';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { BookmarksSection } from './components/BookmarksSection';
 import { StemMixerSection } from './components/StemMixerSection';
-import { MyLibrarySection } from './components/MyLibrarySection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { authService } from './services/authService';
 import { playlistService } from './services/playlistService';
@@ -192,6 +192,22 @@ function AppContent() {
 
       {/* LIBRARY SECTION */}
 
+      {activeTab === 'library' && (
+        <LibrarySection
+          songs={songs}
+          onUpdateSongs={(newSongs) => {
+            const list = typeof newSongs === 'function' ? newSongs(songs) : newSongs;
+            for (const s of list) {
+              songDatabaseService.saveSong(s);
+            }
+          }}
+          onSelectSongForPlayback={(song) => {
+            setActiveSong(song);
+            setActiveTab('songbook');
+          }}
+        />
+      )}
+
       {/* MEDIA CENTER (KASET ENGINE) SECTION */}
       {activeTab === 'mediacenter' && (
         <MediaCenterSection
@@ -263,9 +279,6 @@ function AppContent() {
       {activeTab === 'stemmixer' && <StemMixerSection currentUser={currentUser} />}
 
       {/* MY LIBRARY (Supabase-backed personal/global asset storage) */}
-      {activeTab === 'mylibrary' && (
-        <MyLibrarySection currentUser={currentUser} onOpenLoginModal={() => setIsLoginModalOpen(true)} />
-      )}
 
       {/* GLOBAL PERSISTENT AUDIO PLAYER */}
       <GlobalAudioPlayer

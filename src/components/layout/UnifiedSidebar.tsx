@@ -34,8 +34,7 @@ export type MainTabType =
   | 'scales'
   | 'practice'
   | 'tuner'
-
-  | 'mylibrary';
+  | 'library';
 
 interface UnifiedSidebarProps {
   activeTab: MainTabType;
@@ -59,7 +58,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       title: 'SONG CENTER',
       items: [
         { id: 'songbook', label: 'Zpěvník', icon: BookOpen, badge: null },
-        { id: 'mylibrary', label: 'Knihovna', icon: FolderOpen, badge: null },
+        { id: 'library', label: 'Knihovna', icon: FolderOpen, badge: null },
         { id: 'playlist', label: 'Setlisty', icon: ListMusic, badge: null },
         { id: 'bookmarks', label: 'Oblíbené', icon: Bookmark, badge: bookmarksCount > 0 ? bookmarksCount : null },
       ],
