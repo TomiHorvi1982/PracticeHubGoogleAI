@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
+import { ChordScaleExplorer } from './ChordScaleExplorer';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
 import { instrumentFactory } from '../services/instrumentFactory';
 import { drumKitFactory } from '../services/drumKitFactory';
@@ -197,7 +198,9 @@ export const VirtualInstruments: React.FC = () => {
   // nástrojů. Odsud se jen otevře — duplikovat ho podruhé by znamenalo dvě
   // místa, která se musí držet v souladu.
   const { toggleDockTool } = useMusicalContext();
-  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'midi' | 'guitar_tools'>('piano');
+  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'midi' | 'fretboard'>('piano');
+  /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
+  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'guitar_tools'>('chord');
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
   const [isSoundLibraryOpen, setIsSoundLibraryOpen] = useState(false);
   const [soundLibCategory, setSoundLibCategory] = useState<string>('all');
@@ -633,11 +636,14 @@ export const VirtualInstruments: React.FC = () => {
               <span>Bicí</span>
             </button>
             <button
-              onClick={() => toggleDockTool('fretboard')}
-              className="px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-neutral-400 hover:text-white"
-              title="Otevře hmatník ve spodním panelu"
+              onClick={() => setActiveInstTab('fretboard')}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeInstTab === 'fretboard'
+                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
             >
-              <Compass className="w-3.5 h-3.5" />
+              <Compass className={`w-3.5 h-3.5 ${activeInstTab === 'fretboard' ? 'text-[#FF9F0A]' : ''}`} />
               <span>Hmatník</span>
             </button>
             <button
@@ -650,17 +656,6 @@ export const VirtualInstruments: React.FC = () => {
             >
               <Music className={`w-3.5 h-3.5 ${activeInstTab === 'midi' ? 'text-[#FF9F0A]' : ''}`} />
               <span>MIDI</span>
-            </button>
-            <button
-              onClick={() => setActiveInstTab('guitar_tools')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeInstTab === 'guitar_tools'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Volume2 className={`w-3.5 h-3.5 ${activeInstTab === 'guitar_tools' ? 'text-[#FF9F0A]' : ''}`} />
-              <span>Guitar Tools</span>
             </button>
           </div>
         </div>
@@ -1046,8 +1041,53 @@ export const VirtualInstruments: React.FC = () => {
         />
       )}
 
-      {/* 🎸 GUITAR TOOLS TAB */}
-      {activeInstTab === 'guitar_tools' && (
+      {/* 🎸 HMATNÍK — samostatná stránka s podsekcemi */}
+      {activeInstTab === 'fretboard' && (
+        <div className="space-y-4">
+          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+                <Compass className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="font-bold text-white text-sm block">Hmatník</span>
+                <span className="text-[11px] text-neutral-400">Akordy, stupnice a kytarové nástroje na jednom místě.</span>
+              </div>
+            </div>
+
+            <div className="ml-auto flex items-center bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06]">
+              {([
+                { id: 'chord', label: 'Akordy' },
+                { id: 'scale', label: 'Stupnice' },
+                { id: 'guitar_tools', label: 'Guitar Tools' },
+              ] as const).map((sekce) => (
+                <button
+                  key={sekce.id}
+                  onClick={() => setHmatnikSekce(sekce.id)}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                    hmatnikSekce === sekce.id
+                      ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  {sekce.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {hmatnikSekce !== 'guitar_tools' && (
+            <ChordScaleExplorer
+              compact
+              mode={hmatnikSekce}
+              onModeChange={(m) => setHmatnikSekce(m)}
+            />
+          )}
+        </div>
+      )}
+
+      {/* 🎸 GUITAR TOOLS — podsekce hmatníku */}
+      {activeInstTab === 'fretboard' && hmatnikSekce === 'guitar_tools' && (
         <div className="space-y-4">
           
           {/* Information & Controller bar */}

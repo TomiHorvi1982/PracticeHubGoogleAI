@@ -10,8 +10,6 @@ import {
   Radio, 
   User, 
   ShieldCheck, 
-  Maximize2, 
-  Minimize2, 
   Volume2, 
   VolumeX,
   PanelLeftClose,
@@ -52,8 +50,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     setIsPlaying,
     isMetronomeActive,
     toggleMetronome,
-    isGigMode,
-    setIsGigMode,
   } = useMusicalContext();
 
   const keysList = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'Cm', 'Dm', 'Em', 'Fm', 'Gm', 'Am', 'Bm'];
@@ -63,7 +59,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     <header className="h-16 bg-[#0F172A] border-b border-slate-800/80 px-3 sm:px-4 flex items-center justify-between text-slate-200 select-none z-30 shrink-0 gap-2">
       {/* LEFT SECTION: Logo & Active Song Badge */}
       <div className="flex items-center gap-2 sm:gap-3">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => setIsGigMode(!isGigMode)}>
+        <div className="flex items-center gap-2">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-400 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20">
             NL
           </div>
@@ -200,19 +196,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
       {/* RIGHT SECTION: Quick Dock Triggers, Live Band Session & Account */}
       <div className="flex items-center gap-2">
-                                {/* Gig Mode Button */}
-        <button
-          onClick={() => setIsGigMode(!isGigMode)}
-          className={`p-2 rounded-xl border transition-all ${
-            isGigMode
-              ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md shadow-amber-500/20'
-              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400'
-          }`}
-          title={isGigMode ? 'Opustit Gig Mode' : 'Zapnout Gig Mode (Pro živé hraní)'}
-        >
-          {isGigMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
-        </button>
-
         {/* User Profile / Admin Button */}
         {currentUser ? (
           <div className="flex items-center gap-1 pl-2 border-l border-slate-800">

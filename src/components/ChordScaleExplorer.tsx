@@ -11,10 +11,24 @@ const ROOT_NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 
 const GUITAR_STRINGS = ['E4', 'B3', 'G3', 'D3', 'A2', 'E2'];
 const STRING_BASE_MIDIS = [64, 59, 55, 50, 45, 40];
 
-export const ChordScaleExplorer: React.FC = () => {
+interface ChordScaleExplorerProps {
+  /**
+   * Když si režim řídí stránka nad průzkumníkem — hmatník má Akordy a
+   * Stupnice jako vlastní podsekce — předá se sem. Bez toho si ho drží
+   * komponenta sama a chová se přesně jako dřív.
+   */
+  mode?: 'chord' | 'scale';
+  onModeChange?: (m: 'chord' | 'scale') => void;
+  /** Skryje vlastní hlavičku i přepínač, když je přepínač už nad ním. */
+  compact?: boolean;
+}
+
+export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, onModeChange, compact }) => {
   const { activeChord, key } = useMusicalContext();
   const [selectedRoot, setSelectedRoot] = useState('C');
-  const [explorerMode, setExplorerMode] = useState<'chord' | 'scale'>('chord');
+  const [vlastniRezim, setVlastniRezim] = useState<'chord' | 'scale'>('chord');
+  const explorerMode = mode ?? vlastniRezim;
+  const setExplorerMode = (m: 'chord' | 'scale') => (onModeChange ? onModeChange(m) : setVlastniRezim(m));
   const [selectedChordType, setSelectedChordType] = useState('Major');
   const [selectedScaleName, setSelectedScaleName] = useState('Minor Pentatonic');
   const [enableMidiScaleFilter, setEnableMidiScaleFilter] = useState(true);
@@ -115,12 +129,13 @@ export const ChordScaleExplorer: React.FC = () => {
   };
 
   return (
-    <div className="w-full space-y-4 font-sans pb-16">
+    <div className={`w-full space-y-4 font-sans ${compact ? "" : "pb-16"}`}>
       
       {/* Control Panel: Header & Mode Selection */}
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-5">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4">
+        <div className={`flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4 ${compact ? "hidden" : "flex"}`}>
+          {!compact && (
           <div>
             <div className="flex items-center gap-2 mb-1">
               <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
@@ -135,9 +150,10 @@ export const ChordScaleExplorer: React.FC = () => {
               Hmatník kytary, klaviatura a zvukové ukázky s podporou filtru tónin pro hardware MIDI klávesy.
             </p>
           </div>
+          )}
 
           {/* Mode Switcher */}
-          <div className="flex items-center bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06] self-start md:self-auto">
+          <div className={`items-center bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06] self-start md:self-auto ${compact ? 'hidden' : 'flex'}`}>
             <button
               onClick={() => setExplorerMode('chord')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${

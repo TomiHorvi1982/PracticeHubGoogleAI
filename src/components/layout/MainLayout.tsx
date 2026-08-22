@@ -3,7 +3,6 @@ import { useMusicalContext } from '../../context/MusicalContext';
 import { UnifiedTopBar } from './UnifiedTopBar';
 import { UnifiedSidebar, MainTabType } from './UnifiedSidebar';
 import { SmartStudioDock } from './SmartStudioDock';
-import { GigModeView } from './GigModeView';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -31,12 +30,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   bookmarksCount = 0,
 }) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
-  const { isGigMode, setIsGigMode } = useMusicalContext();
-
-  if (isGigMode) {
-    return <GigModeView onExitGigMode={() => setIsGigMode(false)} />;
-  }
-
   return (
     <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col font-sans antialiased overflow-hidden">
       {/* Top Header Navigation Bar */}

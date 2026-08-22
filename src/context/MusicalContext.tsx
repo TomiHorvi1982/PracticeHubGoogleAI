@@ -47,8 +47,6 @@ export interface MusicalContextType {
   toggleDockTool: (tool: NonNullable<DockToolId>) => void;
 
   // Gig / Focus Mode State
-  isGigMode: boolean;
-  setIsGigMode: (gig: boolean) => void;
 }
 
 const MusicalContext = createContext<MusicalContextType | undefined>(undefined);
@@ -69,7 +67,6 @@ export const MusicalProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [selectedInstrument, setSelectedInstrumentState] = useState<'guitar' | 'bass' | 'keys' | 'drums'>('guitar');
   const [activeDockTool, setActiveDockToolState] = useState<DockToolId>(null);
-  const [isGigMode, setIsGigModeState] = useState<boolean>(false);
 
   // Set Active Song and sync default attributes
   const setActiveSong = useCallback((song: Song | null) => {
@@ -231,8 +228,6 @@ export const MusicalProvider: React.FC<{ children: ReactNode }> = ({ children })
         activeDockTool,
         setActiveDockTool,
         toggleDockTool,
-        isGigMode,
-        setIsGigMode: setIsGigModeState,
       }}
     >
       {children}
