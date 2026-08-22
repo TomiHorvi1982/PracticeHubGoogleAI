@@ -38,6 +38,7 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
   const [hledat, setHledat] = useState('');
   const [nahled, setNahled] = useState<{ asset: LibraryAsset; url: string } | null>(null);
   const [nahledChyba, setNahledChyba] = useState<string | null>(null);
+  const [celkem, setCelkem] = useState(0);
   const [uploadCategory, setUploadCategory] = useState<string>(ASSET_CATEGORIES[0].value);
   const [uploadAsGlobal, setUploadAsGlobal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -54,8 +55,16 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
     setError(null);
     try {
       const owner = ownerFilter === 'all' ? undefined : ownerFilter;
-      const data = await assetLibraryService.list({ owner, category: categoryFilter || undefined });
+      // Hledá databáze, ne prohlížeč — knihovna má desetitisíce položek
+      // a stahovat je všechny by při každém otevření trvalo věčnost.
+      const { assets: data, total } = await assetLibraryService.listPage({
+        owner,
+        category: categoryFilter || undefined,
+        search: hledat.trim() || undefined,
+        limit: 200,
+      });
       setAssets(data);
+      setCelkem(total);
     } catch (e: any) {
       setError(e.message || 'Nepodařilo se načíst knihovnu.');
     } finally {
@@ -67,6 +76,13 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
     loadAssets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, ownerFilter, categoryFilter]);
+
+  // Hledá se s odstupem od psaní, ať každé písmeno neposílá dotaz.
+  useEffect(() => {
+    const id = window.setTimeout(() => loadAssets(), 300);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hledat]);
 
   /**
    * Hledá se v už načteném seznamu, ne dalším dotazem do databáze —
@@ -104,17 +120,9 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
     }
   };
 
-  const bezDiakritiky = (t: string) =>
-    t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
-  const dotaz = bezDiakritiky(hledat.trim());
-  const zobrazene = dotaz
-    ? assets.filter((a) =>
-        bezDiakritiky(
-          `${a.name} ${a.original_filename || ''} ${a.category} ${a.mime_type || ''}`
-        ).includes(dotaz)
-      )
-    : assets;
+  const dotaz = hledat.trim();
+  const zobrazene = assets;
 
   if (!currentUser) {
     return (
@@ -295,11 +303,16 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
         ) : zobrazene.length === 0 ? (
           <div className="text-center py-12 text-neutral-500 text-sm">
             {dotaz
-              ? `Pro „${hledat.trim()}" se nic nenašlo — z ${assets.length} souborů.`
+              ? `Pro „${dotaz}" se nic nenašlo.`
               : 'Zatím žádné soubory. Nahrajte první výše.'}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {celkem > zobrazene.length && (
+              <div className="sm:col-span-2 lg:col-span-3 text-[11px] text-neutral-500">
+                Zobrazeno {zobrazene.length} z {celkem} — zbytek najdete hledáním.
+              </div>
+            )}
             {zobrazene.map((asset) => {
               const categoryDef = ASSET_CATEGORIES.find((c) => c.value === asset.category);
               const isOwner = asset.owner_id === currentUser.id;

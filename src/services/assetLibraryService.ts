@@ -53,15 +53,35 @@ async function authorizedFetch(path: string, init?: RequestInit): Promise<Respon
 }
 
 class AssetLibraryService {
-  public async list(params: { owner?: 'mine' | 'global'; category?: string } = {}): Promise<LibraryAsset[]> {
+  /**
+   * Vrátí jen jednu stránku knihovny.
+   *
+   * Hledá a stránkuje databáze, ne prohlížeč — knihovna má desetitisíce
+   * položek a stahovat je celé by při každém otevření trvalo věčnost.
+   * `total` říká, kolik jich dotazu odpovídá celkem, aby šlo napsat
+   * „zobrazeno 200 z 21 698" místo tichého useknutí.
+   */
+  public async list(
+    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number } = {}
+  ): Promise<LibraryAsset[]> {
+    const { assets } = await this.listPage(params);
+    return assets;
+  }
+
+  public async listPage(
+    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number } = {}
+  ): Promise<{ assets: LibraryAsset[]; total: number }> {
     const qs = new URLSearchParams();
     if (params.owner) qs.set('owner', params.owner);
     if (params.category) qs.set('category', params.category);
+    if (params.search) qs.set('search', params.search);
+    if (params.limit !== undefined) qs.set('limit', String(params.limit));
+    if (params.offset !== undefined) qs.set('offset', String(params.offset));
 
     const res = await authorizedFetch(`/api/assets?${qs.toString()}`);
-    if (!res.ok) return [];
+    if (!res.ok) return { assets: [], total: 0 };
     const data = await res.json();
-    return data.assets || [];
+    return { assets: data.assets || [], total: data.total ?? (data.assets || []).length };
   }
 
   /**

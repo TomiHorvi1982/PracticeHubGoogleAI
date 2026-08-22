@@ -28,17 +28,27 @@ export const MidiPlayerPanel: React.FC = () => {
   const [stav, setStav] = useState<MidiSongState>(midiPlayerService.getState());
   const [soubory, setSoubory] = useState<LibraryAsset[]>([]);
   const [nacitamSeznam, setNacitamSeznam] = useState(false);
+  const [hledat, setHledat] = useState('');
+  const [celkem, setCelkem] = useState(0);
   const [vybranaStopa, setVybranaStopa] = useState(0);
   const [chybaSeznamu, setChybaSeznamu] = useState<string | null>(null);
   const rollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => midiPlayerService.subscribe(setStav), []);
 
-  const nactiSeznam = async () => {
+  /** Načte jednu stránku. Knihovna má MIDI přes dvacet tisíc — vypsat je
+   *  všechny by znamenalo zeď tlačítek a obrovský přenos. */
+  const nactiSeznam = async (dotaz = hledat) => {
     setNacitamSeznam(true);
     setChybaSeznamu(null);
     try {
-      setSoubory(await assetLibraryService.list({ category: 'midi' }));
+      const { assets, total } = await assetLibraryService.listPage({
+        category: 'midi',
+        search: dotaz.trim() || undefined,
+        limit: 60,
+      });
+      setSoubory(assets);
+      setCelkem(total);
     } catch (e: any) {
       setChybaSeznamu(e?.message || 'Seznam MIDI souborů se nepodařilo načíst.');
     } finally {
@@ -47,8 +57,16 @@ export const MidiPlayerPanel: React.FC = () => {
   };
 
   useEffect(() => {
-    nactiSeznam();
+    nactiSeznam('');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Hledá se s odstupem od psaní, ať každé písmeno neposílá dotaz.
+  useEffect(() => {
+    const id = window.setTimeout(() => nactiSeznam(hledat), 300);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hledat]);
 
   const stopa = stav.tracks[vybranaStopa];
 
@@ -89,8 +107,15 @@ export const MidiPlayerPanel: React.FC = () => {
           <h3 className="text-sm font-black text-white flex items-center gap-2">
             <Music4 className="w-4 h-4 text-[#FF9F0A]" /> MIDI z knihovny
           </h3>
+          <input
+            type="search"
+            value={hledat}
+            onChange={(e) => setHledat(e.target.value)}
+            placeholder="Hledat MIDI…"
+            className="flex-1 min-w-[140px] bg-black/40 text-white text-[11px] font-medium px-3 py-1.5 rounded-xl border border-white/10 outline-none focus:border-[#FF9F0A] placeholder:text-neutral-500"
+          />
           <button
-            onClick={nactiSeznam}
+            onClick={() => nactiSeznam(hledat)}
             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 cursor-pointer"
             title="Načíst znovu"
           >
@@ -106,6 +131,11 @@ export const MidiPlayerPanel: React.FC = () => {
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
+            {celkem > soubory.length && (
+              <div className="w-full text-[11px] text-neutral-500 mb-1">
+                Zobrazeno {soubory.length} z {celkem} — zbytek najdete hledáním.
+              </div>
+            )}
             {soubory.map((a) => (
               <button
                 key={a.id}

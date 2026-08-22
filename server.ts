@@ -588,7 +588,18 @@ export async function createApp() {
     const ownerFilter = req.query.owner as string | undefined; // 'mine' | 'global' | undefined (both)
     const category = req.query.category as string | undefined;
 
-    let query = admin.from('assets').select('*').eq('status', 'active').order('created_at', { ascending: false });
+    // Hledání a stránkování se dělají v databázi, ne až v prohlížeči.
+    // Knihovna může mít desetitisíce položek (samotných MIDI přes dvacet
+    // tisíc) a stahovat je všechny při každém otevření by bylo neúnosné.
+    const search = String(req.query.search || '').trim();
+    const limit = Math.min(Math.max(parseInt(String(req.query.limit || '200'), 10) || 200, 1), 500);
+    const offset = Math.max(parseInt(String(req.query.offset || '0'), 10) || 0, 0);
+
+    let query = admin
+      .from('assets')
+      .select('*', { count: 'exact' })
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
 
     if (ownerFilter === 'mine') {
       query = query.eq('owner_id', req.user!.id);
@@ -602,11 +613,18 @@ export async function createApp() {
       query = query.eq('category', category);
     }
 
-    const { data, error } = await query;
+    if (search) {
+      // `%` a `_` jsou v ILIKE divoké karty — bez escapování by je uživatel
+      // psal jako vzor, ne jako znak.
+      const vzor = `%${search.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+      query = query.or(`name.ilike.${vzor},original_filename.ilike.${vzor}`);
+    }
+
+    const { data, error, count } = await query.range(offset, offset + limit - 1);
     if (error) {
       return res.status(500).json({ error: 'Nepodařilo se načíst assety.', details: error.message });
     }
-    res.json({ assets: data });
+    res.json({ assets: data, total: count ?? data?.length ?? 0, limit, offset });
   });
 
   // Get one asset's metadata + a short-lived signed download URL.
