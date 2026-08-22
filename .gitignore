@@ -24,3 +24,6 @@ api/_server.mjs
 .claude/*.lock
 .tabtest/
 .vercel
+
+# Zálohy databáze před hromadnými zápisy — patří na disk, ne do repa.
+backups/
