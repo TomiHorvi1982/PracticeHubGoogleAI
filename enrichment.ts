@@ -315,3 +315,182 @@ export async function najdiMidi(interpret: string, nazev: string): Promise<Nalez
       odkaz: { assetId: a.id },
     }));
 }
+
+/**
+ * Tónina a tempo přečtené přímo ze souboru.
+ *
+ * Tohle je celý důvod, proč se Guitar Pro a MIDI hledají první. Hodnoty
+ * v hlavičce jsou přesné — žádný odhad ze zvuku se jim nevyrovná — a teprve
+ * s tempem se dají vybírat bicí groovy.
+ */
+export async function zjistiZSouboru(
+  bajty: Uint8Array,
+  pripona: string
+): Promise<{ tonina: string | null; tempo: number | null }> {
+  if (/midi?$/i.test(pripona)) {
+    try {
+      const { Midi } = await import('@tonejs/midi');
+      const midi = new Midi(bajty);
+      const tempo = midi.header.tempos[0]?.bpm ? Math.round(midi.header.tempos[0].bpm) : null;
+      // MIDI nese předznamenání, ne tóninu; durové a mollové se u stejného
+      // počtu křížků liší jen příznakem.
+      const ks: any = (midi.header as any).keySignatures?.[0];
+      const tonina = ks?.key ? `${ks.key}${ks.scale === 'minor' ? 'm' : ''}` : null;
+      return { tonina, tempo };
+    } catch {
+      return { tonina: null, tempo: null };
+    }
+  }
+
+  // Guitar Pro rozebere alphaTab. Formát se mezi verzemi liší natolik, že
+  // číst hlavičku po bajtech by znamenalo napsat vlastní parser pro každou;
+  // knihovna to umí i mimo prohlížeč, takže si tu práci můžeme ušetřit.
+  try {
+    const at: any = await import('@coderline/alphatab');
+    const score = at.importer.ScoreLoader.loadScoreFromBytes(bajty);
+    const predznamenani = score.masterBars?.[0]?.keySignature ?? 0;
+    return {
+      tempo: score.tempo > 0 ? Math.round(score.tempo) : null,
+      // Nula křížků znamená C dur — nebo že to autor nevyplnil. Ověřeno na
+      // vzorku sbírky: nevyplněno má 25 z 25 souborů, takže nula je zpráva
+      // o autorovi, ne o písni. Brát ji vážně by označilo celý zpěvník za
+      // C dur; tónina se proto odvodí z akordů, kde k tomu jsou data.
+      tonina: predznamenani === 0
+        ? null
+        : toninaZPredznamenani(predznamenani, score.masterBars?.[0]?.keySignatureType ?? 0),
+    };
+  } catch {
+    return { tonina: null, tempo: null };
+  }
+}
+
+/** Kvintový kruh: durové tóniny podle počtu křížků (kladné) a béček (záporné). */
+const DUROVE = ['C', 'G', 'D', 'A', 'E', 'B', 'F#', 'C#'];
+const DUROVE_B = ['C', 'F', 'A#', 'D#', 'G#', 'C#', 'F#', 'B'];
+const MOLLOVE = ['Am', 'Em', 'Bm', 'F#m', 'C#m', 'G#m', 'D#m', 'A#m'];
+const MOLLOVE_B = ['Am', 'Dm', 'Gm', 'Cm', 'Fm', 'A#m', 'D#m', 'G#m'];
+
+/**
+ * Předznamenání na název tóniny.
+ *
+ * `pocet` je počet křížků (kladně) nebo béček (záporně), `typ` rozlišuje dur
+ * od moll — bez něj by dur a její paralelní moll nešly rozeznat, mají totiž
+ * předznamenání stejné.
+ */
+export function toninaZPredznamenani(pocet: number, typ: number): string | null {
+  const i = Math.abs(pocet);
+  if (i > 7) return null;
+  const mol = typ === 1;
+  const tabulka = pocet >= 0 ? (mol ? MOLLOVE : DUROVE) : mol ? MOLLOVE_B : DUROVE_B;
+  return tabulka[i] ?? null;
+}
+
+/**
+ * Bicí groovy, které sedí k tempu písně.
+ *
+ * Vybírá se až nakonec, protože bez tempa by šlo o náhodný výběr z 1 681
+ * možností. Okno je poměrné, ne pevné: deset úderů rozdílu je u pomalé
+ * balady znát mnohem víc než u rychlé písně.
+ */
+export async function najdiGroovy(tempo: number | null, kolik = 5): Promise<Nalez[]> {
+  if (!tempo) return [];
+  const admin = supabaseAdmin();
+
+  const { data } = await admin
+    .from('assets')
+    .select('id, name, metadata')
+    .eq('status', 'active')
+    .eq('category', 'midi')
+    .like('metadata->>legacy_id', 'sync:MDL Tone Ultimate Heavy MIDI Grooves%')
+    .limit(1000);
+
+  const okno = Math.max(6, tempo * 0.08);
+  return (data || [])
+    .map((a) => {
+      const cesta = String((a.metadata as any)?.legacy_id || '');
+      const bpm = parseInt(cesta.match(/(\d{2,3})\s*bpm/i)?.[1] || '0', 10);
+      return { a, bpm, rozdil: Math.abs(bpm - tempo) };
+    })
+    .filter((x) => x.bpm > 0 && x.rozdil <= okno)
+    .sort((a, b) => a.rozdil - b.rozdil)
+    .slice(0, kolik)
+    .map(({ a, bpm, rozdil }) => ({
+      druh: 'groove' as const,
+      nazev: `${a.name.replace(/\.midi?$/i, '')} — ${bpm} BPM`,
+      zdroj: 'bicí groovy',
+      // Groove se nikdy nepřipojí sám. Který beat k písni sedne, je věc
+      // vkusu, ne shody údajů — appka může nabídnout, vybrat musí člověk.
+      jistota: Math.max(0.3, 0.7 - rozdil / okno / 4),
+      odkaz: { assetId: a.id },
+      tempo: bpm,
+    }));
+}
+
+/**
+ * Dohledá k písni všechno, co jde.
+ *
+ * Kroky jdou po sobě schválně: nejdřív soubory, ze kterých se dá vyčíst
+ * tónina a tempo, a teprve pak to, co na nich stojí. Mezi dotazy ven se
+ * čeká — Ultimate Guitar ani lrclib nejsou naše služby.
+ */
+export async function doplnPisen(
+  interpret: string,
+  nazev: string,
+  opts: { prodleva?: number } = {}
+): Promise<VysledekDoplneni> {
+  const prodleva = opts.prodleva ?? 800;
+  const pauza = () => new Promise((r) => setTimeout(r, prodleva));
+  const vse: Nalez[] = [];
+  const poznamky: string[] = [];
+
+  const krok = async (popis: string, fn: () => Promise<Nalez[]>) => {
+    try {
+      vse.push(...(await fn()));
+    } catch (e: any) {
+      poznamky.push(`${popis}: ${e?.message || 'nepodařilo se'}`);
+    }
+  };
+
+  await krok('lokální sbírka', () => najdiVLokalniSbirce(interpret, nazev));
+  await krok('text', () => najdiText(interpret, nazev));
+  await pauza();
+  await krok('Ultimate Guitar', () => najdiNaUG(interpret, nazev));
+  await pauza();
+  await krok('MIDI', () => najdiMidi(interpret, nazev));
+
+  // Z nejjistějšího nalezeného Guitar Pro se přečte tempo a tónina. Tenhle
+  // krok je důvod, proč se soubory hledaly první — bez tempa by výběr
+  // bicích grooves byl náhodný.
+  const gp = vse
+    .filter((n) => n.druh === 'guitar_pro' && n.odkaz.url && !n.odkaz.url.startsWith('http'))
+    .sort((a, b) => b.jistota - a.jistota)[0];
+
+  if (gp?.odkaz.url) {
+    try {
+      const r2: any = await import('./r2');
+      const obsah = await r2.getObjectBytes(gp.odkaz.url);
+      if (obsah) {
+        const z = await zjistiZSouboru(obsah.body, gp.nazev.split('.').pop() || 'gp5');
+        gp.tempo = z.tempo;
+        gp.tonina = z.tonina;
+      }
+    } catch (e: any) {
+      poznamky.push(`Tempo z tabulatury: ${e?.message || 'nepodařilo se přečíst'}`);
+    }
+  }
+
+  const tempo = vse.find((n) => n.tempo)?.tempo ?? null;
+  if (tempo) {
+    await krok('bicí groovy', () => najdiGroovy(tempo));
+  } else {
+    poznamky.push('Tempo se nepodařilo zjistit, takže se nehledaly bicí groovy.');
+  }
+
+  return {
+    interpret,
+    nazev,
+    jiste: vse.filter((n) => n.jistota >= PRAH_JISTOTY),
+    navrhy: vse.filter((n) => n.jistota < PRAH_JISTOTY),
+    poznamky,
+  };
+}
