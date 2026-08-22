@@ -84,6 +84,70 @@ async function removeStorageObject(bucket: string, key: string): Promise<void> {
   await getSupabaseAdmin().storage.from(bucket).remove([key]);
 }
 
+interface YtHit {
+  id: string;
+  title: string;
+  duration?: string;
+  channel?: string;
+}
+
+/**
+ * Vytáhne výsledky vyhledávání ze stránky YouTube.
+ *
+ * ID i název pocházejí ze STEJNÉHO objektu. Dřív se stránka procházela
+ * dvakrát nezávisle — jednou pro `"videoId"`, jednou pro `"title"` — a oba
+ * seznamy se párovaly podle pořadí. Ani jeden přitom nepopisuje jen
+ * výsledky hledání: `videoId` je i u playlistů, doporučených a náhledů,
+ * `title` i u nadpisů sekcí a jmen kanálů. Řady se rozejdou a název jednoho
+ * videa dostane odkaz jiného — uživatel klikne na jednu skladbu a spustí se
+ * druhá. Měřeno na jednom dotazu: čtyři z osmi názvů patřily jinému videu.
+ *
+ * Vrací prázdné pole, když stránka nejde přečíst. Volající pak musí ohlásit
+ * chybu místo seznamu: název, který vypadá správně a správný není, je horší
+ * než žádný výsledek.
+ */
+function parseYouTubeResults(html: string, max: number): YtHit[] {
+  const initial = html.match(/var ytInitialData\s*=\s*(\{.*?\});\s*<\/script>/s);
+  if (!initial) return [];
+
+  const hits: YtHit[] = [];
+  const videna = new Set<string>();
+
+  const projdi = (uzel: any): void => {
+    if (hits.length >= max) return;
+    if (Array.isArray(uzel)) {
+      for (const v of uzel) projdi(v);
+      return;
+    }
+    if (!uzel || typeof uzel !== 'object') return;
+
+    const id = uzel.videoId;
+    const nadpis = uzel.title;
+    if (typeof id === 'string' && id.length === 11 && nadpis && typeof nadpis === 'object' && !videna.has(id)) {
+      const text = nadpis.runs?.[0]?.text ?? nadpis.simpleText;
+      if (typeof text === 'string' && text.trim()) {
+        videna.add(id);
+        hits.push({
+          id,
+          title: text,
+          duration: uzel.lengthText?.simpleText || undefined,
+          channel: uzel.ownerText?.runs?.[0]?.text || uzel.longBylineText?.runs?.[0]?.text || undefined,
+        });
+      }
+    }
+
+    for (const v of Object.values(uzel)) projdi(v);
+  };
+
+  try {
+    projdi(JSON.parse(initial[1]));
+  } catch (e: any) {
+    console.warn('[youtube] ytInitialData se nepodařilo přečíst:', e?.message);
+    return [];
+  }
+  return hits;
+}
+
 async function requireAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const authHeader = req.headers.authorization;
   const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
@@ -1052,66 +1116,25 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
       }
 
       const html = await fetchRes.text();
+      const hits = parseYouTubeResults(html, 15);
 
-      // ID i název se berou ze STEJNÉHO objektu.
-      //
-      // Dřív se HTML procházelo dvakrát nezávisle — jednou pro `"videoId"`,
-      // jednou pro `"title"` — a výsledky se párovaly podle pořadí. Jenže
-      // `videoId` je v odpovědi i u playlistů, doporučených a náhledů,
-      // zatímco `title` i u nadpisů sekcí a jmen kanálů, takže se obě řady
-      // rozejdou a název jednoho videa dostane ID jiného. Uživatel pak
-      // klikne na jednu skladbu a spustí se druhá.
-      const videos: any[] = [];
-      const maxResults = 15;
-
-      const initial = html.match(/var ytInitialData\s*=\s*(\{.*?\});\s*<\/script>/s);
-      if (initial) {
-        const videna = new Set<string>();
-
-        const projdi = (uzel: any): void => {
-          if (videos.length >= maxResults) return;
-          if (Array.isArray(uzel)) {
-            for (const v of uzel) projdi(v);
-            return;
-          }
-          if (!uzel || typeof uzel !== 'object') return;
-
-          const id = uzel.videoId;
-          const nadpis = uzel.title;
-          if (typeof id === 'string' && id.length === 11 && nadpis && typeof nadpis === 'object' && !videna.has(id)) {
-            const text = nadpis.runs?.[0]?.text ?? nadpis.simpleText;
-            if (typeof text === 'string' && text.trim()) {
-              videna.add(id);
-              videos.push({
-                id,
-                title: text,
-                url: `https://www.youtube.com/watch?v=${id}`,
-                thumbnail: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
-                duration: uzel.lengthText?.simpleText || undefined,
-                channel: uzel.ownerText?.runs?.[0]?.text || uzel.longBylineText?.runs?.[0]?.text || undefined,
-                type: 'backingtrack',
-                addedAt: Date.now(),
-              });
-            }
-          }
-
-          for (const v of Object.values(uzel)) projdi(v);
-        };
-
-        try {
-          projdi(JSON.parse(initial[1]));
-        } catch (e: any) {
-          console.warn('[youtube] ytInitialData se nepodařilo přečíst:', e?.message);
-        }
-      }
-
-      if (videos.length === 0) {
-        // Radši nic než spárovat názvy s cizími odkazy.
+      if (hits.length === 0) {
         return res.status(502).json({
           error: 'YouTube vrátil odpověď, ze které nešlo přečíst výsledky.',
           videos: [],
         });
       }
+
+      const videos = hits.map((h) => ({
+        id: h.id,
+        title: h.title,
+        url: `https://www.youtube.com/watch?v=${h.id}`,
+        thumbnail: `https://img.youtube.com/vi/${h.id}/mqdefault.jpg`,
+        duration: h.duration,
+        channel: h.channel,
+        type: 'backingtrack',
+        addedAt: Date.now(),
+      }));
 
       res.json({ videos });
     } catch (err: any) {
@@ -1212,47 +1235,22 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
       }
 
       const html = await fetchRes.text();
-      const videoIds: string[] = [];
-      const videoIdRegex = /"videoId"\s*:\s*"([a-zA-Z0-9_-]{11})"/g;
-      let match;
-      while ((match = videoIdRegex.exec(html)) !== null) {
-        const id = match[1];
-        if (!videoIds.includes(id)) {
-          videoIds.push(id);
-        }
-        if (videoIds.length >= 10) break;
-      }
+      const hits = parseYouTubeResults(html, 6);
 
-      const titles: string[] = [];
-      const titleRegex = /"title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"/g;
-      let titleMatch;
-      while ((titleMatch = titleRegex.exec(html)) !== null) {
-        const t = titleMatch[1];
-        if (!titles.includes(t) && t !== 'Video') {
-          titles.push(t);
-        }
-        if (titles.length >= 10) break;
-      }
-
-      const recommendations: any[] = [];
-      for (let i = 0; i < Math.min(videoIds.length, 6); i++) {
-        const id = videoIds[i];
-        if (!id || id.length !== 11) continue;
-        const t = titles[i] || `Backing Track ${i + 1}`;
-        recommendations.push({
-          id: `yt_${id}`,
-          youtubeId: id,
-          title: t.replace(/\\u0026/g, '&').replace(/\\"/g, '"'),
-          artist: cleanArtist,
-          genre: genre || 'Rock',
-          bpm: bpm || 120,
-          key: key || 'G',
-          source: 'youtube',
-          type: 'backingtrack',
-          thumbnailUrl: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
-          addedAt: Date.now(),
-        });
-      }
+      const recommendations = hits.map((h) => ({
+        id: `yt_${h.id}`,
+        youtubeId: h.id,
+        title: h.title,
+        artist: h.channel || cleanArtist,
+        duration: h.duration,
+        genre: genre || 'Rock',
+        bpm: bpm || 120,
+        key: key || 'G',
+        source: 'youtube',
+        type: 'backingtrack',
+        thumbnailUrl: `https://img.youtube.com/vi/${h.id}/mqdefault.jpg`,
+        addedAt: Date.now(),
+      }));
 
       res.json({ success: true, recommendations });
     } catch (err: any) {
@@ -1294,47 +1292,29 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
       }
 
       const html = await fetchRes.text();
-      const videoIds: string[] = [];
-      const videoIdRegex = /"videoId"\s*:\s*"([a-zA-Z0-9_-]{11})"/g;
-      let match;
-      while ((match = videoIdRegex.exec(html)) !== null) {
-        const id = match[1];
-        if (!videoIds.includes(id)) {
-          videoIds.push(id);
-        }
-        if (videoIds.length >= 25) break;
-      }
+      const hits = parseYouTubeResults(html, 16);
 
-      const titles: string[] = [];
-      const titleRegex = /"title"\s*:\s*\{\s*"runs"\s*:\s*\[\s*\{\s*"text"\s*:\s*"([^"]+)"/g;
-      let titleMatch;
-      while ((titleMatch = titleRegex.exec(html)) !== null) {
-        const t = titleMatch[1];
-        if (!titles.includes(t) && t !== 'Video') {
-          titles.push(t);
-        }
-        if (titles.length >= 25) break;
-      }
-
-      const results: any[] = [];
-      for (let i = 0; i < Math.min(videoIds.length, 16); i++) {
-        const id = videoIds[i];
-        if (!id || id.length !== 11) continue;
-        const rawTitle = titles[i] || `${query} - Stopa ${i + 1}`;
-        const cleanTitle = rawTitle.replace(/\\u0026/g, '&').replace(/\\"/g, '"').replace(/\\'/g, "'");
-
-        results.push({
-          id: `yt_${id}`,
-          youtubeId: id,
-          title: cleanTitle,
-          artist: query,
-          url: `https://www.youtube.com/watch?v=${id}`,
-          thumbnailUrl: `https://img.youtube.com/vi/${id}/mqdefault.jpg`,
-          source: 'youtube_music',
-          type: filter || 'backingtrack',
-          addedAt: Date.now(),
+      if (hits.length === 0) {
+        return res.status(502).json({
+          error: 'YouTube vrátil odpověď, ze které nešlo přečíst výsledky.',
+          results: [],
         });
       }
+
+      const results = hits.map((h) => ({
+        id: `yt_${h.id}`,
+        youtubeId: h.id,
+        title: h.title,
+        // Interpret je kanál, který video vydal. Dřív se sem dosazoval hledaný
+        // výraz, takže u všech výsledků stálo totéž, i když šlo o cover.
+        artist: h.channel || query,
+        duration: h.duration,
+        url: `https://www.youtube.com/watch?v=${h.id}`,
+        thumbnailUrl: `https://img.youtube.com/vi/${h.id}/mqdefault.jpg`,
+        source: 'youtube_music',
+        type: filter || 'backingtrack',
+        addedAt: Date.now(),
+      }));
 
       res.json({ success: true, results });
     } catch (err: any) {
