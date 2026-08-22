@@ -648,3 +648,103 @@ function hashText(s: string): number {
   for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
   return h;
 }
+
+/**
+ * Přijme jeden z nabídnutých návrhů a připojí ho ke skladbě.
+ *
+ * Návrhy jsou uložené jako pole, takže se adresují pořadím. Po přijetí i
+ * odmítnutí z něj položka zmizí — nabídka, která se po odkliknutí nezmenší,
+ * vypadá jako by se nic nestalo.
+ */
+export async function vyresNavrh(
+  songId: string,
+  index: number,
+  akce: 'prijmout' | 'odmitnout'
+): Promise<{ ok: boolean; popis: string }> {
+  const admin = supabaseAdmin();
+  const { data: song } = await admin.from('songs').select('metadata').eq('id', songId).single();
+  if (!song) return { ok: false, popis: 'Skladba nenalezena.' };
+
+  const md: Record<string, any> = song.metadata || {};
+  const navrhy: Nalez[] = Array.isArray(md.navrhy) ? md.navrhy : [];
+  const navrh = navrhy[index];
+  if (!navrh) return { ok: false, popis: 'Takový návrh u skladby není.' };
+
+  const zbyle = navrhy.filter((_, i) => i !== index);
+  const nove: Record<string, any> = { navrhy: zbyle };
+  let popis = 'Odmítnuto.';
+
+  if (akce === 'prijmout') {
+    const prilohy = Array.isArray(md.attachments) ? md.attachments : [];
+
+    if (navrh.odkaz.tabLibraryId && navrh.odkaz.url) {
+      nove.attachments = [
+        ...prilohy,
+        {
+          id: navrh.odkaz.tabLibraryId,
+          name: navrh.nazev,
+          type: 'guitarpro',
+          dataUrl: '',
+          storageBucket: 'r2',
+          storagePath: navrh.odkaz.url,
+          uploadedAt: Date.now(),
+        },
+      ];
+      popis = 'Tabulatura připojena.';
+    } else if (navrh.odkaz.assetId) {
+      // MIDI i groovy leží v knihovně; připojí se odkazem na asset.
+      const { data: asset } = await admin
+        .from('assets')
+        .select('name, storage_bucket, storage_path')
+        .eq('id', navrh.odkaz.assetId)
+        .single();
+      if (!asset) return { ok: false, popis: 'Soubor už v knihovně není.' };
+      nove.attachments = [
+        ...prilohy,
+        {
+          id: navrh.odkaz.assetId,
+          name: asset.name,
+          type: 'midi',
+          dataUrl: '',
+          storageBucket: asset.storage_bucket,
+          storagePath: asset.storage_path,
+          uploadedAt: Date.now(),
+        },
+      ];
+      popis = navrh.druh === 'groove' ? 'Groove připojen.' : 'MIDI připojeno.';
+    } else if (navrh.odkaz.url?.startsWith('http')) {
+      const tab = await stahniUgTab(navrh.odkaz.url);
+      // Text s akordy se zapíše jen tehdy, když u písně žádný není —
+      // přijetí návrhu nesmí přemazat text, který už někdo upravoval.
+      if (tab && tab.obsah.length > 60 && !md.content) {
+        nove.content = tab.obsah;
+        if (tab.akordy.length) nove.chordsUsed = tab.akordy;
+        popis = 'Text s akordy připojen.';
+      } else {
+        const odkazy = Array.isArray(md.links) ? md.links : [];
+        nove.links = [
+          ...odkazy,
+          { id: `ug_${index}_${Date.now()}`, title: navrh.nazev, url: navrh.odkaz.url, category: 'tab' },
+        ];
+        popis = 'Uloženo jako odkaz — text u písně už je a nepřepisuje se.';
+      }
+    } else if (navrh.odkaz.obsah && !md.content) {
+      nove.content = navrh.odkaz.obsah;
+      popis = 'Text připojen.';
+    } else {
+      return { ok: false, popis: 'Tenhle návrh nejde připojit.' };
+    }
+  }
+
+  const odvozene: string[] = Array.isArray(md.derived) ? md.derived : [];
+  const pridano = ['content', 'chordsUsed'].filter((k) => k in nove);
+  await admin
+    .from('songs')
+    .update({
+      metadata: { ...md, ...nove, derived: [...new Set([...odvozene, ...pridano])] },
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', songId);
+
+  return { ok: true, popis };
+}

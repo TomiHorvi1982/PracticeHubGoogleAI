@@ -3,7 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { doplnPisen, pripojNalezy, rozeberNazev } from './enrichment';
+import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
 import { isR2Configured, signedDownloadUrl, getObjectBytes, deleteObject as r2Delete } from './r2';
 
 dotenv.config();
@@ -972,6 +972,21 @@ export async function createApp() {
       res.json({ ...vysledek, ...zapis });
     } catch (e: any) {
       res.status(500).json({ error: 'Doplňování selhalo.', details: e?.message });
+    }
+  });
+
+  /** Přijetí nebo odmítnutí jednoho z nabídnutých návrhů. */
+  app.post('/api/songs/:id/navrhy/:index', requireAuth, async (req, res) => {
+    const index = parseInt(req.params.index, 10);
+    const akce = req.body?.akce === 'prijmout' ? 'prijmout' : 'odmitnout';
+    if (!Number.isFinite(index) || index < 0) {
+      return res.status(400).json({ error: 'Neplatné pořadí návrhu.' });
+    }
+    try {
+      const v = await vyresNavrh(req.params.id, index, akce);
+      res.status(v.ok ? 200 : 400).json(v);
+    } catch (e: any) {
+      res.status(500).json({ error: 'Nepodařilo se.', details: e?.message });
     }
   });
 

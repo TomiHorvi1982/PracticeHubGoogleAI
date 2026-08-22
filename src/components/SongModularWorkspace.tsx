@@ -51,6 +51,7 @@ export interface ModuleConfig {
 
 import { PrazdnyModul } from './songbook/PrazdnyModul';
 import { ModulePicker } from './songbook/ModulePicker';
+import { NavrhyPanel } from './songbook/NavrhyPanel';
 import { ResponsiveGridLayout, useContainerWidth } from 'react-grid-layout';
 import { naRozvrzeni, naRozvrzeniPodSebe, zRozvrzeni, SLOUPCU, VYSKA_RADKU, MEZERA } from './songbook/gridLayout';
 import 'react-grid-layout/css/styles.css';
@@ -1335,11 +1336,14 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   // nabídka se u téhle písně už neukáže.
   if (nabidkaModulu) {
     return (
+      <div className="space-y-4">
+      <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
       <ModulePicker
         song={song}
         dostupneId={DEFAULT_MODULES.map((m) => m.id)}
         onPotvrdit={potvrdVyberModulu}
       />
+      </div>
     );
   }
 
@@ -1358,6 +1362,8 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
           </button>
         </div>
       )}
+
+      <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
 
       {/* TOP COMPACT WORKSPACE CONTROLS BAR */}
       <div className="bg-[#141418] border border-white/[0.08] rounded-3xl p-3 sm:p-4 backdrop-blur-xl shadow-lg flex flex-wrap items-center justify-between gap-3">

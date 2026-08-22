@@ -1,3 +1,4 @@
+import { spustDoplneni } from '../services/enrichmentClient';
 import React, { useState, useEffect } from 'react';
 import { Song, YouTubeVideo } from '../types';
 import { searchYouTubeDirect, searchYouTubeForSong } from '../services/onlineSongSearch';
@@ -169,7 +170,15 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     };
 
     onAddSong(newSong);
-    setSuccessMsg(`Píseň "${newSong.title}" byla uložena do Song Library! Nyní si pod ní můžete nahrát vlastní taby ze svého PC.`);
+
+    // Appka se rovnou pustí do shánění textu, akordů, tabulatur a tempa.
+    // Běží to na pozadí — píseň je uložená hned a materiály k ní přibývají
+    // samy, takže se u přidávání nečeká.
+    spustDoplneni(newSong.id);
+
+    setSuccessMsg(
+      `Píseň "${newSong.title}" byla uložena do Song Library. Zkouším k ní sehnat text, akordy a tabulatury — objeví se samy.`
+    );
     setDirectYtResults([]);
     setYoutubeQuery('');
     setImportingVideo(null);
