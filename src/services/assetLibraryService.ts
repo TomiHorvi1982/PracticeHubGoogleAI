@@ -62,14 +62,14 @@ class AssetLibraryService {
    * „zobrazeno 200 z 21 698" místo tichého useknutí.
    */
   public async list(
-    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number } = {}
+    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number; sort?: 'name' | 'created' } = {}
   ): Promise<LibraryAsset[]> {
     const { assets } = await this.listPage(params);
     return assets;
   }
 
   public async listPage(
-    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number } = {}
+    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number; sort?: 'name' | 'created' } = {}
   ): Promise<{ assets: LibraryAsset[]; total: number }> {
     const qs = new URLSearchParams();
     if (params.owner) qs.set('owner', params.owner);
@@ -77,6 +77,7 @@ class AssetLibraryService {
     if (params.search) qs.set('search', params.search);
     if (params.limit !== undefined) qs.set('limit', String(params.limit));
     if (params.offset !== undefined) qs.set('offset', String(params.offset));
+    if (params.sort) qs.set('sort', params.sort);
 
     const res = await authorizedFetch(`/api/assets?${qs.toString()}`);
     if (!res.ok) return { assets: [], total: 0 };

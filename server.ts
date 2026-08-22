@@ -595,11 +595,19 @@ export async function createApp() {
     const limit = Math.min(Math.max(parseInt(String(req.query.limit || '200'), 10) || 200, 1), 500);
     const offset = Math.max(parseInt(String(req.query.offset || '0'), 10) || 0, 0);
 
+    // Řazení: podle názvu u sbírek, kde je pořadí věcné (noty, MIDI), podle
+    // času u vlastních nahrávek, kde chce člověk vidět naposledy přidané.
+    const sort = String(req.query.sort || 'created');
+
     let query = admin
       .from('assets')
       .select('*', { count: 'exact' })
-      .eq('status', 'active')
-      .order('created_at', { ascending: false });
+      .eq('status', 'active');
+
+    query =
+      sort === 'name'
+        ? query.order('name', { ascending: true })
+        : query.order('created_at', { ascending: false });
 
     if (ownerFilter === 'mine') {
       query = query.eq('owner_id', req.user!.id);
