@@ -436,7 +436,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     }
     setStatusMessage({
       type: 'success',
-      text: `Skladba "${newSong.title}" byla úspěšně přidána do Zpěvníku!`,
+      text: `Skladba "${newSong.title}" byla úspěšně přidána do Song Library!`,
     });
     if (onSelectSongForPlayback) {
       onSelectSongForPlayback(newSong);
@@ -772,7 +772,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         {getItemTypeBadge(item.type)}
                         {item.songId && (
                           <span className="text-[9px] bg-[#30D158]/20 text-[#30D158] px-1.5 py-0.5 rounded font-medium">
-                            Zpěvník
+                            Song Library
                           </span>
                         )}
                       </div>
@@ -849,7 +849,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   <button
                     onClick={() => handleCreateSongFromItem(activeItem)}
                     className="px-3.5 py-2 bg-[#30D158] hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
-                    title="Vytvořit novou skladbu ve Zpěvníku z tohoto souboru"
+                    title="Vytvořit novou skladbu v Song Library z tohoto souboru"
                   >
                     <Plus className="w-4 h-4" /> <span>Přidat do zpěvníku</span>
                   </button>

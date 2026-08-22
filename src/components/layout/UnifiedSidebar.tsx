@@ -57,9 +57,9 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     {
       title: 'SONG CENTER',
       items: [
-        { id: 'songbook', label: 'Zpěvník', icon: BookOpen, badge: null },
+        { id: 'songbook', label: 'Song Library', icon: BookOpen, badge: null },
         { id: 'library', label: 'Knihovna', icon: FolderOpen, badge: null },
-        { id: 'playlist', label: 'Setlisty', icon: ListMusic, badge: null },
+        { id: 'playlist', label: 'Playlist', icon: ListMusic, badge: null },
         { id: 'bookmarks', label: 'Oblíbené', icon: Bookmark, badge: bookmarksCount > 0 ? bookmarksCount : null },
       ],
     },

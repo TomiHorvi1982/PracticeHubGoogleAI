@@ -80,7 +80,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             author: 'Guitar Pro Import',
           };
           onAddSong(newSong);
-          setSuccessMsg(`Soubor byl načten a skladba "${newSong.title}" byla uložena do Zpěvníku!`);
+          setSuccessMsg(`Soubor byl načten a skladba "${newSong.title}" byla uložena do Song Library!`);
         }
       }
     } catch (err: any) {
@@ -112,7 +112,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
       artist: fileItem.songArtist,
       bpm: fileItem.attachment.parsedData?.bpm || 120,
     });
-    setSuccessMsg(`Načten soubor "${fileItem.attachment.name}" ze Zpěvníku.`);
+    setSuccessMsg(`Načten soubor "${fileItem.attachment.name}" ze Song Library.`);
     setErrorMsg(null);
   };
 

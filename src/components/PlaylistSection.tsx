@@ -135,7 +135,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   const handleAddFromSong = (song: Song) => {
     const ytId = song.youtubeVideos && song.youtubeVideos.length > 0 ? song.youtubeVideos[0].id : null;
     if (!ytId) {
-      alert(`Píseň "${song.title}" nemá uložené žádné YouTube video. Přidejte video nejdříve v záložce Zpěvník.`);
+      alert(`Píseň "${song.title}" nemá uložené žádné YouTube video. Přidejte video nejdříve v sekci Song Library.`);
       return;
     }
 

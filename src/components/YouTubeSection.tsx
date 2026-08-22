@@ -169,7 +169,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     };
 
     onAddSong(newSong);
-    setSuccessMsg(`Píseň "${newSong.title}" byla uložena do Zpěvníku! Nyní si pod ní můžete nahrát vlastní taby ze svého PC.`);
+    setSuccessMsg(`Píseň "${newSong.title}" byla uložena do Song Library! Nyní si pod ní můžete nahrát vlastní taby ze svého PC.`);
     setDirectYtResults([]);
     setYoutubeQuery('');
     setImportingVideo(null);
@@ -341,7 +341,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
         {importingVideo && (
           <div className="bg-[#16161A] border border-[#FF453A]/40 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
             <h4 className="text-sm font-bold text-[#FF453A] uppercase border-b border-white/5 pb-2 flex items-center gap-2">
-              <Type className="w-4 h-4" /> Pojmenujte novou skladbu ve Zpěvníku
+              <Type className="w-4 h-4" /> Pojmenujte novou skladbu v Song Library
             </h4>
             <p className="text-xs text-neutral-400">
               Tato skladba bude uložena do vaší kytarové knihovny. Později si pod ní můžete nahrát vlastní akordy a GP tabulatury.
@@ -435,7 +435,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                         className="px-3 py-1 bg-[#FF453A] hover:bg-[#ff5b52] text-white font-bold text-[10px] uppercase rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>Do Zpěvníku</span>
+                        <span>Do Song Library</span>
                       </button>
                     </div>
                   </div>

@@ -308,7 +308,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
       tuning: 'Standard (EADGBe)',
       chordsUsed: ['G', 'C', 'D', 'Em'],
       content: `[G] Úvodní sloka pro novou skladbu: ${track.title}
-[C] Akordy a text můžete editovat přímo ve Zpěvníku.
+[C] Akordy a text můžete editovat přímo v Song Library.
 [D] Přehrávač Media Center je propojen s touto skladbou.`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -689,9 +689,9 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               <button
                                 onClick={() => handleCreateSongFromTrack(track)}
                                 className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition-colors cursor-pointer ml-auto"
-                                title="Vytvořit novou skladbu ve Zpěvníku z tohoto podkladu"
+                                title="Vytvořit novou skladbu v Song Library z tohoto podkladu"
                               >
-                                + Zpěvník
+                                + Song Library
                               </button>
                             </div>
                           </div>

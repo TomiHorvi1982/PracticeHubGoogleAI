@@ -179,7 +179,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
       setStatusMessage({
         type: result.libraryEntry?.stored ? 'success' : 'error',
         text: result.libraryEntry?.stored
-          ? `„${result.song}" je Guitar Pro soubor. Dejte „Do Zpěvníku" a otevře se v přehrávači tabulatur.`
+          ? `„${result.song}" je Guitar Pro soubor. Dejte „Do Song Library" a otevře se v přehrávači tabulatur.`
           : `„${result.song}" je zatím jen v rejstříku — soubor nahrán není. Nahrajte ho skriptem index-tab-library.ts s přepínačem --upload.`,
       });
       return;
@@ -320,7 +320,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     onSongImported(newSong);
     setStatusMessage({
       type: 'success',
-      text: `Skladba "${newSong.title}" (${newSong.artist}) byla úspěšně přidána do Vašeho Zpěvníku!`,
+      text: `Skladba "${newSong.title}" (${newSong.artist}) byla úspěšně přidána do Song Library!`,
     });
     setPreviewTab(null);
   };
@@ -631,9 +631,9 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                               <button
                                 onClick={() => handleImportToSongbook(res)}
                                 className="px-3 py-1.5 bg-[#30D158] hover:bg-[#34e260] text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
-                                title="Importovat přímo do mého Zpěvníku"
+                                title="Importovat přímo do Song Library"
                               >
-                                <Plus className="w-3.5 h-3.5" /> Do Zpěvníku
+                                <Plus className="w-3.5 h-3.5" /> Do Song Library
                               </button>
                             </div>
                           </td>
@@ -795,7 +795,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => handleImportToSongbook(previewTab)}
                   className="px-4 py-2 bg-[#30D158] hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
                 >
-                  <Plus className="w-4 h-4" /> Uložit do Zpěvníku
+                  <Plus className="w-4 h-4" /> Uložit do Song Library
                 </button>
                 <button
                   onClick={() => setPreviewTab(null)}
