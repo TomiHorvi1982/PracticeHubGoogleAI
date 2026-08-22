@@ -60,6 +60,14 @@ export interface LoopState {
   /** Co všechno groove obsahuje, aby šlo nabídnout jen to. */
   obsazene: DrumArticulation[];
   chyba: string | null;
+  /**
+   * Kolik úderů poslední smyčka poslala enginu a kolik z nich opravdu
+   * znělo. Když sada nemá pro danou artikulaci vzorek, engine tiše nic
+   * nezahraje — bez tohohle čísla vypadá prázdná sada úplně stejně jako
+   * rozbitý přehrávač.
+   */
+  poslano: number;
+  zaznelo: number;
 }
 
 type Listener = (s: LoopState) => void;
@@ -81,6 +89,8 @@ class DrumGrooveService {
     vypnute: new Set(),
     obsazene: [],
     chyba: null,
+    poslano: 0,
+    zaznelo: 0,
   };
 
   private listeners = new Set<Listener>();
@@ -88,6 +98,8 @@ class DrumGrooveService {
   /** Délka smyčky v sekundách při původním tempu. */
   private delkaS = 0;
   private budik: ReturnType<typeof setInterval> | null = null;
+  private poslanoVeSmycce = 0;
+  private zaznelVeSmycce = 0;
   private zacatekSmycky = 0;
   private dalsiUder = 0;
   private odregistruj: (() => void) | null = null;
@@ -162,14 +174,19 @@ class DrumGrooveService {
     this.oznam();
 
     try {
-      const res = await this.autorizovanyFetch(`/api/assets/${groove.id}`);
-      if (!res.ok) throw new Error('Soubor se nepodařilo získat z knihovny.');
-      const { download_url } = await res.json();
-      if (!download_url) throw new Error('Knihovna nevrátila odkaz na soubor.');
-
-      const bytes = await fetch(download_url);
-      if (!bytes.ok) throw new Error('Soubor se nepodařilo stáhnout.');
-      const midi = new Midi(await bytes.arrayBuffer());
+      // Bajty podává náš server, ne podepsaný odkaz do R2. Ten míří na cizí
+      // doménu, kterou prohlížeč pro `fetch` blokuje, dokud se původ ručně
+      // nepovolí v nastavení bucketu — a právě proto smyčky nehrály: groove
+      // se nikdy nestáhl.
+      const res = await this.autorizovanyFetch(`/api/assets/${groove.id}/content`);
+      if (!res.ok) {
+        throw new Error(
+          res.status === 401
+            ? 'Nejste přihlášeni.'
+            : `Groove se nepodařilo stáhnout (server vrátil ${res.status}).`
+        );
+      }
+      const midi = new Midi(await res.arrayBuffer());
 
       const udery: Uder[] = [];
       const obsazene = new Set<DrumArticulation>();
@@ -241,6 +258,8 @@ class DrumGrooveService {
 
     this.zacatekSmycky = ctx.currentTime + 0.08;
     this.dalsiUder = 0;
+    this.poslanoVeSmycce = 0;
+    this.zaznelVeSmycce = 0;
     this.stav = { ...this.stav, hraje: true };
     this.oznam();
 
@@ -264,7 +283,15 @@ class DrumGrooveService {
       if (kdy > hranice) break;
 
       if (!this.stav.vypnute.has(u.artikulace)) {
-        sampledDrumEngine.triggerPad(u.artikulace, u.velocity, sampledDrumEngine.getActiveKitId(), kdy);
+        const zdroj = sampledDrumEngine.triggerPad(
+          u.artikulace,
+          u.velocity,
+          sampledDrumEngine.getActiveKitId(),
+          kdy
+        );
+        // `null` znamená, že sada pro tenhle díl nemá načtený vzorek.
+        this.poslanoVeSmycce++;
+        if (zdroj) this.zaznelVeSmycce++;
       }
       this.dalsiUder++;
     }
@@ -283,6 +310,10 @@ class DrumGrooveService {
     // jinak by se s každým opakováním nasčítalo zpoždění budíku.
     if (this.dalsiUder >= this.udery.length && ctx.currentTime >= konec - VYHLED_S) {
       if (this.stav.loop) {
+        this.stav = { ...this.stav, poslano: this.poslanoVeSmycce, zaznelo: this.zaznelVeSmycce };
+        this.oznam();
+        this.poslanoVeSmycce = 0;
+        this.zaznelVeSmycce = 0;
         this.zacatekSmycky = konec;
         this.dalsiUder = 0;
       } else if (ctx.currentTime >= konec) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
+import { WaveformPrehravac } from './songbook/WaveformPrehravac';
+import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -17,6 +18,7 @@ import {
   Eye,
   CheckCircle,
   AlertCircle,
+  Loader2,
   Filter,
   ExternalLink,
   Volume2,
@@ -36,12 +38,12 @@ import { GuitarProPlayer } from './GuitarProPlayer';
 import { audioSynth } from '../services/audioSynth';
 import { Midi } from '@tonejs/midi';
 
-export type LibraryCategory = 'all' | 'guitarpro' | 'pdf' | 'txt' | 'image' | 'midi';
+export type LibraryCategory = 'all' | 'guitarpro' | 'pdf' | 'txt' | 'image' | 'midi' | 'audio';
 
 export interface LibraryItem {
   id: string;
   name: string;
-  type: 'guitarpro' | 'pdf' | 'txt' | 'image' | 'midi';
+  type: 'guitarpro' | 'pdf' | 'txt' | 'image' | 'midi' | 'audio';
   dataUrl: string;
   size: number;
   uploadedAt: number;
@@ -143,6 +145,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeItem, setActiveItem] = useState<LibraryItem | null>(() => libraryItems[0] || null);
 
+  /** Hraje se? Ptají se na to naplánované noty, proto ref a ne stav. */
+  const hrajeMidiRef = useRef(false);
+  /** Naplánované noty, aby po zastavení opravdu zmlkly. */
+  const casovaceNotRef = useRef<number[]>([]);
+  /** Vytvořené blob adresy — po odchodu se musí uvolnit, jinak drží paměť. */
+  const blobRef = useRef<string[]>([]);
+  useEffect(() => () => { blobRef.current.forEach((u) => URL.revokeObjectURL(u)); }, []);
+
   // View Mode: 'detailed' vs 'compact' (1-line: Name - Artist)
   const [libraryListViewMode, setLibraryListViewMode] = useState<'detailed' | 'compact'>('detailed');
 
@@ -160,6 +170,15 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
   // MIDI playback
   const [isPlayingMidi, setIsPlayingMidi] = useState(false);
+
+  useEffect(() => {
+    // Zastavení musí zrušit i noty, které už čekají ve frontě — jinak by
+    // dohrávaly ještě dlouho potom, co přehrávač hlásí, že stojí.
+    if (!isPlayingMidi) {
+      casovaceNotRef.current.forEach((id) => window.clearTimeout(id));
+      casovaceNotRef.current = [];
+    }
+  }, [isPlayingMidi]);
   const [midiProgress, setMidiProgress] = useState(0);
   const [midiDuration, setMidiDuration] = useState(0);
   const midiTimerRef = useRef<any>(null);
@@ -174,6 +193,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     if (jm.endsWith('.pdf')) return 'pdf';
     if (/\.(mid|midi)$/.test(jm)) return 'midi';
     if (/\.(jpe?g|png|webp|gif)$/.test(jm)) return 'image';
+    // Zvuk se pozná dřív než text, jinak by vzorky bicích spadly do „txt"
+    // a v náhledu by se z nich pokusil vypsat obsah.
+    if (/\.(wav|mp3|ogg|flac|aiff?|m4a)$/.test(jm)) return 'audio';
     return 'txt';
   };
 
@@ -216,15 +238,47 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
-  // Adresa souboru se shání až při výběru — a jen jednou.
+  /**
+   * Adresa souboru se shání až při výběru — a jen jednou.
+   *
+   * Když se nezíská, musí to být vidět. Dřív se tiše nestalo nic a náhled
+   * napořád ukazoval „připravuji“, takže nešlo poznat, jestli se soubor
+   * načítá, nebo je rozbitý.
+   */
+  const [chybaOdkazu, setChybaOdkazu] = useState<string | null>(null);
+  const [shanimOdkaz, setShanimOdkaz] = useState(false);
+
   useEffect(() => {
+    setChybaOdkazu(null);
     if (!activeItem || activeItem.dataUrl) return;
+
+    // Položky poskládané z příloh písní mají vlastní `id` s předponou;
+    // v knihovně souborů pod ním nic není a ptát se na ně nemá smysl.
+    if (activeItem.id.startsWith('song_att_')) {
+      setChybaOdkazu('Tenhle soubor je přílohou skladby a nemá odkaz do knihovny.');
+      return;
+    }
+
     let zruseno = false;
+    setShanimOdkaz(true);
     (async () => {
-      const url = await assetLibraryService.getDownloadUrl(activeItem.id);
-      if (zruseno || !url) return;
-      setActiveItem((p) => (p && p.id === activeItem.id ? { ...p, dataUrl: url } : p));
-      setLibraryItems((prev) => prev.map((i) => (i.id === activeItem.id ? { ...i, dataUrl: url } : i)));
+      try {
+        // Stahuje se přes náš server a výsledek se podá jako blob adresa.
+        // Podepsaný odkaz míří přímo do R2, tedy na cizí doménu, kterou
+        // prohlížeč pro `fetch` blokuje, dokud se původ ručně nepovolí —
+        // právě kvůli tomu se nenačítaly tabulatury ani MIDI.
+        const url = await nactiObsahJakoUrl(activeItem.id);
+        if (zruseno) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+        blobRef.current.push(url);
+        setActiveItem((p) => (p && p.id === activeItem.id ? { ...p, dataUrl: url } : p));
+      } catch (e: any) {
+        if (!zruseno) setChybaOdkazu(e?.message || 'Soubor se nepodařilo získat.');
+      } finally {
+        if (!zruseno) setShanimOdkaz(false);
+      }
     })();
     return () => { zruseno = true; };
   }, [activeItem?.id]);
@@ -352,19 +406,34 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     }
   };
 
-  // MIDI Playback Handler
+  /**
+   * Přehrání MIDI z knihovny.
+   *
+   * Jestli se má hrát, drží ref, ne stav komponenty. Naplánované noty se
+   * na tuhle hodnotu ptají až za několik sekund, ale uzávěra jim podává tu,
+   * která platila při plánování — a to bylo těsně po `setIsPlayingMidi(true)`,
+   * kdy proměnná ve staré uzávěře byla pořád `false`. Každá nota se proto
+   * zahodila a přehrávač mlčel, i když se tvářil, že hraje.
+   */
   const handleToggleMidi = async () => {
     if (isPlayingMidi) {
+      hrajeMidiRef.current = false;
       setIsPlayingMidi(false);
       if (midiTimerRef.current) clearInterval(midiTimerRef.current);
       return;
     }
 
-    if (!activeItem || activeItem.type !== 'midi' || !activeItem.dataUrl) return;
+    if (!activeItem || activeItem.type !== 'midi') return;
+    if (!activeItem.dataUrl) {
+      setStatusMessage({ type: 'error', text: 'Soubor se zatím nenačetl z úložiště. Zkuste to za chvíli.' });
+      return;
+    }
 
     try {
+      hrajeMidiRef.current = true;
       setIsPlayingMidi(true);
       const res = await fetch(activeItem.dataUrl);
+      if (!res.ok) throw new Error(`úložiště vrátilo ${res.status}`);
       const arrayBuffer = await res.arrayBuffer();
       const midi = new Midi(arrayBuffer);
 
@@ -372,28 +441,41 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       setMidiDuration(duration);
 
       const startTime = Date.now();
+      let not = 0;
       midi.tracks.forEach((track) => {
         const inst = track.channel === 9 || track.channel === 10 ? 'drums' : 'grand_piano';
         track.notes.forEach((note) => {
-          setTimeout(() => {
-            if (isPlayingMidi) {
+          not++;
+          const id = window.setTimeout(() => {
+            if (hrajeMidiRef.current) {
               audioSynth.playNote(note.midi, inst, note.duration, note.velocity);
             }
           }, note.time * 1000);
+          casovaceNotRef.current.push(id);
         });
       });
+
+      if (not === 0) {
+        hrajeMidiRef.current = false;
+        setIsPlayingMidi(false);
+        setStatusMessage({ type: 'error', text: 'Soubor neobsahuje žádné noty.' });
+        return;
+      }
 
       midiTimerRef.current = setInterval(() => {
         const elapsed = (Date.now() - startTime) / 1000;
         setMidiProgress(Math.min(elapsed, duration));
         if (elapsed >= duration) {
+          hrajeMidiRef.current = false;
           setIsPlayingMidi(false);
           clearInterval(midiTimerRef.current);
         }
       }, 200);
-    } catch (e) {
+    } catch (e: any) {
       console.error('MIDI play error:', e);
+      hrajeMidiRef.current = false;
       setIsPlayingMidi(false);
+      setStatusMessage({ type: 'error', text: `MIDI se nepodařilo přehrát: ${e?.message || 'neznámá chyba'}` });
     }
   };
 
@@ -875,6 +957,26 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Proč náhled nejde. Bez tohohle vypadá nedostupný soubor
+                  úplně stejně jako soubor, který se ještě načítá. */}
+              {shanimOdkaz && (
+                <div className="flex items-center gap-2 text-[11px] text-neutral-400 bg-white/[0.03] border border-white/10 rounded-2xl px-3 py-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0A84FF]" />
+                  Sháním soubor z úložiště…
+                </div>
+              )}
+              {chybaOdkazu && (
+                <div className="flex items-start gap-2 text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-2xl px-3 py-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{chybaOdkazu}</span>
+                </div>
+              )}
+
+              {/* 🔊 ZVUKOVÝ VZOREK — křivka a přehrávání */}
+              {activeItem.type === 'audio' && activeItem.dataUrl && (
+                <WaveformPrehravac url={activeItem.dataUrl} nazev={activeItem.name} />
+              )}
 
               {/* 🎸 GUITAR PRO VIEWER & ALPHATAB PLAYER */}
               {activeItem.type === 'guitarpro' && (

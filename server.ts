@@ -3,7 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
-import { isR2Configured, signedDownloadUrl, deleteObject as r2Delete } from './r2';
+import { isR2Configured, signedDownloadUrl, getObjectBytes, deleteObject as r2Delete } from './r2';
 
 dotenv.config();
 
@@ -74,6 +74,20 @@ async function signStorageUrl(bucket: string, key: string, expiresIn = 60 * 60 *
     return null;
   }
   return data?.signedUrl || null;
+}
+
+/** Bajty souboru z úložiště, ať leží v R2 nebo v Supabase. */
+async function nactiObsah(
+  bucket: string,
+  key: string
+): Promise<{ body: Uint8Array; contentType?: string } | null> {
+  if (bucket === 'r2') {
+    if (!isR2Configured()) return null;
+    return getObjectBytes(key);
+  }
+  const { data, error } = await getSupabaseAdmin().storage.from(bucket).download(key);
+  if (error || !data) return null;
+  return { body: new Uint8Array(await data.arrayBuffer()), contentType: data.type };
 }
 
 async function removeStorageObject(bucket: string, key: string): Promise<void> {
@@ -878,6 +892,51 @@ export async function createApp() {
     } catch (e: any) {
       res.status(500).json({ error: 'Nepodařilo se načíst grooves.', details: e.message });
     }
+  });
+
+  /**
+   * Obsah souboru podaný naším serverem.
+   *
+   * Podepsaný odkaz vede přímo do R2, tedy na cizí doménu. Prohlížeč na ni
+   * `fetch` pustí jen s povoleným původem, a ten se musí do nastavení
+   * bucketu dopsat pro každou adresu zvlášť — včetně náhodných portů
+   * vývojového serveru. Kvůli tomu se nenačítaly tabulatury, nehrálo MIDI
+   * ani bicí smyčky: všechny si soubor stahují přes `fetch`.
+   *
+   * Tudy jdou bajty přes stejný původ jako appka, takže žádné povolování
+   * není potřeba. Obrázky a PDF můžou dál používat podepsaný odkaz —
+   * `<img>` a `<iframe>` cizí původ neřeší.
+   */
+  app.get('/api/assets/:id/content', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: asset } = await admin.from('assets').select('*').eq('id', req.params.id).single();
+    if (!asset) return res.status(404).json({ error: 'Asset nenalezen.' });
+
+    const canView =
+      asset.owner_id === null || asset.owner_id === req.user!.id || (await isProfileAdmin(req.user!.id));
+    if (!canView) return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+
+    const odpoved = await nactiObsah(asset.storage_bucket, asset.storage_path);
+    if (!odpoved) return res.status(502).json({ error: 'Soubor se nepodařilo načíst z úložiště.' });
+
+    res.setHeader('Content-Type', odpoved.contentType || asset.mime_type || 'application/octet-stream');
+    // Podepsaný odkaz uvnitř vydrží hodinu, obsah samotný se ale nemění —
+    // krátká mezipaměť ušetří opakované stahování při přepínání položek.
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.send(Buffer.from(odpoved.body));
+  });
+
+  /** Obsah přílohy skladby — tytéž důvody, jen adresované cestou v úložišti. */
+  app.get('/api/files/content', requireAuth, async (req, res) => {
+    const bucket = String(req.query.bucket || '');
+    const path = String(req.query.path || '');
+    if (!bucket || !path) return res.status(400).json({ error: 'Chybí bucket nebo path.' });
+
+    const odpoved = await nactiObsah(bucket, path);
+    if (!odpoved) return res.status(502).json({ error: 'Soubor se nepodařilo načíst z úložiště.' });
+    res.setHeader('Content-Type', odpoved.contentType || 'application/octet-stream');
+    res.setHeader('Cache-Control', 'private, max-age=300');
+    res.send(Buffer.from(odpoved.body));
   });
 
   // Get one asset's metadata + a short-lived signed download URL.

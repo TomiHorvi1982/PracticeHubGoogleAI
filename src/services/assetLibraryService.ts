@@ -151,12 +151,70 @@ class AssetLibraryService {
     return data.asset;
   }
 
+  /**
+   * Podepsaná adresa souboru.
+   *
+   * Neúspěch vyhodí chybu i s důvodem. Dřív se vracelo `null` na všechno —
+   * na chybějící přihlášení, smazaný soubor i nedostupné úložiště — a
+   * volající pak neměl co ukázat, takže náhled zůstal viset na „připravuji“.
+   */
   public async getDownloadUrl(id: string): Promise<string | null> {
     const res = await authorizedFetch(`/api/assets/${id}`);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const duvod =
+        res.status === 401 ? 'nejste přihlášeni'
+        : res.status === 403 ? 'k souboru nemáte přístup'
+        : res.status === 404 ? 'soubor v knihovně není'
+        : `server vrátil ${res.status}`;
+      throw new Error(`Soubor se nepodařilo získat — ${duvod}.`);
+    }
     const data = await res.json();
-    return data.download_url || null;
+    if (!data.download_url) {
+      throw new Error('Úložiště k souboru nevrátilo odkaz — možná chybí v R2.');
+    }
+    return data.download_url;
   }
 }
 
 export const assetLibraryService = new AssetLibraryService();
+
+/**
+ * Adresa, ze které se dá soubor stáhnout přes `fetch`.
+ *
+ * Podává ho náš server, ne přímo R2. Podepsaný odkaz do R2 vede na cizí
+ * doménu a prohlížeč na ni `fetch` pustí jen s povoleným původem — ten se
+ * musí do nastavení bucketu dopsat pro každou adresu zvlášť, včetně
+ * náhodných portů vývojového serveru. Přes vlastní server jde o stejný
+ * původ, takže tenhle problém nevzniká.
+ *
+ * Pro `<img>`, `<iframe>` a `<audio>` se dál hodí podepsaný odkaz —
+ * ty cizí původ neřeší a ušetří se tím přenos přes server.
+ */
+export async function nactiObsahJakoUrl(assetId: string): Promise<string> {
+  const res = await authorizedFetch(`/api/assets/${assetId}/content`);
+  if (!res.ok) {
+    const duvod =
+      res.status === 401 ? 'nejste přihlášeni'
+      : res.status === 403 ? 'k souboru nemáte přístup'
+      : res.status === 404 ? 'soubor v knihovně není'
+      : `server vrátil ${res.status}`;
+    throw new Error(`Soubor se nepodařilo načíst — ${duvod}.`);
+  }
+  // Blob adresa patří téhle stránce, takže ji přečte `fetch`, `<iframe>`,
+  // `<img>` i `<audio>` bez dalšího přihlašování. Volající ji musí po
+  // dokončení uvolnit přes `URL.revokeObjectURL`, jinak zůstane v paměti.
+  return URL.createObjectURL(await res.blob());
+}
+
+/**
+ * Adresa a hlavičky pro stažení obsahu přes náš server.
+ *
+ * Pro volající, kteří si `fetch` dělají sami a blob adresu nepotřebují.
+ */
+export function contentRequest(assetId: string): { adresa: string; hlavicky: Record<string, string> } {
+  const token = authService.getCurrentSession()?.token;
+  return {
+    adresa: `/api/assets/${assetId}/content`,
+    hlavicky: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+}

@@ -7,6 +7,7 @@ import {
 } from '../services/SampledDrumEngine';
 import { drumKitFactory } from '../services/drumKitFactory';
 import { customDrumKitService } from '../services/customDrumKitService';
+import { WaveformPrehravac } from './songbook/WaveformPrehravac';
 import { drumGrooveService, Groove, GroovePackFacet, LoopState } from '../services/drumGrooveService';
 import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import { CustomDrumKit } from '../types';
@@ -122,7 +123,11 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
     const nastav = async (kits: CustomDrumKit[]) => {
       const prvni = kits[0] || null;
       setKit(prvni);
-      if (prvni && sampledDrumEngine.getActiveKitId() !== prvni.id) {
+      // Přepnout je potřeba i tehdy, když engine tuhle sadu už jako aktivní
+      // vede — vybraná totiž neznamená načtená. `switchKit` si sám ověří,
+      // jestli má vzorky v paměti, a případně je dotáhne; kdybych to volání
+      // přeskočil, pady i smyčka by mlčely, dokud by sadu někdo nepřepnul ručně.
+      if (prvni) {
         await drumKitFactory.switchKit(prvni.id);
       }
     };
@@ -202,6 +207,10 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
   const [hledaniVzorku, setHledaniVzorku] = useState('');
   const [nacitamVzorky, setNacitamVzorky] = useState(false);
   const [pridavam, setPridavam] = useState<string | null>(null);
+  /** Vzorek, jehož křivka je rozbalená. Vzorky bicích trvají zlomek sekundy,
+   *  takže z křivky je líp než z čehokoli jiného vidět, jestli má úder náběh
+   *  a doznění, nebo je useknutý. */
+  const [krivkaVzorku, setKrivkaVzorku] = useState<{ klic: string; name: string; url: string } | null>(null);
 
   useEffect(() => {
     if (!otevrenyPad) return;
@@ -218,7 +227,7 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
     (art: DrumArticulation) => {
       const vrstvy = kit?.multiLayers?.[art];
       if (!vrstvy) return [] as { klic: string; name: string }[];
-      return Object.entries(vrstvy).map(([klic, v]) => ({ klic, name: v.name }));
+      return Object.entries(vrstvy).map(([klic, v]) => ({ klic, name: v.name, dataUrl: v.dataUrl }));
     },
     [kit]
   );
@@ -487,6 +496,24 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                 </div>
               </div>
 
+              {/* Když smyčka běží a nic není slyšet, musí být řečeno proč.
+                  Nejčastěji sada nemá načtený vzorek pro díl, který groove
+                  používá — a engine takový úder tiše zahodí. */}
+              {loop.hraje && loop.poslano > 0 && loop.zaznelo === 0 && (
+                <div className="flex items-start gap-2 text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+                  <span className="shrink-0">⚠</span>
+                  <span>
+                    Smyčka běží, ale sada nezahrála ani jeden z {loop.poslano} úderů — chybí jí načtené
+                    vzorky. Zkus dole u padů vybrat zvuky, nebo otevřít Správu sady.
+                  </span>
+                </div>
+              )}
+              {loop.hraje && loop.zaznelo > 0 && loop.zaznelo < loop.poslano && (
+                <div className="text-[10px] text-neutral-500">
+                  Zaznělo {loop.zaznelo} z {loop.poslano} úderů — zbytek nemá v sadě vzorek.
+                </div>
+              )}
+
               {/* Ukazatel pozice ve smyčce */}
               <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                 <div
@@ -636,7 +663,7 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                 </button>
 
                 <button
-                  onClick={() => setOtevrenyPad(otevrenyPad === pad.id ? null : pad.id)}
+                  onClick={() => { setOtevrenyPad(otevrenyPad === pad.id ? null : pad.id); setKrivkaVzorku(null); }}
                   className="absolute bottom-2.5 right-2.5 p-1 rounded-lg bg-black/70 border border-white/15 text-neutral-400 hover:text-[#FF9F0A] hover:border-[#FF9F0A]/50 transition-all cursor-pointer"
                   title="Vybrat zvuky"
                 >
@@ -677,7 +704,17 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                   key={v.klic}
                   className="flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 bg-[#30D158]/15 border border-[#30D158]/40 rounded-lg text-[10px] font-bold text-[#30D158]"
                 >
-                  <span className="truncate max-w-[160px]">{v.name}</span>
+                  <button
+                    onClick={() =>
+                      setKrivkaVzorku((p) =>
+                        p?.klic === v.klic ? null : { klic: v.klic, name: v.name, url: v.dataUrl }
+                      )
+                    }
+                    className="truncate max-w-[160px] cursor-pointer hover:underline"
+                    title="Ukázat křivku a přehrát"
+                  >
+                    {v.name}
+                  </button>
                   <button
                     onClick={() => void odeberVzorek(otevrenyPad, v.klic)}
                     className="p-0.5 rounded hover:bg-red-500/20 hover:text-red-400 transition-all cursor-pointer"
@@ -688,6 +725,10 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                 </span>
               ))}
             </div>
+
+            {krivkaVzorku && (
+              <WaveformPrehravac url={krivkaVzorku.url} nazev={krivkaVzorku.name} />
+            )}
 
             {/* Nabídka z knihovny */}
             <div className="relative">

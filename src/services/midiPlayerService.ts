@@ -1,6 +1,6 @@
 import { Midi } from '@tonejs/midi';
 import { audioSynth, InstrumentProfile, midiToNoteName } from './audioSynth';
-import { assetLibraryService, LibraryAsset } from './assetLibraryService';
+import { contentRequest, assetLibraryService, LibraryAsset } from './assetLibraryService';
 import { audioBus } from './audioBus';
 
 /**
@@ -114,10 +114,12 @@ class MidiPlayerService {
     this.notify();
 
     try {
-      const url = await assetLibraryService.getDownloadUrl(asset.id);
-      if (!url) throw new Error('Soubor se nepodařilo z knihovny získat.');
+      // Přes náš server, ne podepsaným odkazem do R2 — ten je pro `fetch`
+      // cizí původ a prohlížeč ho blokuje, dokud se adresa ručně nepovolí
+      // v nastavení bucketu.
+      const url = contentRequest(asset.id);
 
-      const res = await fetch(url);
+      const res = await fetch(url.adresa, { headers: url.hlavicky });
       if (!res.ok) throw new Error(`Stažení selhalo (HTTP ${res.status}).`);
       const midi = new Midi(await res.arrayBuffer());
 

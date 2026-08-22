@@ -96,3 +96,37 @@ export async function objectSize(key: string): Promise<number | null> {
     return null;
   }
 }
+
+/**
+ * Stáhne objekt na server.
+ *
+ * Slouží tomu, aby soubory mohl prohlížeči podávat náš vlastní server.
+ * Podepsaný odkaz vede přímo do R2, tedy na cizí doménu, a `fetch` na ni
+ * potřebuje povolený původ. Ten se musí ručně dopsat do nastavení bucketu
+ * pro každou adresu, ze které se appka spustí — včetně náhodných portů
+ * vývojového serveru. Když bajty projdou přes náš server, žádné povolování
+ * není potřeba, protože jde o stejný původ jako appka.
+ */
+export async function getObjectBytes(
+  key: string
+): Promise<{ body: Uint8Array; contentType?: string } | null> {
+  try {
+    const out = await r2().send(
+      new GetObjectCommand({ Bucket: R2_BUCKET_NAME(), Key: key })
+    );
+    if (!out.Body) return null;
+    const chunks: Uint8Array[] = [];
+    // @ts-expect-error tělo je v Node.js čitelný proud
+    for await (const chunk of out.Body) chunks.push(chunk);
+    const celkem = chunks.reduce((n, c) => n + c.length, 0);
+    const body = new Uint8Array(celkem);
+    let pozice = 0;
+    for (const c of chunks) {
+      body.set(c, pozice);
+      pozice += c.length;
+    }
+    return { body, contentType: out.ContentType };
+  } catch {
+    return null;
+  }
+}
