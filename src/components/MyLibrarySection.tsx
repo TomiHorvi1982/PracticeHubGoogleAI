@@ -33,6 +33,7 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
   const [loading, setLoading] = useState(false);
   const [ownerFilter, setOwnerFilter] = useState<'all' | 'mine' | 'global'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [hledat, setHledat] = useState('');
   const [uploadCategory, setUploadCategory] = useState<string>(ASSET_CATEGORIES[0].value);
   const [uploadAsGlobal, setUploadAsGlobal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -62,6 +63,25 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
     loadAssets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser, ownerFilter, categoryFilter]);
+
+  /**
+   * Hledá se v už načteném seznamu, ne dalším dotazem do databáze —
+   * odezva je pak okamžitá při psaní. Porovnává se bez diakritiky, aby
+   * „nohavica" našlo i „Nohavicu", a kromě názvu i původní jméno souboru:
+   * hromadně nahrané věci mívají v názvu pořadové číslo, které si člověk
+   * nepamatuje, ale příponu nebo kus filenamu ano.
+   */
+  const bezDiakritiky = (t: string) =>
+    t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  const dotaz = bezDiakritiky(hledat.trim());
+  const zobrazene = dotaz
+    ? assets.filter((a) =>
+        bezDiakritiky(
+          `${a.name} ${a.original_filename || ''} ${a.category} ${a.mime_type || ''}`
+        ).includes(dotaz)
+      )
+    : assets;
 
   if (!currentUser) {
     return (
@@ -211,6 +231,14 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
           ))}
         </div>
 
+        <input
+          type="search"
+          value={hledat}
+          onChange={(e) => setHledat(e.target.value)}
+          placeholder="Hledat v knihovně…"
+          className="flex-1 min-w-[180px] bg-black/40 text-white text-xs font-medium px-3 py-1.5 rounded-xl border border-white/10 outline-none focus:border-[#FF9F0A] placeholder:text-neutral-500"
+        />
+
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
@@ -231,11 +259,15 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
           <div className="flex items-center justify-center py-12 text-neutral-400 text-sm gap-2">
             <Loader2 className="w-4 h-4 animate-spin" /> Načítám…
           </div>
-        ) : assets.length === 0 ? (
-          <div className="text-center py-12 text-neutral-500 text-sm">Zatím žádné soubory. Nahrajte první výše.</div>
+        ) : zobrazene.length === 0 ? (
+          <div className="text-center py-12 text-neutral-500 text-sm">
+            {dotaz
+              ? `Pro „${hledat.trim()}" se nic nenašlo — z ${assets.length} souborů.`
+              : 'Zatím žádné soubory. Nahrajte první výše.'}
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {assets.map((asset) => {
+            {zobrazene.map((asset) => {
               const categoryDef = ASSET_CATEGORIES.find((c) => c.value === asset.category);
               const isOwner = asset.owner_id === currentUser.id;
               const canManage = isOwner || isAdmin;
