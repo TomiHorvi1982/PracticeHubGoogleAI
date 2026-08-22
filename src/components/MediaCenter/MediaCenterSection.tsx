@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { audioBus } from '../../services/audioBus';
 import { Song, MediaTrack, LyricLine, MediaPlaylist, MediaPlaybackState, YouTubeVideo } from '../../types';
 import { mediaCenterService } from '../../services/mediaCenterService';
 import { eventBus } from '../../services/eventBus';
@@ -61,6 +62,18 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
   // YouTube IFrame Player Instance Ref
   const ytPlayerRef = useRef<any>(null);
+
+  // Registrace u sběrnice — viz audioBus. Bez ní by se tenhle přehrávač
+  // nedal zastavit, když zvuk spustí spodní lišta.
+  useEffect(() => {
+    return audioBus.register('media-center', () => {
+      try {
+        ytPlayerRef.current?.pauseVideo?.();
+      } catch {
+        /* přehrávač ještě nemusí být připravený */
+      }
+    });
+  }, []);
   const ytContainerRef = useRef<HTMLDivElement>(null);
   const [isYtReady, setIsYtReady] = useState(false);
   const timeUpdateIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -139,8 +152,10 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             onStateChange: (event: any) => {
               // 1: PLAYING, 2: PAUSED, 0: ENDED
               if (event.data === 1) {
+                audioBus.claim('media-center');
                 mediaCenterService.setPlayingState(true);
               } else if (event.data === 2) {
+                audioBus.release('media-center');
                 mediaCenterService.setPlayingState(false);
               } else if (event.data === 0) {
                 if (playbackState.loopMode === 'one') {

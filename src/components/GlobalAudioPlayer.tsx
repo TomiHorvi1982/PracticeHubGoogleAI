@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { audioBus } from '../services/audioBus';
 import { PlaylistItem, UserAccount } from '../types';
 import { eventBus } from '../services/eventBus';
 import {
@@ -47,6 +48,19 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
   const currentTrack = playlist[currentTrackIndex] || null;
   const playerRef = useRef<any>(null);
   const iframeContainerId = 'global-youtube-player-iframe';
+
+  // Registrace u sběrnice: jiný zdroj zvuku tímhle tenhle přehrávač zastaví.
+  // Musí se registrovat při připojení, ne až při přehrávání — zastavit ho
+  // potřebují i ve chvíli, kdy si o slovo řekne někdo jiný.
+  useEffect(() => {
+    return audioBus.register('global-player', () => {
+      try {
+        playerRef.current?.pauseVideo?.();
+      } catch {
+        /* přehrávač ještě nemusí být připravený */
+      }
+    });
+  }, []);
 
   const [isApiReady, setIsApiReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -184,6 +198,10 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
             }
           },
           onStateChange: (event: any) => {
+            // Jakmile tenhle přehrávač začne hrát, ostatní zdroje zvuku se
+            // zastaví — jinak by hrály současně.
+            if (event.data === 1) audioBus.claim('global-player');
+            if (event.data === 2 || event.data === 0) audioBus.release('global-player');
             if (event.data === 0) { // ENDED
               if (playbackMode === 'loop-one') {
                 event.target.seekTo(0);
