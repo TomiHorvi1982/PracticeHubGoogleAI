@@ -86,6 +86,28 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
   const [customKits, setCustomKits] = useState<CustomDrumKit[]>([]);
 
   /**
+   * Úrovně pro ukazatele u faderů. Odečítají se z enginu ve smyčce
+   * vykreslování, ne přes interval — tím jde v krok se snímky obrazovky
+   * a při skryté kartě se prohlížeč sám zastaví.
+   */
+  const [urovne, setUrovne] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    let bezi = true;
+    let snimek = 0;
+    const tik = () => {
+      if (!bezi) return;
+      setUrovne(sampledDrumEngine.getMeterLevels());
+      snimek = requestAnimationFrame(tik);
+    };
+    snimek = requestAnimationFrame(tik);
+    return () => {
+      bezi = false;
+      cancelAnimationFrame(snimek);
+    };
+  }, []);
+
+  /**
    * Engine si pamatuje naposledy vybranou sadu, což bývá některá z
    * vestavěných syntetizovaných. Ty se ale už nenabízejí — bez tohohle
    * přepnutí by výběr ukazoval prázdno a pady by dál hrály náhradní zvuk
@@ -546,7 +568,20 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
                 {activeMixerTab === 'faders' && (
                   <div className="flex flex-col items-center space-y-3 py-1">
                     {/* Vertical Volume Fader */}
-                    <div className="h-36 flex items-center justify-center relative w-full">
+                    <div className="h-36 flex items-center justify-center relative w-full gap-2">
+                      {/* Ukazatel hlasitosti: roste zdola, jako na mixu. */}
+                      <div className="h-32 w-1.5 rounded-full bg-black/60 border border-white/10 overflow-hidden flex flex-col justify-end shrink-0">
+                        <div
+                          className={`w-full rounded-full transition-[height] duration-75 ${
+                            (urovne[chName] || 0) > 0.85
+                              ? 'bg-[#FF453A]'
+                              : (urovne[chName] || 0) > 0.6
+                                ? 'bg-[#FF9F0A]'
+                                : 'bg-[#30D158]'
+                          }`}
+                          style={{ height: `${Math.round((urovne[chName] || 0) * 100)}%` }}
+                        />
+                      </div>
                       <input
                         type="range"
                         min="0"

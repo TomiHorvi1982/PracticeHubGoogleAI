@@ -519,11 +519,13 @@ class StemAudioService {
           let norm = 0;
           if (typeof db === 'number' && !isNaN(db) && db > -60) {
             norm = Math.min(1, Math.max(0, (db + 60) / 66));
-          } else {
-            // Simulated subtle dynamic fallback during active audio playback if WebAudio buffer is quiet
-            const baseVol = Tone.dbToGain(ch.volume);
-            norm = Math.min(1, Math.max(0, (baseVol * (0.6 + Math.random() * 0.35))));
           }
+          // Pod -60 dB nebo bez čitelné hodnoty zůstává ukazatel na nule.
+          //
+          // Dřív se v tom případě dosazovalo náhodné číslo odvozené od
+          // nastavené hlasitosti, takže ukazatel poskakoval i u stopy, která
+          // nehrála. Právě to má přitom prozradit — ukazatel, který se hýbe
+          // vždycky, neříká nic.
 
           if (Math.abs((this.meterLevels[stemId] || 0) - norm) > 0.02) {
             this.meterLevels[stemId] = norm;

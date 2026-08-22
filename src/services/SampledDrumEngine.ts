@@ -129,6 +129,7 @@ export class SampledDrumEngine {
       compressor: DynamicsCompressorNode;
       reverbSendGain: GainNode;
       outputGain: GainNode;
+      analyser: AnalyserNode;
     }
   > = new Map();
 
@@ -358,6 +359,13 @@ export class SampledDrumEngine {
       const outputGain = ctx.createGain();
       outputGain.gain.setValueAtTime(config.volume, ctx.currentTime);
 
+      // Ukazatel hlasitosti. Připojuje se ZA fader, takže ukazuje, co je
+      // opravdu slyšet — po nastavení hlasitosti i po ztlumení. Je to slepá
+      // větev: nikam dál nevede, jen měří, takže zvuk neovlivňuje.
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.6;
+
       // Chain: input -> lowEq -> midEq -> highEq -> compressor -> panNode -> outputGain -> masterBusGain
       inputGain.connect(lowEq);
       lowEq.connect(midEq);
@@ -366,6 +374,7 @@ export class SampledDrumEngine {
       compressor.connect(panNode);
       panNode.connect(outputGain);
       outputGain.connect(this.masterBusGain!);
+      outputGain.connect(analyser);
 
       // Reverb routing
       if (this.roomReverbNode && chName !== 'room') {
@@ -382,10 +391,39 @@ export class SampledDrumEngine {
         compressor,
         reverbSendGain,
         outputGain,
+        analyser,
       });
     });
 
     this.updateChannelGains();
+  }
+
+  /**
+   * Okamžitá hlasitost každého kanálu, 0 až 1 — pro ukazatele u faderů.
+   *
+   * Počítá se efektivní hodnota (RMS) ze skutečného signálu. Když kanál
+   * nehraje, vrací nulu; nic se nedopočítává ani neodhaduje z nastavené
+   * hlasitosti. Ukazatel má prozradit, že stopa hraje — kdyby se hýbal
+   * i u mlčícího kanálu, neřekl by nic.
+   */
+  public getMeterLevels(): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const [name, nodes] of this.channelNodes) {
+      const a = (nodes as any).analyser as AnalyserNode | undefined;
+      if (!a) continue;
+      const buf = new Uint8Array(a.fftSize);
+      a.getByteTimeDomainData(buf);
+      let soucet = 0;
+      for (let i = 0; i < buf.length; i++) {
+        const v = (buf[i] - 128) / 128;
+        soucet += v * v;
+      }
+      const rms = Math.sqrt(soucet / buf.length);
+      // Zesílení na použitelný rozsah — bicí mají krátké špičky a syrové
+      // RMS by u nich sotva vystoupalo nad pár procent.
+      out[name] = Math.min(1, rms * 3);
+    }
+    return out;
   }
 
   private createStudioRoomImpulse(ctx: AudioContext): void {
