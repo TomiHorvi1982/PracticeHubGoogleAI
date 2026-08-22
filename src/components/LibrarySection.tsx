@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WaveformPrehravac } from './songbook/WaveformPrehravac';
+import { PdfNahled } from './songbook/PdfNahled';
 import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import {
   FolderArchive,
@@ -1009,13 +1010,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               {activeItem.type === 'pdf' && (
                 <div className="space-y-3">
                   {activeItem.dataUrl ? (
-                    <div className="w-full h-[500px] bg-black/40 rounded-2xl border border-white/10 overflow-hidden relative">
-                      <iframe
-                        src={activeItem.dataUrl}
-                        className="w-full h-full border-none rounded-2xl"
-                        title="PDF Viewer"
-                      />
-                    </div>
+                    <PdfNahled url={activeItem.dataUrl} nazev={activeItem.name} />
                   ) : (
                     <div className="bg-black/30 border border-white/10 rounded-2xl p-6 text-center space-y-2">
                       <FileText className="w-8 h-8 text-[#FF453A] mx-auto" />
