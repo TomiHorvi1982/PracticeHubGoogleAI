@@ -48,6 +48,7 @@ export interface ModuleConfig {
 }
 
 import { PrazdnyModul } from './songbook/PrazdnyModul';
+import { ModulePicker } from './songbook/ModulePicker';
 import { dataModulu } from './songbook/moduleRegistry';
 
 export const DEFAULT_MODULES: ModuleConfig[] = [
@@ -94,72 +95,72 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 }) => {
   const musicalCtx = useMusicalContext();
 
-  // Saved module configurations state (merged with defaults)
-  const [modules, setModules] = useState<ModuleConfig[]>(() => {
-    if (song.moduleConfigs && Array.isArray(song.moduleConfigs) && song.moduleConfigs.length > 0) {
-      const merged = [...song.moduleConfigs];
+  /**
+   * Uložená sestava modulů, nebo `null`, když píseň žádnou nemá.
+   *
+   * `null` je tady důležitá informace, ne chyba: podle ní se pozná píseň
+   * otevřená poprvé, které se má nabídnout výběr modulů místo plochy
+   * poskládané naslepo. Dřív se v obou případech vrátily výchozí moduly a
+   * ty dva stavy od sebe nešly rozeznat.
+   */
+  const nactiSestavu = (s: Song): ModuleConfig[] | null => {
+    const doplnChybejici = (ulozene: ModuleConfig[]): ModuleConfig[] => {
+      const spojene = [...ulozene];
+      // Modul přidaný do appky až po uložení sestavy musí přibýt skrytý —
+      // jinak by se u starých písní nikdy neobjevil.
       DEFAULT_MODULES.forEach((def) => {
-        if (!merged.some((m) => m.id === def.id)) {
-          merged.push({ ...def, order: merged.length + 1 });
+        if (!spojene.some((m) => m.id === def.id)) {
+          spojene.push({ ...def, visible: false, order: spojene.length + 1 });
         }
       });
-      return merged;
-    }
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem(`song_modules_cfg_${song.id}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const merged = [...parsed];
-            DEFAULT_MODULES.forEach((def) => {
-              if (!merged.some((m) => m.id === def.id)) {
-                merged.push({ ...def, order: merged.length + 1 });
-              }
-            });
-            return merged;
-          }
-        } catch {}
-      }
-    }
-    return DEFAULT_MODULES;
-  });
+      return spojene;
+    };
 
-  // Reload when song.id changes
-  useEffect(() => {
-    if (song.moduleConfigs && Array.isArray(song.moduleConfigs) && song.moduleConfigs.length > 0) {
-      const merged = [...song.moduleConfigs];
-      DEFAULT_MODULES.forEach((def) => {
-        if (!merged.some((m) => m.id === def.id)) {
-          merged.push({ ...def, order: merged.length + 1 });
-        }
-      });
-      setModules(merged);
-      return;
+    if (Array.isArray(s.moduleConfigs) && s.moduleConfigs.length > 0) {
+      return doplnChybejici(s.moduleConfigs);
     }
     if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem(`song_modules_cfg_${song.id}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const merged = [...parsed];
-            DEFAULT_MODULES.forEach((def) => {
-              if (!merged.some((m) => m.id === def.id)) {
-                merged.push({ ...def, order: merged.length + 1 });
-              }
-            });
-            setModules(merged);
-            return;
-          }
-        } catch {}
+      try {
+        const ulozene = JSON.parse(localStorage.getItem(`song_modules_cfg_${s.id}`) || 'null');
+        if (Array.isArray(ulozene) && ulozene.length > 0) return doplnChybejici(ulozene);
+      } catch {
+        /* poškozený záznam se chová jako žádný */
       }
     }
-    setModules(DEFAULT_MODULES);
+    return null;
+  };
+
+  const [modules, setModules] = useState<ModuleConfig[]>(() => nactiSestavu(song) || DEFAULT_MODULES);
+  const [nabidkaModulu, setNabidkaModulu] = useState<boolean>(() => nactiSestavu(song) === null);
+
+  useEffect(() => {
+    const sestava = nactiSestavu(song);
+    setModules(sestava || DEFAULT_MODULES);
+    setNabidkaModulu(sestava === null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [song.id]);
 
+  /** Potvrzení výběru z nabídky — uloží se rovnou, aby se příště nenabízel. */
+  const potvrdVyberModulu = (vybraneId: string[]) => {
+    const nove = (nactiSestavu(song) || DEFAULT_MODULES).map((m) => ({
+      ...m,
+      visible: vybraneId.includes(m.id),
+    }));
+    setModules(nove);
+    setNabidkaModulu(false);
+
+    // Zapisuje se na dvě místa. Uložení do databáze může selhat — spadlé
+    // připojení, vypršené přihlášení — a bez lokální kopie by se nabídka
+    // při dalším otevření zeptala znovu, jako by si člověk nikdy nevybral.
+    try {
+      localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(nove));
+    } catch {
+      /* plné úložiště nesmí zabránit otevření písně */
+    }
+    onUpdateSong({ ...song, moduleConfigs: nove, updatedAt: Date.now() });
+  };
+
   // Modal for module selection
-  const [isModulesModalOpen, setIsModulesModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -1297,6 +1298,19 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     }
   };
 
+  // Píseň otevřená poprvé nedostane plochu poskládanou naslepo, ale otázku,
+  // co na ní má být. Jakmile si člověk vybere, sestava se uloží a tahle
+  // nabídka se u téhle písně už neukáže.
+  if (nabidkaModulu) {
+    return (
+      <ModulePicker
+        song={song}
+        dostupneId={DEFAULT_MODULES.map((m) => m.id)}
+        onPotvrdit={potvrdVyberModulu}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* TOAST NOTIFICATION */}
@@ -1318,7 +1332,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
         {/* Left: Module Selection Trigger Button & Active Modules Count */}
         <div className="flex items-center gap-2 flex-wrap">
           <button
-            onClick={() => setIsModulesModalOpen(true)}
+            onClick={() => setNabidkaModulu(true)}
             className="px-3.5 py-2 bg-gradient-to-r from-amber-500/20 to-[#FF9F0A]/10 hover:from-amber-500/30 hover:to-[#FF9F0A]/20 border border-[#FF9F0A]/40 text-amber-300 hover:text-amber-200 rounded-2xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-md active:scale-95"
             title="Kliknutím otevřete výběr a správu modulů pro tuto skladbu"
           >
@@ -1362,144 +1376,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
       </div>
 
       {/* SONG MODULES CONFIGURATION MODAL */}
-      {isModulesModalOpen && (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-[#18181E] border border-white/20 text-white max-w-3xl w-full p-5 sm:p-7 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-white">
-                    Výběr a zobrazení modulů
-                  </h2>
-                  <p className="text-xs text-neutral-400">
-                    Zaškrtněte moduly, které chcete mít zobrazené pro skladbu <span className="text-[#FF9F0A] font-semibold">{song.title}</span>.
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsModulesModalOpen(false)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Quick Presets */}
-            <div className="py-3 flex items-center gap-2 flex-wrap border-b border-white/[0.06] text-xs">
-              <span className="text-neutral-400 text-[11px] font-semibold">Rychlé předvolby:</span>
-              <button
-                onClick={() => {
-                  const updated = modules.map((m) => ({ ...m, visible: true }));
-                  saveModulesConfig(updated);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-200 cursor-pointer"
-              >
-                Všechny moduly
-              </button>
-              <button
-                onClick={() => {
-                  const essentialIds = ['text_chords', 'youtube', 'chord_diagrams'];
-                  const updated = modules.map((m) => ({ ...m, visible: essentialIds.includes(m.id) }));
-                  saveModulesConfig(updated);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-200 cursor-pointer"
-              >
-                Základní (Text + Akordy + Video)
-              </button>
-              <button
-                onClick={() => {
-                  const instIds = ['text_chords', 'tuner', 'fretboard', 'keyboard', 'chord_diagrams'];
-                  const updated = modules.map((m) => ({ ...m, visible: instIds.includes(m.id) }));
-                  saveModulesConfig(updated);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-200 cursor-pointer"
-              >
-                Hudební dílna (Ladička, Hmatník, Klavír)
-              </button>
-              <button
-                onClick={() => {
-                  const updated = modules.map((m) => ({ ...m, visible: m.id === 'text_chords' }));
-                  saveModulesConfig(updated);
-                }}
-                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-200 cursor-pointer"
-              >
-                Pouze text
-              </button>
-            </div>
-
-            {/* Modules Checkbox Grid */}
-            <div className="flex-1 overflow-y-auto py-4 space-y-2.5 pr-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {modules.map((m) => (
-                  <div
-                    key={m.id}
-                    onClick={() => toggleModuleVisible(m.id)}
-                    className={`flex items-start gap-3 p-3 rounded-2xl border transition-all cursor-pointer select-none ${
-                      m.visible
-                        ? 'bg-amber-500/15 border-amber-500/40 text-white shadow-sm'
-                        : 'bg-white/[0.02] border-white/[0.06] text-neutral-400 hover:bg-white/[0.05] hover:text-neutral-200'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={m.visible}
-                      onChange={() => {}} // handled by card onClick
-                      className="accent-[#FF9F0A] w-4 h-4 rounded cursor-pointer mt-0.5 shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-bold text-xs flex items-center gap-1.5 text-white">
-                          <span>{m.icon}</span> {m.title}
-                        </span>
-                        <span
-                          className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
-                            m.visible ? 'bg-[#30D158]/20 text-[#30D158]' : 'bg-white/10 text-neutral-500'
-                          }`}
-                        >
-                          {m.visible ? 'Zobrazeno' : 'Skryto'}
-                        </span>
-                      </div>
-                      {m.description && (
-                        <p className="text-[11px] text-neutral-400 mt-1 line-clamp-2 leading-relaxed">
-                          {m.description}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="pt-4 border-t border-white/10 flex items-center justify-between gap-3 flex-wrap">
-              <button
-                onClick={handleRestoreDefaultLayout}
-                className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Obnovit výchozí</span>
-              </button>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    handleSaveLayoutAndSong();
-                    setIsModulesModalOpen(false);
-                  }}
-                  className="px-4 py-2 bg-[#FF9F0A] hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center gap-1.5 cursor-pointer shadow-md"
-                >
-                  <Check className="w-4 h-4" />
-                  <span>Uložit a Zavřít</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* FLOATING DETACHED MODULES OVERLAY */}
       {floatingModules.map((mod) => {
