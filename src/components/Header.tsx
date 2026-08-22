@@ -37,7 +37,6 @@ export const Header: React.FC<HeaderProps> = ({
   const tabs: { id: TabType; label: string; icon: React.FC<{ className?: string }>; badge?: string }[] = [
     { id: 'songbook', label: 'Zpěvník', icon: Music },
     { id: 'playlist', label: 'Playlist', icon: ListMusic, badge: playbackState?.isPlaying ? 'Hraje' : undefined },
-    { id: 'library', label: 'Knihovna', icon: FolderArchive },
     { id: 'alphatab', label: 'Guitar Pro', icon: FileText },
     { id: 'freetar', label: 'Freetar.de', icon: Globe },
     { id: 'youtube', label: 'YouTube', icon: Youtube },

@@ -12,9 +12,11 @@ import {
   AlertCircle,
   FolderOpen,
   LogIn,
+  Eye,
 } from 'lucide-react';
 import { UserAccount } from '../types';
 import { assetLibraryService, ASSET_CATEGORIES, LibraryAsset } from '../services/assetLibraryService';
+import { GuitarProPlayer } from './GuitarProPlayer';
 
 interface MyLibrarySectionProps {
   currentUser: UserAccount | null;
@@ -34,6 +36,8 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
   const [ownerFilter, setOwnerFilter] = useState<'all' | 'mine' | 'global'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [hledat, setHledat] = useState('');
+  const [nahled, setNahled] = useState<{ asset: LibraryAsset; url: string } | null>(null);
+  const [nahledChyba, setNahledChyba] = useState<string | null>(null);
   const [uploadCategory, setUploadCategory] = useState<string>(ASSET_CATEGORIES[0].value);
   const [uploadAsGlobal, setUploadAsGlobal] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -71,6 +75,35 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
    * hromadně nahrané věci mívají v názvu pořadové číslo, které si člověk
    * nepamatuje, ale příponu nebo kus filenamu ano.
    */
+  /**
+   * Které soubory jde ukázat rovnou v appce. U ostatních (archivy, projekty
+   * DAW) nemá náhled co zobrazit a nabízí se jen stažení — tlačítko, které
+   * otevře prázdné okno, je horší než žádné.
+   */
+  const lzeZobrazit = (a: LibraryAsset): 'guitarpro' | 'pdf' | 'obrazek' | 'zvuk' | null => {
+    const jm = `${a.original_filename || a.name}`.toLowerCase();
+    const mime = (a.mime_type || '').toLowerCase();
+    if (/\.(gp|gp3|gp4|gp5|gpx|gtp)$/.test(jm)) return 'guitarpro';
+    if (mime.includes('pdf') || jm.endsWith('.pdf')) return 'pdf';
+    if (mime.startsWith('image/') || /\.(jpe?g|png|webp|gif)$/.test(jm)) return 'obrazek';
+    if (mime.startsWith('audio/') || /\.(mp3|wav|flac|m4a|ogg)$/.test(jm)) return 'zvuk';
+    return null;
+  };
+
+  const otevriNahled = async (asset: LibraryAsset) => {
+    setNahledChyba(null);
+    try {
+      const url = await assetLibraryService.getDownloadUrl(asset.id);
+      if (!url) {
+        setNahledChyba(`Soubor „${asset.name}" se nepodařilo otevřít.`);
+        return;
+      }
+      setNahled({ asset, url });
+    } catch (e: any) {
+      setNahledChyba(e?.message || 'Náhled se nepodařilo načíst.');
+    }
+  };
+
   const bezDiakritiky = (t: string) =>
     t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
@@ -314,6 +347,14 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
                   </div>
 
                   <div className="flex items-center gap-1.5 pt-1">
+                    {lzeZobrazit(asset) && (
+                      <button
+                        onClick={() => otevriNahled(asset)}
+                        className="flex-1 flex items-center justify-center gap-1.5 bg-[#FF9F0A]/15 hover:bg-[#FF9F0A]/25 text-[#FF9F0A] text-[11px] font-bold py-1.5 rounded-lg cursor-pointer transition-all"
+                      >
+                        <Eye className="w-3.5 h-3.5" /> Náhled
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDownload(asset)}
                       className="flex-1 flex items-center justify-center gap-1.5 bg-white/5 hover:bg-white/10 text-neutral-200 text-[11px] font-bold py-1.5 rounded-lg cursor-pointer transition-all"
@@ -361,6 +402,53 @@ export const MyLibrarySection: React.FC<MyLibrarySectionProps> = ({ currentUser,
           </div>
         )}
       </div>
+
+      {/* Náhled souboru */}
+      {nahledChyba && (
+        <div className="bg-[#FF453A]/10 border border-[#FF453A]/30 text-[#FF453A] text-xs rounded-2xl px-4 py-2.5">
+          {nahledChyba}
+        </div>
+      )}
+
+      {nahled && (
+        <div
+          className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm flex flex-col p-4 sm:p-8"
+          onClick={() => setNahled(null)}
+        >
+          <div
+            className="flex-1 min-h-0 max-w-6xl w-full mx-auto bg-[#16161A] border border-white/10 rounded-3xl overflow-hidden flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-white/10 shrink-0">
+              <span className="text-sm font-bold text-white truncate">{nahled.asset.name}</span>
+              <button
+                onClick={() => setNahled(null)}
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 cursor-pointer"
+                aria-label="Zavřít náhled"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 overflow-auto p-4">
+              {(() => {
+                const druh = lzeZobrazit(nahled.asset);
+                if (druh === 'guitarpro') {
+                  // Přehrávač si soubor stáhne z podepsané adresy sám.
+                  return <GuitarProPlayer dataUrl={nahled.url} filename={nahled.asset.name} />;
+                }
+                if (druh === 'pdf') {
+                  return <iframe src={nahled.url} title={nahled.asset.name} className="w-full h-full min-h-[70vh] rounded-xl bg-white" />;
+                }
+                if (druh === 'obrazek') {
+                  return <img src={nahled.url} alt={nahled.asset.name} className="max-w-full mx-auto rounded-xl" />;
+                }
+                return <audio src={nahled.url} controls className="w-full mt-4" />;
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

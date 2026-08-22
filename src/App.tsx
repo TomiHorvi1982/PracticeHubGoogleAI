@@ -17,7 +17,6 @@ import { PracticeAssistant } from './components/PracticeAssistant';
 import { FreetarExplorer } from './components/FreetarExplorer';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { BookmarksSection } from './components/BookmarksSection';
-import { LibrarySection } from './components/LibrarySection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MyLibrarySection } from './components/MyLibrarySection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
@@ -192,21 +191,6 @@ function AppContent() {
       )}
 
       {/* LIBRARY SECTION */}
-      {activeTab === 'library' && (
-        <LibrarySection
-          songs={songs}
-          onUpdateSongs={(newSongs) => {
-            const list = typeof newSongs === 'function' ? newSongs(songs) : newSongs;
-            for (const s of list) {
-              songDatabaseService.saveSong(s);
-            }
-          }}
-          onSelectSongForPlayback={(song) => {
-            setActiveSong(song);
-            setActiveTab('songbook');
-          }}
-        />
-      )}
 
       {/* MEDIA CENTER (KASET ENGINE) SECTION */}
       {activeTab === 'mediacenter' && (

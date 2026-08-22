@@ -23,7 +23,6 @@ import {
 
 export type MainTabType =
   | 'songbook'
-  | 'library'
   | 'playlist'
   | 'bookmarks'
   | 'alphatab'
@@ -60,7 +59,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       title: 'SONG CENTER',
       items: [
         { id: 'songbook', label: 'Zpěvník', icon: BookOpen, badge: null },
-        { id: 'library', label: 'Knihovna', icon: Library, badge: songsCount > 0 ? songsCount : null },
+        { id: 'mylibrary', label: 'Knihovna', icon: FolderOpen, badge: null },
         { id: 'playlist', label: 'Setlisty', icon: ListMusic, badge: null },
         { id: 'bookmarks', label: 'Oblíbené', icon: Bookmark, badge: bookmarksCount > 0 ? bookmarksCount : null },
       ],
@@ -87,12 +86,6 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     {
       title: 'KAPELA',
       items: [
-      ],
-    },
-    {
-      title: 'MOJE DATA',
-      items: [
-        { id: 'mylibrary', label: 'Moje knihovna', icon: FolderOpen, badge: null },
       ],
     },
   ];
