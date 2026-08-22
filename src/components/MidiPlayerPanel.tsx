@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { midiPlayerService, MidiSongState, MidiNote } from '../services/midiPlayerService';
 import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
-import { INSTRUMENT_PROFILES, InstrumentProfile, midiToNoteName } from '../services/audioSynth';
+import { audioSynth, INSTRUMENT_PROFILES, InstrumentProfile, midiToNoteName } from '../services/audioSynth';
 
 /**
  * MIDI přehrávač uspořádaný jako stopová aplikace: vlevo hlavičky stop,
@@ -44,6 +44,7 @@ export const MidiPlayerPanel: React.FC = () => {
   const [knihovnaOtevrena, setKnihovnaOtevrena] = useState(true);
   const [chyba, setChyba] = useState<string | null>(null);
   const [vybranaStopa, setVybranaStopa] = useState(0);
+  const [hlasitost, setHlasitost] = useState(() => audioSynth.getMasterVolume());
 
   /**
    * Sbalené skupiny a oblíbené soubory. Oblíbené drží prohlížeč — je to
@@ -560,6 +561,38 @@ export const MidiPlayerPanel: React.FC = () => {
               ))}
             </div>
 
+            {/* Hlavní hlasitost. Bez ní se dal zvuk ztlumit jedině v systému,
+                což je při hraní s ostatními k ničemu. */}
+            <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-lg border border-white/10">
+              <button
+                onClick={() => {
+                  const nova = hlasitost > 0 ? 0 : 0.85;
+                  setHlasitost(nova);
+                  audioSynth.setMasterVolume(nova);
+                }}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+                title={hlasitost > 0 ? 'Ztlumit' : 'Zapnout zvuk'}
+              >
+                {hlasitost > 0 ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-[#FF453A]" />}
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.02}
+                value={hlasitost}
+                onChange={(e) => {
+                  const v = parseFloat(e.target.value);
+                  setHlasitost(v);
+                  audioSynth.setMasterVolume(v);
+                }}
+                className="w-20 h-1 cursor-pointer accent-[#FF9F0A]"
+              />
+              <span className="text-[9px] font-mono text-neutral-500 w-7 text-right">
+                {Math.round(hlasitost * 100)}%
+              </span>
+            </div>
+
             <div className="flex items-center gap-1 ml-auto">
               <button
                 onClick={() => setPxZaSekundu((z) => Math.max(8, z / 1.5))}
@@ -610,6 +643,17 @@ export const MidiPlayerPanel: React.FC = () => {
                       {t.muted ? <VolumeX className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
                     </button>
                   </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.02}
+                    value={t.hlasitost}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => midiPlayerService.setTrackVolume(t.index, parseFloat(e.target.value))}
+                    className="w-full h-1 cursor-pointer accent-[#FF9F0A] mb-1"
+                    title={`Hlasitost stopy: ${Math.round(t.hlasitost * 100)} %`}
+                  />
                   <select
                     value={t.profile}
                     onClick={(e) => e.stopPropagation()}

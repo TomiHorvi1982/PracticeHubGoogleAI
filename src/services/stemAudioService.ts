@@ -50,6 +50,8 @@ class StemAudioService {
   private channels: Record<string, ChannelState> = {};
   private meterLevels: Record<string, number> = {};
 
+  /** Blob adresy stažených stop, aby šly po výměně skladby uvolnit. */
+  private blobAdresy: string[] = [];
   private players: Record<string, Tone.Player> = {};
   private pitchShifters: Record<string, Tone.PitchShift> = {};
   private panners: Record<string, Tone.Panner> = {};
@@ -243,6 +245,10 @@ class StemAudioService {
       this.gains = {};
       this.meters = {};
 
+      // Blob adresy z minulé skladby už nikdo nepotřebuje.
+      this.blobAdresy.forEach((u) => URL.revokeObjectURL(u));
+      this.blobAdresy = [];
+
       let loadedCount = 0;
       const totalStems = song.stems.length;
       const rawCtx = Tone.getContext().rawContext as AudioContext;
@@ -251,8 +257,25 @@ class StemAudioService {
       for (const stem of song.stems) {
         const fallbackBuffer = (synthTracks as any)[stem.id] || synthTracks.other;
 
+        // Stopa se stáhne s přihlášením a předá se jako blob adresa.
+        // Tone.Player si soubor tahá sám a hlavičku s přihlášením neposílá,
+        // takže na chráněnou adresu nedosáhne — a podepsaný odkaz přímo do
+        // R2 zase prohlížeč blokuje jako cizí původ. Blob adresa obojí
+        // obchází a uvolní se při dalším načtení.
+        let adresa = stem.downloadUrl;
+        if (adresa.startsWith('/api/')) {
+          try {
+            const res = await authorizedFetch(adresa);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            adresa = URL.createObjectURL(await res.blob());
+            this.blobAdresy.push(adresa);
+          } catch (e) {
+            console.warn(`[StemAudioService] Stopu ${stem.id} se nepodařilo stáhnout:`, e);
+          }
+        }
+
         const player = new Tone.Player({
-          url: stem.downloadUrl,
+          url: adresa,
           loop: true,
           autostart: false,
           onload: () => {

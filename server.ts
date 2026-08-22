@@ -2474,8 +2474,12 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     const stems = await Promise.all(
       (stemRows || []).map(async (row: any) => {
         const asset = row.assets;
+        // Adresa vede přes náš server, ne podepsaným odkazem do R2. Tone.js
+        // si stopu tahá přes `fetch`, který na cizí doméně skončí na
+        // nepovoleném původu — mixážní pult pak místo nahrávky pouštěl
+        // náhradní syntetizovaný zvuk a vypadalo to, že stopy jsou špatně.
         const downloadUrl = asset
-          ? await signStorageUrl(asset.storage_bucket, asset.storage_path, 3600)
+          ? `/api/files/content?bucket=${encodeURIComponent(asset.storage_bucket)}&path=${encodeURIComponent(asset.storage_path)}`
           : null;
         const label = STEM_TYPES.find((t) => t.id === row.stem_type)?.name || row.stem_type;
         return {

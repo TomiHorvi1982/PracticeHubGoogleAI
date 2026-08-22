@@ -37,6 +37,8 @@ export interface MidiTrack {
   profile: InstrumentProfile;
   muted: boolean;
   solo: boolean;
+  /** Hlasitost stopy, 0 až 1. Násobí se hlasitostí noty. */
+  hlasitost: number;
 }
 
 export interface MidiSongState {
@@ -141,6 +143,7 @@ class MidiPlayerService {
           profile: profileForProgram(t.instrument?.number ?? 0, Boolean(t.instrument?.percussion)),
           muted: false,
           solo: false,
+          hlasitost: 0.7,
         }));
 
       this.state = {
@@ -178,7 +181,7 @@ class MidiPlayerService {
             midiToNoteName(note.midi),
             track.profile,
             note.duration / this.state.tempoFactor,
-            0.7,
+            track.hlasitost,
             note.velocity
           );
         }, za * 1000);
@@ -231,6 +234,10 @@ class MidiPlayerService {
     this.state = { ...this.state, tempoFactor: Math.max(0.25, Math.min(2, factor)) };
     this.notify();
     if (bezel) this.play();
+  }
+
+  public setTrackVolume(index: number, hlasitost: number): void {
+    this.upravStopu(index, (t) => ({ ...t, hlasitost: Math.max(0, Math.min(1, hlasitost)) }));
   }
 
   public setTrackProfile(index: number, profile: InstrumentProfile): void {

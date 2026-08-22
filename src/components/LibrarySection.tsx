@@ -35,7 +35,7 @@ import {
 import { Song, SongAttachment } from '../types';
 import { parseAnyFile, fileToDataUrl } from '../utils/fileParsers';
 import { GuitarProPlayer } from './GuitarProPlayer';
-import { audioSynth } from '../services/audioSynth';
+import { audioSynth, midiToNoteName } from '../services/audioSynth';
 import { Midi } from '@tonejs/midi';
 
 export type LibraryCategory = 'all' | 'guitarpro' | 'pdf' | 'txt' | 'image' | 'midi' | 'audio';
@@ -448,7 +448,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           not++;
           const id = window.setTimeout(() => {
             if (hrajeMidiRef.current) {
-              audioSynth.playNote(note.midi, inst, note.duration, note.velocity);
+              // Název tónu, ne číslo. `playNote` bere číslo jako frekvenci
+              // v hertzích, takže z noty 60 dělalo 60 Hz — o tři oktávy níž,
+              // než mělo znít, a většinou pod hranicí slyšitelnosti.
+              audioSynth.playNote(midiToNoteName(note.midi), inst, note.duration, 0.7, note.velocity);
             }
           }, note.time * 1000);
           casovaceNotRef.current.push(id);

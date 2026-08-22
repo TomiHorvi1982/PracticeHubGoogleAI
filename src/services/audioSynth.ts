@@ -340,7 +340,7 @@ class SoundSynthesizer {
       this.compressor.release.setValueAtTime(0.15, this.ctx.currentTime);
 
       this.masterGain = this.ctx.createGain();
-      this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+      this.masterGain.gain.setValueAtTime(this.hlavniHlasitost, this.ctx.currentTime);
 
       this.masterGain.connect(this.compressor);
       this.compressor.connect(this.ctx.destination);
@@ -735,6 +735,26 @@ class SoundSynthesizer {
   }
 
   // --- CORE SAMPLED & MODELING NOTE PLAYBACK ---
+  /**
+   * Hlavní hlasitost syntezátoru, 0 až 1.
+   *
+   * Drží se i mimo zapnutý zvukový uzel, aby nastavení přežilo dobu, kdy
+   * ještě žádný kontext neexistuje — ten vzniká až při prvním tónu.
+   */
+  private hlavniHlasitost = 0.85;
+
+  public getMasterVolume(): number {
+    return this.hlavniHlasitost;
+  }
+
+  public setMasterVolume(hodnota: number): void {
+    this.hlavniHlasitost = Math.max(0, Math.min(1, hodnota));
+    if (this.masterGain && this.ctx) {
+      // Plynulý přechod místo skoku — skok v hlasitosti je slyšet jako lupnutí.
+      this.masterGain.gain.setTargetAtTime(this.hlavniHlasitost, this.ctx.currentTime, 0.02);
+    }
+  }
+
   public playSampledNote(
     sfName: string,
     noteName: string,

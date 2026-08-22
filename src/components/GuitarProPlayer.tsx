@@ -49,7 +49,10 @@ const FALLBACK_SOUNDFONT = `https://cdn.jsdelivr.net/npm/@coderline/alphatab@${A
  * zpěvníku se nezobrazily vůbec.
  */
 async function fetchScoreBytes(source: string): Promise<Uint8Array> {
-  if (/^https?:\/\//i.test(source)) {
+  // Stáhnout se dá i z `blob:` adresy nebo z cesty na náš server. Test jen
+  // na `http` je propouštěl do větve pro base64, kde `atob` nad adresou
+  // spadl a tab se ohlásil jako poškozený, přestože se v pořádku stáhl.
+  if (/^(https?:\/\/|blob:|\/)/i.test(source)) {
     const res = await fetch(source);
     if (!res.ok) {
       throw new Error(`Soubor se nepodařilo stáhnout z knihovny (HTTP ${res.status}).`);
