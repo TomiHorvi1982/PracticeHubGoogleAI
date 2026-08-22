@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem, BandOnlineUser, SharedPlaybackState, BandPhoto, BandSession } from './types';
+import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem, BandPhoto } from './types';
 import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType } from './components/layout/UnifiedSidebar';
-import { SessionModal } from './components/SessionModal';
 import { CaptureModal } from './components/CaptureModal';
 import { LoginModal } from './components/LoginModal';
 import { AdminUsersModal } from './components/AdminUsersModal';
 import { UserProfileModal } from './components/UserProfileModal';
-import { OnlineBandMembersModal } from './components/OnlineBandMembersModal';
 import { GlobalAudioPlayer } from './components/GlobalAudioPlayer';
 import { PlaylistSection } from './components/PlaylistSection';
 import { PhotosSection } from './components/PhotosSection';
@@ -28,9 +26,7 @@ import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection'
 import { authService } from './services/authService';
 import { playlistService } from './services/playlistService';
 import { photoService } from './services/photoService';
-import { liveSyncService } from './services/liveSyncService';
 import { songDatabaseService } from './services/songDatabaseService';
-import { sessionSync } from './services/sessionSync';
 
 function AppContent() {
   const {
@@ -48,12 +44,10 @@ function AppContent() {
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isOnlineMembersModalOpen, setIsOnlineMembersModalOpen] = useState(false);
-  const [isSessionModalOpen, setIsSessionModalOpen] = useState(false);
   const [inviteTokenParam, setInviteTokenParam] = useState<string | undefined>(undefined);
   const [inviteEmailParam, setInviteEmailParam] = useState<string | undefined>(undefined);
 
   // Band Room Session
-  const [session, setSession] = useState<BandSession | null>(() => sessionSync.getSession());
 
   // Shared Songs & Active Song state
   const [songs, setSongs] = useState<Song[]>(() => songDatabaseService.getSongs());
@@ -70,17 +64,6 @@ function AppContent() {
   const [captureModalMode, setCaptureModalMode] = useState<'camera' | 'screenshot' | 'upload'>('camera');
 
   // Real-time Live Band state
-  const [onlineUsers, setOnlineUsers] = useState<BandOnlineUser[]>([]);
-  const [sharedPlayback, setSharedPlayback] = useState<SharedPlaybackState>({
-    isPlaying: false,
-    currentItemId: null,
-    youtubeId: null,
-    title: null,
-    currentTime: 0,
-    duration: 0,
-    mode: 'normal',
-    updatedAt: Date.now(),
-  });
 
   const currentUser = authSession?.user || null;
   const userRole = currentUser?.role || 'viewer';
@@ -91,14 +74,6 @@ function AppContent() {
       setActiveSong(songs[0]);
     }
   }, [songs, activeSong, setActiveSong]);
-
-  // Subscribe to Session changes
-  useEffect(() => {
-    const unsubSession = sessionSync.subscribe((s) => {
-      setSession(s);
-    });
-    return unsubSession;
-  }, []);
 
   // Subscribe to Auth changes
   useEffect(() => {
@@ -145,15 +120,6 @@ function AppContent() {
     return unsubPhotos;
   }, []);
 
-  // Subscribe to Real-time Live Band Sync
-  useEffect(() => {
-    const unsubLive = liveSyncService.subscribe(({ onlineUsers: users, playbackState }) => {
-      setOnlineUsers(users);
-      setSharedPlayback(playbackState);
-    });
-    return unsubLive;
-  }, []);
-
   // Playlist handlers
   const handleSelectTrackIndex = (index: number) => {
     setCurrentTrackIndex(index);
@@ -191,8 +157,6 @@ function AppContent() {
     <MainLayout
       activeTab={activeTab}
       onSelectTab={setActiveTab}
-      session={session}
-      onOpenSessionModal={() => setIsSessionModalOpen(true)}
       onOpenLoginModal={() => setIsLoginModalOpen(true)}
       onOpenProfileModal={() => setIsProfileModalOpen(true)}
       onOpenAdminModal={() => setIsAdminModalOpen(true)}
@@ -218,18 +182,6 @@ function AppContent() {
           onReorderItems={(items) => playlistService.reorderItems(items)}
           songs={songs}
           currentUser={currentUser}
-          onlineUsers={onlineUsers}
-          onBroadcastPlayback={() => {
-            const track = playlist[currentTrackIndex];
-            if (track) {
-              liveSyncService.broadcastPlayback({
-                isPlaying,
-                currentItemId: track.id,
-                youtubeId: track.youtubeId,
-                title: track.title,
-              });
-            }
-          }}
         />
       )}
 
@@ -238,7 +190,6 @@ function AppContent() {
         <PhotosSection
           photos={photos}
           currentUser={currentUser}
-          onlineUsers={onlineUsers}
           onOpenCameraCapture={() => {
             setCaptureModalMode('camera');
             setIsCaptureModalOpen(true);
@@ -257,7 +208,6 @@ function AppContent() {
       {/* SONGBOOK SECTION */}
       {activeTab === 'songbook' && (
         <Songbook
-          session={session}
           onOpenCameraModal={() => {
             setCaptureModalMode('camera');
             setIsCaptureModalOpen(true);
@@ -383,30 +333,10 @@ function AppContent() {
         playbackMode={playbackMode}
         onChangePlaybackMode={setPlaybackMode}
         onOpenPlaylistTab={() => setActiveTab('playlist')}
-        onlineUsers={onlineUsers}
         currentUser={currentUser}
-        onOpenOnlineUsersModal={() => setIsOnlineMembersModalOpen(true)}
       />
 
       {/* Modals */}
-      <OnlineBandMembersModal
-        isOpen={isOnlineMembersModalOpen}
-        onClose={() => setIsOnlineMembersModalOpen(false)}
-        onlineUsers={onlineUsers}
-        currentUser={currentUser}
-        playbackState={sharedPlayback}
-        onBroadcastLeaderState={() => {
-          const track = playlist[currentTrackIndex];
-          if (track) {
-            liveSyncService.broadcastPlayback({
-              isPlaying,
-              currentItemId: track.id,
-              youtubeId: track.youtubeId,
-              title: track.title,
-            });
-          }
-        }}
-      />
 
       <CaptureModal
         isOpen={isCaptureModalOpen}
@@ -417,13 +347,6 @@ function AppContent() {
           setPhotos(photoService.getPhotos());
           setActiveTab('photos');
         }}
-      />
-
-      <SessionModal
-        isOpen={isSessionModalOpen}
-        onClose={() => setIsSessionModalOpen(false)}
-        session={session}
-        onSessionChange={(s) => setSession(s)}
       />
 
       <LoginModal

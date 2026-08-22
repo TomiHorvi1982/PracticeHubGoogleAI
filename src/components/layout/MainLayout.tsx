@@ -4,14 +4,11 @@ import { UnifiedTopBar } from './UnifiedTopBar';
 import { UnifiedSidebar, MainTabType } from './UnifiedSidebar';
 import { SmartStudioDock } from './SmartStudioDock';
 import { GigModeView } from './GigModeView';
-import { BandSession } from '../../types';
 
 interface MainLayoutProps {
   children: React.ReactNode;
   activeTab: MainTabType;
   onSelectTab: (tab: MainTabType) => void;
-  session: BandSession | null;
-  onOpenSessionModal: () => void;
   onOpenLoginModal: () => void;
   onOpenProfileModal: () => void;
   onOpenAdminModal: () => void;
@@ -25,8 +22,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   children,
   activeTab,
   onSelectTab,
-  session,
-  onOpenSessionModal,
   onOpenLoginModal,
   onOpenProfileModal,
   onOpenAdminModal,
@@ -46,8 +41,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col font-sans antialiased overflow-hidden">
       {/* Top Header Navigation Bar */}
       <UnifiedTopBar
-        session={session}
-        onOpenSessionModal={onOpenSessionModal}
         onOpenLoginModal={onOpenLoginModal}
         onOpenProfileModal={onOpenProfileModal}
         onOpenAdminModal={onOpenAdminModal}

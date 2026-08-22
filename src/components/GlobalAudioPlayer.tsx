@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { PlaylistItem, BandOnlineUser, UserAccount } from '../types';
+import { PlaylistItem, UserAccount } from '../types';
 import { eventBus } from '../services/eventBus';
 import {
   Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Repeat, Shuffle,
@@ -27,7 +27,6 @@ interface GlobalAudioPlayerProps {
   playbackMode: 'normal' | 'loop-one' | 'loop-all' | 'shuffle';
   onChangePlaybackMode: (mode: 'normal' | 'loop-one' | 'loop-all' | 'shuffle') => void;
   onOpenPlaylistTab: () => void;
-  onlineUsers: BandOnlineUser[];
   currentUser: UserAccount | null;
   onOpenOnlineUsersModal?: () => void;
 }
@@ -43,9 +42,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
   playbackMode,
   onChangePlaybackMode,
   onOpenPlaylistTab,
-  onlineUsers,
   currentUser,
-  onOpenOnlineUsersModal,
 }) => {
   const currentTrack = playlist[currentTrackIndex] || null;
   const playerRef = useRef<any>(null);
@@ -436,10 +433,6 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 </div>
                 <div className="flex items-center gap-2 text-xs text-neutral-400 truncate mt-0.5">
                   {currentTrack.artist && <span>{currentTrack.artist}</span>}
-                  <span className="text-[#30D158] flex items-center gap-1 font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] animate-pulse"></span>
-                    <span>{onlineUsers.length} v kapele</span>
-                  </span>
                 </div>
               </div>
             </div>
@@ -643,9 +636,6 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30">
                     {isPlaying ? 'Přehrává se' : 'Pozastaveno'}
-                  </span>
-                  <span className="text-[10px] text-[#30D158] font-medium">
-                    ● {onlineUsers.length} online
                   </span>
                 </div>
               </div>

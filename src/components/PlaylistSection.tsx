@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlaylistItem, Song, UserAccount, BandOnlineUser, SharedPlaybackState } from '../types';
+import { PlaylistItem, Song, UserAccount } from '../types';
 import { searchYouTubeDirect } from '../services/onlineSongSearch';
 import {
   Play, Pause, Plus, Trash2, ArrowUp, ArrowDown, Search, Youtube,
@@ -21,8 +21,6 @@ interface PlaylistSectionProps {
   onReorderItems: (items: PlaylistItem[]) => void;
   songs: Song[];
   currentUser: UserAccount | null;
-  onlineUsers: BandOnlineUser[];
-  onBroadcastPlayback: () => void;
 }
 
 export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
@@ -40,8 +38,6 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   onReorderItems,
   songs,
   currentUser,
-  onlineUsers,
-  onBroadcastPlayback,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -188,10 +184,6 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             <div className="flex items-center gap-2.5 mb-1.5">
               <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
                 Společný Playlist
-              </span>
-              <span className="text-xs text-[#30D158] flex items-center gap-1.5 font-medium">
-                <span className="w-2 h-2 rounded-full bg-[#30D158] animate-pulse"></span>
-                <span>{onlineUsers.length} online</span>
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">

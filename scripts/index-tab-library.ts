@@ -34,6 +34,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const { isR2Configured, uploadObject, objectSize } = await import('../r2.ts');
+if (!isR2Configured()) {
+  console.error('BLOCKED: chybí R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY v .env');
+  process.exit(1);
+}
+
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -232,11 +238,25 @@ async function main() {
   let nahrano = 0;
   let preskoceno = 0;
 
+  // Nahrává se po dávkách souběžně. Po jednom trvá sbírka tohohle rozsahu
+  // hodiny — čas jde skoro celý na čekání na síť, ne na práci, takže
+  // souběh ho zkracuje úměrně.
+  const SOUBEZNE = 24;
+
+  // Strop se kontroluje dopředu, jinak by souběžné úlohy sečetly velikosti
+  // až po nahrání a limit by se přestřelil.
+  const kProvedeni: typeof kNahrani = [];
+  let planovano = 0;
   for (const f of kNahrani) {
-    if (bajtu + f.size > strop) {
+    if (planovano + f.size > strop) {
       preskoceno++;
       continue;
     }
+    planovano += f.size;
+    kProvedeni.push(f);
+  }
+
+  const nahrajJeden = async (f: (typeof kNahrani)[number]) => {
     try {
       const bytes = fs.readFileSync(f.absPath);
       const hash = crypto.createHash('sha256').update(bytes).digest('hex');
@@ -247,16 +267,22 @@ async function main() {
         .replace(/[^A-Za-z0-9._/-]+/g, '-');
       const storagePath = `global/tab_library/${safe}`;
 
-      const { error: upErr } = await admin.storage
-        .from('assets')
-        .upload(storagePath, bytes, { contentType: 'application/octet-stream', upsert: true });
-      if (upErr) throw new Error(upErr.message);
+      // Soubory jdou do R2, ne do Supabase Storage: sbírka má přes dva
+      // gigabajty a Supabase dává ve volném tarifu jeden. Klíč nese stejnou
+      // předponu jako u přenesených souborů, aby bylo rozvržení jednotné.
+      const r2Key = `assets/${storagePath}`;
+      await uploadObject(r2Key, bytes, 'application/octet-stream');
+
+      const overeno = await objectSize(r2Key);
+      if (overeno !== bytes.length) {
+        throw new Error(`po nahrání sedí ${overeno} B, čekal jsem ${bytes.length} B`);
+      }
 
       const { error: rowErr } = await admin
         .from('tab_library')
         .update({
-          storage_bucket: 'assets',
-          storage_path: storagePath,
+          storage_bucket: 'r2',
+          storage_path: r2Key,
           content_hash: hash,
           status: 'stored',
           updated_at: new Date().toISOString(),
@@ -266,10 +292,14 @@ async function main() {
 
       bajtu += bytes.length;
       nahrano++;
-      if (nahrano % 25 === 0) process.stdout.write(`\r  ${nahrano} souborů, ${mb(bajtu)}`);
+      if (nahrano % 100 === 0) process.stdout.write(`\r  ${nahrano}/${kProvedeni.length} souborů, ${mb(bajtu)}`);
     } catch (e: any) {
       console.log(`\n  ! ${f.relPath}: ${e.message}`);
     }
+  };
+
+  for (let i = 0; i < kProvedeni.length; i += SOUBEZNE) {
+    await Promise.all(kProvedeni.slice(i, i + SOUBEZNE).map(nahrajJeden));
   }
 
   console.log(`\r  ${nahrano} souborů nahráno (${mb(bajtu)}).`);

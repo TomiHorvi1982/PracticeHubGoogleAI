@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Song, BandSession } from '../types';
+import { Song } from '../types';
 import { TUNING_PRESETS } from '../data/chordsAndScales';
-import { sessionSync } from '../services/sessionSync';
 import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
@@ -18,14 +17,12 @@ import { SongModularWorkspace } from './SongModularWorkspace';
 import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 
 interface SongbookProps {
-  session?: BandSession | null;
   onOpenCameraModal: () => void;
   customNewSong?: Song | null;
   onSelectSongForYoutube?: (song: Song) => void;
 }
 
 export const Songbook: React.FC<SongbookProps> = ({
-  session,
   onOpenCameraModal,
   customNewSong,
   onSelectSongForYoutube,
@@ -156,7 +153,6 @@ export const Songbook: React.FC<SongbookProps> = ({
   // Keep songs state automatically backed up
   useEffect(() => {
     if (typeof localStorage !== 'undefined' && songs && songs.length > 0) {
-      localStorage.setItem('band_songs_db', JSON.stringify(songs));
     }
   }, [songs]);
 
@@ -197,10 +193,6 @@ export const Songbook: React.FC<SongbookProps> = ({
     setActiveSong(newSong);
     setIsEditing(false);
     showToast(`Skladba "${newSong.title}" byla uložena.`);
-
-    if (session) {
-      sessionSync.broadcastNewSong(newSong);
-    }
   };
 
   const handleSongImported = (importedSong: Song) => {
@@ -208,18 +200,12 @@ export const Songbook: React.FC<SongbookProps> = ({
     setActiveSong(importedSong);
     setTransposeSemitones(0);
     showToast(`Skladba "${importedSong.title}" byla importována.`);
-    if (session) {
-      sessionSync.broadcastNewSong(importedSong);
-    }
   };
 
   const handleUpdateSong = (updatedSong: Song) => {
     songDatabaseService.saveSong(updatedSong);
     setActiveSong(updatedSong);
     setSongs((prev) => prev.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
-    if (session) {
-      sessionSync.broadcastNewSong(updatedSong);
-    }
   };
 
   // Lock / Delete Actions
@@ -396,26 +382,6 @@ export const Songbook: React.FC<SongbookProps> = ({
 
   return (
     <div className="w-full space-y-4 font-sans pb-16">
-      {/* Cloud Session Live Status Banner */}
-      {session && (
-        <div className="bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl px-4 py-2.5 text-xs text-[#30D158] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-sm backdrop-blur-md">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 bg-[#30D158] rounded-full animate-pulse shrink-0 shadow-[0_0_8px_#30D158]"></span>
-            <span className="font-semibold">
-              Cloud zkušebny propojena:{' '}
-              <span className="text-white font-mono bg-white/10 px-2 py-0.5 rounded-md border border-white/10">
-                {session.roomId}
-              </span>
-            </span>
-            <span className="hidden md:inline text-neutral-300">
-              Všechny změny se synchronizují v reálném čase.
-            </span>
-          </div>
-          <span className="text-[11px] bg-[#30D158] text-black font-semibold px-2.5 py-0.5 rounded-lg">
-            Připojeno: {session.members.length}
-          </span>
-        </div>
-      )}
 
       {/* Success / Toast Banner */}
       {toastMsg && (
@@ -654,9 +620,6 @@ export const Songbook: React.FC<SongbookProps> = ({
                       onClick={() => {
                         setActiveSong(song);
                         setTransposeSemitones(0);
-                        if (session) {
-                          sessionSync.setActiveSong(song);
-                        }
                       }}
                       className={`w-full text-left px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 group ${
                         isActive
@@ -720,9 +683,6 @@ export const Songbook: React.FC<SongbookProps> = ({
                     onClick={() => {
                       setActiveSong(song);
                       setTransposeSemitones(0);
-                      if (session) {
-                        sessionSync.setActiveSong(song);
-                      }
                     }}
                     className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer relative group ${
                       isActive
@@ -1105,9 +1065,6 @@ export const Songbook: React.FC<SongbookProps> = ({
           const updated = [newSong, ...songs];
           setSongs(updated);
           setActiveSong(newSong);
-          if (session) {
-            sessionSync.broadcastNewSong(newSong);
-          }
         }}
       />
 
@@ -1116,7 +1073,6 @@ export const Songbook: React.FC<SongbookProps> = ({
         isOpen={isFileImportOpen}
         onClose={() => setIsFileImportOpen(false)}
         onSongImported={handleSongImported}
-        isSessionActive={!!session}
       />
 
       {/* Interactive Chord Detail & Audio Popup Modal */}

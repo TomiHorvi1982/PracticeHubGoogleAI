@@ -20,11 +20,8 @@ import {
   PanelLeftOpen,
   Menu
 } from 'lucide-react';
-import { BandSession } from '../../types';
 
 interface UnifiedTopBarProps {
-  session: BandSession | null;
-  onOpenSessionModal: () => void;
   onOpenLoginModal: () => void;
   onOpenProfileModal: () => void;
   onOpenAdminModal: () => void;
@@ -35,8 +32,6 @@ interface UnifiedTopBarProps {
 }
 
 export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
-  session,
-  onOpenSessionModal,
   onOpenLoginModal,
   onOpenProfileModal,
   onOpenAdminModal,
@@ -249,19 +244,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
         >
           <Piano className="w-4 h-4 text-amber-400" />
           <span className="hidden md:inline">Klavír</span>
-        </button>
-
-        {/* Live Band Room Status */}
-        <button
-          onClick={onOpenSessionModal}
-          className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-            session
-              ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
-              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-400'
-          }`}
-        >
-          <Radio className={`w-4 h-4 ${session ? 'text-emerald-400 animate-pulse' : ''}`} />
-          <span className="hidden sm:inline">{session ? session.roomName : 'Živá Zkušebna'}</span>
         </button>
 
         {/* Gig Mode Button */}

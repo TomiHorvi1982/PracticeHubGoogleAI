@@ -30,20 +30,17 @@ import {
   parseAnyFile,
   ImportResult,
 } from '../utils/fileParsers';
-import { sessionSync } from '../services/sessionSync';
 
 interface FileImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSongImported: (song: Song) => void;
-  isSessionActive: boolean;
 }
 
 export const FileImportModal: React.FC<FileImportModalProps> = ({
   isOpen,
   onClose,
   onSongImported,
-  isSessionActive,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -101,10 +98,6 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
     };
 
     onSongImported(newSong);
-
-    if (isSessionActive) {
-      sessionSync.broadcastNewSong(newSong);
-    }
 
     // Reset & close
     setImportResult(null);
@@ -277,11 +270,6 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                   ({Math.round((importResult.attachment.size || 0) / 1024)} KB)
                 </span>
               </div>
-              {isSessionActive && (
-                <span className="text-[10px] bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/30 px-2 py-0.5 rounded-md flex items-center gap-1 font-semibold">
-                  <Share2 className="w-3 h-3" /> Sdílí se do relace zkušebny
-                </span>
-              )}
             </div>
 
             {/* Action buttons */}
