@@ -27,8 +27,8 @@ if (!VITE_SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   process.exit(1);
 }
 
-const { isR2Configured, uploadObject, objectSize, R2_BUCKET } = await import('../r2.ts');
-if (!isR2Configured) {
+const { isR2Configured, uploadObject, objectSize, R2_BUCKET_NAME } = await import('../r2.ts');
+if (!isR2Configured()) {
   console.error('BLOCKED: chybí R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY v .env');
   process.exit(1);
 }
@@ -55,7 +55,7 @@ async function main() {
   const hotove = (assets || []).length - kPrenosu.length;
   const celkem = kPrenosu.reduce((s: number, a: any) => s + (a.size_bytes || 0), 0);
 
-  console.log(`Cílový bucket: ${R2_BUCKET}`);
+  console.log(`Cílový bucket: ${R2_BUCKET_NAME()}`);
   console.log(`Souborů celkem: ${(assets || []).length}, už v R2: ${hotove}, k přenosu: ${kPrenosu.length} (${mb(celkem)})\n`);
 
   const podleKategorie = new Map<string, [number, number]>();

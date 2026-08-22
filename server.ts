@@ -60,7 +60,7 @@ declare global {
  */
 async function signStorageUrl(bucket: string, key: string, expiresIn = 60 * 60 * 12): Promise<string | null> {
   if (bucket === 'r2') {
-    if (!isR2Configured) return null;
+    if (!isR2Configured()) return null;
     try {
       return await signedDownloadUrl(key, expiresIn);
     } catch (e: any) {
@@ -78,7 +78,7 @@ async function signStorageUrl(bucket: string, key: string, expiresIn = 60 * 60 *
 
 async function removeStorageObject(bucket: string, key: string): Promise<void> {
   if (bucket === 'r2') {
-    if (isR2Configured) await r2Delete(key);
+    if (isR2Configured()) await r2Delete(key);
     return;
   }
   await getSupabaseAdmin().storage.from(bucket).remove([key]);
@@ -144,7 +144,14 @@ export async function createApp() {
 
   // API Routes
   app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
+    // Hlásí, která úložiště jsou nastavená — ne jejich klíče. Bez toho se
+    // chybějící proměnná na nasazeném serveru pozná až tím, že uživateli
+    // zmizí fotky, a to je moc pozdě.
+    res.json({
+      status: 'ok',
+      time: new Date().toISOString(),
+      storage: { r2: isR2Configured(), supabase: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) },
+    });
   });
 
   // NOTE: Songbook (`songs`), Setlisty (`playlists`/`playlist_songs`), and
