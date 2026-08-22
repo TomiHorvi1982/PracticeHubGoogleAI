@@ -14,8 +14,6 @@ import {
   Minimize2, 
   Volume2, 
   VolumeX,
-  Compass,
-  Piano,
   PanelLeftClose,
   PanelLeftOpen,
   Menu
@@ -54,8 +52,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     setIsPlaying,
     isMetronomeActive,
     toggleMetronome,
-    toggleDockTool,
-    activeDockTool,
     isGigMode,
     setIsGigMode,
   } = useMusicalContext();
@@ -204,49 +200,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
       {/* RIGHT SECTION: Quick Dock Triggers, Live Band Session & Account */}
       <div className="flex items-center gap-2">
-        {/* Quick Tuner Trigger */}
-        <button
-          onClick={() => toggleDockTool('tuner')}
-          className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all ${
-            activeDockTool === 'tuner'
-              ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300'
-          }`}
-          title="Rychlá ladička"
-        >
-          <Mic className="w-4 h-4 text-amber-400" />
-          <span className="hidden md:inline">Ladička</span>
-        </button>
-
-        {/* Quick Fretboard Trigger */}
-        <button
-          onClick={() => toggleDockTool('fretboard')}
-          className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-            activeDockTool === 'fretboard'
-              ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300'
-          }`}
-          title="Hmatník"
-        >
-          <Compass className="w-4 h-4 text-amber-400" />
-          <span className="hidden lg:inline">Hmatník</span>
-        </button>
-
-        {/* Quick Piano / Keys Trigger */}
-        <button
-          onClick={() => toggleDockTool('keyboard')}
-          className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-            activeDockTool === 'keyboard'
-              ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-              : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-slate-300'
-          }`}
-          title="Rychlý klavír & klávesy"
-        >
-          <Piano className="w-4 h-4 text-amber-400" />
-          <span className="hidden md:inline">Klavír</span>
-        </button>
-
-        {/* Gig Mode Button */}
+                                {/* Gig Mode Button */}
         <button
           onClick={() => setIsGigMode(!isGigMode)}
           className={`p-2 rounded-xl border transition-all ${

@@ -69,7 +69,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       items: [
         { id: 'mediacenter', label: 'Media Center', icon: Disc3, badge: 'KASET' },
         { id: 'alphatab', label: 'Guitar Pro', icon: FileCode, badge: 'TAB' },
-        { id: 'instruments', label: 'Nástroje & Synth', icon: Piano, badge: null },
+        { id: 'instruments', label: 'Virtual Instruments', icon: Piano, badge: null },
         { id: 'youtube', label: 'YouTube Jam', icon: Youtube, badge: null },
         { id: 'stemmixer', label: 'AI Stem Mixážní Pult', icon: Sliders, badge: 'AI' },
         { id: 'freetar', label: 'Freetar.de', icon: Globe, badge: null },

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
 import { instrumentFactory } from '../services/instrumentFactory';
@@ -15,7 +16,7 @@ import { SampledDrumsStudio } from './SampledDrumsStudio';
 import {
   Play, Pause, Volume2, Music, Disc, Filter, Zap,
   Layers, VolumeX, RotateCcw, ChevronLeft, ChevronRight, Sliders, Laptop, Radio,
-  Globe, Home, RotateCw, Search, ExternalLink, Sparkles, Check, Loader2, Database, HardDrive
+  Globe, Home, RotateCw, Search, ExternalLink, Sparkles, Check, Loader2, Database, HardDrive, Compass,
 } from 'lucide-react';
 
 const CHROMATIC_NOTES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
@@ -192,6 +193,10 @@ const BASE_PIANO_LAYOUT = [
 ];
 
 export const VirtualInstruments: React.FC = () => {
+  // Hmatník žije v dolním panelu (SmartStudioDock), kde má vlastní přepínač
+  // nástrojů. Odsud se jen otevře — duplikovat ho podruhé by znamenalo dvě
+  // místa, která se musí držet v souladu.
+  const { toggleDockTool } = useMusicalContext();
   const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'midi' | 'guitar_tools'>('piano');
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
   const [isSoundLibraryOpen, setIsSoundLibraryOpen] = useState(false);
@@ -626,6 +631,14 @@ export const VirtualInstruments: React.FC = () => {
             >
               <Disc className={`w-3.5 h-3.5 ${activeInstTab === 'drums' ? 'text-[#FF9F0A]' : ''}`} />
               <span>Bicí</span>
+            </button>
+            <button
+              onClick={() => toggleDockTool('fretboard')}
+              className="px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 text-neutral-400 hover:text-white"
+              title="Otevře hmatník ve spodním panelu"
+            >
+              <Compass className="w-3.5 h-3.5" />
+              <span>Hmatník</span>
             </button>
             <button
               onClick={() => setActiveInstTab('midi')}
