@@ -43,7 +43,47 @@ export const ModulePicker: React.FC<Props> = ({ song, dostupneId, onPotvrdit }) 
     setVybrane(n);
   };
 
-  const sDaty = prehled.filter((p) => p.data.jsouData).length;
+  // Nástroje umí hrát u každé písně, takže se do počtu „má data" nepočítají —
+  // jinak by i úplně prázdná píseň hlásila tři naplněné moduly.
+  const sDaty = prehled.filter(
+    (p) => p.data.jsouData && !['tuner', 'fretboard', 'keyboard'].includes(p.smlouva.id)
+  ).length;
+
+  /**
+   * Píseň, ke které zatím nic není, nemá co nabízet.
+   *
+   * Vybírat z dvanácti prázdných modulů je horší než nevybírat nic — plocha
+   * se otevře poloprázdná a vypadá jako rozbitá. Místo nabídky se proto
+   * ukáže, že se materiály teprve shánějí.
+   */
+  if (sDaty === 0) {
+    return (
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-6 shadow-xl text-center space-y-3">
+        <div className="text-3xl">🔎</div>
+        <h2 className="text-lg font-bold text-white tracking-tight">
+          K téhle písni zatím nic není
+        </h2>
+        <p className="text-xs text-neutral-400 max-w-md mx-auto">
+          Appka se pokouší sehnat text, akordy, tabulaturu a další materiály.
+          Jakmile něco najde, nabídne se tady, co z toho chceš vidět.
+        </p>
+        <div className="flex flex-wrap justify-center gap-2 pt-1">
+          <button
+            onClick={() => onPotvrdit(['text_chords'])}
+            className="px-4 py-2 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl cursor-pointer transition-all"
+          >
+            Otevřít prázdnou plochu
+          </button>
+          <button
+            onClick={() => onPotvrdit(prehled.map((p) => p.smlouva.id))}
+            className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-xs font-semibold rounded-xl cursor-pointer transition-all"
+          >
+            Přesto ukázat všechny moduly
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
