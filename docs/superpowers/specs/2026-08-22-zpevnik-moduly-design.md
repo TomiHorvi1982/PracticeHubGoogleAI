@@ -73,7 +73,18 @@ Filtruje se: interpret, ladění, tónina, tempo (rozsah), obsažené akordy,
 příloha). Řadí se podle názvu, interpreta, přidání a posledního otevření.
 Poslední nastavení filtru se pamatuje.
 
-Filtry se počítají v databázi, ne v prohlížeči — knihovna poroste.
+Filtruje se v prohlížeči, ne v databázi — oproti původnímu rozhodnutí.
+`songDatabaseService.getSongs()` má celou knihovnu už načtenou, takže dotaz
+na server by byl kolo navíc pro data, která máme po ruce, a filtrování by
+při psaní zadrhávalo. Až knihovna povyroste natolik, že se přestane
+vyplácet držet ji celou v paměti, přesune se to na server.
+
+Nabídka hodnot se počítá z celé knihovny, ne z právě vyfiltrovaného výběru:
+nabídka, která se pod rukama zmenšuje podle toho, co je zrovna zaškrtnuté,
+se ovládá mizerně.
+
+Filtr „co k písni je" má tři stavy, ne dva — nezajímá mě / musí mít /
+nesmí mít. Třetí stav jedním kliknutím najde písně, kde teprve čeká práce.
 
 ### 3. Registr modulů a automatické plnění
 

@@ -1,4 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { SongFilterPanel } from './songbook/SongFilterPanel';
+import {
+  SongFilter,
+  ZpusobRazeni,
+  filtrujSkladby,
+  seradSkladby,
+  sestavFasety,
+  nactiFiltr,
+  ulozFiltr,
+  zaznamenejOtevreni,
+} from '../services/songFilters';
 import { Song } from '../types';
 import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { songDatabaseService } from '../services/songDatabaseService';
@@ -105,8 +116,16 @@ export const Songbook: React.FC<SongbookProps> = ({
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('all');
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [sortMode, setSortMode] = useState<'alphabetical' | 'recent'>('recent');
-  const [selectedLetter, setSelectedLetter] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<ZpusobRazeni>('recent');
+
+  /** Nastavení filtru přežije zavření okna — jinak by se skládalo pořád dokola. */
+  const [filtr, setFiltrStav] = useState<SongFilter>(() => nactiFiltr());
+  const setFiltr = (f: SongFilter) => {
+    setFiltrStav(f);
+    ulozFiltr(f);
+  };
+  const selectedLetter = filtr.pismeno;
+  const setSelectedLetter = (p: string | null) => setFiltr({ ...filtr, pismeno: p });
 
   // View Mode: 'detailed' (full cards with badges) vs 'compact' (1-line: Band - Song)
   const [songListViewMode, setSongListViewMode] = useState<'detailed' | 'compact'>(() => {
@@ -355,28 +374,21 @@ export const Songbook: React.FC<SongbookProps> = ({
     return badges;
   };
 
-  const filteredSongs = songs
-    .filter((s) => {
-      if (selectedPlaylistId !== 'all') {
-        const pl = playlists.find((p) => p.id === selectedPlaylistId);
-        if (pl && !pl.songIds.includes(s.id)) return false;
-      }
-      if (selectedLetter) {
-        if (!s.title.toUpperCase().startsWith(selectedLetter)) return false;
-      }
-      const q = searchQuery.toLowerCase();
-      return (
-        s.title.toLowerCase().includes(q) ||
-        s.artist.toLowerCase().includes(q) ||
-        s.key.toLowerCase().includes(q)
-      );
-    })
-    .sort((a, b) => {
-      if (sortMode === 'alphabetical') {
-        return a.title.localeCompare(b.title, 'cs');
-      }
-      return (b.createdAt || 0) - (a.createdAt || 0);
-    });
+  // Nabídka filtrů se počítá z celé knihovny, ne z právě vyfiltrovaného
+  // výběru — nabídka, která se pod rukama zmenšuje podle toho, co jsi
+  // zrovna zaškrtl, se ovládá mizerně.
+  const fasety = useMemo(() => sestavFasety(songs), [songs]);
+
+  const vPlaylistu = useMemo(() => {
+    if (selectedPlaylistId === 'all') return songs;
+    const pl = playlists.find((p) => p.id === selectedPlaylistId);
+    return pl ? songs.filter((s) => pl.songIds.includes(s.id)) : songs;
+  }, [songs, playlists, selectedPlaylistId]);
+
+  const filteredSongs = useMemo(
+    () => seradSkladby(filtrujSkladby(vPlaylistu, { ...filtr, hledani: searchQuery }), sortMode),
+    [vPlaylistu, filtr, searchQuery, sortMode]
+  );
 
   return (
     <div className="w-full space-y-4 font-sans pb-16">
@@ -481,18 +493,33 @@ export const Songbook: React.FC<SongbookProps> = ({
                 >
                   Poslední
                 </button>
-                <button
-                  onClick={() => setSortMode('alphabetical')}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
-                    sortMode === 'alphabetical'
-                      ? 'bg-white/15 text-white font-semibold shadow-sm'
-                      : 'text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  Abecedně
-                </button>
+                {([
+                  ['alphabetical', 'Název'],
+                  ['artist', 'Interpret'],
+                  ['opened', 'Naposledy'],
+                ] as [ZpusobRazeni, string][]).map(([id, popis]) => (
+                  <button
+                    key={id}
+                    onClick={() => setSortMode(id)}
+                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+                      sortMode === id
+                        ? 'bg-white/15 text-white font-semibold shadow-sm'
+                        : 'text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    {popis}
+                  </button>
+                ))}
               </div>
             </div>
+
+            <SongFilterPanel
+              filtr={filtr}
+              fasety={fasety}
+              nalezeno={filteredSongs.length}
+              celkem={songs.length}
+              onZmena={setFiltr}
+            />
 
             {/* Playlists Selector Panel */}
             <div className="bg-white/[0.03] border border-white/[0.06] p-2.5 rounded-2xl space-y-2">
@@ -617,6 +644,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                       key={song.id}
                       onClick={() => {
                         setActiveSong(song);
+                        zaznamenejOtevreni(song.id);
                         setTransposeSemitones(0);
                       }}
                       className={`w-full text-left px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 group ${
@@ -680,6 +708,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                     key={song.id}
                     onClick={() => {
                       setActiveSong(song);
+                      zaznamenejOtevreni(song.id);
                       setTransposeSemitones(0);
                     }}
                     className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer relative group ${
