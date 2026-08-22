@@ -24,6 +24,7 @@ import {
   FolderOpen,
   ChevronDown,
   Music4,
+  Volume2,
 } from 'lucide-react';
 
 interface SampledDrumsStudioProps {
@@ -75,6 +76,36 @@ const BARVA_PADU: Record<PadTriggerDef['category'], string> = {
 
 /** Kolik variant zvuku smí mít jeden pad. Víc než pět už nikdo nerozezná. */
 const MAX_VARIANT = 5;
+
+/**
+ * Který nástroj z knihovny se hodí ke kterému padu.
+ *
+ * Bez tohohle by nabídka u každého padu ukazovala všech dvě stě vzorků a
+ * hledat mezi nimi kopák by bylo horší než ho nahrát znovu.
+ */
+const NASTROJ_PADU: Partial<Record<DrumArticulation, string>> = {
+  kick: 'kick',
+  snare: 'snare',
+  snare_rimshot: 'snare',
+  snare_sidestick: 'snare',
+  hihat_closed: 'hihat',
+  hihat_semi: 'hihat',
+  hihat_open: 'hihat',
+  hihat_pedal: 'hihat',
+  tom_high: 'tom',
+  tom_mid: 'tom',
+  tom_low: 'tom',
+  crash_left: 'crash',
+  crash_right: 'crash',
+  ride_bow: 'ride',
+  ride_bell: 'ride',
+  china: 'crash',
+  splash: 'crash',
+  handclap: 'clap',
+  tambourine: 'perc',
+  cowbell: 'perc',
+  shaker: 'perc',
+};
 
 const POPIS_ROLE: Record<string, string> = {
   groove: 'Doprovod',
@@ -212,21 +243,33 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
    *  a doznění, nebo je useknutý. */
   const [krivkaVzorku, setKrivkaVzorku] = useState<{ klic: string; name: string; url: string } | null>(null);
 
+  /** Ukázat jen vzorky, které k padu patří, nebo úplně vše. */
+  const [jenKPadu, setJenKPadu] = useState(true);
+
   useEffect(() => {
     if (!otevrenyPad) return;
     setNacitamVzorky(true);
     assetLibraryService
-      .listPage({ category: 'drum_kit_sample', search: hledaniVzorku || undefined, limit: 120, sort: 'name' })
-      .then((r) => setVzorky(r.assets))
+      .listPage({ category: 'drum_kit_sample', search: hledaniVzorku || undefined, limit: 300, sort: 'name' })
+      .then((r) => {
+        const nastroj = NASTROJ_PADU[otevrenyPad];
+        // Vzorky bez určeného nástroje pocházejí z ručně složené sady;
+        // nezahazují se, jen se nechají až za těmi, které k padu sedí.
+        setVzorky(
+          jenKPadu && nastroj
+            ? r.assets.filter((a) => (a.metadata as any)?.nastroj === nastroj)
+            : r.assets
+        );
+      })
       .catch(() => setVzorky([]))
       .finally(() => setNacitamVzorky(false));
-  }, [otevrenyPad, hledaniVzorku]);
+  }, [otevrenyPad, hledaniVzorku, jenKPadu]);
 
   /** Varianty, které pad právě má — z vícevrstvé mapy sady. */
   const variantyPadu = useCallback(
     (art: DrumArticulation) => {
       const vrstvy = kit?.multiLayers?.[art];
-      if (!vrstvy) return [] as { klic: string; name: string }[];
+      if (!vrstvy) return [] as { klic: string; name: string; dataUrl: string }[];
       return Object.entries(vrstvy).map(([klic, v]) => ({ klic, name: v.name, dataUrl: v.dataUrl }));
     },
     [kit]
@@ -741,6 +784,20 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
               />
             </div>
 
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setJenKPadu((v) => !v)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer ${
+                  jenKPadu
+                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-[#FF9F0A]'
+                    : 'bg-black/40 border-white/10 text-neutral-400 hover:text-white'
+                }`}
+              >
+                {jenKPadu ? 'Jen k tomuhle padu' : 'Všechny vzorky'}
+              </button>
+              <span className="text-[10px] text-neutral-500">{vzorky.length} k dispozici</span>
+            </div>
+
             <div className="max-h-[180px] overflow-y-auto scrollbar-thin grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1.5">
               {nacitamVzorky && <span className="text-[11px] text-neutral-500 p-2">Načítám…</span>}
               {!nacitamVzorky && vzorky.length === 0 && (
@@ -751,19 +808,39 @@ export const SampledDrumsStudio: React.FC<SampledDrumsStudioProps> = ({
               {vzorky.map((a) => {
                 const plno = variantyPadu(otevrenyPad).length >= MAX_VARIANT;
                 return (
-                  <button
+                  <div
                     key={a.id}
-                    onClick={() => void pridejVzorek(otevrenyPad, a)}
-                    disabled={plno || pridavam === a.id}
-                    className="flex items-center gap-2 px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-left transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="flex items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all"
                   >
-                    {pridavam === a.id ? (
-                      <Loader2 className="w-3 h-3 animate-spin text-[#FF9F0A] shrink-0" />
-                    ) : (
-                      <Plus className="w-3 h-3 text-neutral-500 shrink-0" />
-                    )}
-                    <span className="text-[11px] text-neutral-200 truncate">{a.name}</span>
-                  </button>
+                    <button
+                      onClick={() => void pridejVzorek(otevrenyPad, a)}
+                      disabled={plno || pridavam === a.id}
+                      className="flex items-center gap-2 pl-2.5 pr-1 py-1.5 text-left cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed min-w-0 flex-1"
+                      title={plno ? `Pad už má ${MAX_VARIANT} zvuků` : 'Přidat k padu'}
+                    >
+                      {pridavam === a.id ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-[#FF9F0A] shrink-0" />
+                      ) : (
+                        <Plus className="w-3 h-3 text-neutral-500 shrink-0" />
+                      )}
+                      <span className="text-[11px] text-neutral-200 truncate">{a.name}</span>
+                    </button>
+                    {/* Poslech před přidáním. U vzorku, který trvá zlomek
+                        sekundy, řekne křivka víc než název souboru. */}
+                    <button
+                      onClick={() =>
+                        setKrivkaVzorku((p) =>
+                          p?.klic === a.id
+                            ? null
+                            : { klic: a.id, name: a.name, url: `/api/assets/${a.id}/content` }
+                        )
+                      }
+                      className="px-1.5 py-1.5 text-neutral-500 hover:text-[#FF9F0A] cursor-pointer shrink-0"
+                      title="Ukázat křivku a přehrát"
+                    >
+                      <Volume2 className="w-3 h-3" />
+                    </button>
+                  </div>
                 );
               })}
             </div>
