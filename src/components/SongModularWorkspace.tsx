@@ -47,6 +47,9 @@ export interface ModuleConfig {
   order: number;
 }
 
+import { PrazdnyModul } from './songbook/PrazdnyModul';
+import { dataModulu } from './songbook/moduleRegistry';
+
 export const DEFAULT_MODULES: ModuleConfig[] = [
   { id: 'text_chords', title: 'Text a Akordy', icon: '📝', description: 'Hlavní text písně s interaktivními akordy, transpozicí a autoscrollem', visible: true, width: '2/3', height: 'lg', order: 1 },
   { id: 'youtube', title: 'YouTube Video', icon: '🎥', description: 'Přehrávač videoklipů, lekcí, backing tracků a návodů', visible: true, width: '1/3', height: 'md', order: 2 },
@@ -295,10 +298,13 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   const links = song.links || [];
   const attachments = song.attachments || [];
 
-  const tabAttachments = attachments.filter((a) => a.type === 'guitarpro' || a.type === 'txt');
-  const midiAttachments = attachments.filter((a) => a.type === 'midi');
-  const noteAttachments = attachments.filter((a) => a.type === 'pdf');
-  const imageAttachments = attachments.filter((a) => a.type === 'image');
+  // Přílohy si moduly nevybírají samy — rozhoduje registr, který je jediným
+  // místem, kde je napsáno, co ke kterému modulu patří. Poznává je i podle
+  // přípony, protože `type` bývá u hromadných importů „other".
+  const tabAttachments = dataModulu(song, 'tabs').prilohy;
+  const midiAttachments = dataModulu(song, 'midi').prilohy;
+  const noteAttachments = dataModulu(song, 'notes').prilohy;
+  const imageAttachments = dataModulu(song, 'images').prilohy;
 
   // Toggle module visibility
   const toggleModuleVisible = (id: ModuleType) => {
@@ -1043,9 +1049,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-neutral-400 text-xs">
-                Žádný tab ani GuitarPro soubor nebyl nahrán.
-              </div>
+              <PrazdnyModul song={song} modulId="tabs" onUpdateSong={onUpdateSong} />
             )}
 
             {onOpenImportModal && (
@@ -1097,9 +1101,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-neutral-400 text-xs">
-                K této skladbě není připojen žádný MIDI soubor.
-              </div>
+              <PrazdnyModul song={song} modulId="midi" onUpdateSong={onUpdateSong} />
             )}
 
             {onOpenImportModal && (
@@ -1159,9 +1161,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-neutral-400 text-xs">
-                Žádné noty ani PDF nebyly připojeny.
-              </div>
+              <PrazdnyModul song={song} modulId="notes" onUpdateSong={onUpdateSong} />
             )}
 
             {onOpenImportModal && (
@@ -1205,9 +1205,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-neutral-400 text-xs">
-                Žádné fotky ani naskenované materiály nebyly přiloženy.
-              </div>
+              <PrazdnyModul song={song} modulId="images" onUpdateSong={onUpdateSong} />
             )}
 
             {onOpenImportModal && (
