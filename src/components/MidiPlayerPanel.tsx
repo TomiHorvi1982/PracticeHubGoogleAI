@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Play, Pause, Square, Music4, Volume2, VolumeX, Loader2,
-  ZoomIn, ZoomOut, ChevronDown, ChevronRight, Search, Trash2,
+  ZoomIn, ZoomOut, ChevronDown, ChevronRight, Search, Trash2, Undo2, Star,
 } from 'lucide-react';
 import { midiPlayerService, MidiSongState, MidiNote } from '../services/midiPlayerService';
 import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
@@ -20,6 +20,7 @@ const CERNE = new Set([1, 3, 6, 8, 10]);
 const VYSKA_STOPY = 44;
 const VYSKA_RADKU_ROLL = 11;
 const SIRKA_HLAVICEK = 190;
+const KLIC_OBLIBENYCH = 'neverlate_midi_oblibene';
 
 function formatCas(s: number): string {
   if (!Number.isFinite(s) || s < 0) return '0:00';
@@ -43,6 +44,34 @@ export const MidiPlayerPanel: React.FC = () => {
   const [knihovnaOtevrena, setKnihovnaOtevrena] = useState(true);
   const [chyba, setChyba] = useState<string | null>(null);
   const [vybranaStopa, setVybranaStopa] = useState(0);
+
+  /**
+   * Sbalené skupiny a oblíbené soubory. Oblíbené drží prohlížeč — je to
+   * volba jednoho člověka na jednom stroji, ne data kapely, a ukládat kvůli
+   * hvězdičce řádek do databáze by bylo víc práce než užitku.
+   */
+  const [sbalene, setSbalene] = useState<Set<string>>(new Set());
+  const [oblibene, setOblibene] = useState<Set<string>>(() => {
+    try {
+      return new Set(JSON.parse(localStorage.getItem(KLIC_OBLIBENYCH) || '[]'));
+    } catch {
+      return new Set();
+    }
+  });
+  const [jenOblibene, setJenOblibene] = useState(false);
+
+  const prepniOblibeny = (id: string) => {
+    setOblibene((prev) => {
+      const novy = new Set(prev);
+      novy.has(id) ? novy.delete(id) : novy.add(id);
+      try {
+        localStorage.setItem(KLIC_OBLIBENYCH, JSON.stringify([...novy]));
+      } catch {
+        /* plné úložiště nesmí shodit výběr */
+      }
+      return novy;
+    });
+  };
   const [pxZaSekundu, setPxZaSekundu] = useState(40);
   const osaRef = useRef<HTMLDivElement>(null);
 
@@ -75,14 +104,22 @@ export const MidiPlayerPanel: React.FC = () => {
 
   /** Soubory seskupené podle složky, obojí seřazené podle názvu. */
   const skupiny = useMemo(() => {
+    const zdroj = jenOblibene ? soubory.filter((a) => oblibene.has(a.id)) : soubory;
     const m = new Map<string, LibraryAsset[]>();
-    for (const a of soubory) {
+    for (const a of zdroj) {
       const k = slozkaAssetu(a);
       if (!m.has(k)) m.set(k, []);
       m.get(k)!.push(a);
     }
-    return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], 'cs'));
-  }, [soubory]);
+    const serazene = [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], 'cs'));
+
+    // Oblíbené se ukazují navrch jako vlastní skupina — jinak by se
+    // hvězdička hledala napříč stovkami složek, což je k ničemu.
+    const hvezdicky = zdroj.filter((a) => oblibene.has(a.id));
+    return hvezdicky.length && !jenOblibene
+      ? ([['★ Oblíbené', hvezdicky], ...serazene] as [string, LibraryAsset[]][])
+      : serazene;
+  }, [soubory, oblibene, jenOblibene]);
 
   const stopa = stav.tracks[vybranaStopa];
   const sirkaOsy = Math.max(700, stav.duration * pxZaSekundu);
@@ -111,14 +148,230 @@ export const MidiPlayerPanel: React.FC = () => {
     midiPlayerService.seek((e.clientX - box.left + osaRef.current.scrollLeft) / pxZaSekundu);
   };
 
-  const pridejNotu = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!stopa || !osaRef.current) return;
-    const box = e.currentTarget.getBoundingClientRect();
-    const midi = rozsah.max - Math.floor((e.clientY - box.top) / VYSKA_RADKU_ROLL);
-    if (midi < 0 || midi > 127) return;
-    const cas = Math.max(0, (e.clientX - box.left) / pxZaSekundu);
-    midiPlayerService.setTrackNotes(stopa.index, [...stopa.notes, { midi, time: cas, duration: 0.5, velocity: 0.8 }]);
+  // --- EDITOR NOT --------------------------------------------------------
+  //
+  // Nota se dá chytit a přetáhnout, natáhnout za pravý okraj, označit víc
+  // naráz a každý krok jde vrátit. Držení stavu je v ref, ne ve stavu
+  // komponenty — během tažení se překresluje na každý pohyb myši a
+  // setState by z toho udělal trhaný pohyb.
+
+  const [vybrane, setVybrane] = useState<Set<number>>(new Set());
+  const [ramecek, setRamecek] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
+  const [tahAktivni, setTahAktivni] = useState<'posun' | 'delka' | 'vyber' | null>(null);
+  const historieRef = useRef<MidiNote[][]>([]);
+  const [krokuZpet, setKrokuZpet] = useState(0);
+  const rollRef = useRef<HTMLDivElement>(null);
+
+  const tahRef = useRef<{
+    druh: 'posun' | 'delka' | 'vyber';
+    startX: number;
+    startY: number;
+    puvodni: MidiNote[];
+    indexy: number[];
+    pohnuto: boolean;
+  } | null>(null);
+
+  // Přepnutí stopy nebo souboru zahazuje historii — vracet krok zpět do
+  // noty, která patřila jiné skladbě, by nadělalo víc škody než užitku.
+  useEffect(() => {
+    historieRef.current = [];
+    setKrokuZpet(0);
+    setVybrane(new Set());
+  }, [vybranaStopa, stav.asset?.id]);
+
+  const zapisNoty = (nove: MidiNote[], zaznamenat = true) => {
+    if (!stopa) return;
+    if (zaznamenat) {
+      historieRef.current.push(stopa.notes.map((n) => ({ ...n })));
+      if (historieRef.current.length > 60) historieRef.current.shift();
+      setKrokuZpet(historieRef.current.length);
+    }
+    midiPlayerService.setTrackNotes(stopa.index, nove);
   };
+
+  const zpet = () => {
+    if (!stopa) return;
+    const predchozi = historieRef.current.pop();
+    if (!predchozi) return;
+    setKrokuZpet(historieRef.current.length);
+    setVybrane(new Set());
+    midiPlayerService.setTrackNotes(stopa.index, predchozi);
+  };
+
+  const smazVybrane = () => {
+    if (!stopa || vybrane.size === 0) return;
+    zapisNoty(stopa.notes.filter((_, i) => !vybrane.has(i)));
+    setVybrane(new Set());
+  };
+
+  /** Souřadnice myši převedené na čas a výšku tónu. */
+  const zMysi = (e: { clientX: number; clientY: number }) => {
+    const box = rollRef.current?.getBoundingClientRect();
+    if (!box) return null;
+    return {
+      x: e.clientX - box.left,
+      y: e.clientY - box.top,
+      cas: Math.max(0, (e.clientX - box.left) / pxZaSekundu),
+      midi: rozsah.max - Math.floor((e.clientY - box.top) / VYSKA_RADKU_ROLL),
+    };
+  };
+
+  const startNaNote = (e: React.MouseEvent, k: number, druh: 'posun' | 'delka') => {
+    e.stopPropagation();
+    if (!stopa) return;
+
+    // Shift přidává do výběru, klik bez něj na neoznačenou notu výběr
+    // nahradí. Kliknutí do už označené skupiny výběr nechává, aby se dalo
+    // přetáhnout několik not naráz.
+    let novy = new Set(vybrane);
+    if (e.shiftKey) {
+      novy.has(k) ? novy.delete(k) : novy.add(k);
+    } else if (!novy.has(k)) {
+      novy = new Set([k]);
+    }
+    setVybrane(novy);
+
+    tahRef.current = {
+      druh,
+      startX: e.clientX,
+      startY: e.clientY,
+      puvodni: stopa.notes.map((n) => ({ ...n })),
+      indexy: [...novy],
+      pohnuto: false,
+    };
+    setTahAktivni(druh);
+  };
+
+  const startNaPlose = (e: React.MouseEvent) => {
+    if (!stopa) return;
+    const m = zMysi(e);
+    if (!m) return;
+    tahRef.current = {
+      druh: 'vyber',
+      startX: e.clientX,
+      startY: e.clientY,
+      puvodni: stopa.notes.map((n) => ({ ...n })),
+      indexy: [],
+      pohnuto: false,
+    };
+    setTahAktivni('vyber');
+    setRamecek({ x: m.x, y: m.y, w: 0, h: 0 });
+  };
+
+  useEffect(() => {
+    if (!tahAktivni || !stopa) return;
+
+    const pohyb = (e: MouseEvent) => {
+      const t = tahRef.current;
+      if (!t) return;
+      const dx = e.clientX - t.startX;
+      const dy = e.clientY - t.startY;
+      // Pár pixelů je ještě klik, ne tažení — jinak by se nedalo notu
+      // označit, aniž by se nepatrně posunula.
+      if (!t.pohnuto && Math.abs(dx) < 3 && Math.abs(dy) < 3) return;
+      t.pohnuto = true;
+
+      if (t.druh === 'vyber') {
+        const box = rollRef.current?.getBoundingClientRect();
+        if (!box) return;
+        const x0 = t.startX - box.left;
+        const y0 = t.startY - box.top;
+        setRamecek({ x: Math.min(x0, x0 + dx), y: Math.min(y0, y0 + dy), w: Math.abs(dx), h: Math.abs(dy) });
+        return;
+      }
+
+      const dtCas = dx / pxZaSekundu;
+      const dMidi = -Math.round(dy / VYSKA_RADKU_ROLL);
+      const nove = t.puvodni.map((n, i) => {
+        if (!t.indexy.includes(i)) return n;
+        if (t.druh === 'delka') {
+          // Nota nesmí zmizet do nuly, jinak by se pak nedala chytit zpět.
+          return { ...n, duration: Math.max(0.05, n.duration + dtCas) };
+        }
+        return {
+          ...n,
+          time: Math.max(0, n.time + dtCas),
+          midi: Math.max(0, Math.min(127, n.midi + dMidi)),
+        };
+      });
+      midiPlayerService.setTrackNotes(stopa.index, nove);
+    };
+
+    const konec = (e: MouseEvent) => {
+      const t = tahRef.current;
+      tahRef.current = null;
+      setTahAktivni(null);
+      setRamecek(null);
+      if (!t) return;
+
+      if (t.druh === 'vyber') {
+        const box = rollRef.current?.getBoundingClientRect();
+        if (!box) return;
+        if (!t.pohnuto) {
+          // Klik do prázdna přidá notu — a zruší výběr, aby další tažení
+          // nechytlo omylem něco z minula.
+          const m = zMysi(e);
+          if (m && m.midi >= 0 && m.midi <= 127) {
+            zapisNoty([...t.puvodni, { midi: m.midi, time: m.cas, duration: 0.5, velocity: 0.8 }]);
+          }
+          setVybrane(new Set());
+          return;
+        }
+        const x1 = Math.min(t.startX, e.clientX) - box.left;
+        const x2 = Math.max(t.startX, e.clientX) - box.left;
+        const y1 = Math.min(t.startY, e.clientY) - box.top;
+        const y2 = Math.max(t.startY, e.clientY) - box.top;
+        const chycene = new Set<number>();
+        t.puvodni.forEach((n, i) => {
+          const nx1 = n.time * pxZaSekundu;
+          const nx2 = nx1 + n.duration * pxZaSekundu;
+          const ny1 = (rozsah.max - n.midi) * VYSKA_RADKU_ROLL;
+          const ny2 = ny1 + VYSKA_RADKU_ROLL;
+          if (nx2 >= x1 && nx1 <= x2 && ny2 >= y1 && ny1 <= y2) chycene.add(i);
+        });
+        setVybrane(chycene);
+        return;
+      }
+
+      // Posun i změna délky se do historie zapíšou až tady, jedním
+      // záznamem za celé tažení. Kdyby se zapisovaly při každém pohybu
+      // myši, jeden tah by spolykal celou historii.
+      if (t.pohnuto) {
+        historieRef.current.push(t.puvodni);
+        if (historieRef.current.length > 60) historieRef.current.shift();
+        setKrokuZpet(historieRef.current.length);
+      }
+    };
+
+    window.addEventListener('mousemove', pohyb);
+    window.addEventListener('mouseup', konec);
+    return () => {
+      window.removeEventListener('mousemove', pohyb);
+      window.removeEventListener('mouseup', konec);
+    };
+  }, [tahAktivni, stopa, pxZaSekundu, rozsah.max]);
+
+  // Klávesy editoru. Nechytají se, když člověk píše do pole hledání.
+  useEffect(() => {
+    const naKlavesu = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        zpet();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (vybrane.size === 0) return;
+        e.preventDefault();
+        smazVybrane();
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'a' && stopa) {
+        e.preventDefault();
+        setVybrane(new Set(stopa.notes.map((_, i) => i)));
+      } else if (e.key === 'Escape') {
+        setVybrane(new Set());
+      }
+    };
+    window.addEventListener('keydown', naKlavesu);
+    return () => window.removeEventListener('keydown', naKlavesu);
+  });
 
   // Značky na pravítku po rozumném kroku, ať nejsou natěsno ani řídce.
   const krok = pxZaSekundu >= 80 ? 1 : pxZaSekundu >= 30 ? 5 : 15;
@@ -154,6 +407,27 @@ export const MidiPlayerPanel: React.FC = () => {
               />
             </div>
 
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setJenOblibene((v) => !v)}
+                disabled={oblibene.size === 0}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
+                  jenOblibene
+                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-[#FF9F0A]'
+                    : 'bg-black/40 border-white/10 text-neutral-400 hover:text-white'
+                }`}
+              >
+                <Star className={`w-3 h-3 ${jenOblibene ? 'fill-[#FF9F0A]' : ''}`} />
+                Jen oblíbené{oblibene.size > 0 ? ` (${oblibene.size})` : ''}
+              </button>
+              <button
+                onClick={() => setSbalene((prev) => (prev.size ? new Set() : new Set(skupiny.map(([k]) => k))))}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-white/10 bg-black/40 text-neutral-400 hover:text-white transition-all cursor-pointer"
+              >
+                {sbalene.size ? 'Rozbalit vše' : 'Sbalit vše'}
+              </button>
+            </div>
+
             {chyba ? (
               <div className="text-[11px] text-[#FF453A]">{chyba}</div>
             ) : (
@@ -162,27 +436,74 @@ export const MidiPlayerPanel: React.FC = () => {
                 {!nacitam && soubory.length === 0 && (
                   <div className="text-[11px] text-neutral-500">Nic nenalezeno.</div>
                 )}
-                {skupiny.map(([slozka, polozky]) => (
-                  <div key={slozka}>
-                    <div className="text-[10px] font-black uppercase tracking-wider text-neutral-500 mb-1">{slozka}</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {polozky.map((a) => (
-                        <button
-                          key={a.id}
-                          onClick={() => { midiPlayerService.loadFromLibrary(a); setVybranaStopa(0); }}
-                          className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all cursor-pointer ${
-                            stav.asset?.id === a.id
-                              ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-white'
-                              : 'bg-black/40 border-white/10 text-neutral-300 hover:border-white/30'
-                          }`}
-                          title={a.name}
-                        >
-                          {a.name.replace(/\.midi?$/i, '').slice(0, 40)}
-                        </button>
-                      ))}
+                {skupiny.map(([slozka, polozky]) => {
+                  const zavrena = sbalene.has(slozka);
+                  return (
+                    <div key={slozka}>
+                      <button
+                        onClick={() =>
+                          setSbalene((prev) => {
+                            const novy = new Set(prev);
+                            novy.has(slozka) ? novy.delete(slozka) : novy.add(slozka);
+                            return novy;
+                          })
+                        }
+                        className="w-full flex items-center gap-1 mb-1 text-left cursor-pointer group"
+                      >
+                        {zavrena ? (
+                          <ChevronRight className="w-3 h-3 text-neutral-500 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-3 h-3 text-neutral-500 shrink-0" />
+                        )}
+                        <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 group-hover:text-neutral-300 truncate">
+                          {slozka}
+                        </span>
+                        <span className="text-[10px] text-neutral-600 shrink-0">({polozky.length})</span>
+                      </button>
+
+                      {!zavrena && (
+                        <div className="flex flex-wrap gap-1.5">
+                          {polozky.map((a) => {
+                            const jeOblibeny = oblibene.has(a.id);
+                            return (
+                              <div
+                                key={`${slozka}:${a.id}`}
+                                className={`flex items-center rounded-lg border transition-all ${
+                                  stav.asset?.id === a.id
+                                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                                    : 'bg-black/40 border-white/10 hover:border-white/30'
+                                }`}
+                              >
+                                <button
+                                  onClick={() => { midiPlayerService.loadFromLibrary(a); setVybranaStopa(0); }}
+                                  className={`pl-2.5 pr-1.5 py-1 text-[11px] font-medium cursor-pointer ${
+                                    stav.asset?.id === a.id ? 'text-white' : 'text-neutral-300'
+                                  }`}
+                                  title={a.name}
+                                >
+                                  {a.name.replace(/\.midi?$/i, '').slice(0, 40)}
+                                </button>
+                                <button
+                                  onClick={() => prepniOblibeny(a.id)}
+                                  className="pr-1.5 py-1 cursor-pointer"
+                                  title={jeOblibeny ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'}
+                                >
+                                  <Star
+                                    className={`w-3 h-3 transition-colors ${
+                                      jeOblibeny
+                                        ? 'text-[#FF9F0A] fill-[#FF9F0A]'
+                                        : 'text-neutral-600 hover:text-neutral-300'
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 {celkem > soubory.length && (
                   <div className="text-[11px] text-neutral-500 pt-1">
                     Zobrazeno {soubory.length} z {celkem} — zbytek najdete hledáním.
@@ -366,21 +687,47 @@ export const MidiPlayerPanel: React.FC = () => {
                   Editor — {stopa.name}
                 </span>
                 <span className="text-[10px] text-neutral-500">
-                  {stopa.notes.length} not · klik přidá, klik na notu smaže
+                  {stopa.notes.length} not
+                  {vybrane.size > 0 && <span className="text-[#FF9F0A] font-bold"> · {vybrane.size} označeno</span>}
                 </span>
-                <button
-                  onClick={() => midiPlayerService.setTrackNotes(stopa.index, [])}
-                  className="ml-auto flex items-center gap-1 text-[10px] font-bold text-neutral-500 hover:text-[#FF453A] cursor-pointer"
-                >
-                  <Trash2 className="w-3 h-3" /> Vymazat stopu
-                </button>
+
+                <div className="ml-auto flex items-center gap-3">
+                  <button
+                    onClick={zpet}
+                    disabled={krokuZpet === 0}
+                    className="flex items-center gap-1 text-[10px] font-bold text-neutral-500 hover:text-white cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Krok zpět (Cmd+Z)"
+                  >
+                    <Undo2 className="w-3 h-3" /> Zpět{krokuZpet > 0 ? ` (${krokuZpet})` : ''}
+                  </button>
+                  <button
+                    onClick={smazVybrane}
+                    disabled={vybrane.size === 0}
+                    className="flex items-center gap-1 text-[10px] font-bold text-neutral-500 hover:text-[#FF453A] cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Smazat označené (Delete)"
+                  >
+                    <Trash2 className="w-3 h-3" /> Smazat výběr
+                  </button>
+                  <button
+                    onClick={() => { zapisNoty([]); setVybrane(new Set()); }}
+                    className="flex items-center gap-1 text-[10px] font-bold text-neutral-500 hover:text-[#FF453A] cursor-pointer"
+                  >
+                    Vymazat stopu
+                  </button>
+                </div>
+              </div>
+
+              <div className="px-4 pb-2 text-[10px] text-neutral-600">
+                Klik do prázdna přidá notu · tažení notu posune · tažení za pravý okraj změní délku ·
+                Shift přidá do výběru · tažení po ploše označí rámečkem · Delete smaže · Cmd+Z vrátí
               </div>
 
               <div className="overflow-auto max-h-64 bg-black/50">
                 <div
-                  className="relative cursor-crosshair"
+                  ref={rollRef}
+                  className={`relative select-none ${tahAktivni === 'vyber' ? 'cursor-crosshair' : 'cursor-crosshair'}`}
                   style={{ width: sirkaOsy, height: radkuRoll * VYSKA_RADKU_ROLL }}
-                  onClick={pridejNotu}
+                  onMouseDown={startNaPlose}
                 >
                   {Array.from({ length: radkuRoll }, (_, r) => {
                     const midi = rozsah.max - r;
@@ -389,24 +736,42 @@ export const MidiPlayerPanel: React.FC = () => {
                     ) : null;
                   })}
 
-                  {stopa.notes.map((n, k) => (
+                  {stopa.notes.map((n, k) => {
+                    const oznacena = vybrane.has(k);
+                    const sirka = Math.max(3, n.duration * pxZaSekundu - 1);
+                    return (
+                      <div
+                        key={k}
+                        onMouseDown={(e) => startNaNote(e, k, 'posun')}
+                        title={`${midiToNoteName(n.midi)} · ${n.time.toFixed(2)} s · ${n.duration.toFixed(2)} s`}
+                        className={`absolute rounded-[2px] cursor-grab active:cursor-grabbing ${
+                          oznacena ? 'bg-white ring-1 ring-[#FF9F0A]' : 'bg-[#FF9F0A]'
+                        }`}
+                        style={{
+                          left: n.time * pxZaSekundu,
+                          top: (rozsah.max - n.midi) * VYSKA_RADKU_ROLL + 1,
+                          width: sirka,
+                          height: VYSKA_RADKU_ROLL - 2,
+                          opacity: 0.45 + n.velocity * 0.55,
+                        }}
+                      >
+                        {/* Úchyt pro změnu délky. Sahá jen na pravý okraj, aby
+                            se dal zbytek noty pořád chytit a přetáhnout. */}
+                        <div
+                          onMouseDown={(e) => startNaNote(e, k, 'delka')}
+                          className="absolute top-0 right-0 h-full cursor-ew-resize"
+                          style={{ width: Math.min(6, Math.max(3, sirka / 3)) }}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {ramecek && (
                     <div
-                      key={k}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        midiPlayerService.setTrackNotes(stopa.index, stopa.notes.filter((_, j) => j !== k));
-                      }}
-                      title={`${midiToNoteName(n.midi)} · ${n.time.toFixed(2)} s`}
-                      className="absolute rounded-[2px] bg-[#FF9F0A] hover:bg-[#FF453A] transition-colors"
-                      style={{
-                        left: n.time * pxZaSekundu,
-                        top: (rozsah.max - n.midi) * VYSKA_RADKU_ROLL + 1,
-                        width: Math.max(3, n.duration * pxZaSekundu - 1),
-                        height: VYSKA_RADKU_ROLL - 2,
-                        opacity: 0.45 + n.velocity * 0.55,
-                      }}
+                      className="absolute border border-[#FF9F0A] bg-[#FF9F0A]/10 pointer-events-none"
+                      style={{ left: ramecek.x, top: ramecek.y, width: ramecek.w, height: ramecek.h }}
                     />
-                  ))}
+                  )}
 
                   <div
                     className="absolute top-0 bottom-0 w-px bg-[#30D158] pointer-events-none"
