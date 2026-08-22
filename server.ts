@@ -721,22 +721,31 @@ export async function createApp() {
     else if (/\b(INTRO|COUNT)\b/.test(velky)) role = 'intro';
     else if (/\b(END|ENDING|OUTRO)\b/.test(velky)) role = 'end';
 
-    // Styl = název bez pořadového čísla, závorky s takty a slov o roli.
-    // Z „Latin Rap 06 (2 bars)“ zbude „Latin Rap“ a ze „Song_06_Fill_01“
-    // „Song 06“ — obojí se pak dá seskupit s ostatními ze stejné rodiny.
-    const style =
-      citelny
-        .replace(/\(\s*\d+\s*bars?\s*\)/gi, '')
-        .replace(/\b(BUILDUP|PICKUP|HAT|RIDE|CRASH|TOM|HALF|DOUBLE)?\s*\b(FILL|GROOVE|INTRO|END|ENDING|OUTRO|COUNT)\b/gi, ' ')
-        .replace(/[\s-]*\d+\s*$/g, '')
-        .replace(/\s+/g, ' ')
-        .trim() || citelny;
-
-    // Skupina, pod kterou se položka v prohlížeči zařadí. U MDL Tone je to
-    // skladba s tempem, u Smart Loops díl sbírky a případná sada.
+    // Skupina, pod kterou položka patří: u MDL Tone skladba s tempem, u
+    // Smart Loops díl sbírky a případná sada.
     const kit = segmenty.find((s) => /kit$/i.test(s));
     const vol = segmenty.find((s) => /^vol/i.test(s));
     const group = [vol, kit].filter(Boolean).join(' · ') || segmenty[0] || pack.label;
+
+    // Styl = název bez pořadového čísla, závorky s takty a slov o roli.
+    // Z „Latin Rap 06 (2 bars)“ zbude „Latin Rap“ a ze „Song_06_Fill_01“
+    // „Song 06“ — obojí se pak dá seskupit s ostatními ze stejné rodiny.
+    const holy =
+      citelny
+        // Závorka s délkou. Musí brát i doby, ne jen takty, a i prázdný
+        // počet — sbírka obsahuje „(2 beats)" i „( bars)" a s úzkým vzorem
+        // na `bars` zůstaly obojí v názvu stylu. V seznamu se pak místo
+        // „Bongos" nabízelo padesát dva variant typu „Bongos 1 (2 beats)".
+        .replace(/\(\s*\d*\s*(bars?|beats?)\s*\)/gi, '')
+        .replace(/\b(BUILDUP|PICKUP|HAT|RIDE|CRASH|TOM|HALF|DOUBLE)?\s*\b(FILL|GROOVE|INTRO|END|ENDING|OUTRO|COUNT)\b/gi, ' ')
+        .replace(/[\s-]*\d+\s*$/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    // Soubor pojmenovaný jen rolí („FILL 01 (1 bar)") žádný styl nenese.
+    // Vracet místo něj celý název by do nabídky přidalo sedmnáct položek,
+    // které nic neseskupují — patří pod svou složku.
+    const style = holy || group;
 
     return {
       id,
