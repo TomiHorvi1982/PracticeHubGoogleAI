@@ -44,11 +44,16 @@ export interface ModuleConfig {
   isFloating?: boolean;
   floatPos?: { x: number; y: number };
   floatSize?: { width: number; height: number };
+  /** Pozice v mřížce. Chybí u sestav uložených dřív — dopočítá se z `width`. */
+  grid?: { x: number; y: number; w: number; h: number };
   order: number;
 }
 
 import { PrazdnyModul } from './songbook/PrazdnyModul';
 import { ModulePicker } from './songbook/ModulePicker';
+import { ResponsiveGridLayout, useContainerWidth } from 'react-grid-layout';
+import { naRozvrzeni, naRozvrzeniPodSebe, zRozvrzeni, SLOUPCU, VYSKA_RADKU, MEZERA } from './songbook/gridLayout';
+import 'react-grid-layout/css/styles.css';
 import { dataModulu } from './songbook/moduleRegistry';
 
 export const DEFAULT_MODULES: ModuleConfig[] = [
@@ -130,7 +135,34 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     return null;
   };
 
+  // Mřížka potřebuje znát svou šířku v pixelech, aby přepočítala sloupce.
+  // Hook ji měří z kontejneru a hlásí změny, takže se plocha přeskládá i
+  // při zúžení okna, ne až po přenačtení.
+  const { width: sirkaMrizky, containerRef: mrizkaRef } = useContainerWidth();
+
   const [modules, setModules] = useState<ModuleConfig[]>(() => nactiSestavu(song) || DEFAULT_MODULES);
+
+  /**
+   * Zapíše pozice z mřížky do sestavy. Volá se jen po skutečné úpravě.
+   *
+   * Rovnou se odloží i do prohlížeče. Bez toho by přesunutý modul po
+   * přenačtení skočil zpátky, dokud by si člověk nevzpomněl na tlačítko
+   * Uložit — a plocha, která si posun nepamatuje, vypadá jako rozbitá.
+   * Do databáze se sestava pořád zapisuje až tím tlačítkem; posílat
+   * dotaz na server po každém puštění myši by bylo zbytečné.
+   */
+  const ulozRozvrzeni = (rozvrzeni: { i: string; x: number; y: number; w: number; h: number }[]) => {
+    setModules((predchozi) => {
+      const zmenene = zRozvrzeni(predchozi, rozvrzeni);
+      if (JSON.stringify(zmenene) === JSON.stringify(predchozi)) return predchozi;
+      try {
+        localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(zmenene));
+      } catch {
+        /* plné úložiště nesmí zabránit posunu modulu */
+      }
+      return zmenene;
+    });
+  };
   const [nabidkaModulu, setNabidkaModulu] = useState<boolean>(() => nactiSestavu(song) === null);
 
   useEffect(() => {
@@ -1455,68 +1487,54 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
         );
       })}
 
-      {/* MAIN GRID CONTAINER OF DOCKED MODULE WINDOWS */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-4 items-start">
+      {/* PLOCHA MODULŮ — mřížka dlaždic */}
+      <div ref={mrizkaRef}>
+      {/* Dokud není šířka změřená, mřížka se nevykresluje. Náhradní hodnota
+          by v prvním snímku rozložila dlaždice podle cizí šířky a ty by
+          přetekly ven z plochy. */}
+      {sirkaMrizky > 0 && (
+      <ResponsiveGridLayout
+        width={sirkaMrizky}
+        layouts={{
+          lg: naRozvrzeni(activeModules),
+          md: naRozvrzeni(activeModules),
+          sm: naRozvrzeniPodSebe(activeModules),
+          xs: naRozvrzeniPodSebe(activeModules),
+        }}
+        breakpoints={{ lg: 1200, md: 900, sm: 640, xs: 0 }}
+        // Sloupců je dvanáct na všech šířkách. Kdyby se jejich počet mezi
+        // zlomy měnil, uložené souřadnice by v užším režimu znamenaly něco
+        // jiného, než co se pod nimi uložilo. Na úzké obrazovce se proto
+        // mění rozvržení — vše pod sebe — a ne mřížka pod ním.
+        cols={{ lg: SLOUPCU, md: SLOUPCU, sm: SLOUPCU, xs: SLOUPCU }}
+        rowHeight={VYSKA_RADKU}
+        margin={MEZERA}
+        // Táhne se za hlavičku, ne za celou dlaždici — jinak by nešlo
+        // označit text uvnitř modulu.
+        dragConfig={{ handle: '.uchyt-modulu' }}
+        resizeConfig={{ handles: ['se', 'e', 's'] }}
+        // Ukládá se až konec tažení nebo zvětšení, ne každá změna rozvržení.
+        // `onLayoutChange` se totiž spustí i tehdy, když mřížka sama
+        // přeskládá dlaždice po zúžení okna — a takovou změnu by uložil
+        // jako by ji člověk provedl. Sestava by se tím po jednom otevření
+        // na úzké obrazovce natrvalo zmenšila na dva sloupce.
+        onDragStop={(rozvrzeni) => ulozRozvrzeni(rozvrzeni as any)}
+        onResizeStop={(rozvrzeni) => ulozRozvrzeni(rozvrzeni as any)}
+      >
         {activeModules.map((mod) => {
-          // Column span mapping
-          const colSpan = mod.customColSpan || (
-            mod.width === '1/3'
-              ? 4
-              : mod.width === '1/2'
-              ? 6
-              : mod.width === '2/3'
-              ? 8
-              : 12
-          );
-
-          const colSpanClass =
-            colSpan === 3
-              ? 'lg:col-span-3'
-              : colSpan === 4
-              ? 'lg:col-span-4'
-              : colSpan === 5
-              ? 'lg:col-span-5'
-              : colSpan === 6
-              ? 'lg:col-span-6'
-              : colSpan === 7
-              ? 'lg:col-span-7'
-              : colSpan === 8
-              ? 'lg:col-span-8'
-              : colSpan === 9
-              ? 'lg:col-span-9'
-              : colSpan === 10
-              ? 'lg:col-span-10'
-              : colSpan === 11
-              ? 'lg:col-span-11'
-              : 'lg:col-span-12';
-
-          const heightClass = mod.customHeight
-            ? ''
-            : mod.height === 'sm'
-            ? 'min-h-[220px] max-h-[340px]'
-            : mod.height === 'md'
-            ? 'min-h-[360px] max-h-[500px]'
-            : mod.height === 'lg'
-            ? 'min-h-[520px] max-h-[720px]'
-            : 'min-h-[250px]';
 
           return (
             <div
               key={mod.id}
-              draggable={true}
-              onDragStart={() => setDraggedModuleId(mod.id)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => handleDropOnModule(mod.id)}
-              className={`${colSpanClass} ${
+              className={`${
                 isStageMode
                   ? 'bg-[#18181E] border border-white/20'
                   : 'bg-[#16161A]/95 border border-white/[0.08]'
-              } backdrop-blur-xl rounded-3xl p-4 sm:p-5 flex flex-col shadow-xl transition-all relative group`}
-              style={mod.customHeight ? { height: `${mod.customHeight}px` } : undefined}
+              } backdrop-blur-xl rounded-3xl p-4 sm:p-5 flex flex-col shadow-xl relative group overflow-hidden`}
             >
               {/* WINDOW HEADER BAR */}
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08] select-none">
-                <div className="flex items-center gap-2 cursor-grab active:cursor-grabbing" title="Přetažením můžete změnit pořadí modulů">
+                <div className="uchyt-modulu flex items-center gap-2 cursor-grab active:cursor-grabbing" title="Přetažením přesunete modul">
                   <Grab className="w-3.5 h-3.5 text-neutral-500 group-hover:text-[#FF9F0A] transition-colors" />
                   <span className="text-base">{mod.icon}</span>
                   <h3 className="font-bold text-xs uppercase tracking-wider text-white">
@@ -1589,7 +1607,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
               </div>
 
               {/* MODULE CONTENT */}
-              <div className={`flex-1 flex flex-col overflow-y-auto ${heightClass}`}>
+              <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
                 {renderModuleBody(mod)}
               </div>
 
@@ -1617,6 +1635,8 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             </div>
           );
         })}
+      </ResponsiveGridLayout>
+      )}
       </div>
     </div>
   );
