@@ -198,7 +198,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  placeholder="např. hortom82@gmail.com"
+                  placeholder="např. no.cavalera@no.sepultura.brasil"
                   autoFocus
                   className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#FF9F0A] transition-colors"
                 />
