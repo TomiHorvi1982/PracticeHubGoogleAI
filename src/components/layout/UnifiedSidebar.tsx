@@ -1,5 +1,6 @@
 import React from 'react';
-import { 
+import {
+  Settings, 
   BookOpen, 
   Library, 
   ListMusic, 
@@ -83,8 +84,9 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       ],
     },
     {
-      title: 'KAPELA',
+      title: 'NASTAVENÍ',
       items: [
+        { id: 'settings', label: 'Nastavení', icon: Settings, badge: null },
       ],
     },
   ];

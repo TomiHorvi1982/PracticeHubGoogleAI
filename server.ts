@@ -990,6 +990,50 @@ export async function createApp() {
     }
   });
 
+  /**
+   * Kolik místa v úložišti co zabírá.
+   *
+   * Počítá se ze záznamů, ne dotazem do R2 — to bychom museli vylistovat
+   * dvaadvacet tisíc objektů. Velikost se zapisuje při nahrání, takže sedí.
+   */
+  app.get('/api/storage/usage', requireAuth, async (_req, res) => {
+    const admin = getSupabaseAdmin();
+    const podleKategorie: Record<string, { bajtu: number; souboru: number }> = {};
+    let od = 0;
+
+    for (;;) {
+      // PostgREST vrací po tisíci řádcích; bez stránkování by se počítalo
+      // jen z prvního tisíce a součet by byl nesmyslně nízký.
+      const { data, error } = await admin
+        .from('assets')
+        .select('category, size_bytes')
+        .eq('status', 'active')
+        .range(od, od + 999);
+      if (error) return res.status(500).json({ error: error.message });
+      if (!data?.length) break;
+      for (const a of data) {
+        const k = a.category || 'ostatní';
+        if (!podleKategorie[k]) podleKategorie[k] = { bajtu: 0, souboru: 0 };
+        podleKategorie[k].bajtu += Number(a.size_bytes || 0);
+        podleKategorie[k].souboru++;
+      }
+      if (data.length < 1000) break;
+      od += 1000;
+    }
+
+    const celkem = Object.values(podleKategorie).reduce((n, k) => n + k.bajtu, 0);
+    res.json({
+      celkem,
+      // Free tier Cloudflare R2. Není to tvrdý strop — nad ním se platí —
+      // ale je to hranice, kterou má smysl hlídat.
+      limit: 10 * 1024 * 1024 * 1024,
+      uloziste: isR2Configured() ? 'Cloudflare R2' : 'Supabase Storage',
+      kategorie: Object.entries(podleKategorie)
+        .map(([nazev, v]) => ({ nazev, ...v }))
+        .sort((a, b) => b.bajtu - a.bajtu),
+    });
+  });
+
   // Get one asset's metadata + a short-lived signed download URL.
   app.get('/api/assets/:id', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();

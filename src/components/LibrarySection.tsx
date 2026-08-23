@@ -429,6 +429,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         addedCount++;
       }
 
+      // Nastavení si podle toho přepočítá obsazené místo. Přes událost,
+      // aby knihovna nemusela vědět, že nějaká sekce s přehledem existuje.
+      window.dispatchEvent(new CustomEvent('neverlate:soubor-nahran'));
+
       setLibraryItems((prev) => [...newItems, ...prev]);
       setCelkemVKnihovne((n) => n + newItems.length);
       if (newItems.length > 0) {
