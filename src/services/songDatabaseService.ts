@@ -97,6 +97,55 @@ function songToRowUpdate(song: Song) {
  * songs). RLS (`songs_insert_own_or_shared` etc.) enforces this the same
  * way regardless of whether the write comes from here or anywhere else.
  */
+/** Porovnání písní odolné vůči diakritice, velkým písmenům a interpunkci. */
+export function klicPisne(artist: string | undefined | null, title: string): string {
+  const n = (x: string) =>
+    String(x || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  return `${n(artist || '')}|${n(title)}`;
+}
+
+/** Sjednocení pole bez duplicit podle zadaného klíče. */
+function spojPole<T>(a: T[] | undefined, b: T[] | undefined, klic: (x: T) => string): T[] {
+  const out: T[] = [];
+  const videne = new Set<string>();
+  for (const x of [...(a || []), ...(b || [])]) {
+    const k = klic(x);
+    if (videne.has(k)) continue;
+    videne.add(k);
+    out.push(x);
+  }
+  return out;
+}
+
+/**
+ * Přilije novou píseň do té, která ve zpěvníku už je.
+ *
+ * Zachovává si totožnost té stávající — odkazy na ni z playlistů a modulů
+ * musí dál platit. Z textů vítězí delší; kratší bývá zbytek po importu,
+ * který se nepovedl.
+ */
+export function slucPisne(stavajici: Song, nova: Song): Song {
+  return {
+    ...stavajici,
+    content:
+      (nova.content || '').length > (stavajici.content || '').length ? nova.content : stavajici.content,
+    key: stavajici.key || nova.key,
+    bpm: stavajici.bpm || nova.bpm,
+    tuning: stavajici.tuning || nova.tuning,
+    capo: stavajici.capo ?? nova.capo,
+    attachments: spojPole(stavajici.attachments, nova.attachments, (x: any) => x.storagePath || x.name),
+    youtubeVideos: spojPole(stavajici.youtubeVideos, nova.youtubeVideos, (x: any) => x.id || x.url),
+    links: spojPole(stavajici.links, nova.links, (x: any) => x.url),
+    images: spojPole(stavajici.images, nova.images, (x: any) => x.id || x.name),
+    chordsUsed: spojPole(stavajici.chordsUsed, nova.chordsUsed, (x) => x),
+    updatedAt: Date.now(),
+  };
+}
+
 class SongDatabaseService {
   private songs: Song[] = [];
   private subscribers: Set<SongsCallback> = new Set();
@@ -161,11 +210,25 @@ class SongDatabaseService {
       throw new Error('Pro úpravu zpěvníku musíte být přihlášeni.');
     }
 
-    const existing = this.songs.find((s) => s.id === song.id);
+    const existing =
+      this.songs.find((s) => s.id === song.id) ||
+      // Táž píseň přidaná podruhé z jiné strany — z YouTube, z importu,
+      // ze synchronizace složky — dřív založila nový řádek a ve zpěvníku
+      // pak byla dvakrát. Metallica se takhle rozmnožila na čtyři kopie.
+      // Když se najde podle názvu a interpreta, doplní se do ní, co nese
+      // ta nová, místo aby vznikl další záznam.
+      this.songs.find((s) => s.id !== song.id && klicPisne(s.artist, s.title) === klicPisne(song.artist, song.title));
+
+    // Do nalezené písně se přilévá, nepřepisuje se. Nový import obvykle
+    // nese jen část toho, co u písně už je, a přepis by zbytek smazal.
+    if (existing && existing.id !== song.id) {
+      song = slucPisne(existing, song);
+    }
+
     const update = songToRowUpdate(song);
 
     if (existing) {
-      const { data, error } = await supabase.from('songs').update(update).eq('id', song.id).select().single();
+      const { data, error } = await supabase.from('songs').update(update).eq('id', existing.id).select().single();
       if (error) throw new Error(error.message);
       const updated = rowToSong(data as SongRow);
       await resolveStoredAttachments([updated]);

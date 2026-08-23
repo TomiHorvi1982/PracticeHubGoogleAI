@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WaveformPrehravac } from './songbook/WaveformPrehravac';
 import { PdfNahled } from './songbook/PdfNahled';
+import { najdiPisenProSoubor, jizPripojeno, prilohaZAssetu } from '../services/priradKPisni';
+import { songDatabaseService } from '../services/songDatabaseService';
 import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import {
   FolderArchive,
@@ -304,18 +306,42 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       }))
     );
 
-    // Merge without duplicates by dataUrl or name+size
+    // Sloučení bez duplicit.
+    //
+    // Táž příloha se do seznamu dostane dvakrát: jednou jako soubor
+    // v knihovně a podruhé jako příloha písně, která na něj odkazuje.
+    // Porovnávat název se shodnou velikostí nestačilo — velikost u příloh
+    // často chybí a nula ji z porovnání vyřadila, takže se soubor ukázal
+    // dvakrát. Rozhoduje proto cesta v úložišti, což je to, co obě podoby
+    // opravdu sdílejí.
     const merged = [...libraryItems];
+    const zname = new Set(
+      merged.map((m) => m.name.toLowerCase().trim())
+    );
+
     songAttachments.forEach((sa) => {
-      const exists = merged.some(
-        (m) => m.id === sa.id || (m.name === sa.name && m.size === sa.size && m.size > 0)
-      );
-      if (!exists) {
+      const uzJe =
+        merged.some((m) => m.id === sa.id) ||
+        zname.has(sa.name.toLowerCase().trim());
+      if (!uzJe) {
+        zname.add(sa.name.toLowerCase().trim());
         merged.push(sa);
       }
     });
 
-    return merged;
+    // Knihovna sama může tentýž soubor obsahovat víckrát — nahrán z různých
+    // stran, pokaždé pod vlastním záznamem. V dlouhém seznamu se pak roluje
+    // přes tytéž názvy dokola.
+    const bezDuplicit: LibraryItem[] = [];
+    const videne = new Set<string>();
+    for (const m of merged) {
+      const klic = `${m.name.toLowerCase().trim()}|${m.size || 0}`;
+      if (videne.has(klic)) continue;
+      videne.add(klic);
+      bezDuplicit.push(m);
+    }
+
+    return bezDuplicit;
   }, [libraryItems, songs]);
 
   // Filtered items
@@ -341,6 +367,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
     try {
       const newItems: LibraryItem[] = [];
+      /** Co se podařilo přiřadit k písni — vypíše se v hlášce. */
+      const priraadene: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -378,6 +406,20 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         try {
           const ulozeny = await assetLibraryService.upload(file, kategorie, assetType, 'global');
           newItem.id = ulozeny.id;
+
+          // Soubor si najde píseň, ke které patří, a připojí se k ní.
+          // Dřív spadl do knihovny a tím to skončilo — píseň o něm nevěděla
+          // a člověk ji k němu musel dohledávat ručně, přestože ke které
+          // patří, bývá v názvu souboru napsané.
+          const nalez = najdiPisenProSoubor(file.name, songs);
+          if (nalez && !jizPripojeno(nalez.song, ulozeny)) {
+            await songDatabaseService.saveSong({
+              ...nalez.song,
+              attachments: [...(nalez.song.attachments || []), prilohaZAssetu(ulozeny)],
+              updatedAt: Date.now(),
+            });
+            priraadene.push(`„${file.name}" → ${nalez.song.artist} – ${nalez.song.title}`);
+          }
         } catch (e: any) {
           setStatusMessage({ type: 'error', text: `„${file.name}" se nepodařilo nahrát: ${e?.message || 'neznámá chyba'}` });
           continue;
@@ -394,7 +436,11 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       }
       setStatusMessage({
         type: 'success',
-        text: `Úspěšně nahráno ${addedCount} soubor(ů) do multimediální knihovny!`,
+        text:
+          `Nahráno ${addedCount} souborů do knihovny.` +
+          (priraadene.length
+            ? ` Přiřazeno k písni: ${priraadene.slice(0, 3).join(', ')}${priraadene.length > 3 ? ` a ${priraadene.length - 3} dalších` : ''}.`
+            : ''),
       });
     } catch (err: any) {
       console.error('File upload error:', err);
