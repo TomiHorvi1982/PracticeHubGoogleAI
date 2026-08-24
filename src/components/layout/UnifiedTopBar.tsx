@@ -23,8 +23,6 @@ interface UnifiedTopBarProps {
   onOpenAdminModal: () => void;
   currentUser: any;
   userRole: string;
-  isSidebarCollapsed?: boolean;
-  onToggleSidebar?: () => void;
 }
 
 export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
@@ -33,8 +31,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
   onOpenAdminModal,
   currentUser,
   userRole,
-  isSidebarCollapsed = false,
-  onToggleSidebar,
 }) => {
   const {
     activeSong,

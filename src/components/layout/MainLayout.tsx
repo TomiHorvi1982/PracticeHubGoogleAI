@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
 import { UnifiedTopBar } from './UnifiedTopBar';
-import { UnifiedSidebar, MainTabType } from './UnifiedSidebar';
+import { MainTabType } from './UnifiedSidebar';
+import { HorniNavigace } from './HorniNavigace';
 import { SmartStudioDock } from './SmartStudioDock';
 
 interface MainLayoutProps {
@@ -13,8 +14,6 @@ interface MainLayoutProps {
   onOpenAdminModal: () => void;
   currentUser: any;
   userRole: string;
-  songsCount?: number;
-  bookmarksCount?: number;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
@@ -26,45 +25,31 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onOpenAdminModal,
   currentUser,
   userRole,
-  songsCount = 0,
-  bookmarksCount = 0,
 }) => {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(false);
   return (
     <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col font-sans antialiased overflow-hidden">
-      {/* Top Header Navigation Bar */}
+      {/* Vrchní lišta: stav skladby a přehrávání */}
       <UnifiedTopBar
         onOpenLoginModal={onOpenLoginModal}
         onOpenProfileModal={onOpenProfileModal}
         onOpenAdminModal={onOpenAdminModal}
         currentUser={currentUser}
         userRole={userRole}
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
       />
 
-      {/* Main Workspace Area (Sidebar + Stage Content) */}
-      <div className="flex-1 flex overflow-hidden relative">
-        {/* Unified Left Sidebar */}
-        <UnifiedSidebar
-          activeTab={activeTab}
-          onSelectTab={onSelectTab}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          songsCount={songsCount}
-          bookmarksCount={bookmarksCount}
-        />
+      {/* Nástroje. Bývaly v bočním panelu, který ukrajoval pruh obrazovky
+          i tam, kde je plocha to hlavní. */}
+      <HorniNavigace activeTab={activeTab} onSelectTab={onSelectTab} />
 
-        {/* Central Stage Workspace Area */}
-        <main className="flex-1 overflow-y-auto bg-[#0B1120] flex flex-col">
-          <div className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-[1920px] mx-auto">
-            {children}
-          </div>
+      <main className="flex-1 overflow-y-auto bg-[#0B1120] flex flex-col">
+        {/* Bez bočního panelu má obsah celou šířku. Strop zůstává, aby se
+            řádky textu na širokoúhlé obrazovce nerozjely donekonečna. */}
+        <div className="flex-1 p-4 sm:p-6 w-full max-w-[1920px] mx-auto">
+          {children}
+        </div>
 
-          {/* Bottom Collapsible Smart Studio Dock */}
-          <SmartStudioDock />
-        </main>
-      </div>
+        <SmartStudioDock />
+      </main>
     </div>
   );
 };

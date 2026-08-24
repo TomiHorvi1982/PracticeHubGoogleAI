@@ -35,7 +35,8 @@ export type MainTabType =
   | 'scales'
   | 'practice'
   | 'tuner'
-  | 'library';
+  | 'library'
+  | 'settings';
 
 interface UnifiedSidebarProps {
   activeTab: MainTabType;

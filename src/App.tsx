@@ -148,8 +148,6 @@ function AppContent() {
       onOpenAdminModal={() => setIsAdminModalOpen(true)}
       currentUser={currentUser}
       userRole={userRole}
-      songsCount={songs.length}
-      bookmarksCount={bookmarksCount}
     >
       {/* PLAYLIST / SETLIST SECTION */}
       {activeTab === 'playlist' && (
