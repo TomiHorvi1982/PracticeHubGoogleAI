@@ -403,13 +403,11 @@ export const Songbook: React.FC<SongbookProps> = ({
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Sidebar: Library & Filters */}
-        <div
-          className={`lg:col-span-4 2xl:col-span-3 bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col ${
-            isExpandedHeight ? 'min-h-[880px]' : 'min-h-[740px]'
-          } gap-3 shadow-xl`}
-        >
+      {/* Knihovna nahoře přes celou šířku, píseň pod ní. Dřív to byly dva
+          sloupce vedle sebe: seznam se mačkal do třetiny obrazovky a píseň
+          přišla o zbytek. Na šířku se do řádku vejde čtyřikrát víc skladeb. */}
+      <div className="flex flex-col gap-4">
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl">
           {/* Search & Actions Header */}
           <div className="space-y-3 shrink-0">
             <div className="flex items-center justify-between">
@@ -479,7 +477,9 @@ export const Songbook: React.FC<SongbookProps> = ({
               })}
             </div>
 
-            {/* Sorting Controller */}
+            {/* Řazení, filtry a playlisty vedle sebe. Pod sebou zabíraly
+                půl obrazovky, než se člověk dostal k první skladbě. */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
             <div className="flex items-center justify-between bg-white/[0.03] p-1 rounded-xl border border-white/[0.06] text-[11px]">
               <span className="text-neutral-400 font-medium px-2">Řazení</span>
               <div className="flex gap-1">
@@ -521,8 +521,9 @@ export const Songbook: React.FC<SongbookProps> = ({
               onZmena={setFiltr}
             />
 
+
             {/* Playlists Selector Panel */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-2.5 rounded-2xl space-y-2">
+            <div className="bg-white/[0.03] border border-white/[0.06] p-2.5 rounded-2xl space-y-2 lg:max-h-[300px] lg:overflow-y-auto">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
                   <List className="w-3.5 h-3.5 text-[#FF9F0A]" /> Playlisty
@@ -580,6 +581,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                 </div>
               )}
             </div>
+            </div>
 
             {/* Action Buttons: Import */}
             <div className="pt-1">
@@ -627,7 +629,7 @@ export const Songbook: React.FC<SongbookProps> = ({
           </div>
 
           {/* Songs List with Scroll Support (Compact 1-line or Detailed Cards) */}
-          <div className="flex-1 overflow-y-auto max-h-[calc(100vh-320px)] space-y-1.5 pr-1 pt-1">
+          <div className="overflow-y-auto max-h-[46vh] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1.5 pr-1 pt-1">
             {filteredSongs.length === 0 ? (
               <p className="text-xs text-neutral-500 text-center py-10">
                 Žádné skladby neodpovídají filtrům
@@ -789,7 +791,7 @@ export const Songbook: React.FC<SongbookProps> = ({
         </div>
 
         {/* Main View: Song Viewer with Modular Windows Workspace */}
-        <div className="lg:col-span-8 2xl:col-span-9 bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl space-y-4">
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl space-y-4">
           {/* Song Header & Actions Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
             <div>
