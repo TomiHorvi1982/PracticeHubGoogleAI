@@ -218,3 +218,25 @@ export function contentRequest(assetId: string): { adresa: string; hlavicky: Rec
     hlavicky: token ? { Authorization: `Bearer ${token}` } : {},
   };
 }
+
+/**
+ * Stáhne přílohu z úložiště a vrátí ji jako blob adresu.
+ *
+ * Přílohy písní dostávají podepsaný odkaz přímo do R2. Ten prohlížeč pro
+ * `fetch` blokuje jako cizí původ, takže přehrávač tabulatur i MIDI hlásily
+ * „Failed to fetch" nad souborem, který v úložišti v pořádku leží. Tudy jdou
+ * bajty přes náš server a výsledek patří téhle stránce.
+ *
+ * Volající musí adresu po dokončení uvolnit přes `URL.revokeObjectURL`.
+ */
+export async function nactiPrilohuJakoUrl(bucket: string, path: string): Promise<string> {
+  const res = await authorizedFetch(
+    `/api/files/content?bucket=${encodeURIComponent(bucket)}&path=${encodeURIComponent(path)}`
+  );
+  if (!res.ok) {
+    throw new Error(
+      res.status === 401 ? 'Nejste přihlášeni.' : `Soubor se nepodařilo načíst (HTTP ${res.status}).`
+    );
+  }
+  return URL.createObjectURL(await res.blob());
+}

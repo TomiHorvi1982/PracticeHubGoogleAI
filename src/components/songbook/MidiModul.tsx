@@ -4,6 +4,7 @@ import { Song, SongAttachment } from '../../types';
 import { midiPlayerService, MidiSongState } from '../../services/midiPlayerService';
 import { audioSynth } from '../../services/audioSynth';
 import { PrazdnyModul } from './PrazdnyModul';
+import { nactiPrilohuJakoUrl } from '../../services/assetLibraryService';
 
 interface Props {
   song: Song;
@@ -45,7 +46,19 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
       midiPlayerService.stop();
       return;
     }
-    if (!nactene) await midiPlayerService.loadFromUrl(priloha.dataUrl, priloha.name);
+    if (!nactene) {
+      // Přes náš server, ne podepsaným odkazem do R2 — ten je pro `fetch`
+      // cizí původ a prohlížeč ho odmítne.
+      let url = priloha.dataUrl;
+      let mistni: string | null = null;
+      if (priloha.storagePath) {
+        mistni = await nactiPrilohuJakoUrl(priloha.storageBucket || 'r2', priloha.storagePath);
+        url = mistni;
+      }
+      await midiPlayerService.loadFromUrl(url, priloha.name);
+      // Soubor je rozebraný v paměti, adresa už není potřeba.
+      if (mistni) URL.revokeObjectURL(mistni);
+    }
     midiPlayerService.play();
   };
 
@@ -69,7 +82,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
       <div className="flex items-center gap-2.5 shrink-0">
         <button
           onClick={() => void prehraj()}
-          disabled={stav.loading || !priloha.dataUrl}
+          disabled={stav.loading}
           className={`p-2.5 rounded-xl transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
             stav.isPlaying ? 'bg-red-500 text-white' : 'bg-[#30D158] text-black'
           }`}
