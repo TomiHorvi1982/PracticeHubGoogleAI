@@ -52,6 +52,8 @@ export interface ModuleConfig {
 import { PrazdnyModul } from './songbook/PrazdnyModul';
 import { ModulePicker } from './songbook/ModulePicker';
 import { NavrhyPanel } from './songbook/NavrhyPanel';
+import { TabulaturaModul } from './songbook/TabulaturaModul';
+import { MidiModul } from './songbook/MidiModul';
 import { ResponsiveGridLayout, useContainerWidth } from 'react-grid-layout';
 import { naRozvrzeni, naRozvrzeniPodSebe, zRozvrzeni, SLOUPCU, VYSKA_RADKU, MEZERA } from './songbook/gridLayout';
 import 'react-grid-layout/css/styles.css';
@@ -270,9 +272,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   const [newLinkCategory, setNewLinkCategory] = useState<SongLink['category']>('other');
 
   // MIDI Player State
-  const [isPlayingMidi, setIsPlayingMidi] = useState(false);
-  const [midiProgress, setMidiProgress] = useState(0);
-  const [midiDuration, setMidiDuration] = useState(0);
 
   // Noty / Images Zoom
   const [sheetZoom, setSheetZoom] = useState(100);
@@ -1057,41 +1056,14 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
       case 'tabs':
         return (
-          <div className="flex-1 flex flex-col gap-3">
-            {tabAttachments.length > 0 ? (
-              <div className="flex-1 flex flex-col gap-2">
-                {tabAttachments.map((att) => (
-                  <div
-                    key={att.id}
-                    className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-2xl flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-[#FF9F0A]" />
-                      <div>
-                        <h4 className="text-xs font-bold text-white">{att.name}</h4>
-                        <p className="text-[10px] text-neutral-400 uppercase">{att.type}</p>
-                      </div>
-                    </div>
-                    <a
-                      href={att.dataUrl}
-                      download={att.name}
-                      className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-semibold"
-                    >
-                      Stáhnout
-                    </a>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <PrazdnyModul song={song} modulId="tabs" onUpdateSong={onUpdateSong} />
-            )}
-
-            {onOpenImportModal && (
+          <div className="flex-1 flex flex-col gap-3 min-h-0">
+            <TabulaturaModul song={song} prilohy={tabAttachments} onUpdateSong={onUpdateSong} />
+            {onOpenImportModal && tabAttachments.length > 0 && (
               <button
                 onClick={onOpenImportModal}
-                className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                className="shrink-0 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-[#FF9F0A]" /> Nahrát Tab / GP soubor
+                <Plus className="w-4 h-4 text-[#FF9F0A]" /> Nahrát další tabulaturu
               </button>
             )}
           </div>
@@ -1099,51 +1071,14 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
       case 'midi':
         return (
-          <div className="flex-1 flex flex-col gap-3">
-            {midiAttachments.length > 0 ? (
-              <div className="flex-1 space-y-2">
-                {midiAttachments.map((att) => (
-                  <div
-                    key={att.id}
-                    className="p-3 bg-white/[0.03] border border-white/[0.06] rounded-2xl space-y-2"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Music className="w-4 h-4 text-[#30D158]" />
-                        <span className="text-xs font-bold text-white">{att.name}</span>
-                      </div>
-                      <a
-                        href={att.dataUrl}
-                        download={att.name}
-                        className="text-[10px] bg-white/10 px-2 py-1 rounded-lg text-white"
-                      >
-                        Stáhnout
-                      </a>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-1">
-                      <button
-                        onClick={() => setIsPlayingMidi(!isPlayingMidi)}
-                        className="p-2 bg-[#30D158] text-black rounded-xl font-bold text-xs flex items-center gap-1 cursor-pointer"
-                      >
-                        {isPlayingMidi ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                        <span>{isPlayingMidi ? 'Stop' : 'Přehrát MIDI'}</span>
-                      </button>
-                      <span className="text-xs text-neutral-400">Audio Synth Ready</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <PrazdnyModul song={song} modulId="midi" onUpdateSong={onUpdateSong} />
-            )}
-
-            {onOpenImportModal && (
+          <div className="flex-1 flex flex-col gap-3 min-h-0">
+            <MidiModul song={song} prilohy={midiAttachments} onUpdateSong={onUpdateSong} />
+            {onOpenImportModal && midiAttachments.length > 0 && (
               <button
                 onClick={onOpenImportModal}
-                className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
+                className="shrink-0 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-[#30D158]" /> Nahrát MIDI soubor (.mid)
+                <Plus className="w-4 h-4 text-[#30D158]" /> Nahrát další MIDI
               </button>
             )}
           </div>

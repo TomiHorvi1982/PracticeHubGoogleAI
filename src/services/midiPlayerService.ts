@@ -110,6 +110,34 @@ class MidiPlayerService {
   }
 
   /** Načte MIDI soubor z knihovny a připraví ho k přehrání. */
+  /**
+   * Načte MIDI z hotové adresy.
+   *
+   * Přílohy písní nemusí mít protějšek v knihovně — tabulatura připojená
+   * doplňováním odkazuje rovnou do úložiště. `loadFromLibrary` by pro ni
+   * neměla `asset.id`, na kterém stojí.
+   */
+  public async loadFromUrl(url: string, nazev: string): Promise<void> {
+    this.stop();
+    this.state = {
+      ...this.state,
+      loading: true,
+      error: null,
+      asset: { id: url, name: nazev } as unknown as LibraryAsset,
+      tracks: [],
+      duration: 0,
+    };
+    this.notify();
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Stažení selhalo (HTTP ${res.status}).`);
+      this.zpracujMidi(new Midi(await res.arrayBuffer()));
+    } catch (e: any) {
+      this.state = { ...this.state, loading: false, error: e?.message || 'Soubor se nepodařilo načíst.' };
+      this.notify();
+    }
+  }
+
   public async loadFromLibrary(asset: LibraryAsset): Promise<void> {
     this.stop();
     this.state = { ...this.state, loading: true, error: null, asset, tracks: [], duration: 0 };
@@ -125,39 +153,38 @@ class MidiPlayerService {
       if (!res.ok) throw new Error(`Stažení selhalo (HTTP ${res.status}).`);
       const midi = new Midi(await res.arrayBuffer());
 
-      const tracks: MidiTrack[] = midi.tracks
-        // Stopy bez not jsou v souborech běžné (jen názvy a nastavení) a
-        // v seznamu by jen překážely.
-        .filter((t) => t.notes.length > 0)
-        .map((t, i) => ({
-          index: i,
-          name: t.name?.trim() || `Stopa ${i + 1}`,
-          programName: t.instrument?.name || 'neznámý',
-          isDrum: Boolean(t.instrument?.percussion),
-          notes: t.notes.map((n) => ({
-            midi: n.midi,
-            time: n.time,
-            duration: n.duration,
-            velocity: n.velocity,
-          })),
-          profile: profileForProgram(t.instrument?.number ?? 0, Boolean(t.instrument?.percussion)),
-          muted: false,
-          solo: false,
-          hlasitost: 0.7,
-        }));
-
-      this.state = {
-        ...this.state,
-        tracks,
-        duration: midi.duration,
-        loading: false,
-        position: 0,
-      };
-      this.notify();
+      this.zpracujMidi(midi);
     } catch (e: any) {
       this.state = { ...this.state, loading: false, error: e?.message || 'Soubor se nepodařilo načíst.' };
       this.notify();
     }
+  }
+
+  /** Rozebrání souboru na stopy. Sdílí ho načtení z knihovny i z adresy. */
+  private zpracujMidi(midi: Midi): void {
+    const tracks: MidiTrack[] = midi.tracks
+      // Stopy bez not jsou v souborech běžné (jen názvy a nastavení) a
+      // v seznamu by jen překážely.
+      .filter((t) => t.notes.length > 0)
+      .map((t, i) => ({
+        index: i,
+        name: t.name?.trim() || `Stopa ${i + 1}`,
+        programName: t.instrument?.name || 'neznámý',
+        isDrum: Boolean(t.instrument?.percussion),
+        notes: t.notes.map((n) => ({
+          midi: n.midi,
+          time: n.time,
+          duration: n.duration,
+          velocity: n.velocity,
+        })),
+        profile: profileForProgram(t.instrument?.number ?? 0, Boolean(t.instrument?.percussion)),
+        muted: false,
+        solo: false,
+        hlasitost: 0.7,
+      }));
+
+    this.state = { ...this.state, tracks, duration: midi.duration, loading: false, position: 0 };
+    this.notify();
   }
 
   public play(): void {
