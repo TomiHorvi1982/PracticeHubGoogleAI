@@ -1035,11 +1035,7 @@ export const VirtualInstruments: React.FC = () => {
       )}
 
       {/* 🥁 DRUMS TAB */}
-      {activeInstTab === 'drums' && (
-        <SampledDrumsStudio
-          onOpenCustomKitModal={() => setIsCustomDrumKitModalOpen(true)}
-        />
-      )}
+      {activeInstTab === 'drums' && <SampledDrumsStudio />}
 
       {/* 🎸 HMATNÍK — samostatná stránka s podsekcemi */}
       {activeInstTab === 'fretboard' && (

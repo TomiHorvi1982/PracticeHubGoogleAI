@@ -1134,6 +1134,52 @@ export async function createApp() {
     }
   });
 
+  /**
+   * Bicí smyčky ve WAV, řazené podle tempa.
+   *
+   * Nahradily MIDI groovy. Vybírá se podle tempa písně, takže je pořadí
+   * podle něj, ne podle názvu — hledá se „něco kolem 120", ne konkrétní
+   * soubor.
+   */
+  app.get('/api/drum-loops', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const tempo = parseInt(String(req.query.bpm || ''), 10);
+    const hledat = String(req.query.search || '').trim();
+
+    let q = admin
+      .from('assets')
+      .select('id, name, size_bytes, metadata')
+      .eq('status', 'active')
+      .eq('category', 'drum_loop')
+      .limit(400);
+
+    if (hledat) {
+      const vzor = `%${hledat.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+      q = q.ilike('name', vzor);
+    }
+
+    const { data, error } = await q;
+    if (error) return res.status(500).json({ error: error.message });
+
+    const smycky = (data || []).map((a) => ({
+      id: a.id,
+      nazev: a.name.replace(/\.wav$/i, ''),
+      bpm: Number((a.metadata as any)?.bpm || 0),
+      balik: String((a.metadata as any)?.balik || ''),
+      velikost: Number(a.size_bytes || 0),
+    }));
+
+    // Se zadaným tempem se řadí podle blízkosti k němu; bez něj podle tempa
+    // vzestupně, aby šla knihovna procházet od pomalých k rychlým.
+    smycky.sort((a, b) =>
+      Number.isFinite(tempo) && tempo > 0
+        ? Math.abs(a.bpm - tempo) - Math.abs(b.bpm - tempo)
+        : a.bpm - b.bpm
+    );
+
+    res.json({ smycky, celkem: smycky.length });
+  });
+
   // Get one asset's metadata + a short-lived signed download URL.
   app.get('/api/assets/:id', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
