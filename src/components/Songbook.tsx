@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SongFilterPanel } from './songbook/SongFilterPanel';
+import { ObjevSkladby } from './songbook/ObjevSkladby';
+import { spustDoplneni } from '../services/enrichmentClient';
 import {
+  jeFiltrPrazdny,
   SongFilter,
   ZpusobRazeni,
   filtrujSkladby,
@@ -15,7 +18,7 @@ import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
-  Maximize2, Minimize2, X, FileUp,
+  Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight,
   Trash2, List, Edit3, Lock, Unlock, ListPlus,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
@@ -128,12 +131,19 @@ export const Songbook: React.FC<SongbookProps> = ({
   const setSelectedLetter = (p: string | null) => setFiltr({ ...filtr, pismeno: p });
 
   // View Mode: 'detailed' (full cards with badges) vs 'compact' (1-line: Band - Song)
+  /** Filtry a seznam skladeb jsou v základu sbalené — stránka pak začíná
+   *  hledáním, ne dvěma obrazovkami ovládání. */
+  const [filtryOtevrene, setFiltryOtevrene] = useState(false);
+  const [seznamOtevreny, setSeznamOtevreny] = useState(false);
+
+  // Výchozí je řádkový výpis; detailní si člověk zapne, když chce vidět
+  // odznaky obsahu. Uložená volba z minula má přednost.
   const [songListViewMode, setSongListViewMode] = useState<'detailed' | 'compact'>(() => {
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem('strumos_songlist_view_mode');
       if (saved === 'detailed' || saved === 'compact') return saved;
     }
-    return 'detailed';
+    return 'compact';
   });
 
   const toggleSongListViewMode = (mode: 'detailed' | 'compact') => {
@@ -417,18 +427,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                   Knihovna skladeb ({filteredSongs.length})
                 </h2>
               </div>
-              <button
-                onClick={() => {
-                  setEditTitle('');
-                  setEditArtist('');
-                  setEditTuning('Standard (EADGBe)');
-                  setEditContent('[G]Text s akordy [C]zde...');
-                  setIsEditing(true);
-                }}
-                className="px-3 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black font-semibold text-xs rounded-xl flex items-center gap-1 shadow-sm transition-all cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" /> Nová
-              </button>
+
             </div>
 
             {/* Search Bar */}
@@ -477,9 +476,52 @@ export const Songbook: React.FC<SongbookProps> = ({
               })}
             </div>
 
-            {/* Řazení, filtry a playlisty vedle sebe. Pod sebou zabíraly
-                půl obrazovky, než se člověk dostal k první skladbě. */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 items-start">
+            {/* Hledání venku ve světě. Co se přidá, projde doplňováním, takže
+                k písni doputují texty, akordy i tabulatury samy. */}
+            <ObjevSkladby
+              onPridat={(interpret, nazev) => {
+                const nova: Song = {
+                  id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                  title: nazev,
+                  artist: interpret,
+                  key: '',
+                  content: '',
+                  chordsUsed: [],
+                  createdAt: Date.now(),
+                  updatedAt: Date.now(),
+                };
+                void songDatabaseService.saveSong(nova).then((ulozena) => {
+                  spustDoplneni(ulozena.id);
+                  setToastMsg(`„${nazev}" přidáno. Sháním k tomu materiály…`);
+                });
+              }}
+            />
+
+            {/* Roletka s ovládáním. V základu sbalená — hledání stačí na
+                většinu případů a filtry si člověk otevře, až je potřebuje. */}
+            <button
+              onClick={() => setFiltryOtevrene((v) => !v)}
+              className="w-full flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl text-left cursor-pointer transition-all"
+            >
+              {filtryOtevrene ? (
+                <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              )}
+              <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">
+                Řazení, filtry a playlisty
+              </span>
+              {!jeFiltrPrazdny(filtr) && (
+                <span className="text-[9px] font-bold text-black bg-[#FF9F0A] px-1.5 rounded-full">
+                  filtr zapnutý
+                </span>
+              )}
+              <span className="ml-auto text-[10px] font-mono text-neutral-500">
+                {filteredSongs.length} z {songs.length}
+              </span>
+            </button>
+
+            <div className={`grid-cols-1 lg:grid-cols-3 gap-3 items-start ${filtryOtevrene ? 'grid' : 'hidden'}`}>
             <div className="flex items-center justify-between bg-white/[0.03] p-1 rounded-xl border border-white/[0.06] text-[11px]">
               <span className="text-neutral-400 font-medium px-2">Řazení</span>
               <div className="flex gap-1">
@@ -595,12 +637,23 @@ export const Songbook: React.FC<SongbookProps> = ({
             </div>
           </div>
 
-          {/* View Mode Switcher Header */}
+          {/* Seznam skladeb je taky roletka. Přepínač řádky/detailní má
+              smysl až uvnitř, proto je vedle nadpisu, ne nad ním. */}
           <div className="flex items-center justify-between px-1 pt-2 pb-1 border-t border-white/[0.06]">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-              Skladby ({filteredSongs.length})
-            </span>
-            <div className="flex items-center bg-black/50 border border-white/10 p-0.5 rounded-xl">
+            <button
+              onClick={() => setSeznamOtevreny((v) => !v)}
+              className="flex items-center gap-1.5 cursor-pointer group"
+            >
+              {seznamOtevreny ? (
+                <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              ) : (
+                <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+              )}
+              <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-white">
+                Skladby ({filteredSongs.length})
+              </span>
+            </button>
+            <div className={`items-center bg-black/50 border border-white/10 p-0.5 rounded-xl ${seznamOtevreny ? 'flex' : 'hidden'}`}>
               <button
                 onClick={() => toggleSongListViewMode('compact')}
                 className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
@@ -629,7 +682,11 @@ export const Songbook: React.FC<SongbookProps> = ({
           </div>
 
           {/* Songs List with Scroll Support (Compact 1-line or Detailed Cards) */}
-          <div className="overflow-y-auto max-h-[46vh] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1.5 pr-1 pt-1">
+          <div
+            className={`overflow-y-auto max-h-[46vh] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1.5 pr-1 pt-1 ${
+              seznamOtevreny ? 'grid' : 'hidden'
+            }`}
+          >
             {filteredSongs.length === 0 ? (
               <p className="text-xs text-neutral-500 text-center py-10">
                 Žádné skladby neodpovídají filtrům

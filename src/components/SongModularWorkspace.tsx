@@ -1304,17 +1304,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
       <div className="bg-[#141418] border border-white/[0.08] rounded-3xl p-3 sm:p-4 backdrop-blur-xl shadow-lg flex flex-wrap items-center justify-between gap-3">
         {/* Left: Module Selection Trigger Button & Active Modules Count */}
         <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setNabidkaModulu(true)}
-            className="px-3.5 py-2 bg-gradient-to-r from-amber-500/20 to-[#FF9F0A]/10 hover:from-amber-500/30 hover:to-[#FF9F0A]/20 border border-[#FF9F0A]/40 text-amber-300 hover:text-amber-200 rounded-2xl text-xs font-bold flex items-center gap-2 cursor-pointer transition-all shadow-md active:scale-95"
-            title="Kliknutím otevřete výběr a správu modulů pro tuto skladbu"
-          >
-            <Layers className="w-4 h-4 text-[#FF9F0A]" />
-            <span>Moduly písně</span>
-            <span className="px-2 py-0.5 bg-[#FF9F0A] text-slate-950 font-black rounded-full text-[10px]">
-              {activeModules.length + floatingModules.length}/{modules.length}
-            </span>
-          </button>
+
 
           <button
             onClick={handleResetEqualGrid}

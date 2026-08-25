@@ -1034,6 +1034,106 @@ export async function createApp() {
     });
   });
 
+  // --- LAST.FM ---------------------------------------------------------
+  //
+  // Doporučení podobných skladeb. Last.fm je staví na tom, co lidé opravdu
+  // poslouchají — „kdo poslouchá tohle, poslouchá i tamto" — takže na rozdíl
+  // od jazykového modelu nic nevymyslí.
+
+  const LASTFM = 'https://ws.audioscrobbler.com/2.0/';
+
+  function lastfmKlic(): string | null {
+    return process.env.LASTFM_API_KEY || null;
+  }
+
+  async function lastfm(metoda: string, params: Record<string, string>): Promise<any> {
+    const klic = lastfmKlic();
+    if (!klic) throw new Error('Chybí LASTFM_API_KEY.');
+    const q = new URLSearchParams({ method: metoda, api_key: klic, format: 'json', ...params });
+    const r = await fetch(`${LASTFM}?${q.toString()}`, {
+      headers: { 'User-Agent': 'NeverLateStudio/1.0' },
+    });
+    if (!r.ok) throw new Error(`Last.fm odpověděl HTTP ${r.status}`);
+    const d = await r.json();
+    // Last.fm vrací chyby se stavem 200 a polem `error` v těle.
+    if (d?.error) throw new Error(d.message || `Last.fm chyba ${d.error}`);
+    return d;
+  }
+
+  /** Obrázek v největší dostupné velikosti, nebo nic. */
+  function obrazek(pole: any[]): string | null {
+    if (!Array.isArray(pole)) return null;
+    const posledni = pole[pole.length - 1];
+    const u = posledni?.['#text'];
+    return u && u.length > 10 ? u : null;
+  }
+
+  app.get('/api/lastfm/search', requireAuth, async (req, res) => {
+    const dotaz = String(req.query.q || '').trim();
+    if (!dotaz) return res.json({ skladby: [] });
+    if (!lastfmKlic()) {
+      return res.status(503).json({
+        error: 'Vyhledávání není nastavené — chybí LASTFM_API_KEY.',
+        chybiKlic: true,
+      });
+    }
+    try {
+      const d = await lastfm('track.search', { track: dotaz, limit: '20' });
+      const nalezene = d?.results?.trackmatches?.track || [];
+      res.json({
+        skladby: (Array.isArray(nalezene) ? nalezene : [nalezene]).map((t: any) => ({
+          nazev: t.name,
+          interpret: t.artist,
+          posluchacu: Number(t.listeners || 0),
+          obrazek: obrazek(t.image),
+        })),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Hledání selhalo.' });
+    }
+  });
+
+  app.get('/api/lastfm/similar', requireAuth, async (req, res) => {
+    const interpret = String(req.query.artist || '').trim();
+    const nazev = String(req.query.track || '').trim();
+    if (!interpret) return res.json({ podobne: [] });
+    if (!lastfmKlic()) {
+      return res.status(503).json({ error: 'Chybí LASTFM_API_KEY.', chybiKlic: true });
+    }
+    try {
+      // Podobné skladby jsou přesnější než podobní interpreti, ale Last.fm
+      // je má jen u známějších písní. Když nic nevrátí, zkusí se interpret —
+      // prázdná řada doporučení je horší než trochu širší.
+      let podobne: any[] = [];
+      if (nazev) {
+        const d = await lastfm('track.getSimilar', { artist: interpret, track: nazev, limit: '12' });
+        podobne = d?.similartracks?.track || [];
+      }
+      let zdroj = 'skladba';
+      if (podobne.length === 0) {
+        const d = await lastfm('artist.getSimilar', { artist: interpret, limit: '12' });
+        podobne = (d?.similarartists?.artist || []).map((a: any) => ({
+          name: null,
+          artist: { name: a.name },
+          image: a.image,
+          match: a.match,
+        }));
+        zdroj = 'interpret';
+      }
+      res.json({
+        zdroj,
+        podobne: podobne.map((t: any) => ({
+          nazev: t.name || null,
+          interpret: typeof t.artist === 'string' ? t.artist : t.artist?.name || '',
+          shoda: Number(t.match || 0),
+          obrazek: obrazek(t.image),
+        })),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Doporučení selhalo.' });
+    }
+  });
+
   // Get one asset's metadata + a short-lived signed download URL.
   app.get('/api/assets/:id', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
