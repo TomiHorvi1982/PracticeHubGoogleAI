@@ -50,14 +50,10 @@ export interface ModuleConfig {
 }
 
 import { PrazdnyModul } from './songbook/PrazdnyModul';
-import { ModulePicker } from './songbook/ModulePicker';
 import { NavrhyPanel } from './songbook/NavrhyPanel';
 import { TabulaturaModul } from './songbook/TabulaturaModul';
 import { MidiModul } from './songbook/MidiModul';
 import { PlovouciPlocha } from './songbook/PlovouciPlocha';
-import { ResponsiveGridLayout, useContainerWidth } from 'react-grid-layout';
-import { naRozvrzeni, naRozvrzeniPodSebe, zRozvrzeni, SLOUPCU, VYSKA_RADKU, MEZERA } from './songbook/gridLayout';
-import 'react-grid-layout/css/styles.css';
 import { dataModulu } from './songbook/moduleRegistry';
 
 export const DEFAULT_MODULES: ModuleConfig[] = [
@@ -139,79 +135,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     return null;
   };
 
-  // Mřížka potřebuje znát svou šířku v pixelech, aby přepočítala sloupce.
-  // Hook ji měří z kontejneru a hlásí změny, takže se plocha přeskládá i
-  // při zúžení okna, ne až po přenačtení.
-  const { width: sirkaMrizky, containerRef: mrizkaRef } = useContainerWidth();
-
-  /** Volba plochy se pamatuje napříč písněmi — je to zvyk, ne vlastnost skladby. */
-  const [plovouciRezim, setPlovouciRezim] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem('neverlate_plovouci_plocha') === '1';
-    } catch {
-      return false;
-    }
-  });
-  const nastavPlovouci = (zap: boolean) => {
-    setPlovouciRezim(zap);
-    try {
-      localStorage.setItem('neverlate_plovouci_plocha', zap ? '1' : '0');
-    } catch {
-      /* plné úložiště nesmí zabránit přepnutí */
-    }
-  };
-
   const [modules, setModules] = useState<ModuleConfig[]>(() => nactiSestavu(song) || DEFAULT_MODULES);
-
-  /**
-   * Zapíše pozice z mřížky do sestavy. Volá se jen po skutečné úpravě.
-   *
-   * Rovnou se odloží i do prohlížeče. Bez toho by přesunutý modul po
-   * přenačtení skočil zpátky, dokud by si člověk nevzpomněl na tlačítko
-   * Uložit — a plocha, která si posun nepamatuje, vypadá jako rozbitá.
-   * Do databáze se sestava pořád zapisuje až tím tlačítkem; posílat
-   * dotaz na server po každém puštění myši by bylo zbytečné.
-   */
-  const ulozRozvrzeni = (rozvrzeni: { i: string; x: number; y: number; w: number; h: number }[]) => {
-    setModules((predchozi) => {
-      const zmenene = zRozvrzeni(predchozi, rozvrzeni);
-      if (JSON.stringify(zmenene) === JSON.stringify(predchozi)) return predchozi;
-      try {
-        localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(zmenene));
-      } catch {
-        /* plné úložiště nesmí zabránit posunu modulu */
-      }
-      return zmenene;
-    });
-  };
-  const [nabidkaModulu, setNabidkaModulu] = useState<boolean>(() => nactiSestavu(song) === null);
-
-  useEffect(() => {
-    const sestava = nactiSestavu(song);
-    setModules(sestava || DEFAULT_MODULES);
-    setNabidkaModulu(sestava === null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [song.id]);
-
-  /** Potvrzení výběru z nabídky — uloží se rovnou, aby se příště nenabízel. */
-  const potvrdVyberModulu = (vybraneId: string[]) => {
-    const nove = (nactiSestavu(song) || DEFAULT_MODULES).map((m) => ({
-      ...m,
-      visible: vybraneId.includes(m.id),
-    }));
-    setModules(nove);
-    setNabidkaModulu(false);
-
-    // Zapisuje se na dvě místa. Uložení do databáze může selhat — spadlé
-    // připojení, vypršené přihlášení — a bez lokální kopie by se nabídka
-    // při dalším otevření zeptala znovu, jako by si člověk nikdy nevybral.
-    try {
-      localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(nove));
-    } catch {
-      /* plné úložiště nesmí zabránit otevření písně */
-    }
-    onUpdateSong({ ...song, moduleConfigs: nove, updatedAt: Date.now() });
-  };
 
   // Modal for module selection
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -845,11 +769,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     );
   };
 
-  const activeModules = [...modules]
-    .filter((m) => m.visible && !m.isFloating)
-    .sort((a, b) => a.order - b.order);
 
-  const floatingModules = [...modules].filter((m) => m.visible && m.isFloating);
 
   // Render Module Content Helper
   const renderModuleBody = (mod: ModuleConfig) => {
@@ -1284,43 +1204,16 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     }
   };
 
-  // Píseň otevřená poprvé nedostane plochu poskládanou naslepo, ale otázku,
-  // co na ní má být. Jakmile si člověk vybere, sestava se uloží a tahle
-  // nabídka se u téhle písně už neukáže.
-  if (nabidkaModulu) {
-    return (
-      <div className="space-y-4">
-      <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
-      <ModulePicker
-        song={song}
-        dostupneId={DEFAULT_MODULES.map((m) => m.id)}
-        onPotvrdit={potvrdVyberModulu}
-      />
-      </div>
-    );
-  }
-
   /**
-   * Plovoucí plocha místo mřížky.
+   * Plocha písně: plovoucí okna.
    *
-   * Zatím volitelně: mřížka zůstává, dokud se nová plocha neukáže jako
-   * lepší. Vyhodit ji dřív by znamenalo, že při první potíži není kam se
-   * vrátit.
+   * Nahradila mřížku pevných dlaždic. Ta uměla jen zapnout a vypnout, co
+   * bylo předem dané; okno si otevřeš, když ho potřebuješ, položíš kam
+   * chceš a zavřeš, až dokoukáš.
    */
-  if (plovouciRezim) {
-    return (
-      <div className="space-y-4">
-        <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => nastavPlovouci(false)}
-            className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-[11px] font-semibold rounded-xl cursor-pointer transition-all"
-          >
-            Zpět na mřížku
-          </button>
-          <span className="text-[10px] text-neutral-500">Plovoucí plocha — okna si rozložíš, jak potřebuješ</span>
-        </div>
+  return (
+    <div className="space-y-4">
+      <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
 
         <PlovouciPlocha
           song={song}
@@ -1337,305 +1230,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             } as ModuleConfig)
           }
         />
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {/* TOAST NOTIFICATION */}
-      {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-[120] bg-slate-900/95 border border-[#FF9F0A]/50 text-white px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 backdrop-blur-xl animate-fade-in">
-          <Sparkles className="w-5 h-5 text-[#FF9F0A] shrink-0" />
-          <span className="text-xs font-semibold">{toastMessage}</span>
-          <button
-            onClick={() => setToastMessage(null)}
-            className="p-1 text-neutral-400 hover:text-white rounded-lg cursor-pointer"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
-
-      {/* TOP COMPACT WORKSPACE CONTROLS BAR */}
-      <div className="bg-[#141418] border border-white/[0.08] rounded-3xl p-3 sm:p-4 backdrop-blur-xl shadow-lg flex flex-wrap items-center justify-between gap-3">
-        {/* Left: Module Selection Trigger Button & Active Modules Count */}
-        <div className="flex items-center gap-2 flex-wrap">
-
-
-          <button
-            onClick={handleResetEqualGrid}
-            className="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-300 hover:text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
-            title="Automaticky rovnoměrně rozložit aktivní moduly do mřížky"
-          >
-            <Sliders className="w-3.5 h-3.5 text-[#FF9F0A]" />
-            <span>Rovnoměrná mřížka</span>
-          </button>
-        </div>
-
-        {/* Right: Save & Restore Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => nastavPlovouci(true)}
-            className="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-400 hover:text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
-            title="Přepnout na plovoucí okna"
-          >
-            🪟 Plovoucí plocha
-          </button>
-
-          <button
-            onClick={handleSaveLayoutAndSong}
-            className="px-3.5 py-2 bg-[#30D158]/15 hover:bg-[#30D158]/25 border border-[#30D158]/40 text-[#30D158] hover:text-[#4cd964] rounded-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-sm active:scale-95"
-            title="Uložit aktuální stav, rozložení modulů a nastavení skladby"
-          >
-            <Save className="w-4 h-4" />
-            <span>Uložit</span>
-          </button>
-
-          <button
-            onClick={handleRestoreDefaultLayout}
-            className="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-400 hover:text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
-            title="Obnovit výchozí tovární rozložení a viditelnost modulů"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            <span>Obnovit původní</span>
-          </button>
-        </div>
-      </div>
-
-      {/* SONG MODULES CONFIGURATION MODAL */}
-
-      {/* FLOATING DETACHED MODULES OVERLAY */}
-      {floatingModules.map((mod) => {
-        const floatX = mod.floatPos?.x || 100;
-        const floatY = mod.floatPos?.y || 100;
-        const floatW = mod.floatSize?.width || (mod.customHeight ? Math.max(380, mod.customHeight * 1.2) : 480);
-        const floatH = mod.floatSize?.height || (mod.customHeight ? mod.customHeight : 420);
-
-        return (
-          <div
-            key={`float-${mod.id}`}
-            style={{
-              left: `${floatX}px`,
-              top: `${floatY}px`,
-              width: `${floatW}px`,
-              height: `${floatH}px`,
-            }}
-            className="fixed z-[110] bg-[#16161C]/95 border-2 border-[#FF9F0A]/40 backdrop-blur-2xl rounded-3xl p-4 flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden select-none group"
-          >
-            {/* Draggable Header */}
-            <div
-              onMouseDown={(e) => handleStartFloatDrag(mod.id, e, { x: floatX, y: floatY })}
-              className="flex items-center justify-between pb-2 mb-2 border-b border-white/10 cursor-move"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-base">{mod.icon}</span>
-                <h4 className="font-bold text-xs text-white uppercase tracking-wide">
-                  {mod.title} (Plovoucí)
-                </h4>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => toggleFloating(mod.id)}
-                  className="p-1 hover:bg-white/10 text-neutral-400 hover:text-white rounded-lg text-xs cursor-pointer"
-                  title="Vrátit zpět do mřížky"
-                >
-                  <Minimize2 className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => toggleModuleVisible(mod.id)}
-                  className="p-1 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-lg cursor-pointer"
-                  title="Zavřít"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto flex flex-col">
-              {renderModuleBody(mod)}
-            </div>
-
-            {/* Floating Multi-directional Resize Handles */}
-            {/* Right edge width resize */}
-            <div
-              onMouseDown={(e) => handleStartResize(mod.id, e, 'horizontal', e.currentTarget.parentElement as HTMLElement, true)}
-              className="absolute top-10 bottom-3 right-0 w-2 cursor-ew-resize hover:bg-[#FF9F0A]/40 transition-colors z-20"
-              title="Změnit šířku okna"
-            />
-            {/* Bottom edge height resize */}
-            <div
-              onMouseDown={(e) => handleStartResize(mod.id, e, 'vertical', e.currentTarget.parentElement as HTMLElement, true)}
-              className="absolute bottom-0 left-4 right-4 h-2 cursor-ns-resize hover:bg-[#FF9F0A]/40 transition-colors z-20"
-              title="Změnit výšku okna"
-            />
-            {/* Bottom-right corner both resize */}
-            <div
-              onMouseDown={(e) => handleStartResize(mod.id, e, 'both', e.currentTarget.parentElement as HTMLElement, true)}
-              className="absolute bottom-1 right-1 p-1 text-neutral-400 hover:text-[#FF9F0A] cursor-se-resize select-none z-30 transition-opacity opacity-70 group-hover:opacity-100"
-              title="Změnit velikost okna ve všech směrech"
-            >
-              <div className="w-3.5 h-3.5 border-r-2 border-b-2 border-current rounded-br-sm" />
-            </div>
-          </div>
-        );
-      })}
-
-      {/* PLOCHA MODULŮ — mřížka dlaždic */}
-      <div ref={mrizkaRef}>
-      {/* Dokud není šířka změřená, mřížka se nevykresluje. Náhradní hodnota
-          by v prvním snímku rozložila dlaždice podle cizí šířky a ty by
-          přetekly ven z plochy. */}
-      {sirkaMrizky > 0 && (
-      <ResponsiveGridLayout
-        width={sirkaMrizky}
-        layouts={{
-          lg: naRozvrzeni(activeModules),
-          md: naRozvrzeni(activeModules),
-          sm: naRozvrzeniPodSebe(activeModules),
-          xs: naRozvrzeniPodSebe(activeModules),
-        }}
-        breakpoints={{ lg: 1200, md: 900, sm: 640, xs: 0 }}
-        // Sloupců je dvanáct na všech šířkách. Kdyby se jejich počet mezi
-        // zlomy měnil, uložené souřadnice by v užším režimu znamenaly něco
-        // jiného, než co se pod nimi uložilo. Na úzké obrazovce se proto
-        // mění rozvržení — vše pod sebe — a ne mřížka pod ním.
-        cols={{ lg: SLOUPCU, md: SLOUPCU, sm: SLOUPCU, xs: SLOUPCU }}
-        rowHeight={VYSKA_RADKU}
-        margin={MEZERA}
-        // Táhne se za hlavičku, ne za celou dlaždici — jinak by nešlo
-        // označit text uvnitř modulu.
-        dragConfig={{ handle: '.uchyt-modulu' }}
-        resizeConfig={{ handles: ['se', 'e', 's'] }}
-        // Ukládá se až konec tažení nebo zvětšení, ne každá změna rozvržení.
-        // `onLayoutChange` se totiž spustí i tehdy, když mřížka sama
-        // přeskládá dlaždice po zúžení okna — a takovou změnu by uložil
-        // jako by ji člověk provedl. Sestava by se tím po jednom otevření
-        // na úzké obrazovce natrvalo zmenšila na dva sloupce.
-        onDragStop={(rozvrzeni) => ulozRozvrzeni(rozvrzeni as any)}
-        onResizeStop={(rozvrzeni) => ulozRozvrzeni(rozvrzeni as any)}
-      >
-        {activeModules.map((mod) => {
-
-          return (
-            <div
-              key={mod.id}
-              className={`${
-                isStageMode
-                  ? 'bg-[#18181E] border border-white/20'
-                  : 'bg-[#16161A]/95 border border-white/[0.08]'
-              } backdrop-blur-xl rounded-3xl p-4 sm:p-5 flex flex-col shadow-xl relative group overflow-hidden`}
-            >
-              {/* WINDOW HEADER BAR */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/[0.08] select-none">
-                <div className="uchyt-modulu flex items-center gap-2 cursor-grab active:cursor-grabbing" title="Přetažením přesunete modul">
-                  <Grab className="w-3.5 h-3.5 text-neutral-500 group-hover:text-[#FF9F0A] transition-colors" />
-                  <span className="text-base">{mod.icon}</span>
-                  <h3 className="font-bold text-xs uppercase tracking-wider text-white">
-                    {mod.title}
-                  </h3>
-                </div>
-
-                {/* Window Actions */}
-                <div className="flex items-center gap-1">
-                  {/* Reorder Buttons */}
-                  <button
-                    onClick={() => moveModule(mod.id, 'up')}
-                    className="p-1 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white cursor-pointer"
-                    title="Posunout nahoru"
-                  >
-                    <ChevronUp className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => moveModule(mod.id, 'down')}
-                    className="p-1 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white cursor-pointer"
-                    title="Posunout dolů"
-                  >
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Float toggle button */}
-                  <button
-                    onClick={() => toggleFloating(mod.id)}
-                    className="p-1 hover:bg-[#FF9F0A]/20 text-neutral-400 hover:text-[#FF9F0A] rounded-lg cursor-pointer"
-                    title="Odpoutat do plovoucího okna (Floating)"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </button>
-
-                  {/* Width selector dropdown */}
-                  <select
-                    value={mod.width}
-                    onChange={(e) => changeModuleWidth(mod.id, e.target.value as any)}
-                    className="bg-black/60 border border-white/10 text-[10px] text-neutral-300 rounded-lg px-1.5 py-0.5 outline-none cursor-pointer"
-                    title="Šířka okna"
-                  >
-                    <option value="1/3">1/3 šířky (4 sl.)</option>
-                    <option value="1/2">1/2 šířky (6 sl.)</option>
-                    <option value="2/3">2/3 šířky (8 sl.)</option>
-                    <option value="full">Plná šířka (12 sl.)</option>
-                  </select>
-
-                  {/* Height selector dropdown */}
-                  <select
-                    value={mod.height}
-                    onChange={(e) => changeModuleHeight(mod.id, e.target.value as any)}
-                    className="bg-black/60 border border-white/10 text-[10px] text-neutral-300 rounded-lg px-1.5 py-0.5 outline-none cursor-pointer"
-                    title="Výška okna"
-                  >
-                    <option value="sm">Nízké</option>
-                    <option value="md">Střední</option>
-                    <option value="lg">Vysoké</option>
-                    <option value="auto">Auto</option>
-                  </select>
-
-                  {/* Close window */}
-                  <button
-                    onClick={() => toggleModuleVisible(mod.id)}
-                    className="p-1 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-lg cursor-pointer ml-1"
-                    title="Skrýt okno"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* MODULE CONTENT */}
-              <div className="flex-1 flex flex-col overflow-y-auto min-h-0">
-                {renderModuleBody(mod)}
-              </div>
-
-              {/* MULTI-DIRECTIONAL RESIZE HANDLES */}
-              {/* Right edge width resize */}
-              <div
-                onMouseDown={(e) => handleStartResize(mod.id, e, 'horizontal', e.currentTarget.parentElement as HTMLElement)}
-                className="absolute top-10 bottom-4 right-0 w-2 cursor-ew-resize hover:bg-[#FF9F0A]/40 transition-colors z-20"
-                title="Tažením do stran upravte šířku modulu"
-              />
-              {/* Bottom edge height resize */}
-              <div
-                onMouseDown={(e) => handleStartResize(mod.id, e, 'vertical', e.currentTarget.parentElement as HTMLElement)}
-                className="absolute bottom-0 left-6 right-6 h-2 cursor-ns-resize hover:bg-[#FF9F0A]/40 transition-colors z-20"
-                title="Tažením dolů upravte výšku modulu"
-              />
-              {/* Corner both resize */}
-              <div
-                onMouseDown={(e) => handleStartResize(mod.id, e, 'both', e.currentTarget.parentElement as HTMLElement)}
-                className="absolute bottom-1 right-1 p-1 text-neutral-500 hover:text-[#FF9F0A] cursor-se-resize select-none opacity-40 group-hover:opacity-100 transition-opacity z-20"
-                title="Tažením upravte šířku i výšku modulu ve všech směrech"
-              >
-                <div className="w-3.5 h-3.5 border-r-2 border-b-2 border-current rounded-br-sm" />
-              </div>
-            </div>
-          );
-        })}
-      </ResponsiveGridLayout>
-      )}
-      </div>
     </div>
   );
 };
