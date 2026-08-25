@@ -1,0 +1,179 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Plus, LayoutGrid } from 'lucide-react';
+import { Song } from '../../types';
+import { Okno, TypOkna, POPIS_OKEN, noveOkno, vRamci } from './plovouciOkna';
+import { PlovouciOkno } from './PlovouciOkno';
+
+interface Props {
+  song: Song;
+  onUpdateSong: (s: Song) => void;
+  /** Co se vykreslí uvnitř okna daného typu. */
+  vykresliObsah: (okno: Okno, zmenObsah: (o: Okno['obsah']) => void) => React.ReactNode;
+}
+
+/**
+ * Plocha s plovoucími okny nad písní.
+ *
+ * Rozložení se ukládá ke skladbě, včetně toho, co má které okno načtené.
+ * Uložit jen pozice by znamenalo, že se plocha sice obnoví, ale okna budou
+ * prázdná a vybírat tabulaturu se bude pokaždé znovu.
+ */
+export const PlovouciPlocha: React.FC<Props> = ({ song, onUpdateSong, vykresliObsah }) => {
+  const plochaRef = useRef<HTMLDivElement>(null);
+  const [okna, setOkna] = useState<Okno[]>(() => nactiOkna(song));
+  const [nabidkaOtevrena, setNabidkaOtevrena] = useState(false);
+
+  // Přepnutí písně načte její vlastní plochu.
+  useEffect(() => {
+    setOkna(nactiOkna(song));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song.id]);
+
+  /**
+   * Uloží plochu ke skladbě i do prohlížeče.
+   *
+   * Lokální kopie je tu proto, že zápis do databáze může selhat — spadlé
+   * připojení, vypršené přihlášení — a plocha, která po přenačtení zapomene,
+   * kam jsi okna dal, působí rozbitě.
+   */
+  const uloz = useCallback(
+    (nova: Okno[]) => {
+      setOkna(nova);
+      try {
+        localStorage.setItem(`song_okna_${song.id}`, JSON.stringify(nova));
+      } catch {
+        /* plné úložiště nesmí zabránit práci s okny */
+      }
+      onUpdateSong({ ...song, okna: nova, updatedAt: Date.now() } as Song);
+    },
+    [song, onUpdateSong]
+  );
+
+  const pridej = (typ: TypOkna) => {
+    uloz([...okna, noveOkno(typ, okna)]);
+    setNabidkaOtevrena(false);
+  };
+
+  const zmen = (o: Okno) => {
+    const box = plochaRef.current?.getBoundingClientRect();
+    const upravene = box ? vRamci(o, box.width, box.height) : o;
+    uloz(okna.map((x) => (x.id === o.id ? upravene : x)));
+  };
+
+  const dopredu = (id: string) => {
+    const nejvyssi = Math.max(0, ...okna.map((o) => o.poradi));
+    const okno = okna.find((o) => o.id === id);
+    // Přepisovat pořadí při každém kliknutí by ukládalo i tehdy, když je
+    // okno navrchu už teď.
+    if (!okno || okno.poradi === nejvyssi) return;
+    setOkna((p) => p.map((o) => (o.id === id ? { ...o, poradi: nejvyssi + 1 } : o)));
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative">
+          <button
+            onClick={() => setNabidkaOtevrena((v) => !v)}
+            className="px-3.5 py-2 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+          >
+            <Plus className="w-4 h-4" /> Přidat okno
+          </button>
+
+          {nabidkaOtevrena && (
+            <div className="absolute left-0 top-full mt-1 z-[100] bg-[#16161A] border border-white/[0.12] rounded-2xl shadow-2xl p-1.5 min-w-[200px]">
+              {(Object.keys(POPIS_OKEN) as TypOkna[]).map((typ) => (
+                <button
+                  key={typ}
+                  onClick={() => pridej(typ)}
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-[12px] text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-all"
+                >
+                  <span className="text-sm leading-none">{POPIS_OKEN[typ].ikona}</span>
+                  {POPIS_OKEN[typ].nazev}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {okna.length > 0 && (
+          <>
+            <button
+              onClick={() => uloz(srovnej(okna, plochaRef.current?.getBoundingClientRect().width || 1200))}
+              className="px-3 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-[11px] font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+              title="Srovnat okna vedle sebe"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" /> Srovnat
+            </button>
+            <span className="text-[10px] text-neutral-500">
+              {okna.length} {okna.length === 1 ? 'okno' : okna.length < 5 ? 'okna' : 'oken'} · rozložení se ukládá k písni
+            </span>
+          </>
+        )}
+      </div>
+
+      <div
+        ref={plochaRef}
+        onClick={() => nabidkaOtevrena && setNabidkaOtevrena(false)}
+        className="relative w-full min-h-[70vh] bg-black/20 border border-white/[0.06] rounded-3xl overflow-hidden"
+      >
+        {okna.length === 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
+            <div className="text-3xl opacity-40">🪟</div>
+            <p className="text-[13px] font-semibold text-neutral-400">Plocha je prázdná</p>
+            <p className="text-[11px] text-neutral-600 max-w-sm">
+              Přidej si okna s tím, co k téhle písni potřebuješ — text, tabulaturu, mixážní pult.
+              Rozložení si píseň zapamatuje.
+            </p>
+          </div>
+        )}
+
+        {okna.map((o) => (
+          <PlovouciOkno
+            key={o.id}
+            okno={o}
+            plochaRef={plochaRef}
+            onZmena={zmen}
+            onZavrit={(id) => uloz(okna.filter((x) => x.id !== id))}
+            onDopredu={dopredu}
+          >
+            {vykresliObsah(o, (obsah) => uloz(okna.map((x) => (x.id === o.id ? { ...x, obsah } : x))))}
+          </PlovouciOkno>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/** Uložená plocha písně, nebo prázdno. Lokální kopie má přednost jen tehdy,
+ *  když u skladby žádná není — po přihlášení z jiného stroje má pravdu server. */
+function nactiOkna(song: Song): Okno[] {
+  const zeSkladby = (song as any).okna;
+  if (Array.isArray(zeSkladby) && zeSkladby.length) return zeSkladby;
+  try {
+    const ulozene = JSON.parse(localStorage.getItem(`song_okna_${song.id}`) || 'null');
+    if (Array.isArray(ulozene)) return ulozene;
+  } catch {
+    /* poškozený záznam se chová jako žádný */
+  }
+  return [];
+}
+
+/** Srovná okna do řádků vedle sebe, aby se po nepořádku dala plocha uklidit. */
+function srovnej(okna: Okno[], sirkaPlochy: number): Okno[] {
+  const mezera = 12;
+  let x = mezera;
+  let y = mezera;
+  let vyskaRadku = 0;
+  return okna.map((o) => {
+    if (x + o.sirka > sirkaPlochy - mezera && x > mezera) {
+      x = mezera;
+      y += vyskaRadku + mezera;
+      vyskaRadku = 0;
+    }
+    const umistene = { ...o, x, y };
+    x += o.sirka + mezera;
+    vyskaRadku = Math.max(vyskaRadku, o.sbalene ? 32 : o.vyska);
+    return umistene;
+  });
+}

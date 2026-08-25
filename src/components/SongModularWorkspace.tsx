@@ -54,6 +54,7 @@ import { ModulePicker } from './songbook/ModulePicker';
 import { NavrhyPanel } from './songbook/NavrhyPanel';
 import { TabulaturaModul } from './songbook/TabulaturaModul';
 import { MidiModul } from './songbook/MidiModul';
+import { PlovouciPlocha } from './songbook/PlovouciPlocha';
 import { ResponsiveGridLayout, useContainerWidth } from 'react-grid-layout';
 import { naRozvrzeni, naRozvrzeniPodSebe, zRozvrzeni, SLOUPCU, VYSKA_RADKU, MEZERA } from './songbook/gridLayout';
 import 'react-grid-layout/css/styles.css';
@@ -142,6 +143,23 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   // Hook ji měří z kontejneru a hlásí změny, takže se plocha přeskládá i
   // při zúžení okna, ne až po přenačtení.
   const { width: sirkaMrizky, containerRef: mrizkaRef } = useContainerWidth();
+
+  /** Volba plochy se pamatuje napříč písněmi — je to zvyk, ne vlastnost skladby. */
+  const [plovouciRezim, setPlovouciRezim] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('neverlate_plovouci_plocha') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const nastavPlovouci = (zap: boolean) => {
+    setPlovouciRezim(zap);
+    try {
+      localStorage.setItem('neverlate_plovouci_plocha', zap ? '1' : '0');
+    } catch {
+      /* plné úložiště nesmí zabránit přepnutí */
+    }
+  };
 
   const [modules, setModules] = useState<ModuleConfig[]>(() => nactiSestavu(song) || DEFAULT_MODULES);
 
@@ -1282,6 +1300,47 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     );
   }
 
+  /**
+   * Plovoucí plocha místo mřížky.
+   *
+   * Zatím volitelně: mřížka zůstává, dokud se nová plocha neukáže jako
+   * lepší. Vyhodit ji dřív by znamenalo, že při první potíži není kam se
+   * vrátit.
+   */
+  if (plovouciRezim) {
+    return (
+      <div className="space-y-4">
+        <NavrhyPanel song={song} onZmena={() => onUpdateSong({ ...song })} />
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => nastavPlovouci(false)}
+            className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-[11px] font-semibold rounded-xl cursor-pointer transition-all"
+          >
+            Zpět na mřížku
+          </button>
+          <span className="text-[10px] text-neutral-500">Plovoucí plocha — okna si rozložíš, jak potřebuješ</span>
+        </div>
+
+        <PlovouciPlocha
+          song={song}
+          onUpdateSong={onUpdateSong}
+          vykresliObsah={(okno) =>
+            renderModuleBody({
+              id: okno.typ,
+              title: okno.typ,
+              icon: '',
+              visible: true,
+              width: 'full',
+              height: 'md',
+              order: 0,
+            } as ModuleConfig)
+          }
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {/* TOAST NOTIFICATION */}
@@ -1318,6 +1377,14 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
         {/* Right: Save & Restore Action Buttons */}
         <div className="flex items-center gap-2 flex-wrap">
+          <button
+            onClick={() => nastavPlovouci(true)}
+            className="px-3 py-2 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-neutral-400 hover:text-white rounded-2xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
+            title="Přepnout na plovoucí okna"
+          >
+            🪟 Plovoucí plocha
+          </button>
+
           <button
             onClick={handleSaveLayoutAndSong}
             className="px-3.5 py-2 bg-[#30D158]/15 hover:bg-[#30D158]/25 border border-[#30D158]/40 text-[#30D158] hover:text-[#4cd964] rounded-2xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-sm active:scale-95"

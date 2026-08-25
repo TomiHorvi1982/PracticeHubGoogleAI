@@ -35,6 +35,8 @@ export interface Song {
   sheetMusic?: { id: string; title: string; dataUrl?: string }[];
   midiFiles?: { id: string; title: string; dataUrl?: string }[];
   moduleConfigs?: any[];
+  /** Rozložení plovoucích oken u téhle písně, i s tím, co mají načtené. */
+  okna?: any[];
   createdAt: number;
   updatedAt: number;
   author?: string;
