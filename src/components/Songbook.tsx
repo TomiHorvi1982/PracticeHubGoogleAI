@@ -18,7 +18,7 @@ import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
-  Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight,
+  Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight, Globe,
   Trash2, List, Edit3, Lock, Unlock, ListPlus,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
@@ -417,6 +417,38 @@ export const Songbook: React.FC<SongbookProps> = ({
           sloupce vedle sebe: seznam se mačkal do třetiny obrazovky a píseň
           přišla o zbytek. Na šířku se do řádku vejde čtyřikrát víc skladeb. */}
       <div className="flex flex-col gap-4">
+        {/* Objevování je samostatná karta. Vedle hledání ve vlastní knihovně
+            splývalo a nebylo poznat, které pole prohledává co — jedno hledá
+            u tebe, druhé venku ve světě. */}
+        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-[#FF9F0A]/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
+          <div className="flex items-center gap-2">
+            <Globe className="w-4 h-4 text-[#FF9F0A]" />
+            <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+              Objevit novou skladbu
+            </h2>
+            <span className="text-[10px] text-neutral-500">Last.fm — hledá venku, ne ve tvé knihovně</span>
+          </div>
+            <ObjevSkladby
+              onPridat={(interpret, nazev) => {
+                const nova: Song = {
+                  id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                  title: nazev,
+                  artist: interpret,
+                  key: '',
+                  content: '',
+                  chordsUsed: [],
+                  createdAt: Date.now(),
+                  updatedAt: Date.now(),
+                };
+                void songDatabaseService.saveSong(nova).then((ulozena) => {
+                  spustDoplneni(ulozena.id);
+                  setToastMsg(`„${nazev}" přidáno. Sháním k tomu materiály…`);
+                });
+              }}
+            />
+
+        </div>
+
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl">
           {/* Search & Actions Header */}
           <div className="space-y-3 shrink-0">
@@ -424,7 +456,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#FF9F0A]" />
                 <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
-                  Knihovna skladeb ({filteredSongs.length})
+                  Moje skladby ({filteredSongs.length})
                 </h2>
               </div>
 
@@ -435,7 +467,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Hledat skladbu, interpreta..."
+                placeholder="Hledat ve svých skladbách…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
@@ -476,31 +508,17 @@ export const Songbook: React.FC<SongbookProps> = ({
               })}
             </div>
 
-            {/* Hledání venku ve světě. Co se přidá, projde doplňováním, takže
-                k písni doputují texty, akordy i tabulatury samy. */}
-            <ObjevSkladby
-              onPridat={(interpret, nazev) => {
-                const nova: Song = {
-                  id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-                  title: nazev,
-                  artist: interpret,
-                  key: '',
-                  content: '',
-                  chordsUsed: [],
-                  createdAt: Date.now(),
-                  updatedAt: Date.now(),
-                };
-                void songDatabaseService.saveSong(nova).then((ulozena) => {
-                  spustDoplneni(ulozena.id);
-                  setToastMsg(`„${nazev}" přidáno. Sháním k tomu materiály…`);
-                });
-              }}
-            />
-
             {/* Roletka s ovládáním. V základu sbalená — hledání stačí na
                 většinu případů a filtry si člověk otevře, až je potřebuje. */}
             <button
-              onClick={() => setFiltryOtevrene((v) => !v)}
+              onClick={() => {
+                // Ovládání a seznam patří k sobě — filtruješ proto, abys
+                // v seznamu něco našel. Dvě samostatné roletky vedle sebe
+                // znamenaly dvě kliknutí k témuž.
+                const nove = !filtryOtevrene;
+                setFiltryOtevrene(nove);
+                setSeznamOtevreny(nove);
+              }}
               className="w-full flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl text-left cursor-pointer transition-all"
             >
               {filtryOtevrene ? (
@@ -509,7 +527,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                 <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
               )}
               <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">
-                Řazení, filtry a playlisty
+                Moje skladby — řazení, filtry a seznam
               </span>
               {!jeFiltrPrazdny(filtr) && (
                 <span className="text-[9px] font-bold text-black bg-[#FF9F0A] px-1.5 rounded-full">
@@ -639,20 +657,10 @@ export const Songbook: React.FC<SongbookProps> = ({
 
           {/* Seznam skladeb je taky roletka. Přepínač řádky/detailní má
               smysl až uvnitř, proto je vedle nadpisu, ne nad ním. */}
-          <div className="flex items-center justify-between px-1 pt-2 pb-1 border-t border-white/[0.06]">
-            <button
-              onClick={() => setSeznamOtevreny((v) => !v)}
-              className="flex items-center gap-1.5 cursor-pointer group"
-            >
-              {seznamOtevreny ? (
-                <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-              )}
-              <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400 group-hover:text-white">
-                Skladby ({filteredSongs.length})
-              </span>
-            </button>
+          <div className={`items-center justify-between px-1 pt-2 pb-1 border-t border-white/[0.06] ${seznamOtevreny ? 'flex' : 'hidden'}`}>
+            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
+              Skladby ({filteredSongs.length})
+            </span>
             <div className={`items-center bg-black/50 border border-white/10 p-0.5 rounded-xl ${seznamOtevreny ? 'flex' : 'hidden'}`}>
               <button
                 onClick={() => toggleSongListViewMode('compact')}
