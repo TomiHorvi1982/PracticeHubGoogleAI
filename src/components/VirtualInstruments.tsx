@@ -13,7 +13,7 @@ import { eventBus } from '../services/eventBus';
 import { SCALES_DATABASE } from '../data/chordsAndScales';
 import { DrumPad, CustomDrumKit } from '../types';
 import { MidiToolsModal } from './MidiToolsModal';
-import { SampledDrumsStudio } from './SampledDrumsStudio';
+import { SamplesStudio } from './SamplesStudio';
 import {
   Play, Pause, Volume2, Music, Disc, Filter, Zap,
   Layers, VolumeX, RotateCcw, ChevronLeft, ChevronRight, Sliders, Laptop, Radio,
@@ -633,7 +633,9 @@ export const VirtualInstruments: React.FC = () => {
               }`}
             >
               <Disc className={`w-3.5 h-3.5 ${activeInstTab === 'drums' ? 'text-[#FF9F0A]' : ''}`} />
-              <span>Bicí</span>
+              {/* Nejsou to jen bicí — leží tu samply všech nástrojů a
+                  skládají se z nich celé skladby. */}
+              <span>Samples</span>
             </button>
             <button
               onClick={() => setActiveInstTab('fretboard')}
@@ -1035,7 +1037,7 @@ export const VirtualInstruments: React.FC = () => {
       )}
 
       {/* 🥁 DRUMS TAB */}
-      {activeInstTab === 'drums' && <SampledDrumsStudio />}
+      {activeInstTab === 'drums' && <SamplesStudio />}
 
       {/* 🎸 HMATNÍK — samostatná stránka s podsekcemi */}
       {activeInstTab === 'fretboard' && (

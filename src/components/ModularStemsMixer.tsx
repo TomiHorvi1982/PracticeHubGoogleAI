@@ -14,13 +14,18 @@ import {
   AlertCircle,
   ExternalLink
 } from 'lucide-react';
-import { Song, StemSongDocument } from '../types';
+import { Song, StemSongDocument, SongAttachment } from '../types';
+import { VyberZKnihovny } from './songbook/VyberZKnihovny';
+import { LibraryAsset } from '../services/assetLibraryService';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
 import { DawVerticalFader } from './DawVerticalFader';
 
 interface ModularStemsMixerProps {
   song?: Song;
   onOpenStemSection?: () => void;
+  /** Jednotlivé stopy připojené přímo k písni, mimo hotové sady. */
+  stopyPisne?: SongAttachment[];
+  onUpdateSong?: (s: Song) => void;
 }
 
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string }> = {
@@ -31,8 +36,11 @@ const stemColors: Record<string, { accent: string; badge: string; bg: string; bo
   other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30' },
 };
 
-export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({ song, onOpenStemSection }) => {
+export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
+  song, onOpenStemSection, stopyPisne = [], onUpdateSong,
+}) => {
   const [audioState, setAudioState] = useState<StemAudioState>(stemAudioService.getState());
+  const [pridavam, setPridavam] = useState(false);
 
   useEffect(() => {
     const unsub = stemAudioService.subscribe((state) => {
@@ -122,6 +130,19 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({ song, onOp
           </div>
         )}
 
+        {/* Stopy jde vzít i po jedné z knihovny — hotových rozdělených
+            sad je zatím pár, kdežto jednotlivých stop leží v databázi víc
+            a bez tohohle se k nim nedalo dostat. */}
+        {onUpdateSong && song && (
+          <button
+            onClick={() => setPridavam((v) => !v)}
+            className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all shrink-0"
+          >
+            <Layers className="w-3 h-3" />
+            {pridavam ? 'Zavřít knihovnu' : 'Stopy z knihovny'}
+          </button>
+        )}
+
         {/* Time Progress Seek Bar */}
         <div className="flex-1 max-w-xs space-y-1 mx-2">
           <div className="flex justify-between text-[10px] font-mono text-neutral-400">
@@ -160,6 +181,63 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({ song, onOp
           </button>
         </div>
       </div>
+
+      {pridavam && song && onUpdateSong && (
+        <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+          <VyberZKnihovny
+            kategorie="stem_mix,backing_tracks,recordings"
+            vychoziDotaz={song.title}
+            prazdno="V knihovně zatím žádné rozdělené stopy nejsou."
+            onVybrat={(a: LibraryAsset) => {
+              if ((song.attachments || []).some((x) => x.storagePath === a.storage_path)) return;
+              onUpdateSong({
+                ...song,
+                attachments: [
+                  ...(song.attachments || []),
+                  {
+                    id: `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+                    name: a.name,
+                    type: 'audio',
+                    dataUrl: '',
+                    storageBucket: a.storage_bucket,
+                    storagePath: a.storage_path,
+                    size: a.size_bytes || undefined,
+                    uploadedAt: Date.now(),
+                  },
+                ],
+                updatedAt: Date.now(),
+              });
+            }}
+          />
+
+          {stopyPisne.length > 0 && (
+            <div className="border-t border-white/[0.06] pt-2 space-y-1">
+              <div className="text-[9px] uppercase tracking-wider text-neutral-500">
+                Připojeno k písni
+              </div>
+              {stopyPisne.map((p) => (
+                <div key={p.id} className="flex items-center gap-2 text-[11px] text-neutral-300">
+                  <CheckCircle2 className="w-3 h-3 text-[#30D158] shrink-0" />
+                  <span className="truncate flex-1">{p.name}</span>
+                  <button
+                    onClick={() =>
+                      onUpdateSong({
+                        ...song,
+                        attachments: (song.attachments || []).filter((x) => x.id !== p.id),
+                        updatedAt: Date.now(),
+                      })
+                    }
+                    className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer"
+                    title="Odpojit stopu"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* STEMS VERTICAL FADERS GRID */}
       {selectedSong && selectedSong.stems && selectedSong.stems.length > 0 ? (

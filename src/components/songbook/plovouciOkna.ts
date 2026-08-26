@@ -14,6 +14,9 @@ export type TypOkna =
   | 'midi'
   | 'youtube'
   | 'chord_diagrams'
+  | 'images'
+  | 'notes'
+  | 'vzkazy'
   | 'stems_mixer'
   | 'tuner'
   | 'fretboard'
@@ -45,6 +48,9 @@ export const POPIS_OKEN: Record<TypOkna, { nazev: string; ikona: string; vychozi
   midi: { nazev: 'MIDI', ikona: '🎹', vychoziSirka: 420, vychoziVyska: 260 },
   youtube: { nazev: 'YouTube', ikona: '🎥', vychoziSirka: 480, vychoziVyska: 340 },
   chord_diagrams: { nazev: 'Diagramy akordů', ikona: '🎸', vychoziSirka: 380, vychoziVyska: 300 },
+  images: { nazev: 'Obrázky', ikona: '🖼️', vychoziSirka: 420, vychoziVyska: 380 },
+  notes: { nazev: 'Noty a PDF', ikona: '🎼', vychoziSirka: 560, vychoziVyska: 620 },
+  vzkazy: { nazev: 'Vzkazy kapely', ikona: '💬', vychoziSirka: 360, vychoziVyska: 420 },
   stems_mixer: { nazev: 'Mixážní pult', ikona: '🎚️', vychoziSirka: 620, vychoziVyska: 420 },
   tuner: { nazev: 'Ladička', ikona: '🎯', vychoziSirka: 420, vychoziVyska: 380 },
   fretboard: { nazev: 'Hmatník', ikona: '🎸', vychoziSirka: 700, vychoziVyska: 320 },

@@ -1352,6 +1352,85 @@ export async function createApp() {
    * podle něj, ne podle názvu — hledá se „něco kolem 120", ne konkrétní
    * soubor.
    */
+  /**
+   * Samply podle nástroje.
+   *
+   * Tempo, tónina i takt bývají v názvu souboru — tak je pojmenovávají
+   * všechny sample packy. Do sloupců je nikdo nepřepisoval, takže se čtou
+   * odsud; bez toho by se dalo řadit jen podle abecedy, což u samplu
+   * neříká nic.
+   */
+  const NASTROJ_KATEGORIE: Record<string, string[]> = {
+    bicí: ['drum_loop', 'drum_kit_sample'],
+    basa: ['bass_sample'],
+    kytara: ['guitar_sample'],
+    vokal: ['vocal_sample'],
+  };
+
+  /** Tempo z názvu: „120bpm", „_95_", „128 BPM". */
+  function tempoZNazvu(nazev: string): number {
+    const m = nazev.match(/(\d{2,3})\s*bpm/i) || nazev.match(/[_\-\s](\d{2,3})[_\-\s.]/);
+    const t = m ? Number(m[1]) : 0;
+    // Rozumné hranice: čtyřciferná čísla v názvech bývají roky nebo pořadí.
+    return t >= 40 && t <= 260 ? t : 0;
+  }
+
+  /** Tónina z názvu: „Am", „F#m", „_C_", „Ebmaj". */
+  function toninaZNazvu(nazev: string): string {
+    const m = nazev.match(/[_\-\s]([A-G](?:#|b)?)(m|min|maj)?[_\-\s.]/);
+    if (!m) return '';
+    return m[1] + (m[2] && m[2].startsWith('m') && m[2] !== 'maj' ? 'm' : '');
+  }
+
+  /** Takt z názvu: „4-4", „3_4", „6/8". */
+  function taktZNazvu(nazev: string): string {
+    const m = nazev.match(/[_\-\s](\d)[\/\-_](\d)[_\-\s.]/);
+    if (!m) return '';
+    const spodek = Number(m[2]);
+    return [2, 4, 8, 16].includes(spodek) ? `${m[1]}/${m[2]}` : '';
+  }
+
+  app.get('/api/samples', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const nastroj = String(req.query.nastroj || 'bicí');
+    const hledat = String(req.query.search || '').trim();
+    const kategorie = NASTROJ_KATEGORIE[nastroj] || NASTROJ_KATEGORIE['bicí'];
+
+    let q = admin
+      .from('assets')
+      .select('id, name, size_bytes, metadata, category')
+      .eq('status', 'active')
+      .in('category', kategorie)
+      .limit(400);
+
+    if (hledat) {
+      const vzor = `%${hledat.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+      q = q.ilike('name', vzor);
+    }
+
+    const { data, error } = await q;
+    if (error) return res.status(500).json({ error: error.message });
+
+    const samply = (data || []).map((a) => {
+      const cisty = String(a.name).replace(/\.(wav|mp3|aif|aiff|ogg)$/i, '');
+      const m = (a.metadata || {}) as any;
+      return {
+        id: a.id,
+        nazev: cisty,
+        kategorie: a.category,
+        // Metadata mají přednost — když je někdo vyplnil, ví to líp než
+        // hádání z názvu.
+        bpm: Number(m.bpm || 0) || tempoZNazvu(cisty),
+        tonina: String(m.key || '') || toninaZNazvu(cisty),
+        takt: String(m.takt || m.meter || '') || taktZNazvu(cisty),
+        balik: String(m.balik || ''),
+        velikost: Number(a.size_bytes || 0),
+      };
+    });
+
+    res.json({ samply, celkem: samply.length });
+  });
+
   app.get('/api/drum-loops', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
     const tempo = parseInt(String(req.query.bpm || ''), 10);

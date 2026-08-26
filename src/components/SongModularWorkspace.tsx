@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import { ChordHoverPill } from './ChordHoverPill';
 import { AkordyPanel } from './songbook/AkordyPanel';
+import { ObrazkyModul } from './songbook/ObrazkyModul';
+import { NotyModul } from './songbook/NotyModul';
+import { VzkazyModul } from './songbook/VzkazyModul';
 import { parseSongSections } from '../utils/songSectionUtils';
 import { extractUniqueChords, findOrGenerateChord } from '../utils/chordUtils';
 import { audioSynth } from '../services/audioSynth';
@@ -29,6 +32,7 @@ export type ModuleType =
   | 'midi'
   | 'notes'
   | 'images'
+  | 'vzkazy'
   | 'links';
 
 export interface ModuleConfig {
@@ -280,6 +284,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   const midiAttachments = dataModulu(song, 'midi').prilohy;
   const noteAttachments = dataModulu(song, 'notes').prilohy;
   const imageAttachments = dataModulu(song, 'images').prilohy;
+  const stemAttachments = dataModulu(song, 'stems_mixer').prilohy;
 
   // Toggle module visibility
   const toggleModuleVisible = (id: ModuleType) => {
@@ -947,8 +952,23 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
           />
         );
 
+      case 'images':
+        return <ObrazkyModul song={song} prilohy={imageAttachments} onUpdateSong={onUpdateSong} />;
+
+      case 'notes':
+        return <NotyModul song={song} prilohy={noteAttachments} onUpdateSong={onUpdateSong} />;
+
+      case 'vzkazy':
+        return <VzkazyModul song={song} />;
+
       case 'stems_mixer':
-        return <ModularStemsMixer song={song} />;
+        return (
+          <ModularStemsMixer
+            song={song}
+            stopyPisne={stemAttachments}
+            onUpdateSong={onUpdateSong}
+          />
+        );
 
       case 'tuner':
         return <ModularTunerSection currentTuningName={song.tuning} />;
@@ -998,110 +1018,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 className="shrink-0 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-[#30D158]" /> Nahrát další MIDI
-              </button>
-            )}
-          </div>
-        );
-
-      case 'notes':
-        return (
-          <div className="flex-1 flex flex-col gap-3">
-            {noteAttachments.length > 0 ? (
-              <div className="flex-1 flex flex-col gap-2">
-                <div className="flex items-center justify-between bg-white/5 p-1.5 rounded-xl text-xs">
-                  <span className="text-neutral-300 font-medium">Zobrazení Not</span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setSheetZoom((z) => Math.max(50, z - 20))}
-                      className="p-1 bg-white/10 hover:bg-white/20 rounded-lg text-white"
-                    >
-                      <ZoomOut className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-[11px] font-bold text-[#FF9F0A]">{sheetZoom}%</span>
-                    <button
-                      onClick={() => setSheetZoom((z) => Math.min(200, z + 20))}
-                      className="p-1 bg-white/10 hover:bg-white/20 rounded-lg text-white"
-                    >
-                      <ZoomIn className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex-1 overflow-auto border border-white/10 rounded-2xl bg-black/40 p-2 flex justify-center">
-                  {noteAttachments[0].dataUrl.startsWith('data:application/pdf') ? (
-                    <iframe
-                      src={noteAttachments[0].dataUrl}
-                      title="Sheet Music PDF"
-                      className="w-full h-[360px] rounded-xl border-0"
-                    />
-                  ) : (
-                    <div className="text-center py-6">
-                      <p className="text-xs text-white font-bold mb-2">{noteAttachments[0].name}</p>
-                      <a
-                        href={noteAttachments[0].dataUrl}
-                        download={noteAttachments[0].name}
-                        className="px-3 py-1.5 bg-[#FF9F0A] text-black text-xs font-bold rounded-xl"
-                      >
-                        Stáhnout Noty (PDF)
-                      </a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <PrazdnyModul song={song} modulId="notes" onUpdateSong={onUpdateSong} />
-            )}
-
-            {onOpenImportModal && (
-              <button
-                onClick={onOpenImportModal}
-                className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-[#FF9F0A]" /> Nahrát Noty v PDF
-              </button>
-            )}
-          </div>
-        );
-
-      case 'images':
-        return (
-          <div className="flex-1 flex flex-col gap-3">
-            {imageAttachments.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2 overflow-y-auto">
-                {imageAttachments.map((img) => (
-                  <div
-                    key={img.id}
-                    className="group relative aspect-square rounded-2xl overflow-hidden border border-white/10 bg-black/50"
-                  >
-                    <img
-                      src={img.dataUrl}
-                      alt={img.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-2 flex flex-col justify-between">
-                      <span className="text-[10px] font-bold text-white truncate">{img.name}</span>
-                      <a
-                        href={img.dataUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="self-end px-2 py-1 bg-white text-black font-bold text-[10px] rounded-lg"
-                      >
-                        Zvětšit
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <PrazdnyModul song={song} modulId="images" onUpdateSong={onUpdateSong} />
-            )}
-
-            {onOpenImportModal && (
-              <button
-                onClick={onOpenImportModal}
-                className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <ImageIcon className="w-4 h-4 text-[#FF9F0A]" /> Přidat obrázek / fotku
               </button>
             )}
           </div>
