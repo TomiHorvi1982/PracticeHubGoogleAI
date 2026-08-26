@@ -996,6 +996,47 @@ export async function createApp() {
    * Počítá se ze záznamů, ne dotazem do R2 — to bychom museli vylistovat
    * dvaadvacet tisíc objektů. Velikost se zapisuje při nahrání, takže sedí.
    */
+  /**
+   * Osobní nastavení Pódia.
+   *
+   * Rozložení oken u jednotlivých písní patří ke člověku, ne ke skladbě —
+   * kytarista a zpěvák potřebují u téže písně vidět něco jiného a sdílené
+   * rozložení znamenalo, že si je navzájem přepisovali. Uložením k profilu
+   * ho člověk najde i na jiném počítači.
+   */
+  app.get('/api/podium', requireAuth, async (req, res) => {
+    const { data, error } = await getSupabaseAdmin()
+      .from('profiles')
+      .select('podium')
+      .eq('user_id', req.user!.id)
+      .single();
+
+    if (error) {
+      return res.status(500).json({ error: 'Nastavení Pódia se nepodařilo načíst.', details: error.message });
+    }
+    res.json({ podium: data?.podium || {} });
+  });
+
+  app.put('/api/podium', requireAuth, async (req, res) => {
+    const podium = req.body?.podium;
+    // Ukládá se celý objekt naráz, ne po klíčích: jeden zápis znamená jeden
+    // stav, který se dá porovnat. Slučování po částech by při dvou otevřených
+    // kartách nechalo v profilu míchanici z obou.
+    if (!podium || typeof podium !== 'object' || Array.isArray(podium)) {
+      return res.status(400).json({ error: 'Nastavení Pódia musí být objekt.' });
+    }
+
+    const { error } = await getSupabaseAdmin()
+      .from('profiles')
+      .update({ podium, updated_at: new Date().toISOString() })
+      .eq('user_id', req.user!.id);
+
+    if (error) {
+      return res.status(500).json({ error: 'Nastavení Pódia se nepodařilo uložit.', details: error.message });
+    }
+    res.json({ ok: true });
+  });
+
   app.get('/api/storage/usage', requireAuth, async (_req, res) => {
     const admin = getSupabaseAdmin();
     const podleKategorie: Record<string, { bajtu: number; souboru: number }> = {};

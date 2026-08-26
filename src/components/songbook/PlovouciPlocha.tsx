@@ -32,6 +32,23 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
   }, [song.id]);
 
   /**
+   * Nastavení dorazilo z profilu — překreslit.
+   *
+   * Plocha se vykresluje z místní kopie hned, ale profil může přijít o
+   * chvíli později (a na jiném počítači nést něco jiného). Reaguje se jen
+   * na zprávu z profilu; na vlastní ukládání ne, jinak by si plocha četla
+   * zpátky to, co právě zapsala, a přetahované okno by přeskakovalo.
+   */
+  useEffect(() => {
+    const zProfilu = (e: Event) => {
+      if ((e as CustomEvent).detail?.zProfilu) setOkna(nactiOkna(song));
+    };
+    window.addEventListener('neverlate:podium-zmena', zProfilu);
+    return () => window.removeEventListener('neverlate:podium-zmena', zProfilu);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song.id]);
+
+  /**
    * Uloží plochu ke skladbě i do prohlížeče.
    *
    * Lokální kopie je tu proto, že zápis do databáze může selhat — spadlé

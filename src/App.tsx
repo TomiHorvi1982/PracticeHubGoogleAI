@@ -21,6 +21,7 @@ import { AlphaTabSection } from './components/AlphaTabSection';
 import { BookmarksSection } from './components/BookmarksSection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
+import { podiumProfil } from './services/podiumProfil';
 import { authService } from './services/authService';
 import { playlistService } from './services/playlistService';
 import { songDatabaseService } from './services/songDatabaseService';
@@ -71,8 +72,19 @@ function AppContent() {
 
   // Subscribe to Auth changes
   useEffect(() => {
+    let kdoNaposled: string | null = null;
     const unsubAuth = authService.subscribe((currentAuth) => {
       setAuthSession(currentAuth);
+
+      // Pódium patří ke člověku, takže se při každé změně přihlášení
+      // přepne a natáhne z profilu. Hlídá se, kdo je přihlášený, ne
+      // jestli přišla zpráva — Supabase ohlašuje obnovení tokenu, a to
+      // by jinak stahovalo totéž pořád dokola.
+      const kdo = currentAuth?.user?.id || null;
+      if (kdo === kdoNaposled) return;
+      kdoNaposled = kdo;
+      podiumProfil.prepniUzivatele();
+      if (kdo) void podiumProfil.nactiZProfilu();
     });
     return unsubAuth;
   }, []);
