@@ -123,7 +123,7 @@ export const SamplesStudio: React.FC = () => {
                 type="number"
                 value={stav.bpm}
                 onChange={(e) => setBpm(Number(e.target.value))}
-                className="w-12 bg-transparent text-[12px] font-bold text-white text-center outline-none tabular-nums"
+                className="bez-sipek w-12 bg-transparent text-[12px] font-bold text-white text-center outline-none tabular-nums"
               />
             </div>
 

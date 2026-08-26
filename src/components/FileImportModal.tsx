@@ -212,7 +212,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                       song: { ...importResult.song, title: e.target.value },
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-[#30D158] outline-none"
+                  className="bez-sipek w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-[#30D158] outline-none"
                 />
               </div>
 

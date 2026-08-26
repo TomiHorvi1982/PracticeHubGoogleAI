@@ -135,7 +135,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             type="number"
             value={bpm}
             onChange={(e) => setBpm(Number(e.target.value))}
-            className="w-11 text-center bg-transparent text-sm font-bold text-slate-100 focus:outline-none"
+            className="bez-sipek w-11 text-center bg-transparent text-sm font-bold text-slate-100 focus:outline-none"
             min={30}
             max={300}
           />

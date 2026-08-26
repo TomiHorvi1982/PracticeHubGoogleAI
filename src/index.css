@@ -97,3 +97,25 @@
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.07);
 }
+
+/**
+ * Číselné pole bez šipek.
+ *
+ * Prohlížeč do `input[type=number]` sám kreslí drobné šipky nahoru a dolů.
+ * U tempa překážejí: sedí přímo na číslici, takže je při psaní vidět míň
+ * než samotné číslo, a vedle pole už svoje šipky jsou. Trefit se do nich
+ * navíc chce přesnost, kterou u zkoušky nikdo nemá.
+ *
+ * Krokování šipkami na klávesnici zůstává — mizí jen ty nakreslené.
+ */
+.bez-sipek::-webkit-outer-spin-button,
+.bez-sipek::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+
+.bez-sipek {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
