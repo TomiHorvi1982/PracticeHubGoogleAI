@@ -28,6 +28,15 @@ interface ModularStemsMixerProps {
   onUpdateSong?: (s: Song) => void;
 }
 
+/** Fadery pultu. Zůstávají pořád stejné, jen se na ně věší soubory. */
+const ROLE_FADERU: { id: string; popis: string }[] = [
+  { id: 'vocals', popis: 'Zpěv' },
+  { id: 'guitar', popis: 'Kytara' },
+  { id: 'bass', popis: 'Basa' },
+  { id: 'drums', popis: 'Bicí' },
+  { id: 'other', popis: 'Ostatní' },
+];
+
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string }> = {
   vocals: { accent: '#f43f5e', badge: 'bg-rose-500', bg: 'from-rose-500/10 to-rose-950/20', border: 'border-rose-500/30' },
   guitar: { accent: '#f59e0b', badge: 'bg-amber-500', bg: 'from-amber-500/15 to-amber-950/20', border: 'border-amber-500/40' },
@@ -41,6 +50,15 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 }) => {
   const [audioState, setAudioState] = useState<StemAudioState>(stemAudioService.getState());
   const [pridavam, setPridavam] = useState(false);
+  /**
+   * Na který fader se přiřazuje.
+   *
+   * Fadery jsou dané rolemi — zpěv, kytara, basa, bicí, ostatní. Vybere se
+   * fader, pak soubor z knihovny; opačné pořadí by znamenalo vybrat soubor
+   * a teprve pak si vzpomenout, kam patří.
+   */
+  const [cilovyFader, setCilovyFader] = useState<string>('vocals');
+  const [vlastni, setVlastni] = useState<{ role: string; nazev: string; assetId: string }[]>([]);
 
   useEffect(() => {
     const unsub = stemAudioService.subscribe((state) => {
@@ -184,51 +202,63 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 
       {pridavam && song && onUpdateSong && (
         <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[9px] uppercase tracking-wider text-neutral-500">Přiřadit na fader</span>
+            {ROLE_FADERU.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setCilovyFader(r.id)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                  cilovyFader === r.id
+                    ? 'bg-[#FF9F0A] text-black'
+                    : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                }`}
+              >
+                {r.popis}
+                {vlastni.some((v) => v.role === r.id) && <span className="ml-1 text-[#30D158]">•</span>}
+              </button>
+            ))}
+          </div>
+
           <VyberZKnihovny
-            kategorie="stem_mix,backing_tracks,recordings"
+            kategorie="stem_mix,backing_tracks,recordings,samples"
             vychoziDotaz={song.title}
-            prazdno="V knihovně zatím žádné rozdělené stopy nejsou."
+            prazdno="V knihovně zatím žádné použitelné stopy nejsou."
+            sNahledem
+            nahled={(u) => <audio src={u} controls className="w-full h-8" />}
             onVybrat={(a: LibraryAsset) => {
-              if ((song.attachments || []).some((x) => x.storagePath === a.storage_path)) return;
-              onUpdateSong({
-                ...song,
-                attachments: [
-                  ...(song.attachments || []),
-                  {
-                    id: `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-                    name: a.name,
-                    type: 'audio',
-                    dataUrl: '',
-                    storageBucket: a.storage_bucket,
-                    storagePath: a.storage_path,
-                    size: a.size_bytes || undefined,
-                    uploadedAt: Date.now(),
-                  },
-                ],
-                updatedAt: Date.now(),
-              });
+              // Na jednom faderu je jedna stopa; nová nahradí starou.
+              const nove = [
+                ...vlastni.filter((v) => v.role !== cilovyFader),
+                {
+                  role: cilovyFader,
+                  nazev: a.name,
+                  assetId: a.id,
+                  popisRole: ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis,
+                },
+              ];
+              setVlastni(nove);
+              stemAudioService.pouzijVlastniStopy(nove);
             }}
           />
 
-          {stopyPisne.length > 0 && (
+          {vlastni.length > 0 && (
             <div className="border-t border-white/[0.06] pt-2 space-y-1">
-              <div className="text-[9px] uppercase tracking-wider text-neutral-500">
-                Připojeno k písni
-              </div>
-              {stopyPisne.map((p) => (
-                <div key={p.id} className="flex items-center gap-2 text-[11px] text-neutral-300">
-                  <CheckCircle2 className="w-3 h-3 text-[#30D158] shrink-0" />
-                  <span className="truncate flex-1">{p.name}</span>
+              <div className="text-[9px] uppercase tracking-wider text-neutral-500">Na faderech</div>
+              {vlastni.map((v) => (
+                <div key={v.role} className="flex items-center gap-2 text-[11px] text-neutral-300">
+                  <span className="text-[9px] font-bold text-[#FF9F0A] w-14 shrink-0 uppercase">
+                    {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
+                  </span>
+                  <span className="truncate flex-1">{v.nazev}</span>
                   <button
-                    onClick={() =>
-                      onUpdateSong({
-                        ...song,
-                        attachments: (song.attachments || []).filter((x) => x.id !== p.id),
-                        updatedAt: Date.now(),
-                      })
-                    }
+                    onClick={() => {
+                      const nove = vlastni.filter((x) => x.role !== v.role);
+                      setVlastni(nove);
+                      stemAudioService.pouzijVlastniStopy(nove);
+                    }}
                     className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer"
-                    title="Odpojit stopu"
+                    title="Sundat z faderu"
                   >
                     ×
                   </button>
@@ -236,6 +266,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
               ))}
             </div>
           )}
+
         </div>
       )}
 

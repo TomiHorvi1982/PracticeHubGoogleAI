@@ -93,6 +93,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
             vychoziDotaz={song.title}
             onVybrat={pripoj}
             prazdno="V knihovně zatím žádné obrázky nejsou. Nahraj je přes tužku u písně nebo v Knihovně."
+            sNahledem
           />
         </div>
       )}

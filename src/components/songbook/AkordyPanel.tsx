@@ -5,7 +5,10 @@ import { GuitarChordDiagram } from '../GuitarChordDiagram';
 import { KlavirDiagram } from './KlavirDiagram';
 import { HmatnikTukani } from './HmatnikTukani';
 import { audioSynth, midiToNoteName } from '../../services/audioSynth';
-import { pojmenujAkord, tonyZHmatu, tonyZNazvu, hmatProTony, Rozpoznany } from '../../services/akordy';
+import {
+  pojmenujAkord, tonyZHmatu, tonyZNazvu, hmatProTony, strunyZNot, STRUNY_STANDARD, Rozpoznany,
+} from '../../services/akordy';
+import { TUNING_PRESETS } from '../../data/chordsAndScales';
 
 interface VlastniAkord {
   nazev: string;
@@ -51,6 +54,18 @@ export const AkordyPanel: React.FC<Props> = ({
   const [prahy, setPrahy] = useState<number[]>([-1, -1, -1, -1, -1, -1]);
   const [tonyKlavir, setTonyKlavir] = useState<number[]>([]);
   const [nazevRucne, setNazevRucne] = useState('');
+  /**
+   * V jakém ladění se hmat vyhodnocuje.
+   *
+   * Předvolí se ladění písně. Kdo hraje v Drop C a naťuká svůj hmat,
+   * dostal by ve standardním E jméno akordu, který nehraje — a klavírista
+   * podle něj zmáčkl špatné klávesy.
+   */
+  const [ladeni, setLadeni] = useState<string>(
+    () => TUNING_PRESETS.find((t) => t.name === song.tuning)?.name || TUNING_PRESETS[0].name
+  );
+  const preset = TUNING_PRESETS.find((t) => t.name === ladeni) || TUNING_PRESETS[0];
+  const struny = strunyZNot(preset.notes);
 
   const vlastni: VlastniAkord[] = (song as any).vlastniAkordy || [];
 
@@ -64,7 +79,7 @@ export const AkordyPanel: React.FC<Props> = ({
   };
 
   /** Tóny právě ťukaného akordu. */
-  const tukane = naCem === 'hmatnik' ? tonyZHmatu(prahy) : tonyKlavir;
+  const tukane = naCem === 'hmatnik' ? tonyZHmatu(prahy, struny) : tonyKlavir;
   const rozpoznany: Rozpoznany | null = useMemo(
     () => (tukane.length ? pojmenujAkord(tukane) : null),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,7 +121,7 @@ export const AkordyPanel: React.FC<Props> = ({
       return { name: nazev, root: nazev[0], type: 'vlastní', frets: v.prahy, fingers: v.prahy.map(() => 0), pianoKeys: [] };
     }
     if (v?.tony?.length) {
-      const p = hmatProTony(v.tony);
+      const p = hmatProTony(v.tony, struny);
       if (p) {
         return { name: nazev, root: nazev[0], type: 'vlastní', frets: p, fingers: p.map(() => 0), pianoKeys: [] };
       }
@@ -242,18 +257,74 @@ export const AkordyPanel: React.FC<Props> = ({
             ))}
           </div>
 
-          {naCem === 'hmatnik' ? (
-            <HmatnikTukani prahy={prahy} onZmena={setPrahy} sirka={300} />
-          ) : (
-            <KlavirDiagram
-              tony={tonyKlavir}
-              sirka={300}
-              oktavy={2}
-              onKlik={(m) =>
-                setTonyKlavir((p) => (p.includes(m) ? p.filter((x) => x !== m) : [...p, m]))
-              }
-            />
+          {naCem === 'hmatnik' && (
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[9px] uppercase tracking-wider text-neutral-500">Ladění</span>
+              <select
+                value={ladeni}
+                onChange={(e) => setLadeni(e.target.value)}
+                className="bg-black/50 border border-white/10 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer max-w-[220px]"
+              >
+                {TUNING_PRESETS.map((t) => (
+                  <option key={t.name} value={t.name}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           )}
+
+          {/* Hmatník a klaviatura vedle sebe. Kytarista chytne akord a
+              klávesák rovnou vidí, co zmáčknout — u divokých hmatů je to
+              jediný způsob, jak si to sdělit, aniž by se to muselo
+              přeříkávat po tónech. */}
+          <div className="flex flex-wrap gap-3 items-start">
+            {naCem === 'hmatnik' ? (
+              <HmatnikTukani
+                prahy={prahy}
+                onZmena={setPrahy}
+                sirka={300}
+                struny={struny}
+                jmenaStrun={preset.notes}
+              />
+            ) : (
+              <KlavirDiagram
+                tony={tonyKlavir}
+                sirka={300}
+                oktavy={2}
+                onKlik={(m) =>
+                  setTonyKlavir((p) => (p.includes(m) ? p.filter((x) => x !== m) : [...p, m]))
+                }
+              />
+            )}
+
+            <div className="space-y-1">
+              <div className="text-[9px] uppercase tracking-wider text-neutral-500">
+                {naCem === 'hmatnik' ? 'Na klavíru' : 'Na hmatníku'}
+              </div>
+              {naCem === 'hmatnik' ? (
+                <KlavirDiagram tony={tukane} sirka={220} oktavy={2} />
+              ) : (
+                <HmatnikTukani
+                  prahy={hmatProTony(tonyKlavir, struny) || [-1, -1, -1, -1, -1, -1]}
+                  onZmena={() => {
+                    /* jen k nahlédnutí — mění se to na klaviatuře vedle */
+                  }}
+                  sirka={220}
+                  struny={struny}
+                  jmenaStrun={preset.notes}
+                />
+              )}
+              {tukane.length > 0 && (
+                <div className="text-[10px] text-neutral-400 font-mono">
+                  {[...new Set(tukane.map((m) => ((m % 12) + 12) % 12))]
+                    .sort((a, b) => a - b)
+                    .map((t) => ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][t])
+                    .join(' · ')}
+                </div>
+              )}
+            </div>
+          </div>
 
           <div className="flex flex-wrap items-center gap-2">
             {/* Název se nabídne sám z tónů. Přepsat ho jde — appka pozná

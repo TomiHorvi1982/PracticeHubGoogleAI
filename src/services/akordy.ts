@@ -13,6 +13,27 @@ export const TONY = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#',
 export const STRUNY_STANDARD = [40, 45, 50, 55, 59, 64];
 
 /**
+ * Ladění z názvů tónů typu `['E2','A2','D3','G3','B3','E4']`.
+ *
+ * Bez toho by se akord vyhodnocoval vždycky ve standardním E — a kdo hraje
+ * v Drop C, dostal by ke svému hmatu jméno akordu, který nehraje.
+ */
+export function strunyZNot(noty: string[]): number[] {
+  const prevod = noty.map((n) => {
+    const m = String(n).match(/^([A-G])(#|b)?(-?\d)$/);
+    if (!m) return null;
+    const zaklad = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }[m[1]]!;
+    const posun = m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0;
+    return (Number(m[3]) + 1) * 12 + zaklad + posun;
+  });
+  // Jediná nepřečtená struna znamená, že celé ladění neznáme — počítat
+  // půlku podle zadání a půlku podle standardu by dalo nesmysl.
+  return prevod.every((x): x is number => x !== null) && prevod.length === 6
+    ? (prevod as number[])
+    : STRUNY_STANDARD;
+}
+
+/**
  * Vzorce akordů, seřazené od nejurčitějších.
  *
  * Pořadí rozhoduje: 0,4,7,10 je sedmička, ale obsahuje i 0,4,7. Kdyby se
@@ -119,7 +140,7 @@ export function pojmenujAkord(midi: number[]): Rozpoznany | null {
 }
 
 /** Tóny akordu z hmatu na hmatníku. `-1` je dusená struna. */
-export function tonyZHmatu(prahy: number[], struny = STRUNY_STANDARD): number[] {
+export function tonyZHmatu(prahy: number[], struny: number[] = STRUNY_STANDARD): number[] {
   return prahy
     .map((p, i) => (p < 0 ? null : struny[i] + p))
     .filter((m): m is number => m !== null);
@@ -131,7 +152,7 @@ export function tonyZHmatu(prahy: number[], struny = STRUNY_STANDARD): number[] 
  * Hledá nejnižší polohu, kde jde akord zahmatat v rozsahu čtyř pražců —
  * dál po krku už to není hmat pro začátek písně, ale cvičení.
  */
-export function hmatProTony(tridy: number[], struny = STRUNY_STANDARD): number[] | null {
+export function hmatProTony(tridy: number[], struny: number[] = STRUNY_STANDARD): number[] | null {
   if (tridy.length === 0) return null;
   const chtene = new Set(tridy.map((t) => ((t % 12) + 12) % 12));
 

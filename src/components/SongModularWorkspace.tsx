@@ -12,6 +12,7 @@ import { AkordyPanel } from './songbook/AkordyPanel';
 import { ObrazkyModul } from './songbook/ObrazkyModul';
 import { NotyModul } from './songbook/NotyModul';
 import { VzkazyModul } from './songbook/VzkazyModul';
+import { SamplyModul } from './songbook/SamplyModul';
 import { parseSongSections } from '../utils/songSectionUtils';
 import { extractUniqueChords, findOrGenerateChord } from '../utils/chordUtils';
 import { audioSynth } from '../services/audioSynth';
@@ -33,6 +34,7 @@ export type ModuleType =
   | 'notes'
   | 'images'
   | 'vzkazy'
+  | 'samply'
   | 'links';
 
 export interface ModuleConfig {
@@ -960,6 +962,9 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
       case 'vzkazy':
         return <VzkazyModul song={song} />;
+
+      case 'samply':
+        return <SamplyModul />;
 
       case 'stems_mixer':
         return (

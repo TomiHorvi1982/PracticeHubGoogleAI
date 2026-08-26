@@ -14,6 +14,7 @@ import { SCALES_DATABASE } from '../data/chordsAndScales';
 import { DrumPad, CustomDrumKit } from '../types';
 import { MidiToolsModal } from './MidiToolsModal';
 import { SamplesStudio } from './SamplesStudio';
+import { AkordovyPrekladac } from './songbook/AkordovyPrekladac';
 import {
   Play, Pause, Volume2, Music, Disc, Filter, Zap,
   Layers, VolumeX, RotateCcw, ChevronLeft, ChevronRight, Sliders, Laptop, Radio,
@@ -1033,6 +1034,13 @@ export const VirtualInstruments: React.FC = () => {
             </div>
           </div>
 
+          {/* Vlastní akord: naťukat a hned vidět, co odpovídá na druhém
+              nástroji. Dřív to bylo jen v okně akordů u písně, ale ptají
+              se na to právě tady, u nástroje. */}
+          <div className="mt-4">
+            <AkordovyPrekladac sirka={320} />
+          </div>
+
         </div>
       )}
 
@@ -1042,6 +1050,7 @@ export const VirtualInstruments: React.FC = () => {
       {/* 🎸 HMATNÍK — samostatná stránka s podsekcemi */}
       {activeInstTab === 'fretboard' && (
         <div className="space-y-4">
+          <AkordovyPrekladac sirka={340} />
           <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 shadow-xl flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">

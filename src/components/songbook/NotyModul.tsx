@@ -122,6 +122,12 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
             vychoziDotaz={song.title}
             onVybrat={pripoj}
             prazdno="V knihovně žádné odpovídající noty nejsou."
+            sNahledem
+            nahled={(u, a) => (
+              <div className="h-52 overflow-hidden rounded-lg border border-white/10">
+                <PdfNahled url={u} nazev={a.name} />
+              </div>
+            )}
           />
         </div>
       )}

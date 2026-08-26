@@ -7,6 +7,10 @@ interface Props {
   onZmena: (prahy: number[]) => void;
   pocetPrahu?: number;
   sirka?: number;
+  /** Ladění v číslech MIDI, odspodu nahoru. */
+  struny?: number[];
+  /** Jména strun k popiskům — ať je vidět, v čem se hraje. */
+  jmenaStrun?: string[];
 }
 
 /**
@@ -17,9 +21,9 @@ interface Props {
  * takže se nikam nemusí chodit mazat.
  */
 export const HmatnikTukani: React.FC<Props> = ({
-  prahy, onZmena, pocetPrahu = 5, sirka = 300,
+  prahy, onZmena, pocetPrahu = 5, sirka = 300, struny = STRUNY_STANDARD, jmenaStrun,
 }) => {
-  const okraj = 26;
+  const okraj = 40;
   const rozestup = (sirka - okraj - 10) / pocetPrahu;
   const vyska = 6 * 16 + 16;
 
@@ -44,16 +48,24 @@ export const HmatnikTukani: React.FC<Props> = ({
         />
       ))}
 
-      {STRUNY_STANDARD.map((_, si) => {
+      {struny.map((_, si) => {
         // Nejnižší struna dole: v poli je první, na obrázku poslední.
         const y = 12 + (5 - si) * 16;
         return (
           <g key={si}>
             <line x1={okraj} y1={y} x2={sirka - 10} y2={y} stroke="#5a5a66" strokeWidth={0.8 + si * 0.15} />
 
+            {/* Jméno struny — v jiném ladění je to jediné, podle čeho
+                se pozná, co se vlastně mačká. */}
+            {jmenaStrun?.[si] && (
+              <text x={4} y={y + 3} fontSize={8} fill="#6a6a76" className="font-mono">
+                {jmenaStrun[si].replace(/\d/, '')}
+              </text>
+            )}
+
             {/* Dusit / prázdná struna */}
             <text
-              x={12}
+              x={26}
               y={y + 3.5}
               fontSize={10}
               textAnchor="middle"

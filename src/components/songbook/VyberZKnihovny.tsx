@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Loader2, Plus, Database } from 'lucide-react';
-import { assetLibraryService, LibraryAsset } from '../../services/assetLibraryService';
+import { Search, Loader2, Plus, Database, Eye } from 'lucide-react';
+import { assetLibraryService, LibraryAsset, nactiObsahJakoUrl } from '../../services/assetLibraryService';
 
 interface Props {
   /** Kategorie v knihovně; víc se odděluje čárkou. */
@@ -10,6 +10,10 @@ interface Props {
   onVybrat: (a: LibraryAsset) => void;
   /** Co říct, když v knihovně nic není. */
   prazdno?: string;
+  /** Nabídnout náhled dřív, než se soubor vloží. */
+  sNahledem?: boolean;
+  /** Jak náhled vykreslit — dostane adresu obsahu. */
+  nahled?: (url: string, a: LibraryAsset) => React.ReactNode;
 }
 
 /**
@@ -20,11 +24,33 @@ interface Props {
  * koncem vypadá, jako by v knihovně nebyl.
  */
 export const VyberZKnihovny: React.FC<Props> = ({
-  kategorie, vychoziDotaz = '', onVybrat, prazdno,
+  kategorie, vychoziDotaz = '', onVybrat, prazdno, sNahledem, nahled,
 }) => {
   const [dotaz, setDotaz] = useState(vychoziDotaz);
   const [nalezene, setNalezene] = useState<LibraryAsset[]>([]);
   const [hledam, setHledam] = useState(false);
+  /** Co si člověk zrovna prohlíží, než to vloží. */
+  const [nahlizeny, setNahlizeny] = useState<LibraryAsset | null>(null);
+  const [urlNahledu, setUrlNahledu] = useState<string | null>(null);
+  const [nacitamNahled, setNacitamNahled] = useState(false);
+
+  // Náhled se stahuje přes vlastní server, ne z podepsané adresy — tu by
+  // prohlížeč kvůli CORS odmítl načíst.
+  useEffect(() => {
+    if (!nahlizeny) {
+      setUrlNahledu(null);
+      return;
+    }
+    let zivy = true;
+    setNacitamNahled(true);
+    void nactiObsahJakoUrl(nahlizeny.id)
+      .then((u) => zivy && setUrlNahledu(u))
+      .catch(() => zivy && setUrlNahledu(null))
+      .finally(() => zivy && setNacitamNahled(false));
+    return () => {
+      zivy = false;
+    };
+  }, [nahlizeny]);
 
   useEffect(() => {
     let zivy = true;
@@ -66,14 +92,63 @@ export const VyberZKnihovny: React.FC<Props> = ({
           </p>
         )}
         {nalezene.map((a) => (
-          <button
+          <div
             key={a.id}
-            onClick={() => onVybrat(a)}
-            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] cursor-pointer text-left"
+            className={`rounded-xl border transition-all ${
+              nahlizeny?.id === a.id
+                ? 'bg-white/[0.06] border-[#FF9F0A]/50'
+                : 'bg-white/[0.03] border-white/[0.06] hover:border-white/25'
+            }`}
           >
-            <span className="text-[11px] text-white truncate flex-1">{a.name}</span>
-            <Plus className="w-3.5 h-3.5 text-[#30D158] shrink-0" />
-          </button>
+            <div className="flex items-center gap-1.5 px-2 py-1.5">
+              {/* Prohlédnout dřív než vložit: jména souborů jako
+                  „-3 Guit L.pdf" o obsahu neřeknou nic a vkládat naslepo
+                  znamená pokaždé vložit, otevřít, zjistit, odpojit. */}
+              <button
+                onClick={() => sNahledem && setNahlizeny(nahlizeny?.id === a.id ? null : a)}
+                className={`text-[11px] text-white truncate flex-1 text-left ${
+                  sNahledem ? 'cursor-pointer hover:text-[#FF9F0A]' : 'cursor-default'
+                }`}
+                title={sNahledem ? 'Prohlédnout' : a.name}
+              >
+                {a.name}
+              </button>
+              {sNahledem && (
+                <button
+                  onClick={() => setNahlizeny(nahlizeny?.id === a.id ? null : a)}
+                  className="p-1 rounded text-neutral-500 hover:text-white cursor-pointer shrink-0"
+                  title="Náhled"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                onClick={() => onVybrat(a)}
+                className="p-1 rounded text-[#30D158] hover:bg-[#30D158]/20 cursor-pointer shrink-0"
+                title="Vložit"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {nahlizeny?.id === a.id && (
+              <div className="px-2 pb-2">
+                {nacitamNahled ? (
+                  <p className="text-[10px] text-neutral-600 flex items-center gap-1.5">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Načítám náhled…
+                  </p>
+                ) : urlNahledu ? (
+                  nahled ? (
+                    nahled(urlNahledu, a)
+                  ) : (
+                    <img src={urlNahledu} alt="" className="w-full rounded-lg border border-white/10" />
+                  )
+                ) : (
+                  <p className="text-[10px] text-neutral-600">Náhled se nepodařilo načíst.</p>
+                )}
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </div>

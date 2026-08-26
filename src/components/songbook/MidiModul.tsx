@@ -31,14 +31,22 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
 
   useEffect(() => midiPlayerService.subscribe(setStav), []);
 
+
   // Odchod od písně nesmí nechat MIDI hrát dál na pozadí.
   useEffect(() => () => midiPlayerService.stop(), []);
 
-  if (prilohy.length === 0) {
+  // Když u písně žádné MIDI není, ale ve Virtual Instruments je nějaké
+  // načtené, ukáže se to — je to tentýž přehrávač a člověk si ho tam
+  // právě vybral. Vybírat totéž podruhé by bylo jen zdržení.
+  const zNastroju = prilohy.length === 0 && stav.asset ? stav.asset : null;
+
+  if (prilohy.length === 0 && !zNastroju) {
     return <PrazdnyModul song={song} modulId="midi" onUpdateSong={onUpdateSong} />;
   }
 
-  const priloha = prilohy[Math.min(vybrana, prilohy.length - 1)];
+  const priloha = zNastroju
+    ? ({ id: zNastroju.id, name: zNastroju.name, type: 'midi', dataUrl: '', uploadedAt: 0 } as SongAttachment)
+    : prilohy[Math.min(vybrana, prilohy.length - 1)];
   const nactene = stav.asset?.name === priloha.name;
 
   const prehraj = async () => {

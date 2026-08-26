@@ -17,6 +17,7 @@ export type TypOkna =
   | 'images'
   | 'notes'
   | 'vzkazy'
+  | 'samply'
   | 'stems_mixer'
   | 'tuner'
   | 'fretboard'
@@ -49,8 +50,9 @@ export const POPIS_OKEN: Record<TypOkna, { nazev: string; ikona: string; vychozi
   youtube: { nazev: 'YouTube', ikona: '🎥', vychoziSirka: 480, vychoziVyska: 340 },
   chord_diagrams: { nazev: 'Diagramy akordů', ikona: '🎸', vychoziSirka: 380, vychoziVyska: 300 },
   images: { nazev: 'Obrázky', ikona: '🖼️', vychoziSirka: 420, vychoziVyska: 380 },
-  notes: { nazev: 'Noty a PDF', ikona: '🎼', vychoziSirka: 560, vychoziVyska: 620 },
-  vzkazy: { nazev: 'Vzkazy kapely', ikona: '💬', vychoziSirka: 360, vychoziVyska: 420 },
+  notes: { nazev: 'Books', ikona: '📚', vychoziSirka: 560, vychoziVyska: 620 },
+  samply: { nazev: 'Samples', ikona: '🎛️', vychoziSirka: 460, vychoziVyska: 300 },
+  vzkazy: { nazev: 'Chat', ikona: '💬', vychoziSirka: 360, vychoziVyska: 420 },
   stems_mixer: { nazev: 'Mixážní pult', ikona: '🎚️', vychoziSirka: 620, vychoziVyska: 420 },
   tuner: { nazev: 'Ladička', ikona: '🎯', vychoziSirka: 420, vychoziVyska: 380 },
   fretboard: { nazev: 'Hmatník', ikona: '🎸', vychoziSirka: 700, vychoziVyska: 320 },

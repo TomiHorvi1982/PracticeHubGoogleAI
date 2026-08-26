@@ -26,6 +26,16 @@ import {
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
 import { DawVerticalFader } from './DawVerticalFader';
+import { VyberZKnihovny } from './songbook/VyberZKnihovny';
+
+/** Fadery pultu. Zůstávají pořád stejné, jen se na ně věší soubory. */
+const ROLE_FADERU: { id: string; popis: string }[] = [
+  { id: 'vocals', popis: 'Zpěv' },
+  { id: 'guitar', popis: 'Kytara' },
+  { id: 'bass', popis: 'Basa' },
+  { id: 'drums', popis: 'Bicí' },
+  { id: 'other', popis: 'Ostatní' },
+];
 
 interface StemMixerSectionProps {
   currentUser?: any;
@@ -45,6 +55,9 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
   // New Processing Form
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
+  /** Na který fader se právě přiřazuje a co na nich visí. */
+  const [cilovyFader, setCilovyFader] = useState<string>('vocals');
+  const [vlastniStopy, setVlastniStopy] = useState<{ role: string; nazev: string; assetId: string }[]>([]);
   const [customTitle, setCustomTitle] = useState<string>('');
   const [customArtist, setCustomArtist] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -378,7 +391,89 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               3. Generování vícestopého DAW projektu <br />
               4. Propojení se zpěvníkem a svislými fadery
             </p>
+            {/* Separaci nedělá appka, ale worker — a ten musí běžet.
+                Bez téhle věty úloha jen tiše čeká ve frontě a vypadá to,
+                že se nic neděje. */}
+            <p className="leading-normal mt-2 pt-2 border-t border-slate-800">
+              Separaci provádí worker, který si úlohy vyzvedává sám. Na tomhle Macu ho spustíte
+              příkazem <code>./worker/run-local.sh</code> — úlohy počkají ve frontě, dokud neběží.
+            </p>
           </div>
+        </div>
+
+        {/* Vlastní stopy: fadery zůstávají, jen se na ně věší soubory
+            z knihovny. Hotových rozdělených sad je pár, kdežto jednotlivých
+            stop leží v databázi spousta a nešlo z nich mix poskládat. */}
+        <div className="lg:col-span-3 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
+          <div className="flex flex-wrap items-center gap-2">
+            <Layers className="w-5 h-5 text-amber-400 shrink-0" />
+            <h3 className="text-base font-bold text-white">Vlastní stopy z knihovny</h3>
+            <span className="text-xs text-slate-400">vyber fader a k němu soubor</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {ROLE_FADERU.map((r) => (
+              <button
+                key={r.id}
+                onClick={() => setCilovyFader(r.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                  cilovyFader === r.id
+                    ? 'bg-amber-500 text-slate-950'
+                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                {r.popis}
+                {vlastniStopy.some((v) => v.role === r.id) && (
+                  <span className="ml-1.5 text-emerald-400">•</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <VyberZKnihovny
+            kategorie="stem_mix,backing_tracks,recordings,samples"
+            prazdno="V knihovně zatím žádné použitelné stopy nejsou."
+            sNahledem
+            nahled={(u) => <audio src={u} controls className="w-full h-8" />}
+            onVybrat={(a) => {
+              // Na jednom faderu je jedna stopa; nová nahradí starou.
+              const nove = [
+                ...vlastniStopy.filter((v) => v.role !== cilovyFader),
+                {
+                  role: cilovyFader,
+                  nazev: a.name,
+                  assetId: a.id,
+                  popisRole: ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis,
+                },
+              ];
+              setVlastniStopy(nove);
+              stemAudioService.pouzijVlastniStopy(nove);
+            }}
+          />
+
+          {vlastniStopy.length > 0 && (
+            <div className="border-t border-slate-800 pt-2 space-y-1">
+              {vlastniStopy.map((v) => (
+                <div key={v.role} className="flex items-center gap-2 text-xs text-slate-300">
+                  <span className="text-[10px] font-bold text-amber-400 w-16 shrink-0 uppercase">
+                    {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
+                  </span>
+                  <span className="truncate flex-1">{v.nazev}</span>
+                  <button
+                    onClick={() => {
+                      const nove = vlastniStopy.filter((x) => x.role !== v.role);
+                      setVlastniStopy(nove);
+                      stemAudioService.pouzijVlastniStopy(nove);
+                    }}
+                    className="p-1 rounded text-slate-500 hover:text-rose-400 cursor-pointer"
+                    title="Sundat z faderu"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Songs Library & Active Selection */}

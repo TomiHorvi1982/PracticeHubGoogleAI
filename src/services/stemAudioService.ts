@@ -168,6 +168,52 @@ class StemAudioService {
     }
   }
 
+  /**
+   * Poskládá pult z vlastních souborů z knihovny.
+   *
+   * Fadery zůstávají tytéž — zpěv, kytara, basa, bicí, ostatní — a na
+   * každý se dá pověsit libovolný soubor. Hotových rozdělených sad je pár,
+   * kdežto jednotlivých stop leží v knihovně spousta a bez tohohle se
+   * z nich nedal mix poskládat.
+   *
+   * Staví se z toho běžný dokument sady, takže zbytek pultu ani zvukový
+   * engine nemusí vědět, že stopy nepocházejí ze separace.
+   */
+  public pouzijVlastniStopy(
+    prirazeni: { role: string; nazev: string; assetId: string; popisRole?: string }[]
+  ): void {
+    if (prirazeni.length === 0) {
+      this.selectSong(null);
+      return;
+    }
+    const dokument: StemSongDocument = {
+      id: `vlastni-${prirazeni.map((p) => p.assetId).join('-').slice(0, 60)}`,
+      youtubeUrl: '',
+      youtubeId: '',
+      title: 'Vlastní mix',
+      artist: 'z knihovny',
+      durationSeconds: 0,
+      status: 'completed',
+      progressPercentage: 100,
+      stems: prirazeni.map((p) => ({
+        id: p.role,
+        // Na faderu je role, ne název souboru. Fader je pořád „Basa";
+        // co na něm zrovna visí, se čte v seznamu přiřazení.
+        name: p.popisRole || p.role,
+        // Adresa přes vlastní server: engine si ji stáhne s přihlášením
+        // a udělá z ní blob. Podepsaný odkaz přímo do úložiště by
+        // prohlížeč zablokoval jako cizí původ.
+        storagePath: '',
+        downloadUrl: `/api/assets/${p.assetId}/content`,
+        format: 'wav' as const,
+        bitrateKbps: 0,
+      })),
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    this.selectSong(dokument, true);
+  }
+
   /** Kicks off server-side stem generation for a YouTube URL (see
    * server.ts `/api/stems/process`) and selects the new (still-processing)
    * song so the UI can show its progress. */
