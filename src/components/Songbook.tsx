@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ObjevSkladby } from './songbook/ObjevSkladby';
 import { SeznamSkladeb } from './songbook/SeznamSkladeb';
 import { SetListPanel } from './songbook/SetListPanel';
+import { DoplnitMaterialy } from './songbook/DoplnitMaterialy';
 import { setListy } from '../services/setListy';
 import { spustDoplneni } from '../services/enrichmentClient';
 import {
@@ -89,6 +90,8 @@ export const Songbook: React.FC<SongbookProps> = ({
   const [isEditingTuningInline, setIsEditingTuningInline] = useState(false);
   const [inlineTuningVal, setInlineTuningVal] = useState('');
   const [selectedModalChord, setSelectedModalChord] = useState<string | null>(null);
+  /** Píseň, ke které se právě doplňují materiály. */
+  const [doplnovana, setDoplnovana] = useState<Song | null>(null);
   const [isOnlineSearchOpen, setIsOnlineSearchOpen] = useState(false);
   const [isFileImportOpen, setIsFileImportOpen] = useState(false);
 
@@ -335,16 +338,36 @@ export const Songbook: React.FC<SongbookProps> = ({
   };
 
   const toggleSongInPlaylist = (playlistId: string, songId: string) => {
+    let pridava = false;
     setPlaylists((prev) =>
       prev.map((p) => {
         if (p.id !== playlistId) return p;
         const alreadyHas = p.songIds.includes(songId);
+        if (!alreadyHas) pridava = true;
         return {
           ...p,
           songIds: alreadyHas ? p.songIds.filter((id) => id !== songId) : [...p.songIds, songId],
         };
       })
     );
+
+    // Zařazení do setu je chvíle, kdy se z písně stane něco, co se bude
+    // hrát — a od té chvíle je potřeba mít k ní materiály. Dohledání se
+    // proto pustí samo, ať se nemusí shánět ručně.
+    //
+    // Jen u písní, které nemají nic. Kdo si k písni něco vložil, o to
+    // nesmí přijít tím, že ji zařadí do dalšího setu.
+    if (!pridava) return;
+    const pisen = songs.find((x) => x.id === songId);
+    if (!pisen) return;
+    const maCo =
+      (pisen.content || '').trim().length > 40 ||
+      (pisen.attachments?.length || 0) > 0 ||
+      (pisen.youtubeVideos?.length || 0) > 0;
+    if (maCo) return;
+
+    spustDoplneni(songId);
+    showToast(`Sháním materiály k „${pisen.title}"…`);
   };
 
   // Helper to extract content tags for library song list
@@ -542,6 +565,10 @@ export const Songbook: React.FC<SongbookProps> = ({
               onZamknout={handleLockClick}
               onSmazat={handleDeleteClick}
               onDoPlaylistu={handleOpenAddToPlaylist}
+              onUpravit={(sk, e) => {
+                if (e) e.stopPropagation();
+                setDoplnovana(sk);
+              }}
             />
         </div>
         ) : (
@@ -562,6 +589,16 @@ export const Songbook: React.FC<SongbookProps> = ({
             odsud se jen skládá. */}
         <SetListPanel songs={songs} onNaPodium={() => onOtevritPodium?.()} />
       </div>
+
+      <DoplnitMaterialy
+        song={doplnovana}
+        onZavrit={() => setDoplnovana(null)}
+        onUlozit={(sk) => {
+          void songDatabaseService.saveSong(sk);
+          setDoplnovana(sk);
+          if (activeSong?.id === sk.id) setActiveSong(sk);
+        }}
+      />
 
       {/* New Song Modal */}
       {isEditing && (

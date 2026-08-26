@@ -1,5 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Play, Lock, Unlock, Trash2, ListPlus, AlignJustify, LayoutGrid } from 'lucide-react';
+import {
+  Play, Lock, Unlock, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
+} from 'lucide-react';
 import { Song } from '../../types';
 import { KlicRazeni, SLOUPCE, seradPodle, odhadniJazyk } from '../../services/songSort';
 import { MiniPrehravac } from './MiniPrehravac';
@@ -11,6 +13,8 @@ interface Props {
   onZamknout: (s: Song, e?: React.MouseEvent) => void;
   onSmazat: (s: Song, e?: React.MouseEvent) => void;
   onDoPlaylistu: (s: Song, e?: React.MouseEvent) => void;
+  /** Otevře doplňování materiálů k písni. */
+  onUpravit: (s: Song, e?: React.MouseEvent) => void;
 }
 
 /** Hodnota údaje do sloupce. */
@@ -43,7 +47,7 @@ function video(s: Song): { id: string; title: string } | null {
  * hledá očima pokaždé znovu.
  */
 export const SeznamSkladeb: React.FC<Props> = ({
-  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu,
+  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onUpravit,
 }) => {
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
     try {
@@ -62,13 +66,15 @@ export const SeznamSkladeb: React.FC<Props> = ({
   const [razeni, setRazeni] = useState<KlicRazeni>('song');
   const [sestupne, setSestupne] = useState(false);
 
-  const [pohled, setPohled] = useState<'line' | 'detail'>(() => {
-    try {
-      return (localStorage.getItem('neverlate_pohled') as 'line' | 'detail') || 'line';
-    } catch {
-      return 'line';
-    }
-  });
+  /**
+   * Které řádky jsou rozbalené.
+   *
+   * Dřív se detail zapínal pro celý seznam naráz. Osmdesát řádků tím
+   * povyrostlo o náhledy, seznam se opticky natáhl a posuvník skončil
+   * úplně jinde, než kde člověk zrovna četl. Rozbalit jde teď jen ten
+   * řádek, o který jde — zbytek zůstane, kde byl.
+   */
+  const [rozbalene, setRozbalene] = useState<Set<string>>(new Set());
 
   /** Která skladba má puštěnou ukázku. Vždy nejvýš jedna. */
   const [hraje, setHraje] = useState<string | null>(null);
@@ -98,13 +104,13 @@ export const SeznamSkladeb: React.FC<Props> = ({
     }
   };
 
-  const nastavPohled = (p: 'line' | 'detail') => {
-    setPohled(p);
-    try {
-      localStorage.setItem('neverlate_pohled', p);
-    } catch {
-      /* stejně jako výše */
-    }
+  const rozbal = (id: string) => {
+    setRozbalene((p) => {
+      const n = new Set(p);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
   };
 
   const serazene = useMemo(() => seradPodle(songs, razeni, sestupne), [songs, razeni, sestupne]);
@@ -113,7 +119,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
   // a nakonec tlačítka. Kdyby se šířky psaly natvrdo, každý zapnutý
   // sloupec by se musel dopočítávat ručně.
   const mrizka = {
-    gridTemplateColumns: `28px minmax(0,2.2fr) ${zapnute.map(() => 'minmax(0,1fr)').join(' ')} 92px`,
+    gridTemplateColumns: `28px minmax(0,2.2fr) ${zapnute.map(() => 'minmax(0,1fr)').join(' ')} 148px`,
   };
 
   const sipka = (k: KlicRazeni) =>
@@ -147,26 +153,6 @@ export const SeznamSkladeb: React.FC<Props> = ({
           );
         })}
 
-        <div className="ml-auto flex items-center bg-black/50 border border-white/10 p-0.5 rounded-xl">
-          {([
-            { id: 'line', popis: 'Line', ikona: AlignJustify },
-            { id: 'detail', popis: 'Detail', ikona: LayoutGrid },
-          ] as const).map((p) => {
-            const Ikona = p.ikona;
-            return (
-              <button
-                key={p.id}
-                onClick={() => nastavPohled(p.id)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-all ${
-                  pohled === p.id ? 'bg-[#FF9F0A] text-black font-bold' : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                <Ikona className="w-3 h-3" />
-                {p.popis}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       <div className="overflow-y-auto max-h-[52vh] rounded-2xl border border-white/[0.06] bg-black/20">
@@ -202,7 +188,8 @@ export const SeznamSkladeb: React.FC<Props> = ({
         {serazene.map((s) => {
           const aktivni = s.id === aktivniId;
           const v = video(s);
-          const jazyk = pohled === 'detail' ? odhadniJazyk(s.content || '') : null;
+          const otevreny = rozbalene.has(s.id);
+          const jazyk = otevreny ? odhadniJazyk(s.content || '') : null;
           const prehrava = hraje === s.id && v;
 
           return (
@@ -255,6 +242,27 @@ export const SeznamSkladeb: React.FC<Props> = ({
                 ))}
 
                 <div className="flex items-center gap-0.5 justify-self-end">
+                  {/* Detail jen u téhle písně — celý seznam kvůli jedné
+                      skladbě narůstat nemusí. */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      rozbal(s.id);
+                    }}
+                    className={`p-1.5 rounded-lg hover:bg-white/10 cursor-pointer transition-all ${
+                      otevreny ? 'text-[#FF9F0A]' : 'text-neutral-500 hover:text-white'
+                    }`}
+                    title={otevreny ? 'Skrýt detail' : 'Ukázat detail'}
+                  >
+                    {otevreny ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={(e) => onUpravit(s, e)}
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#30D158] cursor-pointer transition-all"
+                    title="Doplnit materiály — tabulatury, text, MIDI, stopy…"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
                   <button
                     onClick={(e) => onDoPlaylistu(s, e)}
                     className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#FF9F0A] cursor-pointer transition-all"
@@ -283,7 +291,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   a ve stejné velikosti, kde do té chvíle byl obrázek.
                   Přehrávač pod řádkem odsouval seznam a oči šly jinam,
                   než na co se kliklo. */}
-              {(prehrava || pohled === 'detail') && (
+              {(prehrava || otevreny) && (
                 <div className="px-3 pb-2 flex items-start gap-2 flex-wrap">
                   {prehrava ? (
                     <div className="w-64">
@@ -292,7 +300,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                         videoId={v!.id}
                         nazev={v!.title}
                         zdroj="Ukázka z knihovny"
-                        sVideem={pohled === 'detail'}
+                        sVideem={otevreny}
                         onZavrit={() => setHraje(null)}
                       />
                     </div>
@@ -306,7 +314,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       />
                     )
                   )}
-                  {pohled === 'detail' && (
+                  {otevreny && (
                     <div className="flex flex-wrap gap-1">
                       {jazyk && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">

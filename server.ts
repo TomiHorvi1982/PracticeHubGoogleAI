@@ -632,8 +632,13 @@ export async function createApp() {
       query = query.or(`owner_id.eq.${req.user!.id},owner_id.is.null`);
     }
 
+    // Víc kategorií naráz: stopy do mixu mohou být nahrávky, backing tracky
+    // i samply. Filtrovat je až v prohlížeči nejde — ten dostane jen jednu
+    // stránku, takže by mu to, co hledá, mohlo zůstat kus za jejím koncem
+    // a on by viděl prázdno.
     if (category) {
-      query = query.eq('category', category);
+      const kategorie = category.split(',').map((c) => c.trim()).filter(Boolean);
+      query = kategorie.length > 1 ? query.in('category', kategorie) : query.eq('category', kategorie[0]);
     }
 
     if (search) {
