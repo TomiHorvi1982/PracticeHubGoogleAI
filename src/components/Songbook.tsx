@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SongFilterPanel } from './songbook/SongFilterPanel';
 import { ObjevSkladby } from './songbook/ObjevSkladby';
+import { SeznamSkladeb } from './songbook/SeznamSkladeb';
 import { spustDoplneni } from '../services/enrichmentClient';
 import {
   jeFiltrPrazdny,
@@ -18,7 +19,7 @@ import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
-  Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight, Globe,
+  Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight, Globe, ListMusic,
   Trash2, List, Edit3, Lock, Unlock, ListPlus,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
@@ -157,6 +158,9 @@ export const Songbook: React.FC<SongbookProps> = ({
       /* plné úložiště nesmí zabránit zavření strany */
     }
   }, [levaOtevrena, pravaOtevrena]);
+
+  /** Ukázka z YouTube spuštěná z řádku skladby. */
+  const [ukazkaVidea, setUkazkaVidea] = useState<{ id: string; nazev: string } | null>(null);
 
   const [filtryOtevrene, setFiltryOtevrene] = useState(false);
   const [seznamOtevreny, setSeznamOtevreny] = useState(false);
@@ -534,106 +538,11 @@ export const Songbook: React.FC<SongbookProps> = ({
                 className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
               />
             </div>
+          </div>
 
-            {/* Alphabet Index Row */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-none select-none">
-              <button
-                onClick={() => setSelectedLetter(null)}
-                className={`px-2 py-1 text-[10px] font-medium rounded-lg border shrink-0 transition-all cursor-pointer ${
-                  !selectedLetter
-                    ? 'bg-white/20 text-white border-white/25 font-semibold'
-                    : 'bg-white/[0.04] text-neutral-400 border-white/[0.04] hover:text-white'
-                }`}
-              >
-                Vše
-              </button>
-              {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map((letter) => {
-                const hasSongs = songs.some((s) => s.title.toUpperCase().startsWith(letter));
-                const isActive = selectedLetter === letter;
-                return (
-                  <button
-                    key={letter}
-                    onClick={() => setSelectedLetter(isActive ? null : letter)}
-                    className={`px-1.5 py-0.5 text-[10px] font-medium rounded-md border shrink-0 transition-all cursor-pointer ${
-                      isActive
-                        ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] font-bold'
-                        : hasSongs
-                        ? 'bg-white/[0.06] text-neutral-300 border-white/[0.08] hover:border-white/20'
-                        : 'bg-transparent text-neutral-600 border-transparent cursor-not-allowed'
-                    }`}
-                    disabled={!hasSongs}
-                  >
-                    {letter}
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Roletka s ovládáním. V základu sbalená — hledání stačí na
-                většinu případů a filtry si člověk otevře, až je potřebuje. */}
-            <button
-              onClick={() => {
-                // Ovládání a seznam patří k sobě — filtruješ proto, abys
-                // v seznamu něco našel. Dvě samostatné roletky vedle sebe
-                // znamenaly dvě kliknutí k témuž.
-                const nove = !filtryOtevrene;
-                setFiltryOtevrene(nove);
-                setSeznamOtevreny(nove);
-              }}
-              className="w-full flex items-center gap-2 px-3 py-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.06] rounded-xl text-left cursor-pointer transition-all"
-            >
-              {filtryOtevrene ? (
-                <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
-              )}
-              <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">
-                Moje skladby — řazení, filtry a seznam
-              </span>
-              {!jeFiltrPrazdny(filtr) && (
-                <span className="text-[9px] font-bold text-black bg-[#FF9F0A] px-1.5 rounded-full">
-                  filtr zapnutý
-                </span>
-              )}
-              <span className="ml-auto text-[10px] font-mono text-neutral-500">
-                {filteredSongs.length} z {songs.length}
-              </span>
-            </button>
-
-            <div className={`grid-cols-1 lg:grid-cols-3 gap-3 items-start ${filtryOtevrene ? 'grid' : 'hidden'}`}>
-            <div className="flex items-center justify-between bg-white/[0.03] p-1 rounded-xl border border-white/[0.06] text-[11px]">
-              <span className="text-neutral-400 font-medium px-2">Řazení</span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => setSortMode('recent')}
-                  className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
-                    sortMode === 'recent'
-                      ? 'bg-white/15 text-white font-semibold shadow-sm'
-                      : 'text-neutral-400 hover:text-white'
-                  }`}
-                >
-                  Poslední
-                </button>
-                {([
-                  ['alphabetical', 'Název'],
-                  ['artist', 'Interpret'],
-                  ['opened', 'Naposledy'],
-                ] as [ZpusobRazeni, string][]).map(([id, popis]) => (
-                  <button
-                    key={id}
-                    onClick={() => setSortMode(id)}
-                    className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
-                      sortMode === id
-                        ? 'bg-white/15 text-white font-semibold shadow-sm'
-                        : 'text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    {popis}
-                  </button>
-                ))}
-              </div>
-            </div>
-
+            {/* Řazení, pohled a seznam v jedné komponentě. Roletka a
+                abecední rejstřík odešly: filtrovat podle písmene je zbytek
+                z doby, kdy se seznam nedal řadit ani prohledávat. */}
             <SongFilterPanel
               filtr={filtr}
               fasety={fasety}
@@ -642,278 +551,22 @@ export const Songbook: React.FC<SongbookProps> = ({
               onZmena={setFiltr}
             />
 
-
-            {/* Playlists Selector Panel */}
-            <div className="bg-white/[0.03] border border-white/[0.06] p-2.5 rounded-2xl space-y-2 lg:max-h-[300px] lg:overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
-                  <List className="w-3.5 h-3.5 text-[#FF9F0A]" /> Playlisty
-                </span>
-                <button
-                  onClick={() => setShowNewPlaylistInput(!showNewPlaylistInput)}
-                  className="text-[10px] font-medium text-[#FF9F0A] hover:underline cursor-pointer"
-                >
-                  + Nový playlist
-                </button>
-              </div>
-
-              {showNewPlaylistInput ? (
-                <form onSubmit={handleCreatePlaylist} className="flex gap-1.5">
-                  <input
-                    type="text"
-                    placeholder="Název playlistu..."
-                    value={newPlaylistName}
-                    onChange={(e) => setNewPlaylistName(e.target.value)}
-                    className="flex-1 bg-black/50 border border-white/15 rounded-xl px-2.5 py-1 text-xs text-white focus:border-[#FF9F0A] outline-none"
-                    autoFocus
-                  />
-                  <button
-                    type="submit"
-                    className="bg-[#FF9F0A] text-black text-xs font-semibold px-2.5 rounded-xl cursor-pointer"
-                  >
-                    OK
-                  </button>
-                </form>
-              ) : (
-                <div className="flex flex-wrap gap-1.5 max-h-[72px] overflow-y-auto">
-                  {playlists.map((pl) => {
-                    const isActive = selectedPlaylistId === pl.id;
-                    const songCount =
-                      pl.id === 'all'
-                        ? songs.length
-                        : songs.filter((s) => pl.songIds.includes(s.id)).length;
-                    return (
-                      <button
-                        key={pl.id}
-                        onClick={() => {
-                          setSelectedPlaylistId(pl.id);
-                          setSelectedLetter(null);
-                        }}
-                        className={`px-2.5 py-1 text-xs font-medium rounded-xl border transition-all cursor-pointer ${
-                          isActive
-                            ? 'bg-[#FF9F0A] border-[#FF9F0A] text-black font-semibold shadow-sm'
-                            : 'bg-white/[0.04] border-white/[0.06] text-neutral-400 hover:text-white'
-                        }`}
-                      >
-                        {pl.name} <span className="opacity-70 text-[10px]">({songCount})</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            </div>
-
-            {/* Action Buttons: Import */}
-            <div className="pt-1">
-              <button
-                onClick={() => setIsFileImportOpen(true)}
-                className="w-full py-2.5 px-3 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white text-xs font-semibold rounded-2xl flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
-              >
-                <FileUp className="w-4 h-4 text-[#FF9F0A]" />
-                <span>Importovat píseň (.txt, .gp, .chordpro, .pdf)</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Seznam skladeb je taky roletka. Přepínač řádky/detailní má
-              smysl až uvnitř, proto je vedle nadpisu, ne nad ním. */}
-          <div className={`items-center justify-between px-1 pt-2 pb-1 border-t border-white/[0.06] ${seznamOtevreny ? 'flex' : 'hidden'}`}>
-            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-              Skladby ({filteredSongs.length})
-            </span>
-            <div className={`items-center bg-black/50 border border-white/10 p-0.5 rounded-xl ${seznamOtevreny ? 'flex' : 'hidden'}`}>
-              <button
-                onClick={() => toggleSongListViewMode('compact')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  songListViewMode === 'compact'
-                    ? 'bg-[#FF9F0A] text-black shadow-sm font-bold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-                title="1-řádkový kompaktní režim (Název skladby & Kapela)"
-              >
-                <AlignJustify className="w-3 h-3" />
-                <span>Řádky</span>
-              </button>
-              <button
-                onClick={() => toggleSongListViewMode('detailed')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  songListViewMode === 'detailed'
-                    ? 'bg-[#FF9F0A] text-black shadow-sm font-bold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-                title="Detailní režim s popisem obsahu a odznaky"
-              >
-                <LayoutGrid className="w-3 h-3" />
-                <span>Detailní</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Songs List with Scroll Support (Compact 1-line or Detailed Cards) */}
-          <div
-            className={`overflow-y-auto max-h-[46vh] grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1.5 pr-1 pt-1 ${
-              seznamOtevreny ? 'grid' : 'hidden'
-            }`}
-          >
-            {filteredSongs.length === 0 ? (
-              <p className="text-xs text-neutral-500 text-center py-10">
-                Žádné skladby neodpovídají filtrům
-              </p>
-            ) : (
-              filteredSongs.map((song) => {
-                const isActive = activeSong.id === song.id;
-                const badges = getSongContentBadges(song);
-
-                if (songListViewMode === 'compact') {
-                  // Compact 1-line view (Band & Song only for high density)
-                  return (
-                    <div
-                      key={song.id}
-                      onClick={() => {
-                        setActiveSong(song);
-                        zaznamenejOtevreni(song.id);
-                        setTransposeSemitones(0);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-2 group ${
-                        isActive
-                          ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]/40 text-white shadow-sm font-semibold'
-                          : 'bg-white/[0.02] hover:bg-white/[0.08] border-white/[0.04] text-neutral-300'
-                      }`}
-                      title={`${song.artist} - ${song.title}`}
-                    >
-                      {/* Band & Song 1-line text */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {song.isLocked && (
-                          <span title="Uzamčeno">
-                            <Lock className="w-3.5 h-3.5 text-[#FF453A] shrink-0" />
-                          </span>
-                        )}
-                        <div className="text-xs truncate flex items-center gap-1.5">
-                          <span className="font-bold text-white truncate">{song.title}</span>
-                          <span className="text-neutral-500 font-normal shrink-0">—</span>
-                          <span className="text-neutral-400 text-[11px] truncate font-medium">{song.artist}</span>
-                        </div>
-                      </div>
-
-                      {/* Tuning / Key Badge & Compact hover actions */}
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-[9px] font-medium bg-white/10 text-neutral-300 px-1.5 py-0.5 rounded">
-                          {song.tuning ? song.tuning.split(' ')[0] : 'Std'}
-                        </span>
-                        
-                        <div className="hidden group-hover:flex items-center gap-0.5 ml-1">
-                          <button
-                            onClick={(e) => handleOpenAddToPlaylist(song, e)}
-                            className="p-1 hover:bg-white/15 text-neutral-300 hover:text-white rounded cursor-pointer"
-                            title="Přidat do playlistu"
-                          >
-                            <ListPlus className="w-3.5 h-3.5 text-[#FF9F0A]" />
-                          </button>
-                          <button
-                            onClick={(e) => handleLockClick(song, e)}
-                            className="p-1 hover:bg-white/15 text-neutral-300 hover:text-white rounded cursor-pointer"
-                            title={song.isLocked ? 'Odemknout' : 'Uzamknout'}
-                          >
-                            {song.isLocked ? <Lock className="w-3.5 h-3.5 text-[#FF453A]" /> : <Unlock className="w-3.5 h-3.5 text-neutral-400" />}
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteClick(song, e)}
-                            className="p-1 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded cursor-pointer"
-                            title="Smazat"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-
-                // Detailed view (Full card with content descriptor badges)
-                return (
-                  <div
-                    key={song.id}
-                    onClick={() => {
-                      setActiveSong(song);
-                      zaznamenejOtevreni(song.id);
-                      setTransposeSemitones(0);
-                    }}
-                    className={`w-full text-left p-3 rounded-2xl border transition-all cursor-pointer relative group ${
-                      isActive
-                        ? 'bg-white/15 border-white/25 text-white shadow-md'
-                        : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.04] text-neutral-300'
-                    }`}
-                  >
-                    {/* Song Header & Title */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-1.5 flex-1 truncate">
-                        {song.isLocked && (
-                          <span title="Zamčeno adminem">
-                            <Lock className="w-3.5 h-3.5 text-[#FF453A] shrink-0" />
-                          </span>
-                        )}
-                        <h3 className="font-bold text-xs truncate text-white">{song.title}</h3>
-                      </div>
-                      <span className="text-[10px] font-medium bg-white/10 text-neutral-300 px-2 py-0.5 rounded-md shrink-0">
-                        {song.tuning || 'Standard'}
-                      </span>
-                    </div>
-
-                    <p className="text-[11px] text-neutral-400 mt-0.5 truncate">{song.artist}</p>
-
-                    {/* Content Descriptor Badges ("popis co obsahuje: Youtube, Text, Akordy, Tabs, Midi, Noty, Obrázky, Odkazy") */}
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {badges.map((b) => (
-                        <span
-                          key={b.id}
-                          className={`text-[9px] font-semibold border px-1.5 py-0.5 rounded-md flex items-center gap-1 ${b.color}`}
-                        >
-                          <span>{b.icon}</span>
-                          <span>{b.label}</span>
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Quick Card Action Toolbar */}
-                    <div className="flex items-center justify-end gap-1.5 mt-2.5 pt-1.5 border-t border-white/[0.06] opacity-90 group-hover:opacity-100">
-                      {/* Add to playlist button */}
-                      <button
-                        onClick={(e) => handleOpenAddToPlaylist(song, e)}
-                        className="p-1.5 bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white rounded-lg text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
-                        title="Přidat do playlistu"
-                      >
-                        <ListPlus className="w-3.5 h-3.5 text-[#FF9F0A]" />
-                        <span>Playlist</span>
-                      </button>
-
-                      {/* Lock / Unlock button */}
-                      <button
-                        onClick={(e) => handleLockClick(song, e)}
-                        className={`p-1.5 rounded-lg text-[10px] flex items-center gap-1 cursor-pointer transition-colors ${
-                          song.isLocked
-                            ? 'bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/30'
-                            : 'bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white'
-                        }`}
-                        title={song.isLocked ? 'Odemknout skladbu' : 'Uzamknout adminem'}
-                      >
-                        {song.isLocked ? <Lock className="w-3.5 h-3.5 text-[#FF453A]" /> : <Unlock className="w-3.5 h-3.5 text-neutral-400" />}
-                      </button>
-
-                      {/* Delete button */}
-                      <button
-                        onClick={(e) => handleDeleteClick(song, e)}
-                        className="p-1.5 bg-white/5 hover:bg-red-500/20 text-neutral-400 hover:text-red-400 rounded-lg cursor-pointer transition-colors"
-                        title="Odstranit z knihovny"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
+            <SeznamSkladeb
+              songs={filteredSongs}
+              aktivniId={activeSong?.id}
+              onVybrat={(s) => {
+                setActiveSong(s);
+                zaznamenejOtevreni(s.id);
+                setTransposeSemitones(0);
+              }}
+              onZamknout={handleLockClick}
+              onSmazat={handleDeleteClick}
+              onDoPlaylistu={handleOpenAddToPlaylist}
+              onPrehrat={(s, youtubeId, e) => {
+                if (e) e.stopPropagation();
+                setUkazkaVidea({ id: youtubeId, nazev: s.title });
+              }}
+            />
         </div>
         ) : (
           <button
@@ -928,6 +581,91 @@ export const Songbook: React.FC<SongbookProps> = ({
           </button>
         )}
         </div>
+
+        {/* Playlist pod oběma vyhledávači — co si naklikáš, je vidět tady.
+            Dřív byl playlist jinou sekcí, takže se do něj skladba přidala
+            a zmizela z očí. */}
+        {playlists.length > 0 && (
+          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <ListMusic className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+              <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Playlist</h2>
+              <div className="flex flex-wrap gap-1 ml-2">
+                {playlists.map((pl) => (
+                  <button
+                    key={pl.id}
+                    onClick={() => setSelectedPlaylistId(pl.id)}
+                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                      selectedPlaylistId === pl.id
+                        ? 'bg-[#FF9F0A] text-black'
+                        : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]'
+                    }`}
+                  >
+                    {pl.name} ({pl.songIds.length})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(() => {
+              const pl = playlists.find((p) => p.id === selectedPlaylistId) || playlists[0];
+              const vPlaylistu = pl ? songs.filter((s) => pl.songIds.includes(s.id)) : [];
+              if (!pl || vPlaylistu.length === 0) {
+                return (
+                  <p className="text-[11px] text-neutral-600">
+                    Playlist je prázdný. Přidej skladbu ikonou v seznamu.
+                  </p>
+                );
+              }
+              return (
+                <div className="flex flex-wrap gap-1.5">
+                  {vPlaylistu.map((s, i) => (
+                    <button
+                      key={s.id}
+                      onClick={() => {
+                        setActiveSong(s);
+                        zaznamenejOtevreni(s.id);
+                      }}
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] border transition-all cursor-pointer ${
+                        activeSong?.id === s.id
+                          ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-white font-bold'
+                          : 'bg-black/30 border-white/[0.08] text-neutral-300 hover:border-white/25'
+                      }`}
+                    >
+                      <span className="text-[9px] font-mono text-neutral-600">{i + 1}.</span>
+                      <span className="truncate max-w-[170px]">{s.title}</span>
+                      <span className="text-neutral-600 truncate max-w-[90px]">{s.artist}</span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Ukázka z YouTube. Přehrává se rovnou v knihovně, aby se kvůli
+            poslechu nemusela píseň otevírat. */}
+        {ukazkaVidea && (
+          <div className="bg-[#16161A]/90 border border-[#FF453A]/30 rounded-3xl p-3 shadow-xl space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-bold text-white truncate flex-1">{ukazkaVidea.nazev}</span>
+              <button
+                onClick={() => setUkazkaVidea(null)}
+                className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                title="Zavřít ukázku"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <iframe
+              src={`https://www.youtube.com/embed/${ukazkaVidea.id}?autoplay=1`}
+              title={ukazkaVidea.nazev}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              className="w-full aspect-video rounded-2xl border-none"
+            />
+          </div>
+        )}
 
         {/* Main View: Song Viewer with Modular Windows Workspace */}
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl space-y-4">
@@ -1068,9 +806,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                     {activeSong.title}
                   </h1>
                 </div>
-                <p className="text-xs text-neutral-400 mt-0.5">
-                  {activeSong.artist} • Ladění: <span className="text-[#FF9F0A] font-medium">{activeSong.tuning || 'Standard (EADGBe)'}</span>
-                </p>
+                <p className="text-xs text-neutral-400 mt-0.5">{activeSong.artist}</p>
               </div>
 
               {/* Controls Grid */}
