@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Play, Square, Loader2, Layers, Repeat, ListMusic, VolumeX, Volume2 } from 'lucide-react';
 import { skladackaService, StavSkladacky } from '../../services/skladackaService';
+import { useMusicalContext } from '../../context/MusicalContext';
 
 /**
  * Skládačka ze samplů na Pódiu.
@@ -11,6 +12,8 @@ import { skladackaService, StavSkladacky } from '../../services/skladackaService
  * ovládání a přehled, ne vybírání.
  */
 export const SamplyModul: React.FC = () => {
+  // Tempo řídí vrchní lišta — jedno pro metronom i pro smyčku.
+  const { setBpm } = useMusicalContext();
   const [stav, setStav] = useState<StavSkladacky>(skladackaService.getState());
   useEffect(() => skladackaService.subscribe(setStav), []);
 
@@ -41,7 +44,7 @@ export const SamplyModul: React.FC = () => {
           <input
             type="number"
             value={stav.bpm}
-            onChange={(e) => skladackaService.nastavBpm(Number(e.target.value))}
+            onChange={(e) => setBpm(Number(e.target.value))}
             className="w-11 bg-transparent text-[12px] font-bold text-white text-center outline-none tabular-nums"
           />
         </div>

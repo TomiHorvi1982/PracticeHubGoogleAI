@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { Song } from '../types';
 import { eventBus } from '../services/eventBus';
 import { metronomService } from '../services/metronomService';
+import { skladackaService } from '../services/skladackaService';
 import { songDatabaseService } from '../services/songDatabaseService';
 
 export type DockToolId = 'fretboard' | 'scales' | 'chords' | 'tuner' | 'metronome' | 'looper' | 'drums' | 'keyboard' | null;
@@ -112,6 +113,10 @@ export const MusicalProvider: React.FC<{ children: ReactNode }> = ({ children })
   const setBpm = useCallback((newBpm: number) => {
     const clamped = Math.max(30, Math.min(300, Math.round(newBpm)));
     setBpmState(clamped);
+    // Tempo je jedno pro celou appku: metronom i smyčka ze samplů. Dvě
+    // různá tempa na jedné obrazovce znamenají, že se kapela rozejde
+    // s podkladem a nikdo neví, které z nich je to správné.
+    skladackaService.nastavBpm(clamped);
     eventBus.emit('BPM_CHANGED', { bpm: clamped });
   }, []);
 

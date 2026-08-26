@@ -199,3 +199,25 @@ export function tonyZNazvu(nazev: string): number[] | null {
   const intervaly = v ? v.intervaly : pripona.startsWith('m') ? [0, 3, 7] : [0, 4, 7];
   return intervaly.map((i) => 60 + idx + i);
 }
+
+/**
+ * O kolik půltónů transponovat, aby píseň zněla v cílové tónině.
+ *
+ * Vybírá se kratší cesta: do C z H se jde o půltón nahoru, ne o jedenáct
+ * dolů. Zpívá se to stejně, ale hmaty na krku jsou úplně jinde.
+ *
+ * Durové a mollové značení se ignoruje — posun je daný jen základním
+ * tónem. `Am` na `Cm` je +3 stejně jako `A` na `C`.
+ */
+export function posunDoToniny(zeSongu: string, cil: string): number | null {
+  const zaklad = (t: string) => {
+    const m = String(t || '').trim().match(/^([A-H][#b]?)/);
+    return m ? ZAKLADY[m[1]] : undefined;
+  };
+  const a = zaklad(zeSongu);
+  const b = zaklad(cil);
+  if (a === undefined || b === undefined) return null;
+
+  const rozdil = (b - a + 12) % 12;
+  return rozdil > 6 ? rozdil - 12 : rozdil;
+}

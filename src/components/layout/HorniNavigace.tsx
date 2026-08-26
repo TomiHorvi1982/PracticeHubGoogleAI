@@ -40,6 +40,20 @@ const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: st
 
 export const HorniNavigace: React.FC<Props> = ({ activeTab, onSelectTab }) => (
   <nav className="h-11 bg-[#0C1424] border-b border-slate-800/80 px-3 sm:px-4 flex items-center gap-1 overflow-x-auto scrollbar-thin shrink-0">
+    {/* Rozcestník. Malý a první, protože se hledá jen když člověk neví
+        kudy dál — pak ale musí být po ruce hned. */}
+    <button
+      onClick={() => onSelectTab('vitejte')}
+      className={`px-2 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+        activeTab === 'vitejte'
+          ? 'bg-amber-500 text-slate-950'
+          : 'bg-slate-900/80 text-slate-400 hover:bg-slate-800 hover:text-white'
+      }`}
+      title="Rozcestník — co appka umí a kde začít"
+    >
+      ?
+    </button>
+
     {/* Zpět na hlavní stránku. Oddělené mezerou, protože to není nástroj
         jako ostatní, ale cesta domů. */}
     <button

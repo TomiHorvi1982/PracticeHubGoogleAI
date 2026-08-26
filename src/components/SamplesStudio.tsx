@@ -5,6 +5,7 @@ import {
 import { authService } from '../services/authService';
 import { skladackaService, StavSkladacky, Sampl } from '../services/skladackaService';
 import { drumLoopService } from '../services/drumLoopService';
+import { useMusicalContext } from '../context/MusicalContext';
 
 type Nastroj = 'bicí' | 'basa' | 'kytara' | 'vokal';
 type Razeni = 'tempo' | 'tonina' | 'takt' | 'nazev';
@@ -38,6 +39,8 @@ export const SamplesStudio: React.FC = () => {
   const [chyba, setChyba] = useState<string | null>(null);
   const [hledat, setHledat] = useState('');
   const [razeni, setRazeni] = useState<Razeni>('tempo');
+  // Tempo řídí vrchní lišta — jedno pro metronom i pro smyčku.
+  const { setBpm } = useMusicalContext();
   const [stav, setStav] = useState<StavSkladacky>(skladackaService.getState());
   /** Do kterého políčka se vloží kliknutý sampl. */
   const [cil, setCil] = useState<{ stopa: string; cast: string } | null>(null);
@@ -119,7 +122,7 @@ export const SamplesStudio: React.FC = () => {
               <input
                 type="number"
                 value={stav.bpm}
-                onChange={(e) => skladackaService.nastavBpm(Number(e.target.value))}
+                onChange={(e) => setBpm(Number(e.target.value))}
                 className="w-12 bg-transparent text-[12px] font-bold text-white text-center outline-none tabular-nums"
               />
             </div>

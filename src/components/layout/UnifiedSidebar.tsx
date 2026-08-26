@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 
 export type MainTabType =
+  | 'vitejte'
   | 'songbook'
   | 'podium'
   | 'playlist'

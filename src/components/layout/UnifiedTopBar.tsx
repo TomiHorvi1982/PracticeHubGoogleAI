@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
 import { audioBus, CoHraje } from '../../services/audioBus';
+import { posunDoToniny } from '../../services/akordy';
 import { 
   Play, 
   Pause, 
@@ -45,8 +46,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     setTuning,
     transposeSemitones,
     setTransposeSemitones,
-    isPlaying,
-    setIsPlaying,
     isMetronomeActive,
     toggleMetronome,
   } = useMusicalContext();
@@ -64,6 +63,19 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
   useEffect(() => audioBus.subscribe(setHraje), []);
 
   const keysList = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'Cm', 'Dm', 'Em', 'Fm', 'Gm', 'Am', 'Bm'];
+
+  /**
+   * Přepne píseň do zvolené tóniny.
+   *
+   * Dřív tenhle výběr jen přepsal štítek a nic se nestalo — kdo chtěl
+   * hrát v jiné tónině, musel si posun spočítat z hlavy a naklikat ho na
+   * plus a minus vedle. Teď se posun dopočítá z tóniny písně.
+   */
+  const zahrajV = (cil: string) => {
+    setKey(cil);
+    const posun = activeSong?.key ? posunDoToniny(activeSong.key, cil) : null;
+    if (posun !== null) setTransposeSemitones(posun);
+  };
   const tuningsList = ['E Standard', 'Drop D', 'D Standard', 'Drop C', 'Half Step Down', 'Open G', 'Open D'];
 
   return (
@@ -116,19 +128,6 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
       {/* CENTER SECTION: Global Musical Controls (BPM, Key, Tuning, Transport) */}
       <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner">
-        {/* Play/Pause Master Transport */}
-        <button
-          onClick={() => setIsPlaying(!isPlaying)}
-          className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
-            isPlaying
-              ? 'bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20 scale-105'
-              : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
-          }`}
-          title={isPlaying ? 'Pozastavit' : 'Spustit přehrávání'}
-        >
-          {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
-        </button>
-
         {/* BPM Control */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
           <Clock className="w-3.5 h-3.5 text-amber-400" />
@@ -176,8 +175,13 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
           <span className="text-[10px] font-semibold text-slate-400 uppercase">Tónina</span>
           <select
             value={key}
-            onChange={(e) => setKey(e.target.value)}
+            onChange={(e) => zahrajV(e.target.value)}
             className="bg-transparent text-xs font-bold text-amber-400 focus:outline-none cursor-pointer"
+            title={
+              activeSong?.key
+                ? `Píseň je v ${activeSong.key}. Výběrem jiné tóniny se přepíšou akordy.`
+                : 'U písně není známá tónina, takže není z čeho počítat posun.'
+            }
           >
             {keysList.map((k) => (
               <option key={k} value={k} className="bg-slate-900 text-slate-100">
