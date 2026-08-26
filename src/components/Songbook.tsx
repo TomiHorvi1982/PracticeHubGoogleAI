@@ -12,7 +12,7 @@ import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
-  Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight, Globe, ListMusic,
+  Maximize2, Minimize2, X, FileUp, ChevronRight, Globe,
   Trash2, List, Edit3, Lock, Unlock,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
@@ -143,7 +143,6 @@ export const Songbook: React.FC<SongbookProps> = ({
   }, [levaOtevrena, pravaOtevrena]);
 
   /** Ukázka z YouTube spuštěná z řádku skladby. */
-  const [ukazkaVidea, setUkazkaVidea] = useState<{ id: string; nazev: string } | null>(null);
 
   const [seznamOtevreny, setSeznamOtevreny] = useState(false);
 
@@ -442,12 +441,15 @@ export const Songbook: React.FC<SongbookProps> = ({
               Objevit novou skladbu
             </h2>
             <span className="text-[10px] text-neutral-500">Last.fm — hledá venku, ne ve tvé knihovně</span>
+            {/* Jedna ikona pro obojí: otočená šipka říká, kterým směrem
+                se panel chystá jít. Křížek vedle šipky na otevírání jen
+                nutil hledat, který ovladač je ten správný. */}
             <button
               onClick={() => setLevaOtevrena(false)}
               className="ml-auto p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
-              title="Zavřít objevování"
+              title="Sbalit objevování"
             >
-              <X className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4 rotate-90 transition-transform" />
             </button>
           </div>
             <ObjevSkladby
@@ -497,9 +499,9 @@ export const Songbook: React.FC<SongbookProps> = ({
               <button
                 onClick={() => setPravaOtevrena(false)}
                 className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
-                title="Zavřít vlastní knihovnu"
+                title="Sbalit vlastní knihovnu"
               >
-                <X className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4 rotate-90 transition-transform" />
               </button>
 
             </div>
@@ -531,10 +533,6 @@ export const Songbook: React.FC<SongbookProps> = ({
               onZamknout={handleLockClick}
               onSmazat={handleDeleteClick}
               onDoPlaylistu={handleOpenAddToPlaylist}
-              onPrehrat={(s, youtubeId, e) => {
-                if (e) e.stopPropagation();
-                setUkazkaVidea({ id: youtubeId, nazev: s.title });
-              }}
             />
         </div>
         ) : (
@@ -550,91 +548,6 @@ export const Songbook: React.FC<SongbookProps> = ({
           </button>
         )}
         </div>
-
-        {/* Playlist pod oběma vyhledávači — co si naklikáš, je vidět tady.
-            Dřív byl playlist jinou sekcí, takže se do něj skladba přidala
-            a zmizela z očí. */}
-        {playlists.length > 0 && (
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <ListMusic className="w-4 h-4 text-[#FF9F0A] shrink-0" />
-              <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Playlist</h2>
-              <div className="flex flex-wrap gap-1 ml-2">
-                {playlists.map((pl) => (
-                  <button
-                    key={pl.id}
-                    onClick={() => setSelectedPlaylistId(pl.id)}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
-                      selectedPlaylistId === pl.id
-                        ? 'bg-[#FF9F0A] text-black'
-                        : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.12]'
-                    }`}
-                  >
-                    {pl.name} ({pl.songIds.length})
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {(() => {
-              const pl = playlists.find((p) => p.id === selectedPlaylistId) || playlists[0];
-              const vPlaylistu = pl ? songs.filter((s) => pl.songIds.includes(s.id)) : [];
-              if (!pl || vPlaylistu.length === 0) {
-                return (
-                  <p className="text-[11px] text-neutral-600">
-                    Playlist je prázdný. Přidej skladbu ikonou v seznamu.
-                  </p>
-                );
-              }
-              return (
-                <div className="flex flex-wrap gap-1.5">
-                  {vPlaylistu.map((s, i) => (
-                    <button
-                      key={s.id}
-                      onClick={() => {
-                        setActiveSong(s);
-                        zaznamenejOtevreni(s.id);
-                      }}
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] border transition-all cursor-pointer ${
-                        activeSong?.id === s.id
-                          ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-white font-bold'
-                          : 'bg-black/30 border-white/[0.08] text-neutral-300 hover:border-white/25'
-                      }`}
-                    >
-                      <span className="text-[9px] font-mono text-neutral-600">{i + 1}.</span>
-                      <span className="truncate max-w-[170px]">{s.title}</span>
-                      <span className="text-neutral-600 truncate max-w-[90px]">{s.artist}</span>
-                    </button>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
-        )}
-
-        {/* Ukázka z YouTube. Přehrává se rovnou v knihovně, aby se kvůli
-            poslechu nemusela píseň otevírat. */}
-        {ukazkaVidea && (
-          <div className="bg-[#16161A]/90 border border-[#FF453A]/30 rounded-3xl p-3 shadow-xl space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold text-white truncate flex-1">{ukazkaVidea.nazev}</span>
-              <button
-                onClick={() => setUkazkaVidea(null)}
-                className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer shrink-0"
-                title="Zavřít ukázku"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            <iframe
-              src={`https://www.youtube.com/embed/${ukazkaVidea.id}?autoplay=1`}
-              title={ukazkaVidea.nazev}
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              className="w-full aspect-video rounded-2xl border-none"
-            />
-          </div>
-        )}
 
         {/* Main View: Song Viewer with Modular Windows Workspace */}
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl space-y-4">

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
+import { audioBus, CoHraje } from '../../services/audioBus';
 import { 
   Play, 
   Pause, 
@@ -14,7 +15,9 @@ import {
   VolumeX,
   PanelLeftClose,
   PanelLeftOpen,
-  Menu
+  Menu,
+  Square,
+  AudioLines
 } from 'lucide-react';
 
 interface UnifiedTopBarProps {
@@ -48,6 +51,18 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     toggleMetronome,
   } = useMusicalContext();
 
+  /**
+   * Co zrovna hraje.
+   *
+   * Zvuk umí spustit sedm různých míst — spodní přehrávač, Media Center,
+   * bicí, ukázky v knihovně i u výsledků hledání. Když se z reproduktoru
+   * ozve skladba, člověk pak obchází sekce a hledá, které okno ji pustilo.
+   * Vrchní lišta je jediné místo vidět odevšad, tak to říká rovnou —
+   * i s tlačítkem, kterým to jde utnout.
+   */
+  const [hraje, setHraje] = useState<CoHraje | null>(null);
+  useEffect(() => audioBus.subscribe(setHraje), []);
+
   const keysList = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'Cm', 'Dm', 'Em', 'Fm', 'Gm', 'Am', 'Bm'];
   const tuningsList = ['E Standard', 'Drop D', 'D Standard', 'Drop C', 'Half Step Down', 'Open G', 'Open D'];
 
@@ -77,6 +92,26 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             {activeSong && <span className="text-slate-400 text-[11px] block truncate">{activeSong.artist}</span>}
           </div>
         </div>
+
+        {/* Právě hraje — vedle skladby, kterou zrovna trénujeme. */}
+        {hraje && (
+          <div className="hidden sm:flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5 rounded-xl max-w-[200px] lg:max-w-[260px]">
+            <AudioLines className="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" />
+            <div className="truncate text-xs min-w-0">
+              <span className="font-semibold text-emerald-100 block truncate">
+                {hraje.nazev || 'Přehrávání'}
+              </span>
+              <span className="text-emerald-400/70 text-[10px] block truncate">{hraje.zdroj}</span>
+            </div>
+            <button
+              onClick={() => audioBus.stopAll()}
+              className="p-1 rounded-lg hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-200 cursor-pointer shrink-0 transition-all"
+              title="Zastavit přehrávání"
+            >
+              <Square className="w-3 h-3 fill-current" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* CENTER SECTION: Global Musical Controls (BPM, Key, Tuning, Transport) */}

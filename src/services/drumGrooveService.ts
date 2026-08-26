@@ -249,7 +249,7 @@ class DrumGrooveService {
 
   public play(): void {
     if (!this.udery.length || this.stav.hraje) return;
-    audioBus.claim('drum-looper');
+    audioBus.claim('drum-looper', (this.stav.groove as any)?.nazev || (this.stav.groove as any)?.name || 'Groove', 'Bicí looper');
 
     const ctx = sampledDrumEngine.ensureAudioGraph();
     // Prohlížeč nechá zvuk běžet až po skutečném kliknutí; bez tohohle by

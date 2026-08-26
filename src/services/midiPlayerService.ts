@@ -189,7 +189,7 @@ class MidiPlayerService {
 
   public play(): void {
     if (this.state.isPlaying || this.state.tracks.length === 0) return;
-    audioBus.claim('midi-player');
+    audioBus.claim('midi-player', this.state.asset?.name || 'MIDI', 'MIDI přehrávač');
 
     this.zacatek = performance.now();
     this.odkud = this.state.position;

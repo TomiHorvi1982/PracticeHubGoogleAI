@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audioBus } from '../../services/audioBus';
+import { nactiYouTubeApi } from '../../services/youtubeApi';
 import { Song, MediaTrack, LyricLine, MediaPlaylist, MediaPlaybackState, YouTubeVideo } from '../../types';
 import { mediaCenterService } from '../../services/mediaCenterService';
 import { eventBus } from '../../services/eventBus';
@@ -94,32 +95,15 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
     return unsub;
   }, []);
 
-  // Load YouTube IFrame API script once
+  // Načtení YouTube API přes společný zavaděč — viz youtubeApi.ts.
   useEffect(() => {
-    if (window.YT && window.YT.Player) {
-      setIsYtReady(true);
-      return;
-    }
-
-    if (!document.getElementById('youtube-iframe-api-script')) {
-      const tag = document.createElement('script');
-      tag.id = 'youtube-iframe-api-script';
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        setIsYtReady(true);
-      };
-    } else {
-      const checkInterval = setInterval(() => {
-        if (window.YT && window.YT.Player) {
-          setIsYtReady(true);
-          clearInterval(checkInterval);
-        }
-      }, 200);
-      return () => clearInterval(checkInterval);
-    }
+    let zivy = true;
+    void nactiYouTubeApi()
+      .then(() => zivy && setIsYtReady(true))
+      .catch((e) => console.warn('[MediaCenter] YouTube API:', e?.message));
+    return () => {
+      zivy = false;
+    };
   }, []);
 
   // Initialize or re-cue YouTube Player when currentTrack changes
@@ -152,7 +136,11 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             onStateChange: (event: any) => {
               // 1: PLAYING, 2: PAUSED, 0: ENDED
               if (event.data === 1) {
-                audioBus.claim('media-center');
+                audioBus.claim(
+                  'media-center',
+                  playbackState.currentTrack?.title || '',
+                  'Media Center'
+                );
                 mediaCenterService.setPlayingState(true);
               } else if (event.data === 2) {
                 audioBus.release('media-center');

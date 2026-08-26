@@ -116,7 +116,7 @@ class DrumLoopService {
 
   public play(): void {
     if (!this.buffer || this.stav.hraje) return;
-    audioBus.claim('drum-loops');
+    audioBus.claim('drum-loops', this.stav.smycka?.nazev || 'Smyčka', 'Bicí');
 
     const ctx = this.zvuk();
     if (ctx.state === 'suspended') void ctx.resume();

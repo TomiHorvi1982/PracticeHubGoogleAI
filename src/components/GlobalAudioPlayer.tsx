@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audioBus } from '../services/audioBus';
+import { nactiYouTubeApi } from '../services/youtubeApi';
 import { PlaylistItem, UserAccount } from '../types';
 import { eventBus } from '../services/eventBus';
 import {
@@ -156,20 +157,16 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Load YouTube IFrame API once
+  // Načtení YouTube API přes společný zavaděč. Vlastní `onYouTubeIframeAPIReady`
+  // tady přepisovalo tu, kterou si nastavil Media Center — a ten pak čekal na
+  // ohlášení, které už nikdy nepřišlo.
   useEffect(() => {
-    if (window.YT && window.YT.Player) {
-      setIsApiReady(true);
-      return;
-    }
-
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
-
-    window.onYouTubeIframeAPIReady = () => {
-      setIsApiReady(true);
+    let zivy = true;
+    void nactiYouTubeApi()
+      .then(() => zivy && setIsApiReady(true))
+      .catch((e) => console.warn('[GlobalAudioPlayer] YouTube API:', e?.message));
+    return () => {
+      zivy = false;
     };
   }, []);
 
@@ -200,7 +197,8 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
           onStateChange: (event: any) => {
             // Jakmile tenhle přehrávač začne hrát, ostatní zdroje zvuku se
             // zastaví — jinak by hrály současně.
-            if (event.data === 1) audioBus.claim('global-player');
+            if (event.data === 1)
+              audioBus.claim('global-player', currentTrack?.title || '', 'Přehrávač');
             if (event.data === 2 || event.data === 0) audioBus.release('global-player');
             if (event.data === 0) { // ENDED
               if (playbackMode === 'loop-one') {

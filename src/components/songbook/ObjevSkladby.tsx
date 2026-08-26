@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
-import { Search, Loader2, Plus, Sparkles, AlertCircle, Users } from 'lucide-react';
+import { Search, Loader2, Plus, Sparkles, AlertCircle, Users, Play } from 'lucide-react';
 import { authService } from '../../services/authService';
+import { MiniPrehravac } from './MiniPrehravac';
 
 interface Skladba {
   nazev: string;
@@ -40,6 +41,44 @@ export const ObjevSkladby: React.FC<Props> = ({ onPridat }) => {
   const [hledam, setHledam] = useState(false);
   const [chyba, setChyba] = useState<string | null>(null);
   const [chybiKlic, setChybiKlic] = useState(false);
+  const [ukazka, setUkazka] = useState<{ videoId: string; nazev: string } | null>(null);
+  const [hledamVideo, setHledamVideo] = useState<string | null>(null);
+
+  /**
+   * Pustí skladbu z výsledku hledání.
+   *
+   * Last.fm žádný zvuk nemá — zná jen názvy a statistiky. Poslech se proto
+   * dohledá na YouTube podle interpreta a názvu, stejným způsobem, jakým si
+   * appka shání videa k písním v knihovně.
+   */
+  const pust = async (s: Skladba) => {
+    const klic = `${s.interpret}-${s.nazev}`;
+    setHledamVideo(klic);
+    setChyba(null);
+    try {
+      const token = authService.getCurrentSession()?.token;
+      const res = await fetch('/api/search-youtube', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ title: s.nazev, artist: s.interpret }),
+      });
+      const d = await res.json().catch(() => ({}));
+      const video = (d.videos || [])[0];
+      const id = video?.id || (video?.url || '').match(/(?:v=|youtu\.be\/)([\w-]{11})/)?.[1];
+      if (!id) {
+        setChyba(`K „${s.nazev}" se nenašlo žádné video.`);
+        return;
+      }
+      setUkazka({ videoId: id, nazev: `${s.interpret} — ${s.nazev}` });
+    } catch {
+      setChyba('Nepodařilo se dohledat poslech.');
+    } finally {
+      setHledamVideo(null);
+    }
+  };
 
   const hledej = useCallback(async () => {
     const q = dotaz.trim();
@@ -105,6 +144,20 @@ export const ObjevSkladby: React.FC<Props> = ({ onPridat }) => {
       </button>
       {s.nazev && (
         <button
+          onClick={() => void pust(s)}
+          disabled={hledamVideo !== null}
+          className="p-1.5 rounded-lg bg-[#FF453A]/15 hover:bg-[#FF453A]/30 text-[#FF453A] cursor-pointer shrink-0 transition-all disabled:opacity-40 disabled:cursor-wait"
+          title="Poslechnout si ukázku"
+        >
+          {hledamVideo === `${s.interpret}-${s.nazev}` ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <Play className="w-3.5 h-3.5 fill-current" />
+          )}
+        </button>
+      )}
+      {s.nazev && (
+        <button
           onClick={() => onPridat(s.interpret, s.nazev)}
           className="p-1.5 rounded-lg bg-[#30D158]/15 hover:bg-[#30D158]/30 text-[#30D158] cursor-pointer shrink-0 transition-all"
           title="Přidat do knihovny — materiály se dohledají samy"
@@ -136,6 +189,21 @@ export const ObjevSkladby: React.FC<Props> = ({ onPridat }) => {
           {hledam ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Hledat'}
         </button>
       </div>
+
+      {/* Ukázka je jedna pro celý panel: druhé kliknutí prohodí skladbu
+          místo toho, aby vedle sebe hrály dvě. */}
+      {ukazka && (
+        <div className="max-w-sm">
+        <MiniPrehravac
+          key={ukazka.videoId}
+          videoId={ukazka.videoId}
+          nazev={ukazka.nazev}
+          zdroj="Last.fm"
+          sVideem
+          onZavrit={() => setUkazka(null)}
+        />
+        </div>
+      )}
 
       {chyba && (
         <div className="flex items-start gap-2 text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">

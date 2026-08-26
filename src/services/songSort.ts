@@ -19,16 +19,19 @@ export type KlicRazeni =
   | 'language'
   | 'recent';
 
-export const MOZNOSTI_RAZENI: { klic: KlicRazeni; popis: string }[] = [
-  { klic: 'song', popis: 'Název skladby' },
+/**
+ * Údaje, které se dají zapnout jako sloupec.
+ *
+ * Název skladby mezi nimi není — ten je v seznamu vždycky. Žánr a jazyk
+ * odešly: jako sloupec opakovaly u půlky knihovny totéž slovo a jazyk je
+ * navíc jen odhad z textu.
+ */
+export const SLOUPCE: { klic: KlicRazeni; popis: string }[] = [
   { klic: 'band', popis: 'Kapela' },
   { klic: 'artist', popis: 'Autor' },
   { klic: 'tempo', popis: 'Tempo' },
   { klic: 'key', popis: 'Tónina' },
   { klic: 'tuning', popis: 'Ladění' },
-  { klic: 'genre', popis: 'Žánr' },
-  { klic: 'language', popis: 'Jazyk' },
-  { klic: 'recent', popis: 'Naposledy přidané' },
 ];
 
 function text(s: Song, klic: KlicRazeni): string {
