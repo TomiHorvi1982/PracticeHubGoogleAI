@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  FileCode, Globe, Compass, Piano, Sliders, Settings, Clock, Mic,
+  FileCode, Globe, Compass, Piano, Sliders, Settings, Clock, Mic, Maximize2,
 } from 'lucide-react';
 import { MainTabType } from './UnifiedSidebar';
 
@@ -48,6 +48,25 @@ export const HorniNavigace: React.FC<Props> = ({ activeTab, onSelectTab }) => (
       }`}
     >
       Knihovna skladeb
+    </button>
+
+    {/* Pódium vedle knihovny: dvě cesty domů, jedna k hledání a druhá
+        ke hraní. Pódium žije na hlavní stránce, takže se sem jen skočí
+        a rovnou se roztáhne přes celou obrazovku. */}
+    <button
+      onClick={() => {
+        onSelectTab('songbook');
+        // Pódium poslouchá; přepnutí sekce proběhne dřív, než se stihne
+        // zpráva doručit, takže se pošle až po překreslení.
+        requestAnimationFrame(() =>
+          window.dispatchEvent(new CustomEvent('neverlate:otevri-podium'))
+        );
+      }}
+      className="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white"
+      title="Pódiový režim přes celou obrazovku"
+    >
+      <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
+      Pódium
     </button>
 
     <span className="w-px h-5 bg-slate-800 mx-1.5 shrink-0" />

@@ -197,6 +197,19 @@ class SongDatabaseService {
 
     // Realtime: any insert/update/delete on `songs` (from this tab, another
     // tab, or another band member) re-syncs everyone's local list.
+    //
+    // Kanál se zakládá jen jednou. `supabase.channel()` vrací pro totéž
+    // jméno tentýž kanál, a na už přihlášený kanál se `.on()` navěsit nedá —
+    // druhé volání skončí chybou a živá synchronizace se nenaváže vůbec.
+    //
+    // Nestačí hlídat vlastní pole: kanál si drží klient Supabase, takže
+    // přežije i to, když se služba vytvoří znovu. Starý se proto nejdřív
+    // odstraní.
+    if (this.realtimeChannel) return;
+
+    const stary = supabase.getChannels().find((k) => k.topic === 'realtime:songs-changes');
+    if (stary) void supabase.removeChannel(stary);
+
     this.realtimeChannel = supabase
       .channel('songs-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'songs' }, () => {
@@ -237,9 +250,21 @@ class SongDatabaseService {
       return updated;
     }
 
+    // Identitu nechává na databázi, pokud ji appka vyrobila po svém.
+    // Nové písně dostávají `song_<čas>_<náhoda>` a zástupná píseň na
+    // prázdném zpěvníku má id `sample`; sloupec je ale `uuid`, takže by
+    // takový zápis skončil chybou „invalid input syntax for type uuid"
+    // a píseň by se tiše neuložila.
+    const jeUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(song.id);
     const { data, error } = await supabase
       .from('songs')
-      .insert({ id: song.id, ...update, owner_id: null, source_type: 'library', status: 'active' })
+      .insert({
+        ...(jeUuid ? { id: song.id } : {}),
+        ...update,
+        owner_id: null,
+        source_type: 'library',
+        status: 'active',
+      })
       .select()
       .single();
     if (error) throw new Error(error.message);

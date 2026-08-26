@@ -8,7 +8,7 @@ import {
   Radio, Compass, Mic, Piano, Grab, Settings2, SlidersHorizontal, Layers, Sparkles
 } from 'lucide-react';
 import { ChordHoverPill } from './ChordHoverPill';
-import { GuitarChordDiagram } from './GuitarChordDiagram';
+import { AkordyPanel } from './songbook/AkordyPanel';
 import { parseSongSections } from '../utils/songSectionUtils';
 import { extractUniqueChords, findOrGenerateChord } from '../utils/chordUtils';
 import { audioSynth } from '../services/audioSynth';
@@ -938,32 +938,13 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
       case 'chord_diagrams':
         return (
-          <div className="flex-1 overflow-y-auto">
-            {songChords.length > 0 ? (
-              <div className="flex flex-wrap gap-3 p-1">
-                {songChords.map((chordName) => {
-                  const chordDef = findOrGenerateChord(chordName);
-                  return (
-                    <div
-                      key={chordName}
-                      className="bg-white/[0.04] border border-white/[0.08] p-2 rounded-2xl flex flex-col items-center hover:bg-white/[0.08] transition-all cursor-pointer shadow-sm hover:scale-105"
-                      onClick={() => onSelectModalChord && onSelectModalChord(chordName)}
-                      title={`Zobrazit akord ${chordName}`}
-                    >
-                      <GuitarChordDiagram chord={chordDef} size="sm" />
-                      <span className="text-xs font-bold text-[#FF9F0A] mt-1 font-mono">
-                        {chordName}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-neutral-400 text-xs">
-                V textu nebyly rozpoznány žádné akordy.
-              </div>
-            )}
-          </div>
+          <AkordyPanel
+            song={song}
+            songChords={songChords}
+            najdiAkord={findOrGenerateChord}
+            onUpdateSong={onUpdateSong}
+            onOtevritDetail={onSelectModalChord}
+          />
         );
 
       case 'stems_mixer':
@@ -1217,7 +1198,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
         <PlovouciPlocha
           song={song}
-          onUpdateSong={onUpdateSong}
           vykresliObsah={(okno) =>
             renderModuleBody({
               id: okno.typ,

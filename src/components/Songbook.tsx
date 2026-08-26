@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ObjevSkladby } from './songbook/ObjevSkladby';
 import { SeznamSkladeb } from './songbook/SeznamSkladeb';
+import { Podium } from './songbook/Podium';
 import { spustDoplneni } from '../services/enrichmentClient';
 import {
   PRAZDNY_FILTR,
@@ -90,8 +91,6 @@ export const Songbook: React.FC<SongbookProps> = ({
 
   // Enlargement & Stage Mode States
   const [fontSize, setFontSize] = useState<number>(16);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [isStageCleanMode, setIsStageCleanMode] = useState<boolean>(false);
   const [isExpandedHeight, setIsExpandedHeight] = useState<boolean>(false);
 
   // Playlists, Sorting & Alphabet Filter States
@@ -428,9 +427,14 @@ export const Songbook: React.FC<SongbookProps> = ({
             knihovna. Pod sebou nebylo na první pohled poznat, které pole
             sahá kam. Každá strana se dá zavřít — když hledáš jen ve svém,
             půlka obrazovky s Last.fm jen překáží. */}
+        {/* Dvě strany: vlevo svět, vpravo tvoje knihovna. Sbalené se dělí
+            taky — dvě úzké lišty pod sebou vypadaly jako dva nesouvisející
+            řádky, vedle sebe je vidět, že jde o dvojici. Otevřený panel
+            sám dostane celou šířku; teprve když jsou otevřené oba, dělí
+            se o ni. */}
         <div
           className={`grid gap-4 items-start ${
-            levaOtevrena && pravaOtevrena ? 'lg:grid-cols-2' : 'grid-cols-1'
+            levaOtevrena === pravaOtevrena ? 'lg:grid-cols-2' : 'grid-cols-1'
           }`}
         >
         {levaOtevrena ? (
@@ -566,197 +570,42 @@ export const Songbook: React.FC<SongbookProps> = ({
         )}
         </div>
 
-        {/* Main View: Song Viewer with Modular Windows Workspace */}
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl space-y-4">
-          {/* Song Header & Actions Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
-            <div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight">
-                  {activeSong.title}
-                </h1>
-
-                {activeSong.isLocked && (
-                  <span className="bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/30 font-bold text-[10px] px-2.5 py-0.5 rounded-lg flex items-center gap-1">
-                    <Lock className="w-3 h-3" /> Zamčeno adminem
-                  </span>
-                )}
-
-                {isEditingTuningInline ? (
-                  <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 p-1 rounded-xl">
-                    <select
-                      value={TUNING_PRESETS.some((t) => t.name === inlineTuningVal) ? inlineTuningVal : ''}
-                      onChange={(e) => {
-                        if (e.target.value && e.target.value !== 'Vlastní') {
-                          setInlineTuningVal(e.target.value);
-                        }
-                      }}
-                      className="bg-black/80 border border-white/10 text-white text-xs p-1 rounded-lg focus:outline-none"
-                    >
-                      <option value="">-- Předvolba --</option>
-                      {TUNING_PRESETS.map((tuning) => (
-                        <option key={tuning.name} value={tuning.name}>
-                          {tuning.name}
-                        </option>
-                      ))}
-                      <option value="Vlastní">Vlastní...</option>
-                    </select>
-                    <input
-                      type="text"
-                      value={inlineTuningVal}
-                      onChange={(e) => setInlineTuningVal(e.target.value)}
-                      className="bg-black/80 border border-white/10 text-white text-xs p-1 w-28 rounded-lg outline-none"
-                      placeholder="Ladění..."
-                    />
-                    <button
-                      onClick={() => {
-                        const updatedSong = { ...activeSong, tuning: inlineTuningVal || 'Standard (EADGBe)' };
-                        handleUpdateSong(updatedSong);
-                        setIsEditingTuningInline(false);
-                      }}
-                      className="p-1 bg-[#30D158]/20 text-[#30D158] rounded-lg hover:bg-[#30D158] hover:text-black cursor-pointer"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setIsEditingTuningInline(false)}
-                      className="p-1 bg-white/10 text-neutral-400 rounded-lg hover:text-white cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setInlineTuningVal(activeSong.tuning || 'Standard (EADGBe)');
-                      setIsEditingTuningInline(true);
-                    }}
-                    className="text-xs font-medium text-neutral-300 bg-white/[0.06] hover:bg-white/[0.12] px-2.5 py-1 rounded-xl border border-white/[0.08] flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <span>🎸 Ladění: {activeSong.tuning || 'Standard (EADGBe)'}</span>
-                    <span className="text-[10px] text-[#FF9F0A]">(Změnit)</span>
-                  </button>
-                )}
+        {/* Pódium — playlist a k němu plocha s okny. Píseň sama tu už
+            nemá vlastní blok: co je na ní vidět, si každý naklikal sám
+            a Pódium to při přepnutí skladby vymění. */}
+        <Podium
+          songs={songs}
+          /* „Vše" je filtr knihovny, ne set list — na Pódiu by byl vždycky
+             prázdný a tvářil se, že si tam nic nepřidal. */
+          playlists={playlists.filter((p) => p.id !== 'all')}
+          aktivni={activeSong}
+          onVybrat={(sk) => {
+            setActiveSong(sk);
+            zaznamenejOtevreni(sk.id);
+            setTransposeSemitones(0);
+          }}
+          plocha={
+            activeSong ? (
+              <SongModularWorkspace
+                song={activeSong}
+                onUpdateSong={handleUpdateSong}
+                transposeSemitones={transposeSemitones}
+                setTransposeSemitones={setTransposeSemitones}
+                capoFret={capoFret}
+                setCapoFret={setCapoFret}
+                fontSize={fontSize}
+                setFontSize={setFontSize}
+                onOpenImportModal={() => setIsFileImportOpen(true)}
+                onSelectModalChord={setSelectedModalChord}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-center text-[12px] text-neutral-600 border border-dashed border-white/[0.08] rounded-2xl p-10">
+                Vyber skladbu z playlistu nebo z knihovny vpravo.
               </div>
-              <p className="text-xs text-neutral-400 mt-0.5">{activeSong.artist}</p>
-            </div>
-
-            {/* Quick Actions Header Toolbar */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Fullscreen Stage Mode */}
-              <button
-                onClick={() => setIsFullscreen(true)}
-                className="px-3.5 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
-                title="Pódiový režim s nastavitelnými oknami"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-                <span>Pódium</span>
-              </button>
-
-              {/* Delete Active Song button */}
-              <button
-                onClick={(e) => handleDeleteClick(activeSong, e)}
-                className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/25 border border-red-500/20 hover:border-red-500/40 text-red-400 hover:text-red-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
-                title="Smazat skladbu ze zpěvníku"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Smazat</span>
-              </button>
-            </div>
-          </div>
-
-          {/* SONG MODULAR WORKSPACE (Movable & Resizable Windows) */}
-          <SongModularWorkspace
-            song={activeSong}
-            onUpdateSong={handleUpdateSong}
-            transposeSemitones={transposeSemitones}
-            setTransposeSemitones={setTransposeSemitones}
-            capoFret={capoFret}
-            setCapoFret={setCapoFret}
-            fontSize={fontSize}
-            setFontSize={setFontSize}
-            onOpenImportModal={() => setIsFileImportOpen(true)}
-            onSelectModalChord={setSelectedModalChord}
-          />
-        </div>
+            )
+          }
+        />
       </div>
-
-      {/* FULLSCREEN STAGE VIEW MODAL (PÓDIOVÝ REŽIM) */}
-      {isFullscreen && (
-        <div className="fixed inset-0 z-[100] bg-[#0E0E12] text-[#E5E5EA] flex flex-col font-sans p-4 sm:p-6 overflow-y-auto select-none">
-          {/* Stage Mode Header */}
-          {!isStageCleanMode && (
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-[#1C1C22]/90 backdrop-blur-2xl border border-white/15 rounded-2xl p-4 mb-4 shadow-2xl">
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <span className="bg-[#FF9F0A] text-black font-extrabold text-[10px] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                    Pódiový režim
-                  </span>
-                  <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                    {activeSong.title}
-                  </h1>
-                </div>
-                <p className="text-xs text-neutral-400 mt-0.5">{activeSong.artist}</p>
-              </div>
-
-              {/* Controls Grid */}
-              <div className="flex items-center flex-wrap gap-2">
-                <button
-                  onClick={() => setIsStageCleanMode(true)}
-                  className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-neutral-300 hover:text-white text-xs font-medium rounded-xl flex items-center gap-1.5 cursor-pointer"
-                >
-                  <EyeOff className="w-4 h-4 text-neutral-400" />
-                  <span>Čistý režim</span>
-                </button>
-
-                <button
-                  onClick={() => setIsFullscreen(false)}
-                  className="px-3.5 py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
-                >
-                  <Minimize2 className="w-4 h-4" />
-                  <span>Zavřít Pódium</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Floating Exit Button when in Clean Mode */}
-          {isStageCleanMode && (
-            <div className="fixed top-4 right-4 z-50 flex items-center gap-2">
-              <button
-                onClick={() => setIsStageCleanMode(false)}
-                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-medium rounded-xl flex items-center gap-1.5 backdrop-blur-xl border border-white/10 cursor-pointer shadow-lg"
-              >
-                <Eye className="w-4 h-4 text-[#30D158]" />
-                <span>Nástroje</span>
-              </button>
-              <button
-                onClick={() => setIsFullscreen(false)}
-                className="px-3 py-1.5 bg-[#FF453A] text-white text-xs font-semibold rounded-xl cursor-pointer shadow-lg"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-
-          {/* Stage Workspace */}
-          <div className="flex-1 w-full max-w-7xl mx-auto py-2">
-            <SongModularWorkspace
-              song={activeSong}
-              onUpdateSong={handleUpdateSong}
-              isStageMode={true}
-              transposeSemitones={transposeSemitones}
-              setTransposeSemitones={setTransposeSemitones}
-              capoFret={capoFret}
-              setCapoFret={setCapoFret}
-              fontSize={fontSize}
-              setFontSize={setFontSize}
-              onOpenImportModal={() => setIsFileImportOpen(true)}
-              onSelectModalChord={setSelectedModalChord}
-            />
-          </div>
-        </div>
-      )}
 
       {/* New Song Modal */}
       {isEditing && (

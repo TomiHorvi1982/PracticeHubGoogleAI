@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus, LayoutGrid } from 'lucide-react';
 import { Song } from '../../types';
 import { Okno, TypOkna, POPIS_OKEN, noveOkno, vRamci } from './plovouciOkna';
+import { podiumProfil } from '../../services/podiumProfil';
 import { PlovouciOkno } from './PlovouciOkno';
 
 interface Props {
   song: Song;
-  onUpdateSong: (s: Song) => void;
   /** Co se vykreslí uvnitř okna daného typu. */
   vykresliObsah: (okno: Okno, zmenObsah: (o: Okno['obsah']) => void) => React.ReactNode;
 }
@@ -14,11 +14,13 @@ interface Props {
 /**
  * Plocha s plovoucími okny nad písní.
  *
- * Rozložení se ukládá ke skladbě, včetně toho, co má které okno načtené.
- * Uložit jen pozice by znamenalo, že se plocha sice obnoví, ale okna budou
- * prázdná a vybírat tabulaturu se bude pokaždé znovu.
+ * Rozložení se ukládá k člověku, ne ke skladbě — co potřebuje u písně
+ * vidět kytarista a co bubeník, jsou dvě různé věci, a sdílené rozložení
+ * znamenalo, že si je navzájem přepisovali. Ukládá se i to, co má které
+ * okno načtené; jinak by se plocha obnovila prázdná a tabulatura by se
+ * vybírala pokaždé znovu.
  */
-export const PlovouciPlocha: React.FC<Props> = ({ song, onUpdateSong, vykresliObsah }) => {
+export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
   const plochaRef = useRef<HTMLDivElement>(null);
   const [okna, setOkna] = useState<Okno[]>(() => nactiOkna(song));
   const [nabidkaOtevrena, setNabidkaOtevrena] = useState(false);
@@ -39,14 +41,12 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, onUpdateSong, vykresliOb
   const uloz = useCallback(
     (nova: Okno[]) => {
       setOkna(nova);
-      try {
-        localStorage.setItem(`song_okna_${song.id}`, JSON.stringify(nova));
-      } catch {
-        /* plné úložiště nesmí zabránit práci s okny */
-      }
-      onUpdateSong({ ...song, okna: nova, updatedAt: Date.now() } as Song);
+      podiumProfil.ulozOknaPisne(song.id, nova);
+      // Ohlášení pro Pódium: seznam skladeb u sebe ukazuje, které už
+      // nastavené jsou, a bez zprávy by se to dozvěděl až po přenačtení.
+      window.dispatchEvent(new CustomEvent('neverlate:podium-zmena', { detail: { songId: song.id } }));
     },
-    [song, onUpdateSong]
+    [song.id]
   );
 
   const pridej = (typ: TypOkna) => {
@@ -147,9 +147,21 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, onUpdateSong, vykresliOb
 
 /** Uložená plocha písně, nebo prázdno. Lokální kopie má přednost jen tehdy,
  *  když u skladby žádná není — po přihlášení z jiného stroje má pravdu server. */
+/**
+ * Rozložení pro tuhle píseň.
+ *
+ * Nejdřív osobní nastavení. Když člověk u písně ještě nikdy nic neotevřel,
+ * použije se to, co k ní zbylo od dřívějška na skladbě — jinak by
+ * všem naráz zmizelo, co si nastavili, než se rozložení stěhovalo
+ * k profilům.
+ */
 function nactiOkna(song: Song): Okno[] {
+  const moje = podiumProfil.oknaPisne(song.id);
+  if (moje) return moje;
+
   const zeSkladby = (song as any).okna;
   if (Array.isArray(zeSkladby) && zeSkladby.length) return zeSkladby;
+
   try {
     const ulozene = JSON.parse(localStorage.getItem(`song_okna_${song.id}`) || 'null');
     if (Array.isArray(ulozene)) return ulozene;
