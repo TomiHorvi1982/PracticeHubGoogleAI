@@ -1,17 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { SongFilterPanel } from './songbook/SongFilterPanel';
 import { ObjevSkladby } from './songbook/ObjevSkladby';
 import { SeznamSkladeb } from './songbook/SeznamSkladeb';
 import { spustDoplneni } from '../services/enrichmentClient';
 import {
-  jeFiltrPrazdny,
-  SongFilter,
-  ZpusobRazeni,
+  PRAZDNY_FILTR,
   filtrujSkladby,
-  seradSkladby,
-  sestavFasety,
-  nactiFiltr,
-  ulozFiltr,
   zaznamenejOtevreni,
 } from '../services/songFilters';
 import { Song } from '../types';
@@ -20,7 +13,7 @@ import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
   Maximize2, Minimize2, X, FileUp, ChevronDown, ChevronRight, Globe, ListMusic,
-  Trash2, List, Edit3, Lock, Unlock, ListPlus,
+  Trash2, List, Edit3, Lock, Unlock,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
 } from 'lucide-react';
@@ -120,16 +113,6 @@ export const Songbook: React.FC<SongbookProps> = ({
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('all');
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
-  const [sortMode, setSortMode] = useState<ZpusobRazeni>('recent');
-
-  /** Nastavení filtru přežije zavření okna — jinak by se skládalo pořád dokola. */
-  const [filtr, setFiltrStav] = useState<SongFilter>(() => nactiFiltr());
-  const setFiltr = (f: SongFilter) => {
-    setFiltrStav(f);
-    ulozFiltr(f);
-  };
-  const selectedLetter = filtr.pismeno;
-  const setSelectedLetter = (p: string | null) => setFiltr({ ...filtr, pismeno: p });
 
   // View Mode: 'detailed' (full cards with badges) vs 'compact' (1-line: Band - Song)
   /** Filtry a seznam skladeb jsou v základu sbalené — stránka pak začíná
@@ -162,7 +145,6 @@ export const Songbook: React.FC<SongbookProps> = ({
   /** Ukázka z YouTube spuštěná z řádku skladby. */
   const [ukazkaVidea, setUkazkaVidea] = useState<{ id: string; nazev: string } | null>(null);
 
-  const [filtryOtevrene, setFiltryOtevrene] = useState(false);
   const [seznamOtevreny, setSeznamOtevreny] = useState(false);
 
   // Výchozí je řádkový výpis; detailní si člověk zapne, když chce vidět
@@ -413,20 +395,17 @@ export const Songbook: React.FC<SongbookProps> = ({
     return badges;
   };
 
-  // Nabídka filtrů se počítá z celé knihovny, ne z právě vyfiltrovaného
-  // výběru — nabídka, která se pod rukama zmenšuje podle toho, co jsi
-  // zrovna zaškrtl, se ovládá mizerně.
-  const fasety = useMemo(() => sestavFasety(songs), [songs]);
-
   const vPlaylistu = useMemo(() => {
     if (selectedPlaylistId === 'all') return songs;
     const pl = playlists.find((p) => p.id === selectedPlaylistId);
     return pl ? songs.filter((s) => pl.songIds.includes(s.id)) : songs;
   }, [songs, playlists, selectedPlaylistId]);
 
+  // Hledání je jediné, co seznam zkracuje. Řazení a výběr údajů si řeší
+  // SeznamSkladeb sám podle zaškrtnutých polí.
   const filteredSongs = useMemo(
-    () => seradSkladby(filtrujSkladby(vPlaylistu, { ...filtr, hledani: searchQuery }), sortMode),
-    [vPlaylistu, filtr, searchQuery, sortMode]
+    () => filtrujSkladby(vPlaylistu, { ...PRAZDNY_FILTR, hledani: searchQuery }),
+    [vPlaylistu, searchQuery]
   );
 
   return (
@@ -451,12 +430,12 @@ export const Songbook: React.FC<SongbookProps> = ({
             sahá kam. Každá strana se dá zavřít — když hledáš jen ve svém,
             půlka obrazovky s Last.fm jen překáží. */}
         <div
-          className={`grid gap-0 items-start ${
+          className={`grid gap-4 items-start ${
             levaOtevrena && pravaOtevrena ? 'lg:grid-cols-2' : 'grid-cols-1'
           }`}
         >
         {levaOtevrena ? (
-        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-[#FF9F0A]/20 rounded-3xl lg:rounded-r-none lg:border-r-0 p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
+        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-[#FF9F0A]/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-[#FF9F0A]" />
             <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
@@ -505,9 +484,7 @@ export const Songbook: React.FC<SongbookProps> = ({
         )}
 
         {pravaOtevrena ? (
-        <div className={`bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl h-full ${
-          levaOtevrena ? 'lg:rounded-l-none lg:border-l-white/[0.14]' : ''
-        }`}>
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl h-full">
           {/* Search & Actions Header */}
           <div className="space-y-3 shrink-0">
             <div className="flex items-center justify-between">
@@ -540,17 +517,9 @@ export const Songbook: React.FC<SongbookProps> = ({
             </div>
           </div>
 
-            {/* Řazení, pohled a seznam v jedné komponentě. Roletka a
-                abecední rejstřík odešly: filtrovat podle písmene je zbytek
-                z doby, kdy se seznam nedal řadit ani prohledávat. */}
-            <SongFilterPanel
-              filtr={filtr}
-              fasety={fasety}
-              nalezeno={filteredSongs.length}
-              celkem={songs.length}
-              onZmena={setFiltr}
-            />
-
+            {/* Seznam si nese vlastní zaškrtávátka údajů — samostatný panel
+                filtrů odešel, protože říkal totéž dvakrát a navíc uměl
+                skladby schovat. */}
             <SeznamSkladeb
               songs={filteredSongs}
               aktivniId={activeSong?.id}
@@ -744,15 +713,6 @@ export const Songbook: React.FC<SongbookProps> = ({
 
             {/* Quick Actions Header Toolbar */}
             <div className="flex items-center gap-2 flex-wrap">
-              {/* Add to Playlist */}
-              <button
-                onClick={() => handleOpenAddToPlaylist(activeSong)}
-                className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
-              >
-                <ListPlus className="w-3.5 h-3.5 text-[#FF9F0A]" />
-                <span>Do playlistu</span>
-              </button>
-
               {/* Fullscreen Stage Mode */}
               <button
                 onClick={() => setIsFullscreen(true)}

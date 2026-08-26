@@ -16,6 +16,21 @@ interface Props {
   onPrehrat: (s: Song, youtubeId: string, e?: React.MouseEvent) => void;
 }
 
+/** Hodnota údaje pro výpis v řádku. */
+function hodnota(s: Song, k: KlicRazeni): string {
+  switch (k) {
+    case 'band': return s.artist || '';
+    case 'artist': return (s as any).author || '';
+    case 'song': return s.title || '';
+    case 'tempo': return s.bpm ? `${s.bpm} BPM` : '';
+    case 'key': return s.key || '';
+    case 'tuning': return s.tuning || '';
+    case 'genre': return (s as any).genre || '';
+    case 'language': return odhadniJazyk(s.content || '') || '';
+    default: return '';
+  }
+}
+
 /** První video u písně, pokud nějaké má. */
 function video(s: Song): { id: string; title: string } | null {
   const v = s.youtubeVideos?.[0];
@@ -36,15 +51,39 @@ function video(s: Song): { id: string; title: string } | null {
 export const SeznamSkladeb: React.FC<Props> = ({
   songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onPrehrat,
 }) => {
-  const [razeni, setRazeni] = useState<KlicRazeni>(() => {
+  /**
+   * Které údaje jsou zapnuté.
+   *
+   * Zaškrtnutí dělá dvě věci naráz: údaj se objeví v řádku a seznam se
+   * podle něj seřadí. Dřív to byly dvě oddělené věci — nabídka řazení a
+   * filtry jinde — a člověk musel dvakrát říct totéž, aby viděl tempo a
+   * zároveň podle něj řadil.
+   */
+  const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
     try {
-      return (localStorage.getItem('neverlate_razeni') as KlicRazeni) || 'song';
+      const u = JSON.parse(localStorage.getItem('neverlate_sloupce') || 'null');
+      return Array.isArray(u) && u.length ? u : ['band'];
     } catch {
-      return 'song';
+      return ['band'];
     }
   });
   const [sestupne, setSestupne] = useState(false);
-  const [nabidkaRazeni, setNabidkaRazeni] = useState(false);
+
+  // Řadí se podle naposledy zapnutého — to je ten, o který má člověk
+  // právě teď zájem.
+  const razeni: KlicRazeni = zapnute[zapnute.length - 1] || 'song';
+
+  const prepni = (k: KlicRazeni) => {
+    setZapnute((p) => {
+      const nove = p.includes(k) ? p.filter((x) => x !== k) : [...p, k];
+      try {
+        localStorage.setItem('neverlate_sloupce', JSON.stringify(nove));
+      } catch {
+        /* plné úložiště nesmí zabránit přepnutí */
+      }
+      return nove;
+    });
+  };
   const [pohled, setPohled] = useState<'line' | 'detail'>(() => {
     try {
       return (localStorage.getItem('neverlate_pohled') as 'line' | 'detail') || 'line';
@@ -52,16 +91,6 @@ export const SeznamSkladeb: React.FC<Props> = ({
       return 'line';
     }
   });
-
-  const nastavRazeni = (k: KlicRazeni) => {
-    setRazeni(k);
-    setNabidkaRazeni(false);
-    try {
-      localStorage.setItem('neverlate_razeni', k);
-    } catch {
-      /* plné úložiště nesmí zabránit řazení */
-    }
-  };
 
   const nastavPohled = (p: 'line' | 'detail') => {
     setPohled(p);
@@ -77,37 +106,32 @@ export const SeznamSkladeb: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col gap-2 min-h-0">
-      <div className="flex items-center gap-2">
-        <div className="relative">
-          <button
-            onClick={() => setNabidkaRazeni((v) => !v)}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-[11px] font-semibold text-neutral-300 cursor-pointer transition-all"
-          >
-            <ArrowUpDown className="w-3 h-3 text-[#FF9F0A]" />
-            {popisRazeni}
-            <ChevronDown className="w-3 h-3 text-neutral-500" />
-          </button>
-
-          {nabidkaRazeni && (
-            <div className="absolute left-0 top-full mt-1 z-50 bg-[#16161A] border border-white/[0.12] rounded-2xl shadow-2xl p-1.5 min-w-[180px]">
-              {MOZNOSTI_RAZENI.map((m) => (
-                <button
-                  key={m.klic}
-                  onClick={() => nastavRazeni(m.klic)}
-                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12px] cursor-pointer transition-all ${
-                    razeni === m.klic ? 'bg-[#FF9F0A] text-black font-bold' : 'text-neutral-300 hover:bg-white/10'
-                  }`}
-                >
-                  {m.popis}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {/* Zaškrtávátka údajů. Zapnutý údaj je vidět v řádku a zároveň
+            podle něj seznam řadí. */}
+        {MOZNOSTI_RAZENI.filter((m) => m.klic !== 'recent').map((m) => {
+          const zap = zapnute.includes(m.klic);
+          return (
+            <button
+              key={m.klic}
+              onClick={() => prepni(m.klic)}
+              className={`px-2 py-1 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all ${
+                razeni === m.klic
+                  ? 'bg-[#FF9F0A] text-black border-[#FF9F0A]'
+                  : zap
+                    ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] border-[#FF9F0A]/40'
+                    : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
+              }`}
+              title={razeni === m.klic ? `Řadí se podle: ${m.popis}` : `Ukázat ${m.popis.toLowerCase()}`}
+            >
+              {m.popis}
+            </button>
+          );
+        })}
 
         <button
           onClick={() => setSestupne((v) => !v)}
-          className="px-2 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-xl text-[11px] font-mono text-neutral-400 cursor-pointer transition-all"
+          className="px-2 py-1 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg text-[10px] font-mono text-neutral-400 cursor-pointer transition-all"
           title={sestupne ? 'Sestupně' : 'Vzestupně'}
         >
           {sestupne ? '↓' : '↑'}
@@ -173,10 +197,23 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   </span>
                   {s.isLocked && <Lock className="w-3 h-3 text-[#FF9F0A] shrink-0" />}
                 </div>
+                {/* V řádku je vidět jen to, co je zapnuté — jinak by se
+                    do jednoho řádku mačkalo osm údajů, z nichž většina
+                    člověka právě nezajímá. */}
                 <div className="text-[11px] text-neutral-500 truncate">
-                  {s.artist || 'Neznámý interpret'}
-                  {s.key && <span className="ml-1.5 text-neutral-600">· {s.key}</span>}
-                  {s.bpm ? <span className="ml-1.5 text-neutral-600">· {s.bpm} BPM</span> : null}
+                  {zapnute.map((k, i) => {
+                    const v = hodnota(s, k);
+                    if (!v) return null;
+                    return (
+                      <span key={k} className={razeni === k ? 'text-neutral-300' : ''}>
+                        {i > 0 && <span className="text-neutral-700"> · </span>}
+                        {v}
+                      </span>
+                    );
+                  })}
+                  {zapnute.every((k) => !hodnota(s, k)) && (
+                    <span className="text-neutral-700">{s.artist || 'Neznámý interpret'}</span>
+                  )}
                 </div>
 
                 {pohled === 'detail' && (
