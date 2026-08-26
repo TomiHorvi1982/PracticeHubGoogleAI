@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  Disc3, FileCode, Youtube, Globe, Compass, Piano, Sliders, Settings, Clock, Mic,
+  FileCode, Globe, Compass, Piano, Sliders, Settings, Clock, Mic,
 } from 'lucide-react';
 import { MainTabType } from './UnifiedSidebar';
 
@@ -19,11 +19,13 @@ interface Props {
  * Seznam je záměrně krátký. Knihovna skladeb je sama hlavní stránkou a
  * playlist se přesunul do přehrávače dole, takže sem nepatří — to, co
  * zbylo, jsou nástroje, které si k písni otevřeš, když je potřebuješ.
+ *
+ * Media Center a YouTube Jam odešly do „Objevit novou skladbu". Nejsou to
+ * nástroje k písni, ale způsoby, jak hudbu najít venku — a to teď dělá
+ * jedno místo na hlavní stránce, ne tři sekce na přeskáčku.
  */
 const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'mediacenter', label: 'Media Center', icon: Disc3 },
   { id: 'alphatab', label: 'Guitar Pro', icon: FileCode },
-  { id: 'youtube', label: 'YouTube Jam', icon: Youtube },
   { id: 'freetar', label: 'Freetar.de', icon: Globe },
   { id: 'scales', label: 'Teorie & trénink', icon: Compass },
   { id: 'instruments', label: 'Virtual Instruments', icon: Piano },

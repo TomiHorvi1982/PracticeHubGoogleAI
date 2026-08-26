@@ -453,6 +453,23 @@ export const Songbook: React.FC<SongbookProps> = ({
             </button>
           </div>
             <ObjevSkladby
+              songs={songs}
+              activeSong={activeSong}
+              onVybratSkladbu={(sk) => {
+                setActiveSong(sk);
+                zaznamenejOtevreni(sk.id);
+              }}
+              onPridatSkladbu={(sk) => {
+                void songDatabaseService.saveSong(sk);
+                setActiveSong(sk);
+              }}
+              onUlozitVidea={(songId, videa) => {
+                const p = songs.find((x) => x.id === songId);
+                if (!p) return;
+                const nova = { ...p, youtubeVideos: videa, updatedAt: Date.now() };
+                void songDatabaseService.saveSong(nova);
+                if (activeSong?.id === songId) setActiveSong(nova);
+              }}
               onPridat={(interpret, nazev) => {
                 const nova: Song = {
                   id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,

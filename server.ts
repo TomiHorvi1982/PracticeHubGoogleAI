@@ -1060,12 +1060,21 @@ export async function createApp() {
     return d;
   }
 
-  /** Obrázek v největší dostupné velikosti, nebo nic. */
+  /**
+   * Obrázek v největší dostupné velikosti, nebo nic.
+   *
+   * Last.fm přestal posílat fotky interpretů a místo nich vrací u všech
+   * tutéž zástupnou hvězdu. Prázdné místo řekne pravdu líp než osm
+   * stejných hvězd v řadě, které vypadají jako chyba načítání.
+   */
+  const ZASTUPNY_OBRAZEK = '2a96cbd8b46e442fc41c2b86b821562f';
+
   function obrazek(pole: any[]): string | null {
     if (!Array.isArray(pole)) return null;
     const posledni = pole[pole.length - 1];
     const u = posledni?.['#text'];
-    return u && u.length > 10 ? u : null;
+    if (!u || u.length <= 10 || u.includes(ZASTUPNY_OBRAZEK)) return null;
+    return u;
   }
 
   app.get('/api/lastfm/search', requireAuth, async (req, res) => {
@@ -1131,6 +1140,162 @@ export async function createApp() {
       });
     } catch (e: any) {
       res.status(502).json({ error: e?.message || 'Doporučení selhalo.' });
+    }
+  });
+
+  /** Skladba z Last.fm do tvaru, kterému rozumí appka. */
+  function skladbaZLastfm(t: any) {
+    return {
+      nazev: t.name,
+      interpret: typeof t.artist === 'string' ? t.artist : t.artist?.name || '',
+      posluchacu: Number(t.listeners || t.playcount || 0),
+      obrazek: obrazek(t.image),
+    };
+  }
+
+  /**
+   * Žebříčky z Last.fm — světový a český.
+   *
+   * Oboje naráz: světový říká, co se poslouchá venku, český to, co zná
+   * publikum na zkoušce. Kdyby se braly zvlášť, znamenalo by to dvě
+   * kliknutí pro srovnání, kvůli kterému se sem chodí.
+   */
+  app.get('/api/lastfm/zebricky', requireAuth, async (_req, res) => {
+    if (!lastfmKlic()) {
+      return res.status(503).json({ error: 'Chybí LASTFM_API_KEY.', chybiKlic: true });
+    }
+    try {
+      const [svet, cesko] = await Promise.all([
+        lastfm('chart.getTopTracks', { limit: '25' }),
+        lastfm('geo.getTopTracks', { country: 'Czech Republic', limit: '25' }),
+      ]);
+      res.json({
+        svet: (svet?.tracks?.track || []).map(skladbaZLastfm),
+        cesko: (cesko?.tracks?.track || []).map(skladbaZLastfm),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Žebříčky se nenačetly.' });
+    }
+  });
+
+  /**
+   * Nejposlouchanější styly. Slouží jako rozcestník do `/styl`.
+   *
+   * Mezi nejčastějšími štítky na Last.fm jsou i takové, které o hudbě nic
+   * neříkají — `seen live` znamená „byl jsem na koncertě" a `female
+   * vocalists` popisuje obsazení. Jako styl by nabídly seznam, ve kterém
+   * není nic společného.
+   */
+  const NENI_STYL =
+    /^(seen live|(fe)?male vocalis(t|ts)|(female|male) vocals?|favorit\w*|awesome|beautiful|love|cool|good|albums i own|under \d+|\d{2,4}s?)$/i;
+
+  app.get('/api/lastfm/styly', requireAuth, async (_req, res) => {
+    if (!lastfmKlic()) {
+      return res.status(503).json({ error: 'Chybí LASTFM_API_KEY.', chybiKlic: true });
+    }
+    try {
+      const d = await lastfm('chart.getTopTags', { limit: '50' });
+      res.json({
+        styly: (d?.tags?.tag || [])
+          .filter((t: any) => t?.name && !NENI_STYL.test(String(t.name).trim()))
+          .map((t: any) => ({
+            nazev: t.name,
+            pouziti: Number(t.reach || 0),
+          })),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Styly se nenačetly.' });
+    }
+  });
+
+  /** Nejlepší skladby jednoho stylu. */
+  app.get('/api/lastfm/styl', requireAuth, async (req, res) => {
+    const tag = String(req.query.tag || '').trim();
+    if (!tag) return res.json({ skladby: [] });
+    if (!lastfmKlic()) {
+      return res.status(503).json({ error: 'Chybí LASTFM_API_KEY.', chybiKlic: true });
+    }
+    try {
+      const d = await lastfm('tag.getTopTracks', { tag, limit: '30' });
+      res.json({ skladby: (d?.tracks?.track || []).map(skladbaZLastfm) });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Styl se nenačetl.' });
+    }
+  });
+
+  /**
+   * Vše o interpretovi: popis, štítky, nej skladby a alba.
+   *
+   * Alba jsou tady tím nejbližším, co Last.fm k playlistům má — vlastní
+   * playlisty z API odstranili, ale tracklist alba je pořád seznam skladeb
+   * v pořadí, jak jdou za sebou.
+   */
+  app.get('/api/lastfm/interpret', requireAuth, async (req, res) => {
+    const jmeno = String(req.query.name || '').trim();
+    if (!jmeno) return res.status(400).json({ error: 'Chybí jméno interpreta.' });
+    if (!lastfmKlic()) {
+      return res.status(503).json({ error: 'Chybí LASTFM_API_KEY.', chybiKlic: true });
+    }
+    try {
+      const [info, skladby, alba] = await Promise.all([
+        lastfm('artist.getInfo', { artist: jmeno, lang: 'cs' }),
+        lastfm('artist.getTopTracks', { artist: jmeno, limit: '20' }),
+        lastfm('artist.getTopAlbums', { artist: jmeno, limit: '12' }),
+      ]);
+      const a = info?.artist;
+      res.json({
+        jmeno: a?.name || jmeno,
+        posluchacu: Number(a?.stats?.listeners || 0),
+        // Last.fm končí životopis odkazem „Read more on Last.fm" v HTML.
+        // Po odstranění značek zbude jen ta věta — a u interpretů bez
+        // popisu je to celý obsah. Takový „popis" nemá cenu ukazovat.
+        popis: (() => {
+          const t = String(a?.bio?.summary || '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/\s*Read more(\s+on\s+Last\.fm)?\.?\s*$/i, '')
+            .trim();
+          return t.length > 30 ? t : '';
+        })(),
+        styly: (a?.tags?.tag || []).map((t: any) => t.name),
+        obrazek: obrazek(a?.image),
+        skladby: (skladby?.toptracks?.track || []).map(skladbaZLastfm),
+        alba: (alba?.topalbums?.album || []).map((al: any) => ({
+          nazev: al.name,
+          interpret: al.artist?.name || jmeno,
+          obrazek: obrazek(al.image),
+          poslechu: Number(al.playcount || 0),
+        })),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Interpret se nenačetl.' });
+    }
+  });
+
+  /** Tracklist alba — seznam skladeb v pořadí, jak jdou za sebou. */
+  app.get('/api/lastfm/album', requireAuth, async (req, res) => {
+    const interpret = String(req.query.artist || '').trim();
+    const nazev = String(req.query.album || '').trim();
+    if (!interpret || !nazev) return res.status(400).json({ error: 'Chybí interpret nebo album.' });
+    if (!lastfmKlic()) {
+      return res.status(503).json({ error: 'Chybí LASTFM_API_KEY.', chybiKlic: true });
+    }
+    try {
+      const d = await lastfm('album.getInfo', { artist: interpret, album: nazev });
+      const al = d?.album;
+      const stopy = al?.tracks?.track;
+      res.json({
+        nazev: al?.name || nazev,
+        interpret: al?.artist || interpret,
+        obrazek: obrazek(al?.image),
+        skladby: (Array.isArray(stopy) ? stopy : stopy ? [stopy] : []).map((t: any) => ({
+          nazev: t.name,
+          interpret: typeof t.artist === 'string' ? t.artist : t.artist?.name || interpret,
+          delka: Number(t.duration || 0),
+          obrazek: null,
+        })),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Album se nenačetlo.' });
     }
   });
 

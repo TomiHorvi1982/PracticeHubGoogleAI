@@ -1,249 +1,105 @@
-import React, { useState, useCallback } from 'react';
-import { Search, Loader2, Plus, Sparkles, AlertCircle, Users, Play } from 'lucide-react';
-import { authService } from '../../services/authService';
-import { MiniPrehravac } from './MiniPrehravac';
-
-interface Skladba {
-  nazev: string;
-  interpret: string;
-  posluchacu?: number;
-  shoda?: number;
-  obrazek: string | null;
-}
+import React, { useState } from 'react';
+import { Radio, Disc3, Youtube } from 'lucide-react';
+import { Song, YouTubeVideo } from '../../types';
+import { LastFmPanel } from './LastFmPanel';
+import { MediaCenterSection } from '../MediaCenter/MediaCenterSection';
+import { YouTubeSection } from '../YouTubeSection';
 
 interface Props {
   /** Přidání do knihovny. Doplnění materiálů se rozjede samo. */
   onPridat: (interpret: string, nazev: string) => void;
+  songs: Song[];
+  activeSong: Song | null;
+  onVybratSkladbu: (s: Song) => void;
+  onPridatSkladbu: (s: Song) => void;
+  onUlozitVidea: (songId: string, videa: YouTubeVideo[]) => void;
 }
 
-async function ptejSe(cesta: string): Promise<any> {
-  const token = authService.getCurrentSession()?.token;
-  const res = await fetch(cesta, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-  const d = await res.json().catch(() => ({}));
-  if (!res.ok) throw Object.assign(new Error(d?.error || `Server vrátil ${res.status}`), { chybiKlic: d?.chybiKlic });
-  return d;
-}
+type Zdroj = 'lastfm' | 'mediacenter' | 'youtube';
+
+const ZDROJE: { id: Zdroj; popis: string; ikona: React.FC<{ className?: string }>; co: string }[] = [
+  { id: 'lastfm', popis: 'Last.fm', ikona: Radio, co: 'žebříčky, styly, alba' },
+  { id: 'mediacenter', popis: 'Media Center', ikona: Disc3, co: 'fronta a knihovna' },
+  { id: 'youtube', popis: 'YouTube Jam', ikona: Youtube, co: 'videa a backing tracky' },
+];
 
 /**
- * Hledání skladeb a doporučení podobných.
+ * Základna pro hledání hudby venku.
  *
- * Staví na Last.fm, který podobnost odvozuje z toho, co lidé opravdu
- * poslouchají. Jazykový model by uměl navrhnout taky, ale občas by si píseň
- * vymyslel — a nabídnout kapele skladbu, která neexistuje, je horší než
- * nenabídnout nic.
+ * Tři místa, kde se dá hledat a poslouchat, pod jednou střechou. Dřív byla
+ * každá vlastní položkou ve vrchní liště, takže hledání jedné písně
+ * znamenalo přepínat sekce a pokaždé začít znovu — a přitom všechny tři
+ * odpovídají na stejnou otázku: co si pustit a co si přidat do knihovny.
+ *
+ * Otevřený je vždycky jeden. Všechny tři naráz by daly tři přehrávače a
+ * pár tisíc řádků na jednu obrazovku.
  */
-export const ObjevSkladby: React.FC<Props> = ({ onPridat }) => {
-  const [dotaz, setDotaz] = useState('');
-  const [vysledky, setVysledky] = useState<Skladba[]>([]);
-  const [podobne, setPodobne] = useState<Skladba[]>([]);
-  const [zdrojPodobnych, setZdrojPodobnych] = useState<string>('');
-  const [vybrana, setVybrana] = useState<Skladba | null>(null);
-  const [hledam, setHledam] = useState(false);
-  const [chyba, setChyba] = useState<string | null>(null);
-  const [chybiKlic, setChybiKlic] = useState(false);
-  const [ukazka, setUkazka] = useState<{ videoId: string; nazev: string } | null>(null);
-  const [hledamVideo, setHledamVideo] = useState<string | null>(null);
-
-  /**
-   * Pustí skladbu z výsledku hledání.
-   *
-   * Last.fm žádný zvuk nemá — zná jen názvy a statistiky. Poslech se proto
-   * dohledá na YouTube podle interpreta a názvu, stejným způsobem, jakým si
-   * appka shání videa k písním v knihovně.
-   */
-  const pust = async (s: Skladba) => {
-    const klic = `${s.interpret}-${s.nazev}`;
-    setHledamVideo(klic);
-    setChyba(null);
+export const ObjevSkladby: React.FC<Props> = ({
+  onPridat, songs, activeSong, onVybratSkladbu, onPridatSkladbu, onUlozitVidea,
+}) => {
+  const [zdroj, setZdroj] = useState<Zdroj>(() => {
     try {
-      const token = authService.getCurrentSession()?.token;
-      const res = await fetch('/api/search-youtube', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ title: s.nazev, artist: s.interpret }),
-      });
-      const d = await res.json().catch(() => ({}));
-      const video = (d.videos || [])[0];
-      const id = video?.id || (video?.url || '').match(/(?:v=|youtu\.be\/)([\w-]{11})/)?.[1];
-      if (!id) {
-        setChyba(`K „${s.nazev}" se nenašlo žádné video.`);
-        return;
-      }
-      setUkazka({ videoId: id, nazev: `${s.interpret} — ${s.nazev}` });
+      return (localStorage.getItem('neverlate_zdroj_objevu') as Zdroj) || 'lastfm';
     } catch {
-      setChyba('Nepodařilo se dohledat poslech.');
-    } finally {
-      setHledamVideo(null);
+      return 'lastfm';
+    }
+  });
+
+  const prepni = (z: Zdroj) => {
+    setZdroj(z);
+    try {
+      localStorage.setItem('neverlate_zdroj_objevu', z);
+    } catch {
+      /* plné úložiště nesmí zabránit přepnutí */
     }
   };
-
-  const hledej = useCallback(async () => {
-    const q = dotaz.trim();
-    if (!q) return;
-    setHledam(true);
-    setChyba(null);
-    setPodobne([]);
-    setVybrana(null);
-    try {
-      const d = await ptejSe(`/api/lastfm/search?q=${encodeURIComponent(q)}`);
-      setVysledky(d.skladby || []);
-      if ((d.skladby || []).length === 0) setChyba('Nic se nenašlo.');
-    } catch (e: any) {
-      setChybiKlic(Boolean(e?.chybiKlic));
-      setChyba(e?.message || 'Hledání selhalo.');
-      setVysledky([]);
-    } finally {
-      setHledam(false);
-    }
-  }, [dotaz]);
-
-  const ukazPodobne = async (s: Skladba) => {
-    setVybrana(s);
-    setPodobne([]);
-    try {
-      const d = await ptejSe(
-        `/api/lastfm/similar?artist=${encodeURIComponent(s.interpret)}&track=${encodeURIComponent(s.nazev)}`
-      );
-      setPodobne(d.podobne || []);
-      setZdrojPodobnych(d.zdroj || '');
-    } catch {
-      /* prázdná doporučení nejsou chyba, o kterou by stálo za to zakopnout */
-    }
-  };
-
-  const karta = (s: Skladba, i: number, jePodobna = false) => (
-    <div
-      key={`${s.interpret}-${s.nazev}-${i}`}
-      className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-xl px-2.5 py-1.5 hover:border-white/20 transition-all"
-    >
-      {s.obrazek ? (
-        <img src={s.obrazek} alt="" className="w-8 h-8 rounded-md object-cover shrink-0" />
-      ) : (
-        <div className="w-8 h-8 rounded-md bg-white/5 shrink-0" />
-      )}
-      <button
-        onClick={() => void ukazPodobne(s)}
-        className="min-w-0 flex-1 text-left cursor-pointer"
-        title="Ukázat podobné"
-      >
-        <div className="text-[12px] font-semibold text-white truncate">{s.nazev || s.interpret}</div>
-        <div className="text-[10px] text-neutral-500 truncate">
-          {s.nazev ? s.interpret : 'interpret'}
-          {typeof s.posluchacu === 'number' && s.posluchacu > 0 && (
-            <span className="ml-1.5 inline-flex items-center gap-0.5">
-              <Users className="w-2.5 h-2.5" /> {s.posluchacu.toLocaleString('cs')}
-            </span>
-          )}
-          {jePodobna && typeof s.shoda === 'number' && s.shoda > 0 && (
-            <span className="ml-1.5 text-[#FF9F0A]">shoda {Math.round(s.shoda * 100)} %</span>
-          )}
-        </div>
-      </button>
-      {s.nazev && (
-        <button
-          onClick={() => void pust(s)}
-          disabled={hledamVideo !== null}
-          className="p-1.5 rounded-lg bg-[#FF453A]/15 hover:bg-[#FF453A]/30 text-[#FF453A] cursor-pointer shrink-0 transition-all disabled:opacity-40 disabled:cursor-wait"
-          title="Poslechnout si ukázku"
-        >
-          {hledamVideo === `${s.interpret}-${s.nazev}` ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          ) : (
-            <Play className="w-3.5 h-3.5 fill-current" />
-          )}
-        </button>
-      )}
-      {s.nazev && (
-        <button
-          onClick={() => onPridat(s.interpret, s.nazev)}
-          className="p-1.5 rounded-lg bg-[#30D158]/15 hover:bg-[#30D158]/30 text-[#30D158] cursor-pointer shrink-0 transition-all"
-          title="Přidat do knihovny — materiály se dohledají samy"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
-      )}
-    </div>
-  );
 
   return (
-    <div className="space-y-2.5">
-      <div className="flex gap-2">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            value={dotaz}
-            onChange={(e) => setDotaz(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && void hledej()}
-            placeholder="Hledat skladbu nebo kapelu na Last.fm…"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[13px] text-white placeholder-neutral-500 outline-none focus:border-[#FF9F0A]"
-          />
-        </div>
-        <button
-          onClick={() => void hledej()}
-          disabled={hledam || !dotaz.trim()}
-          className="px-4 py-2 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl cursor-pointer transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
-        >
-          {hledam ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Hledat'}
-        </button>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {ZDROJE.map((z) => {
+          const Ikona = z.ikona;
+          const aktivni = zdroj === z.id;
+          return (
+            <button
+              key={z.id}
+              onClick={() => prepni(z.id)}
+              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 cursor-pointer border transition-all ${
+                aktivni
+                  ? 'bg-[#FF9F0A] text-black border-[#FF9F0A]'
+                  : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
+              }`}
+              title={z.co}
+            >
+              <Ikona className="w-3.5 h-3.5" />
+              {z.popis}
+              <span className={`hidden xl:inline font-normal ${aktivni ? 'text-black/60' : 'text-neutral-600'}`}>
+                {z.co}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Ukázka je jedna pro celý panel: druhé kliknutí prohodí skladbu
-          místo toho, aby vedle sebe hrály dvě. */}
-      {ukazka && (
-        <div className="max-w-sm">
-        <MiniPrehravac
-          key={ukazka.videoId}
-          videoId={ukazka.videoId}
-          nazev={ukazka.nazev}
-          zdroj="Last.fm"
-          sVideem
-          onZavrit={() => setUkazka(null)}
-        />
+      {zdroj === 'lastfm' && <LastFmPanel onPridat={onPridat} />}
+
+      {/* Media Center a YouTube Jam byly celé stránky. Uvnitř karty
+          dostanou vlastní výřez s rolováním, ať karta neroste do nekonečna. */}
+      {zdroj === 'mediacenter' && (
+        <div className="max-h-[62vh] overflow-y-auto -mx-4 sm:-mx-5 rounded-2xl">
+          <MediaCenterSection songs={songs} onSelectSong={onVybratSkladbu} onAddSong={onPridatSkladbu} />
         </div>
       )}
 
-      {chyba && (
-        <div className="flex items-start gap-2 text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
-          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <div>
-            <div>{chyba}</div>
-            {chybiKlic && (
-              <div className="text-neutral-400 mt-0.5">
-                Přidej do <code className="text-neutral-300">.env</code> řádek{' '}
-                <code className="text-neutral-300">LASTFM_API_KEY=…</code> a restartuj server.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {vysledky.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1.5 max-h-[30vh] overflow-y-auto pr-1">
-          {vysledky.map((s, i) => karta(s, i))}
-        </div>
-      )}
-
-      {vybrana && (
-        <div className="space-y-1.5 border-t border-white/[0.06] pt-2.5">
-          <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
-            <Sparkles className="w-3.5 h-3.5 text-[#FF9F0A]" />
-            Podobné k <strong className="text-white">{vybrana.interpret} — {vybrana.nazev}</strong>
-            {zdrojPodobnych === 'interpret' && (
-              <span className="text-neutral-600">
-                (Last.fm nezná tuhle skladbu, tak nabízí podobné interprety)
-              </span>
-            )}
-          </div>
-          {podobne.length === 0 ? (
-            <p className="text-[11px] text-neutral-600">Last.fm k téhle skladbě nic nezná.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-1.5">
-              {podobne.map((s, i) => karta(s, i, true))}
-            </div>
-          )}
+      {zdroj === 'youtube' && (
+        <div className="max-h-[62vh] overflow-y-auto -mx-4 sm:-mx-5 rounded-2xl">
+          <YouTubeSection
+            activeSong={activeSong}
+            songs={songs}
+            onSelectSong={onVybratSkladbu}
+            onUpdateSongVideos={onUlozitVidea}
+            onAddSong={onPridatSkladbu}
+          />
         </div>
       )}
     </div>

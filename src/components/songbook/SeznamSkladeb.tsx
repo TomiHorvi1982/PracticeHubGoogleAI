@@ -279,45 +279,46 @@ export const SeznamSkladeb: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Ukázka hraje rovnou u své skladby. Samostatné okno pod
-                  seznamem odvádělo oči jinam, než na co se kliklo. */}
-              {prehrava && (
-                <div className="px-3 pb-2 max-w-md">
-                  <MiniPrehravac
-                    key={v!.id}
-                    videoId={v!.id}
-                    nazev={v!.title}
-                    zdroj="Ukázka z knihovny"
-                    sVideem={pohled === 'detail'}
-                    onZavrit={() => setHraje(null)}
-                  />
-                </div>
-              )}
-
-              {pohled === 'detail' && !prehrava && (
-                <div className="px-3 pb-2 flex items-center gap-2 flex-wrap">
-                  {v && (
-                    <img
-                      src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`}
-                      alt=""
-                      loading="lazy"
-                      className="w-28 rounded-lg border border-white/10"
-                    />
+              {/* Video se rozehraje přímo v náhledu — na tom samém místě
+                  a ve stejné velikosti, kde do té chvíle byl obrázek.
+                  Přehrávač pod řádkem odsouval seznam a oči šly jinam,
+                  než na co se kliklo. */}
+              {(prehrava || pohled === 'detail') && (
+                <div className="px-3 pb-2 flex items-start gap-2 flex-wrap">
+                  {prehrava ? (
+                    <div className="w-64">
+                      <MiniPrehravac
+                        key={v!.id}
+                        videoId={v!.id}
+                        nazev={v!.title}
+                        zdroj="Ukázka z knihovny"
+                        sVideem={pohled === 'detail'}
+                        onZavrit={() => setHraje(null)}
+                      />
+                    </div>
+                  ) : (
+                    v && (
+                      <img
+                        src={`https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`}
+                        alt=""
+                        loading="lazy"
+                        className="w-64 rounded-lg border border-white/10"
+                      />
+                    )
                   )}
-                  {(s as any).genre && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
-                      {(s as any).genre}
-                    </span>
-                  )}
-                  {jazyk && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
-                      {jazyk}
-                    </span>
-                  )}
-                  {(s.attachments?.length || 0) > 0 && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
-                      {s.attachments!.length}× příloha
-                    </span>
+                  {pohled === 'detail' && (
+                    <div className="flex flex-wrap gap-1">
+                      {jazyk && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
+                          {jazyk}
+                        </span>
+                      )}
+                      {(s.attachments?.length || 0) > 0 && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
+                          {s.attachments!.length}× příloha
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
