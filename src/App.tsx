@@ -21,6 +21,7 @@ import { AlphaTabSection } from './components/AlphaTabSection';
 import { BookmarksSection } from './components/BookmarksSection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
+import { PodiumSection } from './components/PodiumSection';
 import { podiumProfil } from './services/podiumProfil';
 import { authService } from './services/authService';
 import { playlistService } from './services/playlistService';
@@ -184,6 +185,7 @@ function AppContent() {
       {/* SONGBOOK SECTION */}
       {activeTab === 'songbook' && (
         <Songbook
+          onOtevritPodium={() => setActiveTab('podium')}
           onSelectSongForYoutube={(song) => {
             setActiveSong(song);
             if (song.youtubeVideos && song.youtubeVideos.length > 0) {
@@ -200,6 +202,9 @@ function AppContent() {
           }}
         />
       )}
+
+      {/* PÓDIUM — příprava oken ke skladbám a pódiový režim */}
+      {activeTab === 'podium' && <PodiumSection />}
 
       {/* LIBRARY SECTION */}
 

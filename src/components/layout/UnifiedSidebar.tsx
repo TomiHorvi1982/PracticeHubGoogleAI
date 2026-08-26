@@ -24,6 +24,7 @@ import {
 
 export type MainTabType =
   | 'songbook'
+  | 'podium'
   | 'playlist'
   | 'bookmarks'
   | 'alphatab'

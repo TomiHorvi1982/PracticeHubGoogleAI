@@ -51,21 +51,17 @@ export const HorniNavigace: React.FC<Props> = ({ activeTab, onSelectTab }) => (
     </button>
 
     {/* Pódium vedle knihovny: dvě cesty domů, jedna k hledání a druhá
-        ke hraní. Pódium žije na hlavní stránce, takže se sem jen skočí
-        a rovnou se roztáhne přes celou obrazovku. */}
+        ke hraní. Set se skládá v knihovně, chystá a hraje se tady. */}
     <button
-      onClick={() => {
-        onSelectTab('songbook');
-        // Pódium poslouchá; přepnutí sekce proběhne dřív, než se stihne
-        // zpráva doručit, takže se pošle až po překreslení.
-        requestAnimationFrame(() =>
-          window.dispatchEvent(new CustomEvent('neverlate:otevri-podium'))
-        );
-      }}
-      className="px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white"
-      title="Pódiový režim přes celou obrazovku"
+      onClick={() => onSelectTab('podium')}
+      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+        activeTab === 'podium'
+          ? 'bg-amber-500 text-slate-950 shadow-sm'
+          : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white'
+      }`}
+      title="Příprava oken ke skladbám a pódiový režim"
     >
-      <Maximize2 className="w-3.5 h-3.5 text-amber-400" />
+      <Maximize2 className={`w-3.5 h-3.5 ${activeTab === 'podium' ? '' : 'text-amber-400'}`} />
       Pódium
     </button>
 

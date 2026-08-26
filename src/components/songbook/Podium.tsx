@@ -93,12 +93,6 @@ export const Podium: React.FC<Props> = ({ songs, playlists, aktivni, onVybrat, p
 
   useEffect(() => zrus, []);
 
-  // Pódium jde otevřít i z vrchní lišty.
-  useEffect(() => {
-    const otevri = () => setNaCelou(true);
-    window.addEventListener('neverlate:otevri-podium', otevri);
-    return () => window.removeEventListener('neverlate:otevri-podium', otevri);
-  }, []);
 
   /**
    * Napočítá dva takty a pak spustí.

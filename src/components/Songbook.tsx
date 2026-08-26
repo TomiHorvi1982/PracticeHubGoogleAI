@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ObjevSkladby } from './songbook/ObjevSkladby';
 import { SeznamSkladeb } from './songbook/SeznamSkladeb';
-import { Podium } from './songbook/Podium';
+import { SetListPanel } from './songbook/SetListPanel';
+import { setListy } from '../services/setListy';
 import { spustDoplneni } from '../services/enrichmentClient';
 import {
   PRAZDNY_FILTR,
@@ -13,7 +14,7 @@ import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
-  Maximize2, Minimize2, X, FileUp, ChevronRight, Globe,
+  X, FileUp, ChevronRight, Globe,
   Trash2, List, Edit3, Lock, Unlock,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
@@ -22,17 +23,19 @@ import { OnlineSearchModal } from './OnlineSearchModal';
 import { ChordDetailModal } from './ChordDetailModal';
 import { FileImportModal } from './FileImportModal';
 import { useMusicalContext } from '../context/MusicalContext';
-import { SongModularWorkspace } from './SongModularWorkspace';
 import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 
 interface SongbookProps {
   customNewSong?: Song | null;
   onSelectSongForYoutube?: (song: Song) => void;
+  /** Přepnutí do sekce Pódium. */
+  onOtevritPodium?: () => void;
 }
 
 export const Songbook: React.FC<SongbookProps> = ({
   customNewSong,
   onSelectSongForYoutube,
+  onOtevritPodium,
 }) => {
   const {
     activeSong: globalActiveSong,
@@ -94,21 +97,13 @@ export const Songbook: React.FC<SongbookProps> = ({
   const [isExpandedHeight, setIsExpandedHeight] = useState<boolean>(false);
 
   // Playlists, Sorting & Alphabet Filter States
-  const [playlists, setPlaylists] = useState<{ id: string; name: string; songIds: string[] }[]>(() => {
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('band_playlists_db');
-      if (saved) {
-        try {
-          return JSON.parse(saved);
-        } catch {}
-      }
-    }
-    return [
-      { id: 'all', name: 'Vše', songIds: [] },
-      { id: 'favorites', name: 'Oblíbené', songIds: [] },
-      { id: 'concert', name: 'Koncertní set', songIds: [] }
-    ];
-  });
+  // Sety drží sdílená služba — skládají se tady, hrají se na Pódiu, a
+  // obě sekce se musí dívat na totéž.
+  const [playlists, setPlaylistsStav] = useState(() => setListy.vse());
+  useEffect(() => setListy.subscribe(setPlaylistsStav), []);
+  const setPlaylists = (f: (p: typeof playlists) => typeof playlists) =>
+    setListy.nahrad(f(setListy.vse()));
+
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('all');
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
@@ -191,13 +186,6 @@ export const Songbook: React.FC<SongbookProps> = ({
     if (typeof localStorage !== 'undefined' && songs && songs.length > 0) {
     }
   }, [songs]);
-
-  // Sync playlists to localStorage
-  useEffect(() => {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('band_playlists_db', JSON.stringify(playlists));
-    }
-  }, [playlists]);
 
   // Form states for creating song
   const [editTitle, setEditTitle] = useState('');
@@ -570,41 +558,9 @@ export const Songbook: React.FC<SongbookProps> = ({
         )}
         </div>
 
-        {/* Pódium — playlist a k němu plocha s okny. Píseň sama tu už
-            nemá vlastní blok: co je na ní vidět, si každý naklikal sám
-            a Pódium to při přepnutí skladby vymění. */}
-        <Podium
-          songs={songs}
-          /* „Vše" je filtr knihovny, ne set list — na Pódiu by byl vždycky
-             prázdný a tvářil se, že si tam nic nepřidal. */
-          playlists={playlists.filter((p) => p.id !== 'all')}
-          aktivni={activeSong}
-          onVybrat={(sk) => {
-            setActiveSong(sk);
-            zaznamenejOtevreni(sk.id);
-            setTransposeSemitones(0);
-          }}
-          plocha={
-            activeSong ? (
-              <SongModularWorkspace
-                song={activeSong}
-                onUpdateSong={handleUpdateSong}
-                transposeSemitones={transposeSemitones}
-                setTransposeSemitones={setTransposeSemitones}
-                capoFret={capoFret}
-                setCapoFret={setCapoFret}
-                fontSize={fontSize}
-                setFontSize={setFontSize}
-                onOpenImportModal={() => setIsFileImportOpen(true)}
-                onSelectModalChord={setSelectedModalChord}
-              />
-            ) : (
-              <div className="h-full flex items-center justify-center text-center text-[12px] text-neutral-600 border border-dashed border-white/[0.08] rounded-2xl p-10">
-                Vyber skladbu z playlistu nebo z knihovny vpravo.
-              </div>
-            )
-          }
-        />
+        {/* Set list: co se bude hrát a v jakém pořadí. Hraje se z Pódia,
+            odsud se jen skládá. */}
+        <SetListPanel songs={songs} onNaPodium={() => onOtevritPodium?.()} />
       </div>
 
       {/* New Song Modal */}
