@@ -133,6 +133,31 @@ export const Songbook: React.FC<SongbookProps> = ({
   // View Mode: 'detailed' (full cards with badges) vs 'compact' (1-line: Band - Song)
   /** Filtry a seznam skladeb jsou v základu sbalené — stránka pak začíná
    *  hledáním, ne dvěma obrazovkami ovládání. */
+  /** Které z obou hledání je otevřené. Pamatuje se — kdo hledá jen ve
+   *  svém, nechce mít Last.fm přes půl obrazovky při každém spuštění. */
+  const [levaOtevrena, setLevaOtevrena] = useState(() => {
+    try {
+      return localStorage.getItem('neverlate_leva_strana') !== '0';
+    } catch {
+      return true;
+    }
+  });
+  const [pravaOtevrena, setPravaOtevrena] = useState(() => {
+    try {
+      return localStorage.getItem('neverlate_prava_strana') !== '0';
+    } catch {
+      return true;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('neverlate_leva_strana', levaOtevrena ? '1' : '0');
+      localStorage.setItem('neverlate_prava_strana', pravaOtevrena ? '1' : '0');
+    } catch {
+      /* plné úložiště nesmí zabránit zavření strany */
+    }
+  }, [levaOtevrena, pravaOtevrena]);
+
   const [filtryOtevrene, setFiltryOtevrene] = useState(false);
   const [seznamOtevreny, setSeznamOtevreny] = useState(false);
 
@@ -417,16 +442,30 @@ export const Songbook: React.FC<SongbookProps> = ({
           sloupce vedle sebe: seznam se mačkal do třetiny obrazovky a píseň
           přišla o zbytek. Na šířku se do řádku vejde čtyřikrát víc skladeb. */}
       <div className="flex flex-col gap-4">
-        {/* Objevování je samostatná karta. Vedle hledání ve vlastní knihovně
-            splývalo a nebylo poznat, které pole prohledává co — jedno hledá
-            u tebe, druhé venku ve světě. */}
-        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-[#FF9F0A]/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
+        {/* Dvě hledání vedle sebe, oddělená čárou: vlevo svět, vpravo tvoje
+            knihovna. Pod sebou nebylo na první pohled poznat, které pole
+            sahá kam. Každá strana se dá zavřít — když hledáš jen ve svém,
+            půlka obrazovky s Last.fm jen překáží. */}
+        <div
+          className={`grid gap-0 items-start ${
+            levaOtevrena && pravaOtevrena ? 'lg:grid-cols-2' : 'grid-cols-1'
+          }`}
+        >
+        {levaOtevrena ? (
+        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-[#FF9F0A]/20 rounded-3xl lg:rounded-r-none lg:border-r-0 p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-[#FF9F0A]" />
             <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
               Objevit novou skladbu
             </h2>
             <span className="text-[10px] text-neutral-500">Last.fm — hledá venku, ne ve tvé knihovně</span>
+            <button
+              onClick={() => setLevaOtevrena(false)}
+              className="ml-auto p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+              title="Zavřít objevování"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
             <ObjevSkladby
               onPridat={(interpret, nazev) => {
@@ -448,8 +487,23 @@ export const Songbook: React.FC<SongbookProps> = ({
             />
 
         </div>
+        ) : (
+          <button
+            onClick={() => setLevaOtevrena(true)}
+            className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#16161A]/60 border border-[#FF9F0A]/20 rounded-3xl text-left cursor-pointer hover:border-[#FF9F0A]/40 transition-all"
+          >
+            <Globe className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+            <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">
+              Objevit novou skladbu
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-neutral-500 ml-auto" />
+          </button>
+        )}
 
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl">
+        {pravaOtevrena ? (
+        <div className={`bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl h-full ${
+          levaOtevrena ? 'lg:rounded-l-none lg:border-l-white/[0.14]' : ''
+        }`}>
           {/* Search & Actions Header */}
           <div className="space-y-3 shrink-0">
             <div className="flex items-center justify-between">
@@ -459,6 +513,13 @@ export const Songbook: React.FC<SongbookProps> = ({
                   Moje skladby ({filteredSongs.length})
                 </h2>
               </div>
+              <button
+                onClick={() => setPravaOtevrena(false)}
+                className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+                title="Zavřít vlastní knihovnu"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
 
             </div>
 
@@ -853,6 +914,19 @@ export const Songbook: React.FC<SongbookProps> = ({
               })
             )}
           </div>
+        </div>
+        ) : (
+          <button
+            onClick={() => setPravaOtevrena(true)}
+            className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#16161A]/80 border border-white/[0.08] rounded-3xl text-left cursor-pointer hover:border-white/20 transition-all"
+          >
+            <BookOpen className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+            <span className="text-[11px] font-bold text-neutral-300 uppercase tracking-wider">
+              Moje skladby ({songs.length})
+            </span>
+            <ChevronRight className="w-3.5 h-3.5 text-neutral-500 ml-auto" />
+          </button>
+        )}
         </div>
 
         {/* Main View: Song Viewer with Modular Windows Workspace */}
