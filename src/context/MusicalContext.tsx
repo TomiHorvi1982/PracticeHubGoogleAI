@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { Song } from '../types';
 import { eventBus } from '../services/eventBus';
+import { metronomService } from '../services/metronomService';
 import { songDatabaseService } from '../services/songDatabaseService';
 
 export type DockToolId = 'fretboard' | 'scales' | 'chords' | 'tuner' | 'metronome' | 'looper' | 'drums' | 'keyboard' | null;
@@ -150,11 +151,29 @@ export const MusicalProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const toggleMetronome = useCallback(() => {
     setIsMetronomeActiveState((prev) => {
-      const next = !prev;
-      eventBus.emit('METRONOME_TOGGLE', { isRunning: next, bpm });
-      return next;
+      eventBus.emit('METRONOME_TOGGLE', { isRunning: !prev, bpm });
+      return !prev;
     });
   }, [bpm]);
+
+  /**
+   * Klepání obstarává služba, ne komponenta.
+   *
+   * Dřív ho dělala sekce Metronom a okno Ladička — tedy jen tam, kde jsi
+   * zrovna stál. Tlačítko ve vrchní liště se rozsvítilo a nezaznělo nic.
+   *
+   * Spouští se z efektu, ne uvnitř `setState`. Aktualizační funkce musí
+   * být čistá; React ji volá i dvakrát a metronom pak klepal dvakrát
+   * rychleji, než měl.
+   */
+  useEffect(() => {
+    if (isMetronomeActive) metronomService.start(bpm);
+    else metronomService.stop();
+    // Bez úklidu schválně: ten by metronom zastavil při každém přeběhu
+    // efektu a hned nato by ho `start` spustil znovu — pokaždé s
+    // klepnutím navíc a posunutým taktem. Vypnutí obstará větev výš,
+    // až se tlačítko skutečně přepne.
+  }, [isMetronomeActive, bpm]);
 
   const setSelectedInstrument = useCallback((inst: 'guitar' | 'bass' | 'keys' | 'drums') => {
     setSelectedInstrumentState(inst);

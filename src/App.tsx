@@ -13,7 +13,6 @@ import { Songbook } from './components/Songbook';
 import { YouTubeSection } from './components/YouTubeSection';
 import { Tuner } from './components/Tuner';
 import { SettingsSection } from './components/SettingsSection';
-import { ChordScaleExplorer } from './components/ChordScaleExplorer';
 import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
 import { FreetarExplorer } from './components/FreetarExplorer';
@@ -284,8 +283,6 @@ function AppContent() {
       {activeTab === 'settings' && <SettingsSection />}
 
       {/* CHORD & SCALE EXPLORER */}
-      {activeTab === 'scales' && <ChordScaleExplorer />}
-
       {/* VIRTUAL INSTRUMENTS */}
       {activeTab === 'instruments' && <VirtualInstruments />}
 

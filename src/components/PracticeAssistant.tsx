@@ -105,10 +105,9 @@ export const PracticeAssistant: React.FC = () => {
       interval = setInterval(() => {
         setCurrentBeat((prev) => {
           const next = (prev + 1) % beatsPerBar;
-          const isAccented = accentBeats[next] ?? (next === 0);
-          if (!isMetroMuted) {
-            audioSynth.playMetronomeClick(isAccented);
-          }
+          // Zvuk obstarává metronomová služba — ta běží i mimo tuhle
+          // sekci. Klepat i tady by znamenalo dvě klepnutí na dobu.
+          // Zdejší smyčka zůstává kvůli blikání a počítání dob.
           setFlashTick(true);
           setTimeout(() => setFlashTick(false), 120);
           return next;

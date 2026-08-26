@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  FileCode, Globe, Compass, Piano, Sliders, Settings, Clock, Mic, Maximize2,
+  FileCode, Globe, Piano, Sliders, Settings, Clock, Mic, Maximize2,
 } from 'lucide-react';
 import { MainTabType } from './UnifiedSidebar';
 
@@ -23,11 +23,14 @@ interface Props {
  * Media Center a YouTube Jam odešly do „Objevit novou skladbu". Nejsou to
  * nástroje k písni, ale způsoby, jak hudbu najít venku — a to teď dělá
  * jedno místo na hlavní stránce, ne tři sekce na přeskáčku.
+ *
+ * Teorie & trénink zmizela úplně: byla to tatáž komponenta, jakou má
+ * Hmatník ve Virtual Instruments pod záložkami Akordy a Stupnice. Dvě
+ * cesty k jedné obrazovce jen nutily hádat, která z nich je ta správná.
  */
 const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'alphatab', label: 'Guitar Pro', icon: FileCode },
   { id: 'freetar', label: 'Freetar.de', icon: Globe },
-  { id: 'scales', label: 'Teorie & trénink', icon: Compass },
   { id: 'instruments', label: 'Virtual Instruments', icon: Piano },
   { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
   { id: 'practice', label: 'Metronom', icon: Clock },

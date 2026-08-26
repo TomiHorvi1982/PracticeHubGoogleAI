@@ -76,11 +76,9 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
     if (isMetroRunning) {
       const intervalMs = (60 / bpm) * 1000;
       metroTimerRef.current = setInterval(() => {
-        setBeatCount((prev) => {
-          const next = (prev % 4) + 1;
-          audioSynth.playMetronomeClick(next === 1);
-          return next;
-        });
+        // Klepe metronomová služba, tahle smyčka jen počítá doby na
+        // displeji. Dvě klepnutí na dobu by zněla jako rozladěný stroj.
+        setBeatCount((prev) => (prev % 4) + 1);
       }, intervalMs);
     } else {
       if (metroTimerRef.current) clearInterval(metroTimerRef.current);
