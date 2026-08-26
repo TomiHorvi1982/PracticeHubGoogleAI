@@ -147,6 +147,39 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
     );
   }
 
+  if (druh === 'taby') {
+    return (
+      <div className={ram}>
+        <svg viewBox="0 0 200 96" className="w-full h-full">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <line key={i} x1="14" y1={22 + i * 11} x2="186" y2={22 + i * 11} stroke="#5a5a66" strokeWidth="0.7" />
+          ))}
+          {[
+            [30, 0, '3'], [52, 1, '5'], [74, 2, '7'], [96, 1, '5'],
+            [118, 3, '0'], [140, 0, '3'], [162, 2, '7'],
+          ].map(([x, r, n], i) => (
+            <g key={i}>
+              <rect x={Number(x) - 6} y={16 + Number(r) * 11} width="12" height="12" fill="#0E0E12" />
+              <text
+                x={Number(x)}
+                y={26 + Number(r) * 11}
+                fontSize="9"
+                fill="#FF9F0A"
+                textAnchor="middle"
+                fontFamily="monospace"
+              >
+                {n}
+              </text>
+            </g>
+          ))}
+          <rect x="14" y="80" width="60" height="6" rx="3" fill="#ffffff18" />
+          <rect x="82" y="80" width="44" height="6" rx="3" fill="#ffffff18" />
+          <rect x="134" y="80" width="52" height="6" rx="3" fill="#ffffff18" />
+        </svg>
+      </div>
+    );
+  }
+
   // ladička a metronom
   return (
     <div className={ram}>
@@ -202,6 +235,15 @@ const KROKY: Krok[] = [
   },
   {
     cislo: 3,
+    nadpis: 'Prohlédni si taby a akordy',
+    popis:
+      'Freetar.de sahá do Ultimate Guitar na tabulatury i akordy s textem; naše knihovna k tomu přidá přes dvě stě partitur a Guitar Pro souborů. Co se hodí, uložíš rovnou k písni.',
+    nahled: 'taby',
+    kam: 'freetar',
+    tlacitko: 'Freetar.de',
+  },
+  {
+    cislo: 4,
     nadpis: 'Poskládej set list',
     popis:
       'Pořadí, ve kterém se bude hrát. Přehazuje se taháním nebo šipkami, skladba se ze setu vyhodí křížkem. Hraje se z Pódia, tady se jen skládá.',
@@ -210,7 +252,7 @@ const KROKY: Krok[] = [
     tlacitko: 'Set list',
   },
   {
-    cislo: 4,
+    cislo: 5,
     nadpis: 'Připrav si Pódium',
     popis:
       'Ke každé písni si otevřeš okna, která potřebuješ vidět — text, tabulaturu, noty, akordy, chat s kapelou. Rozložení se uloží k tobě, takže příště je najdeš, jak jsi ho nechal.',
@@ -219,7 +261,7 @@ const KROKY: Krok[] = [
     tlacitko: 'Otevřít Pódium',
   },
   {
-    cislo: 5,
+    cislo: 6,
     nadpis: 'Trénuj na nástroj',
     popis:
       'Hmatník a klaviatura vedle sebe: naťukáš akord na kytaru a klávesák hned vidí, co zmáčknout. Funguje to i v jiném ladění a v obou směrech.',
@@ -228,7 +270,7 @@ const KROKY: Krok[] = [
     tlacitko: 'Virtual Instruments',
   },
   {
-    cislo: 6,
+    cislo: 7,
     nadpis: 'Slož si vlastní skladbu',
     popis:
       'Ze samplů se staví stopa po stopě a část po části — intro, sloka, refrén. Pustíš jednu část dokola nebo celou stavbu za sebou.',
@@ -244,6 +286,11 @@ const KDYKOLI: { nadpis: string; popis: string; kam: MainTabType }[] = [
   { nadpis: 'Metronom', popis: 'Tiká odkudkoli, tempo se mění ve vrchní liště.', kam: 'practice' },
   { nadpis: 'Mixážní pult', popis: 'Rozdělí píseň na stopy a namíchá si podklad bez kytary.', kam: 'stemmixer' },
   { nadpis: 'Guitar Pro', popis: 'Otevře tabulatury a přehraje je.', kam: 'alphatab' },
+  {
+    nadpis: 'Nastavení',
+    popis: 'Připojí MIDI klávesy a ukáže, kolik místa zbývá v úložišti.',
+    kam: 'settings',
+  },
 ];
 
 /**
@@ -264,7 +311,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
       </h1>
       <p className="text-sm text-neutral-300 mt-2 max-w-2xl leading-relaxed">
         Zkušebna pro kapelu na jednom místě: od nalezení písně přes přípravu materiálů až po
-        odehrání na pódiu. Níž je cesta, jak se to používá — šest kroků, každý s tlačítkem
+        odehrání na pódiu. Níž je cesta, jak se to používá — sedm kroků, každý s tlačítkem
         rovnou tam.
       </p>
       <button
