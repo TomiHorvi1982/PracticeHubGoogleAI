@@ -3,7 +3,7 @@ import { LibrarySection } from './components/LibrarySection';
 import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem } from './types';
 import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
-import { MainTabType } from './components/layout/UnifiedSidebar';
+import { MainTabType } from './components/layout/sekce';
 import { LoginModal } from './components/LoginModal';
 import { AdminUsersModal } from './components/AdminUsersModal';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -17,7 +17,6 @@ import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
 import { FreetarExplorer } from './components/FreetarExplorer';
 import { AlphaTabSection } from './components/AlphaTabSection';
-import { BookmarksSection } from './components/BookmarksSection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { PodiumSection } from './components/PodiumSection';
@@ -163,7 +162,6 @@ function AppContent() {
     }
   };
 
-  const bookmarksCount = songs.filter((s) => (s as any).isFavorite).length;
 
   return (
     <MainLayout
@@ -312,8 +310,6 @@ function AppContent() {
       )}
 
       {/* BOOKMARKS SECTION */}
-      {activeTab === 'bookmarks' && <BookmarksSection />}
-
       {/* TUNER SECTION */}
       {activeTab === 'tuner' && <Tuner />}
       {activeTab === 'settings' && <SettingsSection />}

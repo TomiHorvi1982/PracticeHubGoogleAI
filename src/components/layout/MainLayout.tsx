@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
 import { UnifiedTopBar } from './UnifiedTopBar';
-import { MainTabType } from './UnifiedSidebar';
+import { MainTabType } from './sekce';
 import { HorniNavigace } from './HorniNavigace';
 import { SmartStudioDock } from './SmartStudioDock';
 

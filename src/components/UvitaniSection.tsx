@@ -1,5 +1,5 @@
 import React from 'react';
-import { MainTabType } from './layout/UnifiedSidebar';
+import { MainTabType } from './layout/sekce';
 
 interface Props {
   onJit: (tab: MainTabType) => void;

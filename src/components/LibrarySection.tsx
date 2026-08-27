@@ -67,68 +67,6 @@ interface LibrarySectionProps {
   onAttachToSong?: (songId: string, attachment: SongAttachment) => void;
 }
 
-// Sample starter library items
-const INITIAL_LIBRARY_ITEMS: LibraryItem[] = [
-  {
-    id: 'sample_gp_1',
-    name: 'Oasis_Wonderwall_GuitarTab.gp5',
-    type: 'guitarpro',
-    dataUrl: '', // Will be loaded or placeholder
-    size: 45200,
-    uploadedAt: Date.now() - 3600000 * 24,
-    artist: 'Oasis',
-    songTitle: 'Wonderwall',
-    bpm: 87,
-    key: 'Em',
-    trackNames: ['Acoustic Guitar', 'Electric Guitar', 'Strings', 'Drums', 'Bass'],
-  },
-  {
-    id: 'sample_pdf_1',
-    name: 'Pink_Floyd_Wish_You_Were_Here_Sheet.pdf',
-    type: 'pdf',
-    dataUrl: '',
-    size: 184500,
-    uploadedAt: Date.now() - 3600000 * 12,
-    artist: 'Pink Floyd',
-    songTitle: 'Wish You Were Here',
-    extractedText: 'Pink Floyd - Wish You Were Here\n[G]So, so you think you can tell [Em]Heaven from Hell...',
-  },
-  {
-    id: 'sample_txt_1',
-    name: 'Nedvedi_Stanky_Akordy.txt',
-    type: 'txt',
-    dataUrl: '',
-    size: 2400,
-    uploadedAt: Date.now() - 3600000 * 6,
-    artist: 'Jan Nedvěd',
-    songTitle: 'Stánky',
-    key: 'G',
-    bpm: 95,
-    extractedText: 'Jan Nedvěd - Stánky\n\n[G]U stánků [C]na levnou [G]krásu\n[G]postávaj [C]a ze slov a [G]hlasů\n[G]poznávaj [D7]jak málo stačí [G]k štěstí.',
-  },
-  {
-    id: 'sample_img_1',
-    name: 'Kytarove_Akordy_Open_Chords_Chart.png',
-    type: 'image',
-    dataUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400"><rect width="600" height="400" fill="%230F0F0F"/><rect x="20" y="20" width="560" height="360" rx="8" fill="%23141414" stroke="%23FF3E00" stroke-width="2"/><text x="300" y="60" fill="%23FFFFFF" font-family="monospace" font-size="20" font-weight="bold" text-anchor="middle">ZÁKLADNÍ KYTAROVÉ AKORDY // GUITAR CHORD CHART</text><text x="100" y="140" fill="%2300FF41" font-family="monospace" font-size="28" font-weight="bold">C</text><text x="100" y="170" fill="%23AAAAAA" font-family="monospace" font-size="14">x 3 2 0 1 0</text><text x="240" y="140" fill="%2300FF41" font-family="monospace" font-size="28" font-weight="bold">G</text><text x="240" y="170" fill="%23AAAAAA" font-family="monospace" font-size="14">3 2 0 0 0 3</text><text x="380" y="140" fill="%2300FF41" font-family="monospace" font-size="28" font-weight="bold">D</text><text x="380" y="170" fill="%23AAAAAA" font-family="monospace" font-size="14">x x 0 2 3 2</text><text x="500" y="140" fill="%2300FF41" font-family="monospace" font-size="28" font-weight="bold">Em</text><text x="500" y="170" fill="%23AAAAAA" font-family="monospace" font-size="14">0 2 2 0 0 0</text><text x="100" y="270" fill="%23FFD700" font-family="monospace" font-size="28" font-weight="bold">Am</text><text x="100" y="300" fill="%23AAAAAA" font-family="monospace" font-size="14">x 0 2 2 1 0</text><text x="240" y="270" fill="%23FFD700" font-family="monospace" font-size="28" font-weight="bold">F</text><text x="240" y="300" fill="%23AAAAAA" font-family="monospace" font-size="14">1 3 3 2 1 1</text><text x="380" y="270" fill="%23FFD700" font-family="monospace" font-size="28" font-weight="bold">E</text><text x="380" y="300" fill="%23AAAAAA" font-family="monospace" font-size="14">0 2 2 1 0 0</text><text x="500" y="270" fill="%23FFD700" font-family="monospace" font-size="28" font-weight="bold">A</text><text x="500" y="300" fill="%23AAAAAA" font-family="monospace" font-size="14">x 0 2 2 2 0</text><text x="300" y="360" fill="%23888888" font-family="monospace" font-size="12" text-anchor="middle">STRUM_OS // MULTIMEDIÁLNÍ KNIHOVNA</text></svg>',
-    size: 12400,
-    uploadedAt: Date.now() - 3600000 * 2,
-    artist: 'Diagramy',
-    songTitle: 'Základní akordy',
-  },
-  {
-    id: 'sample_midi_1',
-    name: 'House_Of_The_Rising_Sun_Backing.mid',
-    type: 'midi',
-    dataUrl: '',
-    size: 28900,
-    uploadedAt: Date.now() - 3600000,
-    artist: 'The Animals',
-    songTitle: 'House of the Rising Sun',
-    bpm: 116,
-    trackNames: ['Fingerpicking Guitar', 'Bass', 'Organ', 'Drums'],
-  },
-];
 
 export const LibrarySection: React.FC<LibrarySectionProps> = ({
   songs,
@@ -640,15 +578,19 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               <span className="bg-[#0A84FF] text-white font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
                 Knihovna
               </span>
-              <span className="text-xs text-neutral-400 font-medium">
-                {allCombinedItems.length} souborů k dispozici
+              {/* Skutečný počet v knihovně, ne počet právě načtených. Seznam
+                  níž je jedna stránka — dvacet tisíc řádků by prohlížeč
+                  stahoval a třídil zbytečně. Zbytek se najde hledáním. */}
+              <span className="text-xs text-neutral-400 font-medium tabular-nums">
+                {celkemVKnihovne.toLocaleString('cs')} souborů v knihovně
               </span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               Multimediální Knihovna Souborů
             </h2>
             <p className="text-xs text-neutral-400 mt-1">
-              Kompletní úložiště pro Guitar Pro (.gp), PDF zpěvníky, textové akordy (.txt), obrázky a MIDI stopy.
+              Guitar Pro, PDF noty, textové akordy, obrázky, MIDI a samply — všechno, co appka
+              nabízí k písním. Seznam níž ukazuje prvních {allCombinedItems.length}; zbytek najdeš hledáním.
             </p>
           </div>
         </div>

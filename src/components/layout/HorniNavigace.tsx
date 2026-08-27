@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-  FileCode, Globe, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass,
+  FileCode, Globe, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen,
 } from 'lucide-react';
-import { MainTabType } from './UnifiedSidebar';
+import { MainTabType } from './sekce';
 
 interface Props {
   activeTab: MainTabType;
@@ -35,6 +35,9 @@ const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: st
   { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
   { id: 'practice', label: 'Metronom', icon: Clock },
   { id: 'tuner', label: 'Ladička', icon: Mic },
+  // Katalog souborů. Bez něj se ke knihovně dá dostat jen přes písničku,
+  // takže 17 tisíc souborů nemá kde procházet ani mazat.
+  { id: 'library', label: 'Soubory', icon: FolderOpen },
   { id: 'settings', label: 'Nastavení', icon: Settings },
   // Rozcestník až na konci: hledá se jen když člověk neví kudy dál, a
   // vedle nastavení je po ruce, aniž by zabíral místo těm, kdo to vědí.
