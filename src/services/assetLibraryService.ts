@@ -1,4 +1,3 @@
-import { supabase } from './supabaseClient';
 import { authService } from './authService';
 
 /** Mirrors the `assets` table (see docs/migration Phase 2/6). */
@@ -86,10 +85,16 @@ class AssetLibraryService {
   }
 
   /**
-   * Full upload flow: ask the server for a place to put the file (creates
-   * the metadata row + a signed upload URL), upload the bytes directly to
-   * Supabase Storage (never through our own Express server), then tell the
-   * server the upload finished.
+   * Nahrání souboru do knihovny.
+   *
+   * Dva kroky: server nejdřív založí řádek v katalogu a řekne, kam bajty
+   * poslat, pak se pošlou. Rozdělení na dva kroky znamená, že po neúspěchu
+   * zůstane záznam ve stavu `pending` — ten jde najít a uklidit, kdežto
+   * soubor bez záznamu by v úložišti ležel navždy a nikdo by o něm nevěděl.
+   *
+   * Bajty jdou přes náš server do R2. Přímo do úložiště by to bylo o hop
+   * kratší, ale prohlížeč cizí původ bez povoleného CORS odmítne — a to
+   * je nastavení u Cloudflare, ne v kódu.
    */
   public async upload(
     file: File,
@@ -113,22 +118,20 @@ class AssetLibraryService {
       throw new Error(initData.error || 'Nepodařilo se založit upload.');
     }
 
-    const { asset, bucket, storage_path, upload_token } = initData;
-
-    const { error: uploadError } = await supabase.storage.from(bucket).uploadToSignedUrl(storage_path, upload_token, file);
-    if (uploadError) {
-      throw new Error(uploadError.message);
-    }
-
-    const completeRes = await authorizedFetch(`/api/assets/${asset.id}/complete`, {
-      method: 'POST',
-      body: JSON.stringify({ size_bytes: file.size, mime_type: file.type }),
+    const token = authService.getCurrentSession()?.token;
+    const putRes = await fetch(initData.upload_endpoint, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: file,
     });
-    const completeData = await completeRes.json();
-    if (!completeRes.ok) {
-      throw new Error(completeData.error || 'Nepodařilo se dokončit upload.');
+    const putData = await putRes.json().catch(() => ({}));
+    if (!putRes.ok) {
+      throw new Error(putData.error || 'Nahrání souboru selhalo.');
     }
-    return completeData.asset;
+    return putData.asset;
   }
 
   public async remove(id: string): Promise<void> {

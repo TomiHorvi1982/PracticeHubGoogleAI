@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
-import { isR2Configured, signedDownloadUrl, getObjectBytes, deleteObject as r2Delete } from './r2';
+import { isR2Configured, signedDownloadUrl, getObjectBytes, uploadObject, deleteObject as r2Delete } from './r2';
 
 dotenv.config();
 
@@ -475,19 +475,33 @@ export async function createApp() {
     return data?.role === 'admin';
   }
 
-  // Step 1: client asks for a place to upload a file. Server creates the
-  // `assets` metadata row (status='pending') and a short-lived signed
-  // upload URL/token — the actual bytes never pass through this server.
+  /**
+   * Krok 1: klient si řekne o místo pro soubor.
+   *
+   * Server založí řádek v katalogu a řekne, kam bajty poslat. Vše nové
+   * míří do R2 — sbírka je tam už celá (3,3 GB) a mít knihovnu na dvou
+   * místech znamená dvojí účty a dvojí hledání, kde co je.
+   *
+   * Bajty jdou přes tenhle server, ne přímo do R2. Podepsaná adresa
+   * přímo do R2 by šla, ale prohlížeč by ji odmítl, dokud koš nemá
+   * povolený náš původ; to je nastavení u Cloudflare, ne v kódu.
+   */
   app.post('/api/assets/upload-url', requireAuth, async (req, res) => {
     const { name, mime_type, category, asset_type, size_bytes, visibility } = req.body;
     if (!name || !category || !asset_type) {
       return res.status(400).json({ error: 'name, category a asset_type jsou povinné.' });
     }
 
-    const bucket = ASSET_BUCKET_BY_TYPE[asset_type];
-    if (!bucket) {
+    // Rozdělení na `audio`/`assets` zůstává jen jako část klíče v R2,
+    // aby nové soubory ležely vedle těch, které se tam už nastěhovaly.
+    const vetev = ASSET_BUCKET_BY_TYPE[asset_type];
+    if (!vetev) {
       return res.status(400).json({ error: `Neznámý asset_type: ${asset_type}` });
     }
+    if (!isR2Configured()) {
+      return res.status(503).json({ error: 'Úložiště R2 není nastavené.' });
+    }
+    const bucket = 'r2';
 
     const wantsGlobal = visibility === 'global';
     if (wantsGlobal && !(await isProfileAdmin(req.user!.id))) {
@@ -498,7 +512,7 @@ export async function createApp() {
     const assetId = crypto.randomUUID();
     const ownerId = wantsGlobal ? null : req.user!.id;
     const pathPrefix = wantsGlobal ? 'global' : `users/${req.user!.id}`;
-    const storagePath = `${pathPrefix}/${category}/${assetId}-${slugifyFilename(name)}`;
+    const storagePath = `${vetev}/${pathPrefix}/${category}/${assetId}-${slugifyFilename(name)}`;
 
     const { data: insertedAsset, error: insertError } = await admin
       .from('assets')
@@ -522,20 +536,59 @@ export async function createApp() {
       return res.status(500).json({ error: 'Nepodařilo se založit asset.', details: insertError?.message });
     }
 
-    const { data: signed, error: signError } = await admin.storage.from(bucket).createSignedUploadUrl(storagePath);
-    if (signError || !signed) {
-      await admin.from('assets').delete().eq('id', assetId);
-      return res.status(500).json({ error: 'Nepodařilo se vytvořit upload URL.', details: signError?.message });
-    }
-
     res.json({
       asset: insertedAsset,
-      signed_upload_url: signed.signedUrl,
-      upload_token: signed.token,
+      // Kam poslat bajty. Klient je pošle sem, server je uloží do R2.
+      upload_endpoint: `/api/assets/${assetId}/bytes`,
       storage_path: storagePath,
       bucket,
     });
   });
+
+  /**
+   * Krok 2: bajty souboru.
+   *
+   * Přijímají se jako surové tělo požadavku a rovnou se ukládají do R2.
+   * Zápis do katalogu už proběhl, takže když tenhle krok selže, zůstane
+   * po něm řádek se stavem `pending` — a ten se dá poznat a uklidit,
+   * na rozdíl od souboru bez záznamu.
+   */
+  app.put(
+    '/api/assets/:id/bytes',
+    requireAuth,
+    express.raw({ type: '*/*', limit: '600mb' }),
+    async (req, res) => {
+      const admin = getSupabaseAdmin();
+      const { data: asset } = await admin
+        .from('assets')
+        .select('id, owner_id, storage_path, storage_bucket, mime_type')
+        .eq('id', req.params.id)
+        .single();
+
+      if (!asset) return res.status(404).json({ error: 'Asset nenalezen.' });
+      if (asset.owner_id && asset.owner_id !== req.user!.id) {
+        return res.status(403).json({ error: 'Tenhle soubor není váš.' });
+      }
+      if (!Buffer.isBuffer(req.body) || req.body.length === 0) {
+        return res.status(400).json({ error: 'Prázdné tělo požadavku.' });
+      }
+
+      try {
+        await uploadObject(asset.storage_path, req.body, asset.mime_type || undefined);
+      } catch (e: any) {
+        return res.status(502).json({ error: 'Uložení do R2 selhalo.', details: e?.message });
+      }
+
+      const { data: hotovy } = await admin
+        .from('assets')
+        .update({ status: 'active', size_bytes: req.body.length })
+        .eq('id', asset.id)
+        .select()
+        .single();
+
+      res.json({ asset: hotovy });
+    }
+  );
 
   // Step 2: client finished uploading the bytes to Storage — flip status to active.
   app.post('/api/assets/:id/complete', requireAuth, async (req, res) => {
@@ -1367,9 +1420,20 @@ export async function createApp() {
     vokal: ['vocal_sample'],
   };
 
+  /**
+   * Konec údaje v názvu souboru.
+   *
+   * Buď oddělovač, nebo konec názvu. Bez té druhé možnosti se údaj na
+   * konci nikdy nerozpozná — a přípona se ustřihává dřív, takže
+   * `riff_100bpm_Em_4-4.wav` končí právě taktem.
+   */
+  const KONEC = '(?=[_\\-\\s.]|$)';
+
   /** Tempo z názvu: „120bpm", „_95_", „128 BPM". */
   function tempoZNazvu(nazev: string): number {
-    const m = nazev.match(/(\d{2,3})\s*bpm/i) || nazev.match(/[_\-\s](\d{2,3})[_\-\s.]/);
+    const m =
+      nazev.match(/(\d{2,3})\s*bpm/i) ||
+      nazev.match(new RegExp(`[_\\-\\s](\\d{2,3})${KONEC}`));
     const t = m ? Number(m[1]) : 0;
     // Rozumné hranice: čtyřciferná čísla v názvech bývají roky nebo pořadí.
     return t >= 40 && t <= 260 ? t : 0;
@@ -1377,14 +1441,14 @@ export async function createApp() {
 
   /** Tónina z názvu: „Am", „F#m", „_C_", „Ebmaj". */
   function toninaZNazvu(nazev: string): string {
-    const m = nazev.match(/[_\-\s]([A-G](?:#|b)?)(m|min|maj)?[_\-\s.]/);
+    const m = nazev.match(new RegExp(`[_\\-\\s]([A-G](?:#|b)?)(m|min|maj)?${KONEC}`));
     if (!m) return '';
     return m[1] + (m[2] && m[2].startsWith('m') && m[2] !== 'maj' ? 'm' : '');
   }
 
   /** Takt z názvu: „4-4", „3_4", „6/8". */
   function taktZNazvu(nazev: string): string {
-    const m = nazev.match(/[_\-\s](\d)[\/\-_](\d)[_\-\s.]/);
+    const m = nazev.match(new RegExp(`[_\\-\\s](\\d)[\\/\\-_](\\d)${KONEC}`));
     if (!m) return '';
     const spodek = Number(m[2]);
     return [2, 4, 8, 16].includes(spodek) ? `${m[1]}/${m[2]}` : '';

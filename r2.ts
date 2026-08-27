@@ -72,6 +72,25 @@ export async function signedDownloadUrl(key: string, expiresIn = 60 * 60 * 12): 
   return getSignedUrl(r2(), new GetObjectCommand({ Bucket: R2_BUCKET_NAME(), Key: key }), { expiresIn });
 }
 
+/**
+ * Podepsaná adresa pro nahrání přímo do R2.
+ *
+ * Použitelná jen tam, kde má koš povolený CORS pro náš původ — jinak
+ * prohlížeč požadavek odmítne. Dokud to nastavené není, jde nahrávání
+ * přes server, který CORS neřeší.
+ */
+export async function signedUploadUrl(
+  key: string,
+  contentType?: string,
+  expiresIn = 60 * 15
+): Promise<string> {
+  return getSignedUrl(
+    r2(),
+    new PutObjectCommand({ Bucket: R2_BUCKET_NAME(), Key: key, ContentType: contentType }),
+    { expiresIn }
+  );
+}
+
 export async function uploadObject(key: string, body: Uint8Array | Buffer, contentType?: string): Promise<void> {
   await r2().send(
     new PutObjectCommand({
