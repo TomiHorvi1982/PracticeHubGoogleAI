@@ -66,6 +66,10 @@ export const PodiumSection: React.FC = () => {
           setTransposeSemitones(0);
         }}
         plocha={plocha}
+        onPridatDoSetu={(sk) => {
+          const set = sety[0];
+          if (set) void setListy.prepni(set.id, sk.id);
+        }}
       />
 
       <ChordDetailModal chordName={akordDetail} onClose={() => setAkordDetail(null)} />

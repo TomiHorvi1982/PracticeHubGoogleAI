@@ -20,6 +20,8 @@ interface Props {
   onVybrat: (s: Song) => void;
   /** Plocha s okny pro právě vybranou píseň. */
   plocha: React.ReactNode;
+  /** Zařadí otevřenou píseň do setu, když v něm ještě není. */
+  onPridatDoSetu?: (s: Song) => void;
 }
 
 /** Kolik taktů se napočítá, než se začne hrát. */
@@ -37,7 +39,9 @@ const DOB_V_TAKTU = 4;
  * Pódiový režim je totéž přes celou obrazovku, s odpočtem před začátkem —
  * na zkoušce nikdo nekouká na obrazovku, ale čeká na čtyři klepnutí.
  */
-export const Podium: React.FC<Props> = ({ songs, playlists, aktivni, onVybrat, plocha }) => {
+export const Podium: React.FC<Props> = ({
+  songs, playlists, aktivni, onVybrat, plocha, onPridatDoSetu,
+}) => {
   // Naposledy zvolený playlist, jinak první, ve kterém něco je — prázdný
   // set list na Pódiu vypadá, jako by se nic neuložilo.
   const [playlistId, setPlaylistId] = useState<string>(() => {
@@ -67,6 +71,14 @@ export const Podium: React.FC<Props> = ({ songs, playlists, aktivni, onVybrat, p
     ? (playlist.songIds.map((id) => songs.find((s) => s.id === id)).filter(Boolean) as Song[])
     : [];
   const kde = aktivni ? vPlaylistu.findIndex((s) => s.id === aktivni.id) : -1;
+  /**
+   * Otevřená píseň nemusí být v setu.
+   *
+   * Na Pódium se dá přijít s písní, kterou sis zrovna otevřel v knihovně —
+   * a je správně, že se nezavře. Ale bez upozornění to vypadá, jako by se
+   * do setu připletla sama.
+   */
+  const mimoSet = Boolean(aktivni && vPlaylistu.length > 0 && kde < 0);
 
   const vyberPlaylist = (id: string) => {
     setPlaylistId(id);
@@ -322,6 +334,20 @@ export const Podium: React.FC<Props> = ({ songs, playlists, aktivni, onVybrat, p
             </h1>
             <p className="text-xs text-neutral-400 truncate">{aktivni?.artist}</p>
           </div>
+
+          {mimoSet && onPridatDoSetu && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/12 border border-[#FF9F0A]/30 px-2 py-0.5 rounded-lg">
+                Není v setu
+              </span>
+              <button
+                onClick={() => aktivni && onPridatDoSetu(aktivni)}
+                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
+              >
+                Přidat
+              </button>
+            </div>
+          )}
         </div>
         {zakladniUdaje}
       </div>
