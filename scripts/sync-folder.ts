@@ -171,6 +171,24 @@ function walk(dir: string): string[] {
   return out;
 }
 
+/**
+ * Soubor, který je v iCloudu, ale ne na disku.
+ *
+ * iCloud umí obsah lokálně zahodit a nechat jen jméno a velikost. Takový
+ * soubor vypadá normálně — `ls` ho ukáže i s megabajty — ale čtení ho
+ * musí nejdřív stáhnout, což bez sítě selže a s pomalou linkou trvá
+ * věčnost. Na macOS se to pozná tak, že logická velikost je nenulová,
+ * ale na disku nezabírá žádné bloky.
+ */
+function jenVOblaku(filePath: string): boolean {
+  try {
+    const st = fs.statSync(filePath);
+    return st.size > 0 && st.blocks === 0;
+  } catch {
+    return false;
+  }
+}
+
 function hashFile(filePath: string): string {
   const buf = fs.readFileSync(filePath);
   return crypto.createHash('sha256').update(buf).digest('hex');
@@ -600,7 +618,7 @@ async function syncDrumKits(report: Report) {
  * aniž by se čehokoli dotkl. Slouží k tomu, aby se dala struktura na disku
  * srovnat dřív, než se pustí ostrý běh na gigabajtech dat.
  */
-function checkFolder() {
+async function checkFolder() {
   const FREE_TIER_BYTES = 10 * 1024 ** 3; // Cloudflare R2 Free: 10 GB
   const mb = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`;
   const size = (f: string) => fs.statSync(f).size;
@@ -630,6 +648,26 @@ function checkFolder() {
     );
   }
 
+  // Sbírka tabulatur už jednou nahraná leží v `tab_library`, ne v
+  // `assets`. Kdo na ni pustí synchronizaci, nahraje 2,7 GB podruhé —
+  // a limit přeteče, aniž by v knihovně přibylo cokoli nového.
+  {
+    const tabulatury = walk(sectionDir('tabulatury'));
+    if (tabulatury.length > 1000) {
+      const { count } = await admin
+        .from('tab_library')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'stored');
+      if ((count || 0) > 1000) {
+        problemy.push(
+          `tabulatury/: ${tabulatury.length} souborů, ale v databázi už je sbírka ` +
+            `o ${count} tabulaturách. Nejspíš je to totéž — nahrálo by se to podruhé. ` +
+            `Ověřte, než pustíte synchronizaci bez --check.`
+        );
+      }
+    }
+  }
+
   // Složky knihovny
   for (const dir of SLOZKY_KNIHOVNY) {
     const vse = walk(sectionDir(dir));
@@ -639,7 +677,20 @@ function checkFolder() {
     const ne = vse.filter((f) => !podporovane.has(path.extname(f).toLowerCase()));
     nahraje += sum(ok);
     if (vse.length === 0) continue; // prázdnou složku není o čem hlásit
-    console.log(`${(dir + '/').padEnd(16)} ${ok.length} souborů (${mb(sum(ok))}), ${ne.length} ignorováno`);
+
+    // Soubory jen v oblaku se počítají zvlášť: nahrát se dají, ale každý
+    // se nejdřív musí stáhnout, takže z minutového běhu je klidně hodina.
+    const voblaku = ok.filter(jenVOblaku);
+    console.log(
+      `${(dir + '/').padEnd(16)} ${ok.length} souborů (${mb(sum(ok))}), ${ne.length} ignorováno` +
+        (voblaku.length ? `, ${voblaku.length} jen v iCloudu` : '')
+    );
+    if (voblaku.length) {
+      problemy.push(
+        `${dir}/: ${voblaku.length} souborů (${mb(sum(voblaku))}) je v iCloudu, ale ne na disku. ` +
+          `Stáhněte je předem: brctl download "${sectionDir(dir)}"`
+      );
+    }
     if (ne.length) {
       const exts = [...new Set(ne.map((f) => path.extname(f).toLowerCase() || '(bez přípony)'))];
       problemy.push(
@@ -700,7 +751,7 @@ function checkFolder() {
 
 async function main() {
   if (CHECK_ONLY) {
-    checkFolder();
+    await checkFolder();
     return;
   }
 
