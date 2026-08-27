@@ -20,13 +20,22 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   const [sety, setSety] = useState<SetList[]>(setListy.hratelne());
   // Naskočí set, ve kterém něco je. Prázdný set na první pohled vypadá,
   // jako by se přidané skladby ztratily.
-  const [vybrany, setVybrany] = useState<string>(() => {
-    const h = setListy.hratelne();
-    return (h.find((s) => s.songIds.length > 0) || h[0])?.id || '';
-  });
+  const [vybrany, setVybrany] = useState<string>('');
   const [tazene, setTazene] = useState<number | null>(null);
 
-  useEffect(() => setListy.subscribe(() => setSety(setListy.hratelne())), []);
+  useEffect(
+    () =>
+      setListy.subscribe((nove) => {
+        setSety(nove);
+        // Sety chodí z databáze, takže při prvním vykreslení ještě nejsou.
+        // Jakmile dorazí, vybere se ten, ve kterém něco je — prázdný set
+        // na první pohled vypadá, jako by se přidané skladby ztratily.
+        setVybrany((v) =>
+          nove.some((s) => s.id === v) ? v : (nove.find((s) => s.songIds.length > 0) || nove[0])?.id || ''
+        );
+      }),
+    []
+  );
 
   const set = sety.find((s) => s.id === vybrany) || sety[0] || null;
   const vSetu = set
@@ -37,7 +46,9 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   // prázdné místo — poznat by to šlo až na pódiu, kdy se nepřepne.
   const chybejici = set ? set.songIds.length - vSetu.length : 0;
 
-  const presun = (z: number, na: number) => set && setListy.presun(set.id, z, na);
+  const presun = (z: number, na: number) => {
+    if (set) void setListy.presun(set.id, z, na);
+  };
 
   return (
     <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
@@ -122,7 +133,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
               <button
-                onClick={() => set && setListy.odeber(set.id, s.id)}
+                onClick={() => set && void setListy.odeber(set.id, s.id)}
                 className="p-1 rounded-md hover:bg-[#FF453A]/20 text-neutral-500 hover:text-[#FF453A] cursor-pointer"
                 title="Odebrat ze setu"
               >

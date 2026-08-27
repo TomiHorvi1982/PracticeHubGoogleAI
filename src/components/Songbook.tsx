@@ -104,8 +104,6 @@ export const Songbook: React.FC<SongbookProps> = ({
   // obě sekce se musí dívat na totéž.
   const [playlists, setPlaylistsStav] = useState(() => setListy.vse());
   useEffect(() => setListy.subscribe(setPlaylistsStav), []);
-  const setPlaylists = (f: (p: typeof playlists) => typeof playlists) =>
-    setListy.nahrad(f(setListy.vse()));
 
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>('all');
   const [showNewPlaylistInput, setShowNewPlaylistInput] = useState(false);
@@ -261,12 +259,8 @@ export const Songbook: React.FC<SongbookProps> = ({
 
     songDatabaseService.deleteSong(songId);
 
-    setPlaylists((prev) =>
-      prev.map((p) => ({
-        ...p,
-        songIds: p.songIds.filter((id) => id !== songId),
-      }))
-    );
+    // Ze setů zmizí sama: `playlist_songs.song_id` je cizí klíč na `songs`
+    // s kaskádou, takže mazat to podruhé odsud by jen zdvojilo práci.
 
     const updatedSongs = songs.filter((s) => s.id !== songId);
     setSongs(updatedSongs);
@@ -323,33 +317,18 @@ export const Songbook: React.FC<SongbookProps> = ({
     setIsPlaylistModalOpen(true);
   };
 
-  const handleCreatePlaylist = (e: React.FormEvent) => {
+  const handleCreatePlaylist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newPlaylistName.trim()) return;
-    const item = {
-      id: 'pl_' + Date.now(),
-      name: newPlaylistName.trim(),
-      songIds: [],
-    };
-    setPlaylists((prev) => [...prev, item]);
-    setSelectedPlaylistId(item.id);
+    const novy = await setListy.vytvor(newPlaylistName.trim());
+    if (novy) setSelectedPlaylistId(novy.id);
     setNewPlaylistName('');
     setShowNewPlaylistInput(false);
   };
 
   const toggleSongInPlaylist = (playlistId: string, songId: string) => {
-    let pridava = false;
-    setPlaylists((prev) =>
-      prev.map((p) => {
-        if (p.id !== playlistId) return p;
-        const alreadyHas = p.songIds.includes(songId);
-        if (!alreadyHas) pridava = true;
-        return {
-          ...p,
-          songIds: alreadyHas ? p.songIds.filter((id) => id !== songId) : [...p.songIds, songId],
-        };
-      })
-    );
+    const pridava = !(playlists.find((p) => p.id === playlistId)?.songIds.includes(songId));
+    void setListy.prepni(playlistId, songId);
 
     // Zařazení do setu je chvíle, kdy se z písně stane něco, co se bude
     // hrát — a od té chvíle je potřeba mít k ní materiály. Dohledání se
@@ -741,11 +720,9 @@ export const Songbook: React.FC<SongbookProps> = ({
         onClose={() => setIsPlaylistModalOpen(false)}
         onToggleSongInPlaylist={toggleSongInPlaylist}
         onCreateNewPlaylist={(name) => {
-          const item = { id: 'pl_' + Date.now(), name, songIds: [] };
-          setPlaylists((prev) => [...prev, item]);
-          if (playlistModalSong) {
-            toggleSongInPlaylist(item.id, playlistModalSong.id);
-          }
+          void setListy.vytvor(name).then((novy) => {
+            if (novy && playlistModalSong) toggleSongInPlaylist(novy.id, playlistModalSong.id);
+          });
         }}
         onAddedSuccessToast={showToast}
       />
