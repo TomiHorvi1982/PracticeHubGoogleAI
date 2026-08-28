@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createHash } from 'node:crypto';
-import { uklidDuplicit } from './knihovnaUklid';
+import { spocitejDuplicity, uklidDuplicit } from './knihovnaUklid';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
@@ -1030,35 +1030,13 @@ export async function createApp() {
    * mazat nesmí, jinak by se u písně rozbila příloha.
    */
   app.get('/api/assets/duplicity', requireAuth, async (_req, res) => {
-    const admin = getSupabaseAdmin();
-    const { data, error } = await admin.rpc('duplicitni_soubory');
-    if (error) {
-      return res.status(500).json({ error: 'Duplicity se nepodařilo zjistit.', details: error.message });
+    try {
+      res.json(await spocitejDuplicity(getSupabaseAdmin()));
+    } catch (e: any) {
+      res.status(500).json({ error: 'Duplicity se nepodařilo zjistit.', details: e?.message });
     }
-
-    const skupiny = (data || []).map((d: any) => ({
-      otisk: d.content_hash,
-      pocet: Number(d.pocet || 0),
-      bajtuNavic: Number(d.bajtu_navic || 0),
-      nazvy: d.nazvy || [],
-      ids: d.ids || [],
-    }));
-
-    res.json({
-      skupiny,
-      kopiiNavic: skupiny.reduce((a: number, s: any) => a + s.pocet - 1, 0),
-      bajtuNavic: skupiny.reduce((a: number, s: any) => a + s.bajtuNavic, 0),
-    });
   });
 
-  /**
-   * Úklid duplicit: z každé skupiny zůstane jeden soubor.
-   *
-   * Zůstává ten nejstarší — na něj nejspíš ukazují starší odkazy. Kopie,
-   * kterou má připojenou nějaká píseň, se nemaže vůbec: obsah je sice
-   * stejný, ale příloha si pamatuje konkrétní cestu v úložišti a po
-   * smazání by ukazovala do prázdna.
-   */
   app.post('/api/assets/duplicity/uklidit', requireAuth, async (req, res) => {
     if (!(await isProfileAdmin(req.user!.id))) {
       return res.status(403).json({ error: 'Uklízet knihovnu může jen správce.' });

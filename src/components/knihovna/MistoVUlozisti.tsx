@@ -33,8 +33,10 @@ function velikost(b: number): string {
  * tam člověk došel, nahrál mezitím další.
  */
 interface Duplicity {
-  kopiiNavic: number;
+  smazatelnych: number;
   bajtuNavic: number;
+  /** Kopie, které používá píseň nebo bicí sada — ty zůstávají. */
+  chranenych: number;
 }
 
 export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce }) => {
@@ -54,7 +56,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
       const d = await fetch('/api/assets/duplicity', { headers: { Authorization: `Bearer ${token}` } });
       if (d.ok) {
         const data = await d.json();
-        setDuplicity(data.kopiiNavic > 0 ? data : null);
+        setDuplicity(data.smazatelnych > 0 ? data : null);
       }
     } catch {
       /* výpadek sítě není důvod ukazovat chybu místo čísla */
@@ -139,7 +141,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/[0.06]">
           <Copy className="w-3.5 h-3.5 text-[#FFD60A] shrink-0" />
           <span className="text-[11px] text-neutral-300">
-            {duplicity.kopiiNavic.toLocaleString('cs')} souborů leží v knihovně víckrát,
+            {duplicity.smazatelnych.toLocaleString('cs')} souborů leží v knihovně víckrát,
             jen pod jiným názvem — zabírají {velikost(duplicity.bajtuNavic)} navíc.
           </span>
           {jsemSpravce && (
@@ -147,8 +149,8 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
               disabled={uklizim}
               onClick={async () => {
                 if (!window.confirm(
-                  `Smazat ${duplicity.kopiiNavic} kopií a uvolnit ${velikost(duplicity.bajtuNavic)}?\n\n`
-                  + 'Z každé dvojice zůstane ten starší soubor. Kopie, kterou má připojenou nějaká píseň, se nemaže.'
+                  `Smazat ${duplicity.smazatelnych} kopií a uvolnit ${velikost(duplicity.bajtuNavic)}?\n\n`
+                  + 'Z každé dvojice zůstane ten starší soubor. Kopie, kterou používá píseň nebo bicí sada, se nemaže.'
                 )) return;
                 setUklizim(true);
                 setVysledek(null);
@@ -162,7 +164,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
                 setVysledek(
                   r.ok
                     ? `Smazáno ${d.smazano}, uvolněno ${velikost(d.uvolneno || 0)}`
-                      + (d.ponechano ? `, ${d.ponechano} zůstalo (visí na písních).` : '.')
+                      + (d.ponechano ? `, ${d.ponechano} zůstalo (používá je píseň nebo sada).` : '.')
                     : d.error || 'Úklid selhal.',
                 );
                 void nacti();

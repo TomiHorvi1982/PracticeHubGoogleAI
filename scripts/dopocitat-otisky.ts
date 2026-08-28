@@ -33,7 +33,9 @@ const mb = (b: number) => `${(b / 1048576).toFixed(1)} MB`;
 const { data: soubory, error } = await admin
   .from('assets')
   .select('id, name, storage_bucket, storage_path, size_bytes')
-  .eq('status', 'active')
+  // I soubory přesunuté do sbírky tabulatur — v úložišti pořád leží a
+  // sbírka si otisk bere od nich.
+  .in('status', ['active', 'moved'])
   .is('content_hash', null)
   .order('size_bytes', { ascending: true });
 
@@ -80,7 +82,7 @@ for (const s of soubory || []) {
     .from('assets')
     .select('name')
     .eq('content_hash', otisk)
-    .eq('status', 'active')
+    .in('status', ['active', 'moved'])
     .neq('id', s.id)
     .maybeSingle();
   if (uzTam) duplicity.push(`${s.name} = ${uzTam.name}`);

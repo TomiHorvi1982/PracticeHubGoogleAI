@@ -58,4 +58,4 @@ const smazZUloziste = async (bucket: string, key: string) => {
 
 const v = await uklidDuplicit(admin, smazZUloziste);
 console.log(`\nSmazáno ${v.smazano} kopií, uvolněno ${mb(v.uvolneno)}.`);
-if (v.ponechano) console.log(`${v.ponechano} kopií zůstalo — visí na nich přílohy písní.`);
+if (v.ponechano) console.log(`${v.ponechano} kopií zůstalo — používá je píseň nebo bicí sada.`);
