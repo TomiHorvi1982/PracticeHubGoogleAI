@@ -8,7 +8,7 @@ import { authService } from '../services/authService';
 import { StromKnihovny } from './knihovna/StromKnihovny';
 import { MistoVUlozisti } from './knihovna/MistoVUlozisti';
 import { PohledSamples } from './knihovna/PohledSamples';
-import { UzelStromu, PODLE_ID, navrhniPodkategorii } from '../services/knihovnaStrom';
+import { UzelStromu, PODLE_ID, navrhniPodkategorii, nazevKategorie } from '../services/knihovnaStrom';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -171,6 +171,38 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     // Texty nejsou soubory v knihovně — bydlí v písních. Filtruje se dál
     // v prohlížeči, protože na serveru není podle čeho.
     txt: undefined,
+  };
+
+  /**
+   * Jaký druh assetu složce odpovídá.
+   *
+   * Server podle `asset_type` volí větev v R2, takže nemůže zůstat na
+   * příponě: stopa do pultu i bicí sampl jsou obojí .wav, ale patří
+   * každý jinam.
+   */
+  const typAssetuProKategorii = (
+    kategorie: string,
+    typ: LibraryItem['type'],
+  ): LibraryAsset['asset_type'] => {
+    switch (kategorie) {
+      case 'guitar_pro': return 'guitar_pro';
+      case 'pdf': return 'pdf';
+      case 'midi': return 'midi';
+      case 'images': case 'band_photos': return 'image';
+      case 'stem_mix': return 'stem';
+      case 'recordings': return 'recording';
+      case 'drum_kit_sample': case 'drum_loop': case 'bass_sample':
+      case 'guitar_sample': case 'vocal_sample': case 'samples':
+        return 'sample';
+      case 'backing_tracks': return 'audio';
+      default:
+        return typ === 'guitarpro' ? 'guitar_pro'
+          : typ === 'pdf' ? 'pdf'
+          : typ === 'midi' ? 'midi'
+          : typ === 'image' ? 'image'
+          : typ === 'audio' ? 'audio'
+          : 'preset';
+    }
   };
 
   const typSouboru = (a: LibraryAsset): LibraryItem['type'] => {
@@ -411,6 +443,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         else if (ext === 'pdf') type = 'pdf';
         else if (['mid', 'midi'].includes(ext)) type = 'midi';
         else if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'bmp'].includes(ext)) type = 'image';
+        else if (['wav', 'mp3', 'aif', 'aiff', 'ogg', 'flac', 'm4a'].includes(ext)) type = 'audio';
 
         const newItem: LibraryItem = {
           id: 'lib_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
@@ -428,14 +461,25 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         };
 
         // Soubor musí do knihovny doopravdy, ne jen do seznamu na obrazovce.
-        // Kategorie se odvozuje z typu, aby šel pak filtrovat.
+        //
+        // Kam přijde, rozhoduje otevřená složka. Odvozovat kategorii z
+        // přípony umí říct jen „tohle je .wav" — ne jestli je to stopa do
+        // pultu, smyčka, nebo vokál. Když je složka vybraná, člověk to
+        // právě řekl; typ se použije, jen když je otevřená celá knihovna.
         const kategorie =
-          type === 'guitarpro' ? 'guitar_pro' : type === 'pdf' ? 'pdf' : type === 'midi' ? 'midi' : type === 'image' ? 'band_photos' : 'documents';
-        const assetType: LibraryAsset['asset_type'] =
-          type === 'guitarpro' ? 'guitar_pro' : type === 'pdf' ? 'pdf' : type === 'midi' ? 'midi' : type === 'image' ? 'image' : 'preset';
+          kategorieFiltr ||
+          (type === 'guitarpro' ? 'guitar_pro'
+            : type === 'pdf' ? 'pdf'
+            : type === 'midi' ? 'midi'
+            : type === 'image' ? 'images'
+            : type === 'audio' ? 'samples'
+            : 'documents');
+        const assetType = typAssetuProKategorii(kategorie, type);
+        // „Nezařazené" je hromádka, ne složka — do té se nedá nahrát.
+        const podslozka = podkategorieFiltr === '__bez__' ? null : podkategorieFiltr;
 
         try {
-          const ulozeny = await assetLibraryService.upload(file, kategorie, assetType, 'global');
+          const ulozeny = await assetLibraryService.upload(file, kategorie, assetType, 'global', podslozka);
           newItem.id = ulozeny.id;
 
           // Soubor si najde píseň, ke které patří, a připojí se k ní.
@@ -712,11 +756,11 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         {/* Quick Upload Button */}
         <label className="px-4 py-2.5 bg-white text-black hover:bg-neutral-200 font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-2 transition-all shadow-md">
           <FileUp className="w-4 h-4" />
-          <span>Nahrát soubory</span>
+          <span>{kategorieFiltr ? `Nahrát do: ${nazevKategorie(kategorieFiltr)}` : 'Nahrát soubory'}</span>
           <input
             type="file"
             multiple
-            accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp,.pdf,.txt,.chopro,.pro,.crd,.tab,.png,.jpg,.jpeg,.webp,.svg,.gif,.mid,.midi"
+            accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp,.pdf,.txt,.chopro,.pro,.crd,.tab,.png,.jpg,.jpeg,.webp,.svg,.gif,.mid,.midi,.wav,.mp3,.aif,.aiff,.ogg,.flac,.m4a"
             onChange={(e) => {
               if (e.target.files && e.target.files.length > 0) {
                 handleUploadFiles(e.target.files);
@@ -838,7 +882,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             <input
               type="file"
               multiple
-              accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp,.pdf,.txt,.chopro,.pro,.crd,.tab,.png,.jpg,.jpeg,.webp,.svg,.gif,.mid,.midi"
+              accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp,.pdf,.txt,.chopro,.pro,.crd,.tab,.png,.jpg,.jpeg,.webp,.svg,.gif,.mid,.midi,.wav,.mp3,.aif,.aiff,.ogg,.flac,.m4a"
               onChange={(e) => {
                 if (e.target.files && e.target.files.length > 0) {
                   handleUploadFiles(e.target.files);
@@ -852,10 +896,23 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 <span>Nahrávám a zpracovávám soubory...</span>
               </div>
             ) : (
-              <div className="flex items-center justify-center gap-2 text-neutral-400">
-                <FileUp className="w-4 h-4 text-[#0A84FF]" />
-                <span className="text-xs font-medium">
-                  Přetáhněte sem soubory pro okamžité přidání
+              <div className="flex flex-col items-center justify-center gap-1 text-neutral-400">
+                <div className="flex items-center gap-2">
+                  <FileUp className="w-4 h-4 text-[#0A84FF]" />
+                  <span className="text-xs font-medium">
+                    Přetáhněte sem soubory pro okamžité přidání
+                  </span>
+                </div>
+                {/* Kam to spadne, má být vidět předem. Jinak se na to
+                    přijde až po nahrání — a to už je soubor jinde. */}
+                <span className="text-[10px] text-neutral-500">
+                  {kategorieFiltr
+                    ? `Přijdou do složky ${nazevKategorie(kategorieFiltr)}${
+                        podkategorieFiltr && podkategorieFiltr !== '__bez__'
+                          ? ` / ${podkategorieFiltr}`
+                          : ''
+                      }`
+                    : 'Zařadí se podle typu — otevři složku vlevo, ať jdou rovnou do ní'}
                 </span>
               </div>
             )}

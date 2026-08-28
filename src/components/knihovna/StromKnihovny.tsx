@@ -154,6 +154,10 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
 
               <button
                 onClick={() => onVybrat(k.id, null)}
+                // Uvnitř jsou jen emoji a čísla, takže bez tohohle je
+                // tlačítko pro čtečku i pro hledání bezejmenné.
+                aria-label={`Složka ${nazevKategorie(k.id)}`}
+                title={`Otevřít složku ${nazevKategorie(k.id)}`}
                 className={`flex-1 flex items-center gap-2 py-1.5 pr-2.5 text-[12px] cursor-pointer text-left ${
                   vybrana.kategorie === k.id && !vybrana.podkategorie
                     ? 'text-[#FF9F0A] font-bold'
@@ -185,6 +189,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                     >
                       <button
                         onClick={() => onVybrat(k.id, d.podkategorie)}
+                        aria-label={`Podsložka ${d.podkategorie} ve složce ${nazevKategorie(k.id)}`}
                         className={`w-full flex items-center gap-2 px-2 py-1 text-[11px] rounded-lg cursor-pointer ${
                           vybrana.kategorie === k.id && vybrana.podkategorie === d.podkategorie
                             ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'

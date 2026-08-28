@@ -111,7 +111,8 @@ class AssetLibraryService {
     file: File,
     category: string,
     assetType: LibraryAsset['asset_type'],
-    visibility: 'private' | 'global' = 'private'
+    visibility: 'private' | 'global' = 'private',
+    subcategory?: string | null
   ): Promise<LibraryAsset> {
     const initRes = await authorizedFetch('/api/assets/upload-url', {
       method: 'POST',
@@ -122,6 +123,7 @@ class AssetLibraryService {
         asset_type: assetType,
         size_bytes: file.size,
         visibility,
+        subcategory: subcategory || null,
       }),
     });
     const initData = await initRes.json();

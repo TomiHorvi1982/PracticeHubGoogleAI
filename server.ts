@@ -489,7 +489,7 @@ export async function createApp() {
    * povolený náš původ; to je nastavení u Cloudflare, ne v kódu.
    */
   app.post('/api/assets/upload-url', requireAuth, async (req, res) => {
-    const { name, mime_type, category, asset_type, size_bytes, visibility } = req.body;
+    const { name, mime_type, category, asset_type, size_bytes, visibility, subcategory } = req.body;
     if (!name || !category || !asset_type) {
       return res.status(400).json({ error: 'name, category a asset_type jsou povinné.' });
     }
@@ -532,6 +532,10 @@ export async function createApp() {
         storage_path: storagePath,
         asset_type,
         category,
+        // Podsložka rovnou při nahrání. Bez ní soubor spadne mezi
+        // nezařazené a někdo ho tam musí najít a přetáhnout — a čím víc
+        // jich tam leží, tím míň se to dělá.
+        subcategory: subcategory || null,
         status: 'pending',
       })
       .select()
