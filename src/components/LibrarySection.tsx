@@ -128,6 +128,26 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [txtTranspose, setTxtTranspose] = useState(0);
 
   /** Z čeho appka pozná typ souboru — podle přípony, ne podle kategorie. */
+  /**
+   * Které kategorie v databázi tlačítko znamená.
+   *
+   * Tlačítka mluví o typu souboru, kdežto databáze třídí podle toho, k čemu
+   * soubor slouží — bicí sampl i backing track jsou obojí .wav. Bez tohohle
+   * převodu se filtrovalo až v prohlížeči, tedy jen v načtené stránce:
+   * u PDF se z 236 souborů ukázalo dvacet, protože zbytek se nestáhl.
+   */
+  const KATEGORIE_V_DATABAZI: Record<string, string | undefined> = {
+    all: undefined,
+    guitarpro: 'guitar_pro',
+    pdf: 'pdf',
+    midi: 'midi',
+    image: 'images',
+    audio: 'drum_kit_sample,drum_loop,stem_mix,recordings,backing_tracks,samples',
+    // Texty nejsou soubory v knihovně — bydlí v písních. Filtruje se dál
+    // v prohlížeči, protože na serveru není podle čeho.
+    txt: undefined,
+  };
+
   const typSouboru = (a: LibraryAsset): LibraryItem['type'] => {
     const jm = `${a.original_filename || a.name}`.toLowerCase();
     if (/\.(gp|gp3|gp4|gp5|gpx|gtp)$/.test(jm)) return 'guitarpro';
@@ -147,24 +167,28 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    * si položku někdo vybere. Podepsat dopředu dvacet tisíc souborů by
    * znamenalo dvacet tisíc zbytečných požadavků.
    */
-  const nactiKnihovnu = async (dotaz: string) => {
+  const nactiKnihovnu = async (dotaz: string, kategorie?: string, pridat = false) => {
     setNacitamKnihovnu(true);
     try {
+      const offset = pridat ? libraryItems.length : 0;
       const { assets, total } = await assetLibraryService.listPage({
         search: dotaz.trim() || undefined,
+        category: KATEGORIE_V_DATABAZI[kategorie ?? selectedCategory],
         limit: 200,
+        offset,
         sort: 'name',
       });
-      setLibraryItems(
-        assets.map((a) => ({
-          id: a.id,
-          name: a.name,
-          type: typSouboru(a),
-          dataUrl: '',
-          size: Number(a.size_bytes || 0),
-          uploadedAt: new Date(a.created_at).getTime(),
-        }))
-      );
+      const nove = assets.map((a) => ({
+        id: a.id,
+        name: a.name,
+        type: typSouboru(a),
+        dataUrl: '',
+        size: Number(a.size_bytes || 0),
+        uploadedAt: new Date(a.created_at).getTime(),
+      }));
+      // Při „načíst další" se přidává, jinak se seznam vymění — jinak by
+      // přepnutí kategorie nechalo na obrazovce i soubory té předchozí.
+      setLibraryItems((p) => (pridat ? [...p, ...nove] : nove));
       setCelkemVKnihovne(total);
     } catch (e) {
       console.warn('[knihovna] načtení selhalo', e);
@@ -173,11 +197,13 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     }
   };
 
+  // Přepnutí kategorie je nový dotaz do databáze, ne jiný pohled na to,
+  // co je zrovna načtené.
   useEffect(() => {
     const id = window.setTimeout(() => nactiKnihovnu(searchQuery), 300);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategory]);
 
   /**
    * Adresa souboru se shání až při výběru — a jen jednou.
@@ -284,6 +310,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
   // Filtered items
   const filteredItems = allCombinedItems.filter((item) => {
+    // Kategorii vybírá server; tenhle filtr je tu kvůli přílohám písní,
+    // které se do seznamu přimíchají až v prohlížeči a server o nich neví.
     const matchesCategory =
       selectedCategory === 'all' || item.type === selectedCategory;
     const q = searchQuery.toLowerCase().trim();
@@ -590,7 +618,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             </h2>
             <p className="text-xs text-neutral-400 mt-1">
               Guitar Pro, PDF noty, textové akordy, obrázky, MIDI a samply — všechno, co appka
-              nabízí k písním. Seznam níž ukazuje prvních {allCombinedItems.length}; zbytek najdeš hledáním.
+              nabízí k písním.{' '}
+              {selectedCategory === 'all'
+                ? `Zobrazeno ${allCombinedItems.length} z ${celkemVKnihovne.toLocaleString('cs')}.`
+                : `V této kategorii je ${celkemVKnihovne.toLocaleString('cs')} souborů, zobrazeno ${filteredItems.length}.`}
             </p>
           </div>
         </div>
@@ -895,6 +926,23 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   </div>
                 );
               })
+            )}
+
+            {/* Za dvěma sty se pokračuje na vyžádání. Stáhnout osmnáct tisíc
+                MIDI souborů naráz by prohlížeč jen zdrželo, a nikdo je
+                neprojde očima. */}
+            {libraryItems.length < celkemVKnihovne && (
+              <button
+                onClick={() => void nactiKnihovnu(searchQuery, selectedCategory, true)}
+                disabled={nacitamKnihovnu}
+                className="w-full py-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.11] border border-white/[0.08] text-xs font-semibold text-neutral-300 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-wait"
+              >
+                {nacitamKnihovnu
+                  ? 'Načítám…'
+                  : `Načíst dalších ${Math.min(200, celkemVKnihovne - libraryItems.length)} z ${(
+                      celkemVKnihovne - libraryItems.length
+                    ).toLocaleString('cs')}`}
+              </button>
             )}
           </div>
 
