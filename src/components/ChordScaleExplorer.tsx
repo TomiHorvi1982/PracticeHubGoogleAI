@@ -21,9 +21,18 @@ interface ChordScaleExplorerProps {
   onModeChange?: (m: 'chord' | 'scale') => void;
   /** Skryje vlastní hlavičku i přepínač, když je přepínač už nad ním. */
   compact?: boolean;
+  /**
+   * Stupnice nalezená jinde — třeba poslechem kytary z mikrofonu.
+   *
+   * Průzkumník si výběr jinak drží sám; tohle je způsob, jak mu ho
+   * podat zvenčí, aniž by o poslechu cokoli věděl. Mění se s každým
+   * nálezem, proto nese i pořadové číslo — jinak by druhý nález téže
+   * stupnice nic nepřepnul.
+   */
+  navrh?: { ton: string; stupnice: string; poradi: number };
 }
 
-export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, onModeChange, compact }) => {
+export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, onModeChange, compact, navrh }) => {
   const { activeChord, key } = useMusicalContext();
   const [selectedRoot, setSelectedRoot] = useState('C');
   const [vlastniRezim, setVlastniRezim] = useState<'chord' | 'scale'>('chord');
@@ -67,6 +76,34 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
     });
     return unsub;
   }, []);
+
+  /**
+   * Názvy stupnic z `tonal` na názvy v naší databázi.
+   *
+   * `tonal` vrací „E minor" nebo „E major pentatonic"; průzkumník zná
+   * „Natural Minor (Eolská)". Bez převodu by se nález nedal ukázat.
+   */
+  React.useEffect(() => {
+    if (!navrh) return;
+    const n = navrh.stupnice.toLowerCase();
+    const nazev =
+      n.includes('minor pentatonic') ? 'Minor Pentatonic'
+      : n.includes('major pentatonic') ? 'Major Pentatonic'
+      : n.includes('blues') ? 'Blues Scale'
+      : n.includes('harmonic minor') ? 'Harmonic Minor'
+      : n.includes('dorian') ? 'Dorian Mode'
+      : n.includes('mixolydian') ? 'Mixolydian Mode'
+      : n.includes('minor') ? 'Natural Minor (Eolská)'
+      : n.includes('major') || n.includes('ionian') ? 'Major (Ionská)'
+      : null;
+    // Stupnici, kterou průzkumník nezná, radši nechá být, než aby ukázal
+    // jinou — chybný hmat je horší než žádný.
+    if (!nazev) return;
+    setSelectedRoot(navrh.ton);
+    setSelectedScaleName(nazev);
+    setExplorerMode('scale');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navrh?.poradi]);
 
   const currentScale = SCALES_DATABASE.find((s) => s.name === selectedScaleName) || SCALES_DATABASE[2];
   const rootIndex = ROOT_NOTES.indexOf(selectedRoot);

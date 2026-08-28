@@ -1,3 +1,5 @@
+import { Chord } from 'tonal';
+
 /**
  * Pojmenování akordu z tónů, které v něm zazní.
  *
@@ -83,6 +85,17 @@ export interface Rozpoznany {
  * ostatní tóny jako základ a výsledek se pozná podle obratu.
  */
 export function pojmenujAkord(midi: number[]): Rozpoznany | null {
+  /**
+   * Nejdřív se zeptáme knihovny.
+   *
+   * Vlastní tabulka zná dvacet vzorců; `tonal` jich má stovky včetně
+   * alterací a nadstaveb, které si bez ní kapela nepojmenuje. Vlastní
+   * hledání zůstává jako záloha — pozná obraty s basem a když nesedí nic
+   * přesně, nabídne nejbližší tvar, což knihovna nedělá.
+   */
+  const zTonal = pojmenujPresTonal(midi);
+  if (zTonal) return zTonal;
+
   const unikatni = [...new Set(midi.map((m) => ((m % 12) + 12) % 12))].sort((a, b) => a - b);
   if (unikatni.length < 2) {
     return unikatni.length === 1
@@ -137,6 +150,31 @@ export function pojmenujAkord(midi: number[]): Rozpoznany | null {
         jistota: 'pribuzne',
       }
     : null;
+}
+
+/** Pojmenování knihovnou `tonal`; `null`, když si neví rady. */
+function pojmenujPresTonal(midi: number[]): Rozpoznany | null {
+  const unikatni = [...new Set(midi.map((m) => ((m % 12) + 12) % 12))].sort((a, b) => a - b);
+  if (unikatni.length < 3) return null;
+
+  const nejnizsi = ((Math.min(...midi) % 12) + 12) % 12;
+  // Bas napřed: `tonal` z pořadí pozná obrat a pojmenuje ho lomítkem.
+  const tony = [TONY[nejnizsi], ...unikatni.filter((t) => t !== nejnizsi).map((t) => TONY[t])];
+
+  const nalezy = Chord.detect(tony);
+  if (!nalezy.length) return null;
+
+  // `tonal` píše dur příponou „M" — vyjde z toho „CM" a „EM". Kapela
+  // takový zápis nepoužívá a v seznamu akordů by ho četla jako chybu;
+  // čisté dur se píše samotným tónem.
+  const nazev = nalezy[0].replace(/^([A-G][#b]?)M(?![a-z0-9])/, '$1');
+  const info = Chord.get(nalezy[0]);
+  return {
+    nazev,
+    popis: info.name || info.type || 'akord',
+    tony: unikatni.map((t) => TONY[t]),
+    jistota: 'presne',
+  };
 }
 
 /** Tóny akordu z hmatu na hmatníku. `-1` je dusená struna. */

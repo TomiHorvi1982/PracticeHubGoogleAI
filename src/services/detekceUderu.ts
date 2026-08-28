@@ -220,71 +220,158 @@ export interface Nastaveni {
   prah?: number;
 }
 
+/**
+ * Doladí tempo a začátek taktu tak, aby údery sedly na mřížku.
+ *
+ * Autokorelace trefí tempo na jednotky procent, jenže i chyba jednoho
+ * BPM se přes šestnáct taktů nasčítá na celý krok — rytmus se pak zapíše
+ * posunutý nebo rozmazaný. Měřeno na umělých bicích: při 90 BPM
+ * odhadnutých jako 91 nezůstala v mřížce ani jedna tečka.
+ *
+ * Hledá se proto dvojice (tempo, začátek), při které padne co nejvíc
+ * úderů blízko ke svému kroku.
+ */
+function dolad(
+  casy: number[],
+  hrubeBpm: number,
+  tempoDano: boolean,
+): { bpm: number; zacatek: number } {
+  if (casy.length < 8) return { bpm: hrubeBpm, zacatek: casy[0] || 0 };
+
+  const prvni = Math.min(...casy);
+  let nej = { bpm: hrubeBpm, zacatek: prvni, skore: -1 };
+
+  // Tempo se hýbe jen o kousek — hrubý odhad je řádově správný. Když ho
+  // člověk zadal ručně, nechává se být a ladí se jen začátek.
+  const rozsah = tempoDano ? [hrubeBpm] : Array.from({ length: 41 }, (_, i) => hrubeBpm * (0.97 + i * 0.0015));
+
+  for (const bpm of rozsah) {
+    const krok = (60 / bpm) / 4;
+    for (let f = 0; f < 16; f++) {
+      const zacatek = prvni + (f / 16) * krok;
+      let skore = 0;
+      for (const c of casy) {
+        if (c < zacatek) continue;
+        const odchylka = Math.abs(((c - zacatek) / krok) % 1);
+        const vzdalenost = Math.min(odchylka, 1 - odchylka);
+        // Blízko ke kroku se počítá plně, dál rychle klesá.
+        if (vzdalenost < 0.2) skore += 1 - vzdalenost / 0.2;
+      }
+      if (skore > nej.skore) nej = { bpm, zacatek, skore };
+    }
+  }
+
+  return { bpm: Math.round(nej.bpm), zacatek: nej.zacatek };
+}
+
 export async function vyctiRytmus(
   zvuk: AudioBuffer,
   nastaveni: Nastaveni = {},
 ): Promise<VysledekDetekce> {
-  const nalezy: { cas: number; pad: string; sila: number }[] = [];
-  /** Náběhy ze všech pásem dohromady — z nich se počítá tempo. */
-  let nabehy: Float32Array | null = null;
-  let vzorkovaniObalky = 0;
+  /**
+   * Nejdřív kdy, potom co.
+   *
+   * Hledat údery v každém pásmu zvlášť nefunguje: virbl i hi-hat jsou
+   * široký šum, takže se ozvou i tam, kde nemají, a jeden úder se ohlásí
+   * třikrát. Měřeno proti umělým bicím se známým zadáním z toho vycházelo
+   * čtyřicet chybných teček ze čtyřiceti pěti.
+   *
+   * Proto se nejdřív najde, *kdy* se udeřilo — ze součtu všech pásem —
+   * a teprve pak se podle poměru energií rozhodne, *do čeho*. Nástroj se
+   * pozná tím, které pásmo je vůči svému běžnému stavu nejvýraznější;
+   * absolutní hlasitost neřekne nic, protože každé pásmo má jinou.
+   */
+  const pasma: { pad: string; obalka: Float32Array }[] = [];
+  let vzorkovani = 0;
 
   for (const p of PASMA) {
-    const { obalka, vzorkovani } = await obalkaPasma(zvuk, p.typ, p.frekvence, p.q);
-    vzorkovaniObalky = vzorkovani;
+    const v = await obalkaPasma(zvuk, p.typ, p.frekvence, p.q);
+    vzorkovani = v.vzorkovani;
+    pasma.push({ pad: p.pad, obalka: v.obalka });
+  }
 
-    // Tempo drží celá souhra, ne jedno pásmo: kopák sám by v písni se
-    // synkopami vyšel na půltakt.
-    if (!nabehy) nabehy = new Float32Array(obalka.length);
-    let maximum = 0;
-    for (let i = 1; i < obalka.length; i++) maximum = Math.max(maximum, obalka[i] - obalka[i - 1]);
-    if (maximum > 0) {
-      for (let i = 1; i < obalka.length && i < nabehy.length; i++) {
-        nabehy[i] += Math.max(0, obalka[i] - obalka[i - 1]) / maximum;
-      }
-    }
+  const delka = Math.min(...pasma.map((p) => p.obalka.length));
 
-    for (const n of najdiNabehy(obalka, vzorkovani, p.citlivost, p.minRozestup, p.podlaha)) {
-      nalezy.push({ cas: n.cas, pad: p.pad, sila: n.sila });
+  /** Náběhy sečtené přes všechna pásma — kdy se vůbec udeřilo. */
+  const spolecne = new Float32Array(delka);
+  for (const p of pasma) {
+    let max = 0;
+    for (let i = 1; i < delka; i++) max = Math.max(max, p.obalka[i] - p.obalka[i - 1]);
+    if (max <= 0) continue;
+    for (let i = 1; i < delka; i++) {
+      spolecne[i] += Math.max(0, p.obalka[i] - p.obalka[i - 1]) / max;
     }
   }
 
-  const bpm =
-    nastaveni.bpm || (nabehy ? odhadniTempo(nabehy, vzorkovaniObalky) : 120);
+  const casy = najdiNabehy(spolecne, vzorkovani, 1.4, 0.04, 0.05);
 
-  /**
-   * Ozvěny v hi-hatu pryč, kopák a virbl si nechat.
-   *
-   * Každý úder má ostrý náběh, takže se ozve i ve výškách — hi-hat by
-   * pak hlásil kopáky i virbly. Naopak kopák a virbl spolu zaznívají
-   * doopravdy: na druhé a čtvrté době skoro pořád. Když se slučovalo
-   * napříč všemi pásmy, virbl z rytmu úplně zmizel, protože ho pokaždé
-   * přebil kopák.
-   */
-  const SOUCASNE = 0.03;
-  nalezy.sort((a, b) => a.cas - b.cas);
-  const teloUderu = nalezy.filter((n) => n.pad !== 'hihat_closed');
-  const jedinecne = nalezy.filter((n) => {
-    if (n.pad !== 'hihat_closed') return true;
-    return !teloUderu.some((t) => Math.abs(t.cas - n.cas) <= SOUCASNE);
-  });
+  /** Obvyklá výše pásma — podle ní se pozná, co je pro něj výrazné. */
+  const typicka: Record<string, number> = {};
+  for (const p of pasma) {
+    const hodnoty = Array.from(p.obalka.slice(0, delka)).filter((v) => v > 0).sort((a, b) => a - b);
+    typicka[p.pad] = hodnoty.length ? hodnoty[Math.floor(hodnoty.length * 0.75)] : 1e-9;
+  }
+
+  const jedinecne: { cas: number; pad: string; sila: number }[] = [];
+  for (const c of casy) {
+    const i = Math.round(c.cas * vzorkovani);
+    const skore: Record<string, number> = {};
+    for (const p of pasma) {
+      // Vrchol krátce po náběhu: úder má náběh i doznění, špička nemusí
+      // padnout přesně na ten blok, ve kterém se náběh poznal.
+      let vrchol = 0;
+      for (let j = i; j < Math.min(delka, i + 4); j++) vrchol = Math.max(vrchol, p.obalka[j]);
+      skore[p.pad] = vrchol / Math.max(typicka[p.pad], 1e-9);
+    }
+
+    const nizke = skore['kick'] || 0;
+    const stredni = skore['snare'] || 0;
+    const vysoke = skore['hihat_closed'] || 0;
+
+    /**
+     * Jeden okamžik může nést víc nástrojů.
+     *
+     * Kopák s hi-hatem na jedné době je běžný a dřív se z nich zapsal jen
+     * ten silnější — hi-hat pak v rytmu chyběl přesně na dobách, kde ho
+     * bubeník hraje nejjistěji. Zapíše se proto každé pásmo, které je
+     * vůči svému běžnému stavu výrazné, ne jen to nejvýraznější.
+     */
+    const nejvic = Math.max(nizke, stredni, vysoke);
+    const vyrazne = (v: number) => v >= 1.6 && v >= nejvic * 0.45;
+
+    // Kopák musí mít sílu dole a zároveň málo nahoře. Samotná mez dole
+    // nestačí: rána do virblu rozezní i basové pásmo a kopák se pak
+    // hlásil i na druhé a čtvrté době.
+    if (vyrazne(nizke) && nizke > vysoke * 1.1) {
+      jedinecne.push({ cas: c.cas, pad: 'kick', sila: nizke });
+    }
+    // Hi-hat a virbl se posuzují každý zvlášť, ne jeden místo druhého:
+    // na druhé době se hraje obojí najednou a dřív z toho zůstal jen
+    // jeden.
+    if (vyrazne(vysoke)) {
+      jedinecne.push({ cas: c.cas, pad: 'hihat_closed', sila: vysoke });
+    }
+    // Virbl má proti hi-hatu tělo ve středech — tím se od něj pozná.
+    if (vyrazne(stredni) && stredni > vysoke * 0.45) {
+      jedinecne.push({ cas: c.cas, pad: 'snare', sila: stredni });
+    }
+  }
+
+  /** Náběhy sečtené přes pásma slouží i k odhadu tempa. */
+  const hrubeBpm = nastaveni.bpm || odhadniTempo(spolecne, vzorkovani);
+  const { bpm, zacatek } = dolad(jedinecne.map((n) => n.cas), hrubeBpm, nastaveni.bpm !== undefined);
 
   const delkaTaktu = (60 / bpm) * 4;
   const delkaKroku = delkaTaktu / KROKU;
-  // Takt se počítá od prvního úderu, ne od začátku souboru — na začátku
-  // bývá ticho a rytmus by se pak zapsal posunutý.
-  const zacatek = jedinecne.length ? jedinecne[0].cas : 0;
   const taktu = Math.max(1, Math.floor((zvuk.duration - zacatek) / delkaTaktu));
 
-  /** Kolikrát který krok padl. */
   const pocty: Record<string, number[]> = Object.fromEntries(
     PADY.map((p) => [p.id, new Array(KROKU).fill(0)]),
   );
 
   for (const n of jedinecne) {
     if (n.cas < zacatek) continue;
-    const odZacatku = n.cas - zacatek;
-    const krokCelkem = Math.round(odZacatku / delkaKroku);
+    const krokCelkem = Math.round((n.cas - zacatek) / delkaKroku);
     if (Math.floor(krokCelkem / KROKU) >= taktu) continue;
     pocty[n.pad][krokCelkem % KROKU]++;
   }
@@ -298,8 +385,7 @@ export async function vyctiRytmus(
     // Pevná mez sama nestačí: hi-hat jede pořád, takže by prošlo všech
     // šestnáct kroků, kdežto crash by nepustil ani jeden.
     const nejvic = Math.max(...jistota[p.id]);
-    const relativni = nejvic * 0.55;
-    mrizka[p.id] = jistota[p.id].map((j) => j >= prah && j >= relativni);
+    mrizka[p.id] = jistota[p.id].map((j) => j >= prah && j >= nejvic * 0.55);
   }
 
   const poPasmech: Record<string, number> = {};

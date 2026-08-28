@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
 import { PadyBicich } from './PadyBicich';
+import { PoslechKytaryPanel } from './hmatnik/PoslechKytaryPanel';
 import { ChordScaleExplorer } from './ChordScaleExplorer';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
 import { instrumentFactory } from '../services/instrumentFactory';
@@ -202,7 +203,9 @@ export const VirtualInstruments: React.FC = () => {
   const { toggleDockTool } = useMusicalContext();
   const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'pady' | 'fretboard'>('piano');
   /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
-  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'guitar_tools'>('chord');
+  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools'>('chord');
+  /** Stupnice nalezená poslechem — předá se hmatníku i filtru kláves. */
+  const [navrhZPoslechu, setNavrhZPoslechu] = useState<{ ton: string; stupnice: string; poradi: number } | null>(null);
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
   const [isSoundLibraryOpen, setIsSoundLibraryOpen] = useState(false);
   const [soundLibCategory, setSoundLibCategory] = useState<string>('all');
@@ -1071,6 +1074,7 @@ export const VirtualInstruments: React.FC = () => {
               {([
                 { id: 'chord', label: 'Akordy' },
                 { id: 'scale', label: 'Stupnice' },
+                { id: 'poslech', label: 'Poslech kytary' },
                 { id: 'guitar_tools', label: 'Guitar Tools' },
               ] as const).map((sekce) => (
                 <button
@@ -1088,11 +1092,24 @@ export const VirtualInstruments: React.FC = () => {
             </div>
           </div>
 
-          {hmatnikSekce !== 'guitar_tools' && (
+          {hmatnikSekce === 'poslech' && (
+            <PoslechKytaryPanel
+              onUkazNaHmatniku={(ton, stupnice) => {
+                setNavrhZPoslechu((p) => ({ ton, stupnice, poradi: (p?.poradi || 0) + 1 }));
+                setHmatnikSekce('scale');
+                // Klaviatura se řídí týmž výběrem, takže co se najde na
+                // kytaře, svítí i na klávesách.
+                setSelectedRoot(ton);
+              }}
+            />
+          )}
+
+          {hmatnikSekce !== 'guitar_tools' && hmatnikSekce !== 'poslech' && (
             <ChordScaleExplorer
               compact
               mode={hmatnikSekce}
               onModeChange={(m) => setHmatnikSekce(m)}
+              navrh={navrhZPoslechu || undefined}
             />
           )}
         </div>
