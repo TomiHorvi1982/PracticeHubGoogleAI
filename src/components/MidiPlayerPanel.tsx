@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { midiPlayerService, MidiSongState, MidiNote } from '../services/midiPlayerService';
 import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
+import { authService } from '../services/authService';
 import { audioSynth, INSTRUMENT_PROFILES, InstrumentProfile, midiToNoteName } from '../services/audioSynth';
 
 /**
@@ -52,6 +53,18 @@ export const MidiPlayerPanel: React.FC = () => {
    * hvězdičce řádek do databáze by bylo víc práce než užitku.
    */
   const [sbalene, setSbalene] = useState<Set<string>>(new Set());
+  /**
+   * Všechny složky sbírky i s počty.
+   *
+   * Sbírka má přes šestnáct tisíc souborů. Stahovat je všechny jen proto,
+   * aby šlo listovat složkami, by znamenalo čekat na desítky megabajtů;
+   * počty tedy sečte databáze a obsah složky se dotáhne, až když ji
+   * někdo rozbalí.
+   */
+  const [slozky, setSlozky] = useState<{ nazev: string; pocet: number }[]>([]);
+  /** Obsah rozbalených složek — klíč je název složky. */
+  const [obsahSlozek, setObsahSlozek] = useState<Record<string, LibraryAsset[]>>({});
+  const [nacitaneSlozky, setNacitaneSlozky] = useState<Set<string>>(new Set());
   const [oblibene, setOblibene] = useState<Set<string>>(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem(KLIC_OBLIBENYCH) || '[]'));
@@ -103,7 +116,44 @@ export const MidiPlayerPanel: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hledat]);
 
+  useEffect(() => {
+    const token = authService.getCurrentSession()?.token;
+    if (!token) return;
+    void fetch('/api/midi/slozky', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d?.slozky) setSlozky(d.slozky); })
+      .catch(() => { /* seznam složek je pohodlí, ne podmínka */ });
+  }, []);
+
+  /** Dotáhne obsah složky. Volá se až při rozbalení. */
+  const nactiSlozku = async (nazev: string) => {
+    if (obsahSlozek[nazev] || nacitaneSlozky.has(nazev)) return;
+    setNacitaneSlozky((p) => new Set(p).add(nazev));
+    try {
+      const { assets } = await assetLibraryService.listPage({
+        category: 'midi',
+        slozka: nazev,
+        limit: 500,
+        sort: 'name',
+      });
+      setObsahSlozek((p) => ({ ...p, [nazev]: assets }));
+    } catch {
+      setObsahSlozek((p) => ({ ...p, [nazev]: [] }));
+    } finally {
+      setNacitaneSlozky((p) => { const n = new Set(p); n.delete(nazev); return n; });
+    }
+  };
+
   /** Soubory seskupené podle složky, obojí seřazené podle názvu. */
+  /**
+   * Co se ukazuje jako složky.
+   *
+   * Bez hledání celá sbírka — všech sto sedmdesát pět složek, sbalených,
+   * s počty z databáze. Jakmile se hledá, ukazují se jen nalezené soubory:
+   * seznam všech složek by na dotaz neodpovídal.
+   */
+  const vseSbaleno = !hledat.trim() && !jenOblibene;
+
   const skupiny = useMemo(() => {
     const zdroj = jenOblibene ? soubory.filter((a) => oblibene.has(a.id)) : soubory;
     const m = new Map<string, LibraryAsset[]>();
@@ -389,7 +439,12 @@ export const MidiPlayerPanel: React.FC = () => {
           {knihovnaOtevrena ? <ChevronDown className="w-4 h-4 text-neutral-400" /> : <ChevronRight className="w-4 h-4 text-neutral-400" />}
           <Music4 className="w-4 h-4 text-[#FF9F0A]" />
           <span className="text-xs font-black text-white">Knihovna MIDI</span>
-          {celkem > 0 && <span className="text-[11px] text-neutral-500">({celkem})</span>}
+          {celkem > 0 && (
+            <span className="text-[11px] text-neutral-500">
+              ({celkem.toLocaleString('cs')}
+              {slozky.length ? ` v ${slozky.length} složkách` : ''})
+            </span>
+          )}
           {stav.asset && (
             <span className="ml-auto text-[11px] font-bold text-[#FF9F0A] truncate max-w-[45%]">{stav.asset.name}</span>
           )}
@@ -422,7 +477,13 @@ export const MidiPlayerPanel: React.FC = () => {
                 Jen oblíbené{oblibene.size > 0 ? ` (${oblibene.size})` : ''}
               </button>
               <button
-                onClick={() => setSbalene((prev) => (prev.size ? new Set() : new Set(skupiny.map(([k]) => k))))}
+                onClick={() =>
+                  setSbalene((prev) =>
+                    prev.size
+                      ? new Set()
+                      : new Set(vseSbaleno ? slozky.map((s) => s.nazev) : skupiny.map(([k]) => k)),
+                  )
+                }
                 className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-white/10 bg-black/40 text-neutral-400 hover:text-white transition-all cursor-pointer"
               >
                 {sbalene.size ? 'Rozbalit vše' : 'Sbalit vše'}
@@ -432,12 +493,89 @@ export const MidiPlayerPanel: React.FC = () => {
             {chyba ? (
               <div className="text-[11px] text-[#FF453A]">{chyba}</div>
             ) : (
-              <div className="max-h-52 overflow-auto space-y-2 pr-1">
+              <div className="max-h-72 overflow-auto space-y-2 pr-1">
                 {nacitam && <div className="text-[11px] text-neutral-500 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Načítám…</div>}
-                {!nacitam && soubory.length === 0 && (
+                {!nacitam && soubory.length === 0 && !vseSbaleno && (
                   <div className="text-[11px] text-neutral-500">Nic nenalezeno.</div>
                 )}
-                {skupiny.map(([slozka, polozky]) => {
+                {vseSbaleno && slozky.length > 0 && !nacitam &&
+                  slozky.map(({ nazev, pocet }) => {
+                    // Sbalená je výchozí stav: sto sedmdesát pět rozbalených
+                    // složek by byl seznam, ve kterém se nedá nic najít.
+                    const otevrena = sbalene.has(nazev);
+                    const polozky = obsahSlozek[nazev] || [];
+                    return (
+                      <div key={nazev}>
+                        <button
+                          onClick={() => {
+                            setSbalene((prev) => {
+                              const novy = new Set(prev);
+                              if (novy.has(nazev)) novy.delete(nazev);
+                              else { novy.add(nazev); void nactiSlozku(nazev); }
+                              return novy;
+                            });
+                          }}
+                          className="w-full flex items-center gap-1 mb-1 text-left cursor-pointer group"
+                        >
+                          {otevrena ? (
+                            <ChevronDown className="w-3 h-3 text-neutral-500 shrink-0" />
+                          ) : (
+                            <ChevronRight className="w-3 h-3 text-neutral-500 shrink-0" />
+                          )}
+                          <span className="text-[10px] font-black uppercase tracking-wider text-neutral-500 group-hover:text-neutral-300 truncate">
+                            {nazev}
+                          </span>
+                          <span className="text-[10px] text-neutral-600 shrink-0">({pocet})</span>
+                          {nacitaneSlozky.has(nazev) && (
+                            <Loader2 className="w-3 h-3 animate-spin text-neutral-600 shrink-0" />
+                          )}
+                        </button>
+
+                        {otevrena && (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {polozky.map((a) => (
+                              <div
+                                key={`${nazev}:${a.id}`}
+                                className={`flex items-center rounded-lg border transition-all ${
+                                  stav.asset?.id === a.id
+                                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                                    : 'bg-black/40 border-white/10 hover:border-white/30'
+                                }`}
+                              >
+                                <button
+                                  onClick={() => { midiPlayerService.loadFromLibrary(a); setVybranaStopa(0); }}
+                                  className={`pl-2.5 pr-1.5 py-1 text-[11px] font-medium cursor-pointer ${
+                                    stav.asset?.id === a.id ? 'text-white' : 'text-neutral-300'
+                                  }`}
+                                  title={a.name}
+                                >
+                                  {a.name.replace(/\.midi?$/i, '').slice(0, 40)}
+                                </button>
+                                <button
+                                  onClick={() => prepniOblibeny(a.id)}
+                                  className="pr-1.5 py-1 cursor-pointer"
+                                  title={oblibene.has(a.id) ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'}
+                                >
+                                  <Star
+                                    className={`w-3 h-3 transition-colors ${
+                                      oblibene.has(a.id)
+                                        ? 'text-[#FF9F0A] fill-[#FF9F0A]'
+                                        : 'text-neutral-600 hover:text-neutral-300'
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                            ))}
+                            {!polozky.length && !nacitaneSlozky.has(nazev) && (
+                              <span className="text-[10px] text-neutral-600">Prázdná složka.</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                {!vseSbaleno && skupiny.map(([slozka, polozky]) => {
                   const zavrena = sbalene.has(slozka);
                   return (
                     <div key={slozka}>

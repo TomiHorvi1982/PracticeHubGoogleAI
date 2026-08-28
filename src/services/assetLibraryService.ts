@@ -74,6 +74,8 @@ class AssetLibraryService {
       owner?: 'mine' | 'global';
       category?: string;
       subcategory?: string;
+      /** Složka, ze které se sbírka nahrávala (jen MIDI a podobné sbírky). */
+      slozka?: string;
       search?: string;
       limit?: number;
       offset?: number;
@@ -84,6 +86,7 @@ class AssetLibraryService {
     if (params.owner) qs.set('owner', params.owner);
     if (params.category) qs.set('category', params.category);
     if (params.subcategory) qs.set('subcategory', params.subcategory);
+    if (params.slozka) qs.set('slozka', params.slozka);
     if (params.search) qs.set('search', params.search);
     if (params.limit !== undefined) qs.set('limit', String(params.limit));
     if (params.offset !== undefined) qs.set('offset', String(params.offset));

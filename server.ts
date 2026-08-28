@@ -745,11 +745,31 @@ export async function createApp() {
       query = query.or(`name.ilike.${vzor},original_filename.ilike.${vzor}`);
     }
 
+    // Složka, ze které se sbírka nahrávala. Drží se v `legacy_id`, takže
+    // se filtruje podle něj — jinak by šlo listovat jen tou stránkou,
+    // kterou prohlížeč zrovna má.
+    const slozka = req.query.slozka as string | undefined;
+    if (slozka) {
+      const vzor = `%/${slozka.replace(/[\\%_]/g, (c) => `\\${c}`)}/%`;
+      query = query.ilike('metadata->>legacy_id', vzor);
+    }
+
     const { data, error, count } = await query.range(offset, offset + limit - 1);
     if (error) {
       return res.status(500).json({ error: 'Nepodařilo se načíst assety.', details: error.message });
     }
     res.json({ assets: data, total: count ?? data?.length ?? 0, limit, offset });
+  });
+
+  /** Složky MIDI sbírky i s počty — pro rozbalovací seznam. */
+  app.get('/api/midi/slozky', requireAuth, async (_req, res) => {
+    const { data, error } = await getSupabaseAdmin().rpc('midi_slozky');
+    if (error) {
+      return res.status(500).json({ error: 'Složky se nepodařilo načíst.', details: error.message });
+    }
+    res.json({
+      slozky: (data || []).map((s: any) => ({ nazev: s.slozka, pocet: Number(s.pocet || 0) })),
+    });
   });
 
   // --- BICÍ GROOVY -----------------------------------------------------

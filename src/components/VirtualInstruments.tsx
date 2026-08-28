@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
+import { PadyBicich } from './PadyBicich';
 import { ChordScaleExplorer } from './ChordScaleExplorer';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
 import { instrumentFactory } from '../services/instrumentFactory';
@@ -199,7 +200,7 @@ export const VirtualInstruments: React.FC = () => {
   // nástrojů. Odsud se jen otevře — duplikovat ho podruhé by znamenalo dvě
   // místa, která se musí držet v souladu.
   const { toggleDockTool } = useMusicalContext();
-  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'fretboard'>('piano');
+  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'pady' | 'fretboard'>('piano');
   /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
   const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'guitar_tools'>('chord');
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
@@ -639,6 +640,17 @@ export const VirtualInstruments: React.FC = () => {
               <span>Samples</span>
             </button>
             <button
+              onClick={() => setActiveInstTab('pady')}
+              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+                activeInstTab === 'pady'
+                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              <Disc className={`w-3.5 h-3.5 ${activeInstTab === 'pady' ? 'text-[#FF9F0A]' : ''}`} />
+              <span>Bicí</span>
+            </button>
+            <button
               onClick={() => setActiveInstTab('fretboard')}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
                 activeInstTab === 'fretboard'
@@ -1038,6 +1050,7 @@ export const VirtualInstruments: React.FC = () => {
 
       {/* 🥁 DRUMS TAB */}
       {activeInstTab === 'drums' && <SamplesStudio />}
+      {activeInstTab === 'pady' && <PadyBicich />}
 
       {/* 🎸 HMATNÍK — samostatná stránka s podsekcemi */}
       {activeInstTab === 'fretboard' && (
