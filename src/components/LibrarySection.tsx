@@ -7,6 +7,7 @@ import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../service
 import { authService } from '../services/authService';
 import { StromKnihovny } from './knihovna/StromKnihovny';
 import { MistoVUlozisti } from './knihovna/MistoVUlozisti';
+import { PohledSamples } from './knihovna/PohledSamples';
 import { UzelStromu, PODLE_ID, navrhniPodkategorii } from '../services/knihovnaStrom';
 import {
   FolderArchive,
@@ -108,6 +109,15 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   /** Vytvořené blob adresy — po odchodu se musí uvolnit, jinak drží paměť. */
   const blobRef = useRef<string[]>([]);
   useEffect(() => () => { blobRef.current.forEach((u) => URL.revokeObjectURL(u)); }, []);
+
+  /**
+   * Co se ukazuje: soubory, nebo zvuky.
+   *
+   * Sample se nevybírá podle názvu a data, ale podle toho, jak zní a jestli
+   * sedne do tempa. Proto má vlastní pohled — v seznamu souborů by to byly
+   * jen další řádky.
+   */
+  const [pohled, setPohled] = useState<'soubory' | 'samples'>('soubory');
 
   // View Mode: 'detailed' vs 'compact' (1-line: Name - Artist)
   const [libraryListViewMode, setLibraryListViewMode] = useState<'detailed' | 'compact'>('detailed');
@@ -684,6 +694,21 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           </div>
         </div>
 
+        <div className="flex items-center gap-2">
+        <div className="flex rounded-xl bg-white/[0.04] border border-white/10 p-0.5">
+          {(['soubory', 'samples'] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPohled(p)}
+              className={`px-3 py-2 rounded-[10px] text-xs font-semibold capitalize transition-colors cursor-pointer ${
+                pohled === p ? 'bg-[#0A84FF] text-white' : 'text-neutral-400 hover:text-white'
+              }`}
+            >
+              {p === 'soubory' ? 'Soubory' : 'Samples'}
+            </button>
+          ))}
+        </div>
+
         {/* Quick Upload Button */}
         <label className="px-4 py-2.5 bg-white text-black hover:bg-neutral-200 font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-2 transition-all shadow-md">
           <FileUp className="w-4 h-4" />
@@ -700,6 +725,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             className="hidden"
           />
         </label>
+        </div>
       </div>
 
       {/* Status Alerts */}
@@ -731,8 +757,11 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       {/* Main 2-column Grid */}
       {/* Kolik místa co zabírá. Patří sem, ne do Nastavení: přidává se
           a maže se tady, takže i důsledek má být vidět tady. */}
-      <MistoVUlozisti />
+      <MistoVUlozisti jsemSpravce={jsemSpravce} />
 
+      {pohled === 'samples' && <PohledSamples jsemSpravce={jsemSpravce} />}
+
+      {pohled === 'soubory' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Left Column: Explorer Filters & File List (5 cols) */}
@@ -1336,6 +1365,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         </div>
 
       </div>
+      )}
 
     </div>
   );

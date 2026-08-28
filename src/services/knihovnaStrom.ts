@@ -110,6 +110,25 @@ export const KATEGORIE: Kategorie[] = [
   },
 ];
 
+/**
+ * Kategorie, které appka umí použít, i když v nich zatím nic neleží.
+ *
+ * Sekce Samples se ptá na `bass_sample`, `guitar_sample` a `vocal_sample`
+ * a mixážní pult na `stem_mix`. Dokud v nich nic není, strom je z databáze
+ * nedostane — a správce nemá kam soubory přetáhnout. Nabízejí se proto
+ * jako prázdné složky.
+ */
+export const OCEKAVANE = [
+  'drum_kit_sample',
+  'drum_loop',
+  'bass_sample',
+  'guitar_sample',
+  'vocal_sample',
+  'stem_mix',
+  'recordings',
+  'images',
+];
+
 export const PODLE_ID: Record<string, Kategorie> = Object.fromEntries(
   KATEGORIE.map((k) => [k.id, k])
 );

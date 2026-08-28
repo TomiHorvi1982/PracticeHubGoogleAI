@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { HardDrive, Loader2 } from 'lucide-react';
+import { HardDrive, Loader2, Copy } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { nazevKategorie } from '../../services/knihovnaStrom';
 
@@ -32,9 +32,17 @@ function velikost(b: number): string {
  * Vidět po nahrání, kolik místa ubylo, znamenalo přepnout sekci — a než
  * tam člověk došel, nahrál mezitím další.
  */
-export const MistoVUlozisti: React.FC = () => {
+interface Duplicity {
+  kopiiNavic: number;
+  bajtuNavic: number;
+}
+
+export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce }) => {
   const [stav, setStav] = useState<Stav | null>(null);
   const [nacitam, setNacitam] = useState(true);
+  const [duplicity, setDuplicity] = useState<Duplicity | null>(null);
+  const [uklizim, setUklizim] = useState(false);
+  const [vysledek, setVysledek] = useState<string | null>(null);
 
   const nacti = useCallback(async () => {
     const token = authService.getCurrentSession()?.token;
@@ -42,6 +50,12 @@ export const MistoVUlozisti: React.FC = () => {
     try {
       const r = await fetch('/api/storage/usage', { headers: { Authorization: `Bearer ${token}` } });
       if (r.ok) setStav(await r.json());
+
+      const d = await fetch('/api/assets/duplicity', { headers: { Authorization: `Bearer ${token}` } });
+      if (d.ok) {
+        const data = await d.json();
+        setDuplicity(data.kopiiNavic > 0 ? data : null);
+      }
     } catch {
       /* výpadek sítě není důvod ukazovat chybu místo čísla */
     } finally {
@@ -117,6 +131,49 @@ export const MistoVUlozisti: React.FC = () => {
           Sbírka tabulatur se ve složkách níž neukazuje — appka v ní hledá sama a ručně
           se netřídí.
         </p>
+      )}
+
+      {/* Kopie téhož souboru pod jiným názvem. Bez tohohle řádku by se
+          na ně nepřišlo — v seznamu vypadají jako dva různé soubory. */}
+      {duplicity && (
+        <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/[0.06]">
+          <Copy className="w-3.5 h-3.5 text-[#FFD60A] shrink-0" />
+          <span className="text-[11px] text-neutral-300">
+            {duplicity.kopiiNavic.toLocaleString('cs')} souborů leží v knihovně víckrát,
+            jen pod jiným názvem — zabírají {velikost(duplicity.bajtuNavic)} navíc.
+          </span>
+          {jsemSpravce && (
+            <button
+              disabled={uklizim}
+              onClick={async () => {
+                if (!window.confirm(
+                  `Smazat ${duplicity.kopiiNavic} kopií a uvolnit ${velikost(duplicity.bajtuNavic)}?\n\n`
+                  + 'Z každé dvojice zůstane ten starší soubor. Kopie, kterou má připojenou nějaká píseň, se nemaže.'
+                )) return;
+                setUklizim(true);
+                setVysledek(null);
+                const token = authService.getCurrentSession()?.token;
+                const r = await fetch('/api/assets/duplicity/uklidit', {
+                  method: 'POST',
+                  headers: token ? { Authorization: `Bearer ${token}` } : {},
+                });
+                const d = await r.json().catch(() => ({}));
+                setUklizim(false);
+                setVysledek(
+                  r.ok
+                    ? `Smazáno ${d.smazano}, uvolněno ${velikost(d.uvolneno || 0)}`
+                      + (d.ponechano ? `, ${d.ponechano} zůstalo (visí na písních).` : '.')
+                    : d.error || 'Úklid selhal.',
+                );
+                void nacti();
+              }}
+              className="text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.06] text-neutral-200 hover:bg-white/[0.12] cursor-pointer disabled:opacity-50"
+            >
+              {uklizim ? 'Uklízím…' : 'Uklidit kopie'}
+            </button>
+          )}
+          {vysledek && <span className="text-[11px] text-[#30D158]">{vysledek}</span>}
+        </div>
       )}
 
       {procent > 85 && (

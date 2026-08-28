@@ -199,7 +199,7 @@ export const VirtualInstruments: React.FC = () => {
   // nástrojů. Odsud se jen otevře — duplikovat ho podruhé by znamenalo dvě
   // místa, která se musí držet v souladu.
   const { toggleDockTool } = useMusicalContext();
-  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'midi' | 'fretboard'>('piano');
+  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'fretboard'>('piano');
   /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
   const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'guitar_tools'>('chord');
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
@@ -649,27 +649,19 @@ export const VirtualInstruments: React.FC = () => {
               <Compass className={`w-3.5 h-3.5 ${activeInstTab === 'fretboard' ? 'text-[#FF9F0A]' : ''}`} />
               <span>Hmatník</span>
             </button>
-            <button
-              onClick={() => setActiveInstTab('midi')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeInstTab === 'midi'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Music className={`w-3.5 h-3.5 ${activeInstTab === 'midi' ? 'text-[#FF9F0A]' : ''}`} />
-              <span>MIDI</span>
-            </button>
           </div>
         </div>
       </div>
 
-      {/* MIDI PŘEHRÁVAČ */}
-      {activeInstTab === 'midi' && <MidiPlayerPanel />}
-
       {/* 🎹 PIANO TAB */}
       {activeInstTab === 'piano' && (
         <div className="space-y-4">
+
+          {/* MIDI přehrávač je tu, ne ve vlastní záložce: pustit si skladbu
+              a zahrát do ní je jedna činnost, ne dvě. Přepínáním záložek
+              se přehrávání zastavovalo dřív, než se stihlo dojít ke
+              klaviatuře. */}
+          <MidiPlayerPanel />
 
           {/* Scale Selector & Octave Shift Panel */}
           <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">

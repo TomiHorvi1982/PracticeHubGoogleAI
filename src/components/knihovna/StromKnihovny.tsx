@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, FolderOpen, Inbox } from 'lucide-react';
-import { UzelStromu, KATEGORIE, nazevKategorie, ikonaKategorie } from '../../services/knihovnaStrom';
+import {
+  UzelStromu, KATEGORIE, OCEKAVANE, nazevKategorie, ikonaKategorie,
+} from '../../services/knihovnaStrom';
 
 interface Props {
   uzly: UzelStromu[];
@@ -39,11 +41,22 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
       k.bajtu += u.bajtu;
       k.deti.push(u);
     }
-    // Největší složky nahoře — tam se hledá místo i nepořádek.
+    // Prázdné složky, na které se appka ptá. Vidí je jen správce —
+    // pro něj jsou to místa, kam přetáhnout; pro ostatní by to byl
+    // seznam kategorií, ve kterých nic není.
+    if (onPustit) {
+      for (const id of OCEKAVANE) {
+        if (!mapa.has(id)) mapa.set(id, { souboru: 0, bajtu: 0, deti: [] });
+      }
+    }
+
+    // Největší složky nahoře — tam se hledá místo i nepořádek. Prázdné
+    // padají na konec, ať nepřekáží těm, ve kterých něco je.
     return [...mapa.entries()]
       .map(([id, v]) => ({ id, ...v, deti: v.deti.sort((a, b) => b.souboru - a.souboru) }))
-      .sort((a, b) => b.bajtu - a.bajtu);
-  }, [uzly]);
+      .sort((a, b) => b.bajtu - a.bajtu || b.souboru - a.souboru);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uzly, Boolean(onPustit)]);
 
   const celkem = kategorie.reduce((n, k) => n + k.souboru, 0);
   const nezarazenych = uzly.filter((u) => u.podkategorie === null).reduce((n, u) => n + u.souboru, 0);
@@ -150,10 +163,10 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                 <span className="shrink-0">{ikonaKategorie(k.id)}</span>
                 <span className="flex-1 truncate">{nazevKategorie(k.id)}</span>
                 <span className="text-[10px] font-mono text-neutral-500 tabular-nums">
-                  {k.souboru.toLocaleString('cs')}
+                  {k.souboru ? k.souboru.toLocaleString('cs') : ''}
                 </span>
                 <span className="text-[10px] font-mono text-neutral-600 tabular-nums w-14 text-right">
-                  {mb(k.bajtu)}
+                  {k.souboru ? mb(k.bajtu) : 'prázdné'}
                 </span>
               </button>
             </div>

@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
+import { createHash } from 'node:crypto';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
@@ -503,10 +504,13 @@ export async function createApp() {
     }
     const bucket = 'r2';
 
-    const wantsGlobal = visibility === 'global';
-    if (wantsGlobal && !(await isProfileAdmin(req.user!.id))) {
-      return res.status(403).json({ error: 'Jen admin může nahrávat do globální knihovny.' });
+    // Do společné knihovny přidává jen správce. Sbírka je společná a bez
+    // vlastníka, takže co do ní jednou spadne, musí zase správce najít
+    // a uklidit — a pořádek se dělá líp, když ho dělá jeden člověk.
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Přidávat do knihovny může jen správce.' });
     }
+    const wantsGlobal = visibility === 'global';
 
     const admin = getSupabaseAdmin();
     const assetId = crypto.randomUUID();
@@ -573,6 +577,34 @@ export async function createApp() {
         return res.status(400).json({ error: 'Prázdné tělo požadavku.' });
       }
 
+      /**
+       * Otisk obsahu rozhodne, jestli soubor v knihovně už je.
+       *
+       * Podle názvu to poznat nejde: kdo soubor přejmenuje a nahraje
+       * znovu, dostal by druhou kopii a v sedmnácti tisících položkách
+       * by si toho nikdo nevšiml. Kontroluje se ještě před zápisem do
+       * úložiště — jinak by se místo zabralo a teprve pak zjistilo, že
+       * zbytečně.
+       */
+      const otisk = createHash('sha256').update(req.body).digest('hex');
+      const { data: uzTam } = await admin
+        .from('assets')
+        .select('id, name, category, subcategory')
+        .eq('content_hash', otisk)
+        .eq('status', 'active')
+        .neq('id', asset.id)
+        .maybeSingle();
+
+      if (uzTam) {
+        // Rozdělaný záznam se uklidí, ať po odmítnutém nahrání nezůstane
+        // viset řádek ve stavu `pending`.
+        await admin.from('assets').delete().eq('id', asset.id);
+        return res.status(409).json({
+          error: `Tenhle soubor už v knihovně je pod názvem „${uzTam.name}".`,
+          duplicita: uzTam,
+        });
+      }
+
       try {
         await uploadObject(asset.storage_path, req.body, asset.mime_type || undefined);
       } catch (e: any) {
@@ -581,7 +613,7 @@ export async function createApp() {
 
       const { data: hotovy } = await admin
         .from('assets')
-        .update({ status: 'active', size_bytes: req.body.length })
+        .update({ status: 'active', size_bytes: req.body.length, content_hash: otisk })
         .eq('id', asset.id)
         .select()
         .single();
@@ -987,6 +1019,83 @@ export async function createApp() {
         bajtu: Number(u.bajtu || 0),
       })),
     });
+  });
+
+  /**
+   * Soubory, které v knihovně leží dvakrát.
+   *
+   * Pozná se to podle obsahu, ne podle názvu — přejmenovaná kopie je pořád
+   * kopie. Vrací se i seznam těch, na které ukazuje nějaká píseň: ty se
+   * mazat nesmí, jinak by se u písně rozbila příloha.
+   */
+  app.get('/api/assets/duplicity', requireAuth, async (_req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin.rpc('duplicitni_soubory');
+    if (error) {
+      return res.status(500).json({ error: 'Duplicity se nepodařilo zjistit.', details: error.message });
+    }
+
+    const skupiny = (data || []).map((d: any) => ({
+      otisk: d.content_hash,
+      pocet: Number(d.pocet || 0),
+      bajtuNavic: Number(d.bajtu_navic || 0),
+      nazvy: d.nazvy || [],
+      ids: d.ids || [],
+    }));
+
+    res.json({
+      skupiny,
+      kopiiNavic: skupiny.reduce((a: number, s: any) => a + s.pocet - 1, 0),
+      bajtuNavic: skupiny.reduce((a: number, s: any) => a + s.bajtuNavic, 0),
+    });
+  });
+
+  /**
+   * Úklid duplicit: z každé skupiny zůstane jeden soubor.
+   *
+   * Zůstává ten nejstarší — na něj nejspíš ukazují starší odkazy. Kopie,
+   * kterou má připojenou nějaká píseň, se nemaže vůbec: obsah je sice
+   * stejný, ale příloha si pamatuje konkrétní cestu v úložišti a po
+   * smazání by ukazovala do prázdna.
+   */
+  app.post('/api/assets/duplicity/uklidit', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Uklízet knihovnu může jen správce.' });
+    }
+
+    const { data: skupiny, error } = await admin.rpc('duplicitni_soubory');
+    if (error) return res.status(500).json({ error: error.message });
+
+    const { data: pisne } = await admin.from('songs').select('metadata').eq('status', 'active');
+    const pouzite = JSON.stringify(pisne || []);
+
+    let smazano = 0;
+    let uvolneno = 0;
+    let ponechano = 0;
+
+    for (const s of skupiny || []) {
+      const ids: string[] = s.ids || [];
+      // První v pořadí je nejstarší — ten zůstává vždycky.
+      for (const id of ids.slice(1)) {
+        const { data: a } = await admin
+          .from('assets')
+          .select('storage_bucket, storage_path, size_bytes')
+          .eq('id', id)
+          .single();
+        if (!a) continue;
+        if (pouzite.includes(a.storage_path)) {
+          ponechano++;
+          continue;
+        }
+        await removeStorageObject(a.storage_bucket, a.storage_path);
+        await admin.from('assets').delete().eq('id', id);
+        smazano++;
+        uvolneno += Number(a.size_bytes || 0);
+      }
+    }
+
+    res.json({ smazano, uvolneno, ponechano });
   });
 
   app.get('/api/assets/:id/content', requireAuth, async (req, res) => {
@@ -1432,6 +1541,9 @@ export async function createApp() {
     basa: ['bass_sample'],
     kytara: ['guitar_sample'],
     vokal: ['vocal_sample'],
+    // Stopy pro mixážní pult. Nejsou to samply na hraní, ale hledá se
+    // v nich stejně — podle tempa, tóniny a názvu — tak sdílejí i endpoint.
+    stopy: ['stem_mix'],
   };
 
   /**
@@ -1489,6 +1601,16 @@ export async function createApp() {
     const { data, error } = await q;
     if (error) return res.status(500).json({ error: error.message });
 
+    /**
+     * Tónina jen když to tóninou opravdu je.
+     *
+     * `metadata.key` není vyhrazené pro hudbu — sady bicích si do něj
+     * ukládají označení vrstvy (`layer:crash_left:hard:rr1`). Bez téhle
+     * kontroly se takový řetězec ukázal ve sloupci tóniny.
+     */
+    const jeTonina = (v: string) => /^[A-Ha-h][#b]?(m|maj|min|dur|moll)?$/.test(v.trim());
+    const jeTakt = (v: string) => /^\d{1,2}[/\-]\d{1,2}$/.test(v.trim());
+
     const samply = (data || []).map((a) => {
       const cisty = String(a.name).replace(/\.(wav|mp3|aif|aiff|ogg)$/i, '');
       const m = (a.metadata || {}) as any;
@@ -1499,8 +1621,10 @@ export async function createApp() {
         // Metadata mají přednost — když je někdo vyplnil, ví to líp než
         // hádání z názvu.
         bpm: Number(m.bpm || 0) || tempoZNazvu(cisty),
-        tonina: String(m.key || '') || toninaZNazvu(cisty),
-        takt: String(m.takt || m.meter || '') || taktZNazvu(cisty),
+        tonina: jeTonina(String(m.key || '')) ? String(m.key).trim() : toninaZNazvu(cisty),
+        takt: jeTakt(String(m.takt || m.meter || ''))
+          ? String(m.takt || m.meter).trim()
+          : taktZNazvu(cisty),
         balik: String(m.balik || ''),
         velikost: Number(a.size_bytes || 0),
       };
@@ -1599,10 +1723,8 @@ export async function createApp() {
     if (!asset) {
       return res.status(404).json({ error: 'Asset nenalezen.' });
     }
-    const isOwner = asset.owner_id === req.user!.id;
-    const isAdmin = await isProfileAdmin(req.user!.id);
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Mazat z knihovny může jen správce.' });
     }
 
     await removeStorageObject(asset.storage_bucket, asset.storage_path);

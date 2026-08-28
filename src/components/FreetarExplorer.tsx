@@ -23,9 +23,11 @@ import {
   Disc,
   X,
   Volume2,
+  Library,
 } from 'lucide-react';
 import { Song, SongAttachment } from '../types';
 import { tabLibraryService, TabLibraryEntry } from '../services/tabLibraryService';
+import { PrehledSbirky } from './knihovna/PrehledSbirky';
 
 interface FreetarExplorerProps {
   onSongImported: (song: Song) => void;
@@ -53,7 +55,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   onViewSong,
 }) => {
   // Mode: 'native_search' | 'live_browser'
-  const [activeMode, setActiveMode] = useState<'native_search' | 'live_browser'>('native_search');
+  const [activeMode, setActiveMode] = useState<'native_search' | 'sbirka' | 'live_browser'>('native_search');
 
   // Native Search State
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -400,6 +402,16 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             <Search className="w-3.5 h-3.5" /> Nativní vyhledávač
           </button>
           <button
+            onClick={() => setActiveMode('sbirka')}
+            className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
+              activeMode === 'sbirka'
+                ? 'bg-white text-black font-bold shadow-md'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+          >
+            <Library className="w-3.5 h-3.5" /> Naše sbírka
+          </button>
+          <button
             onClick={() => setActiveMode('live_browser')}
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
               activeMode === 'live_browser'
@@ -436,6 +448,11 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             ✕ Zavřít
           </button>
         </div>
+      )}
+
+      {/* MODE 2: CO MÁME DOMA */}
+      {activeMode === 'sbirka' && (
+        <PrehledSbirky onImportovat={(e) => { void handleImportLibraryEntry(e); }} />
       )}
 
       {/* MODE 1: NATIVE SEARCH & TAB VIEWER */}
