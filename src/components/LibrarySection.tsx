@@ -9,6 +9,7 @@ import { StromKnihovny } from './knihovna/StromKnihovny';
 import { MistoVUlozisti } from './knihovna/MistoVUlozisti';
 import { PohledSamples } from './knihovna/PohledSamples';
 import { UzelStromu, PODLE_ID, navrhniPodkategorii, nazevKategorie } from '../services/knihovnaStrom';
+import { prevedNaMp3, jePrevoditelny, Kvalita } from '../services/prevodNaMp3';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -119,6 +120,22 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    */
   const [pohled, setPohled] = useState<'soubory' | 'samples'>('soubory');
 
+  /**
+   * Zmenšovat zvuky před nahráním?
+   *
+   * Jedna stopa ve WAV má padesát megabajtů, MP3 ve 192 kbps sedm. Volba
+   * zůstává, protože kdo si nahrává mistr pásky, ten ztrátový formát
+   * nechce — jen ať ví, že za to platí místem.
+   */
+  const [prevadetZvuk, setPrevadetZvuk] = useState(
+    () => localStorage.getItem('neverlate_prevod_mp3') !== 'ne',
+  );
+  const [kvalitaMp3, setKvalitaMp3] = useState<Kvalita>(
+    () => (Number(localStorage.getItem('neverlate_kvalita_mp3')) || 192) as Kvalita,
+  );
+  /** Kde je převod — u padesátimegového souboru to chvíli trvá. */
+  const [prevod, setPrevod] = useState<{ nazev: string; procent: number } | null>(null);
+
   // View Mode: 'detailed' vs 'compact' (1-line: Name - Artist)
   const [libraryListViewMode, setLibraryListViewMode] = useState<'detailed' | 'compact'>('detailed');
 
@@ -180,6 +197,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    * příponě: stopa do pultu i bicí sampl jsou obojí .wav, ale patří
    * každý jinam.
    */
+  const mbTxt = (b: number) =>
+    b >= 1048576 ? `${(b / 1048576).toFixed(1)} MB` : `${Math.round(b / 1024)} kB`;
+
   const typAssetuProKategorii = (
     kategorie: string,
     typ: LibraryItem['type'],
@@ -432,9 +452,33 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       const newItems: LibraryItem[] = [];
       /** Co se podařilo přiřadit k písni — vypíše se v hlášce. */
       const priraadene: string[] = [];
+      /** Kolik se ušetřilo převodem — taky se vypíše. */
+      const zmenseno: string[] = [];
 
       for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+        let file = files[i];
+
+        // Zmenšit se musí dřív, než se bajty pošlou — jinak se nahraje
+        // padesát megabajtů a teprve pak se ušetří.
+        if (prevadetZvuk && jePrevoditelny(file.name)) {
+          setPrevod({ nazev: file.name, procent: 0 });
+          const v = await prevedNaMp3(file, kvalitaMp3, (p) =>
+            setPrevod({ nazev: file.name, procent: p }),
+          );
+          setPrevod(null);
+          if (v.prevedeno) {
+            zmenseno.push(
+              `„${file.name}" ${mbTxt(v.puvodniBajtu)} → ${mbTxt(v.noveBajtu)}`,
+            );
+            file = v.soubor;
+          } else if (v.duvod && v.duvod !== 'není bezeztrátový') {
+            setStatusMessage({
+              type: 'error',
+              text: `„${file.name}" se nepodařilo zmenšit (${v.duvod}) — nahrávám původní soubor.`,
+            });
+          }
+        }
+
         const parsed = await parseAnyFile(file);
 
         const ext = file.name.split('.').pop()?.toLowerCase() || '';
@@ -517,6 +561,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         type: 'success',
         text:
           `Nahráno ${addedCount} souborů do knihovny.` +
+          (zmenseno.length
+            ? ` Zmenšeno na MP3: ${zmenseno.slice(0, 3).join(', ')}${zmenseno.length > 3 ? ` a ${zmenseno.length - 3} dalších` : ''}.`
+            : '') +
           (priraadene.length
             ? ` Přiřazeno k písni: ${priraadene.slice(0, 3).join(', ')}${priraadene.length > 3 ? ` a ${priraadene.length - 3} dalších` : ''}.`
             : ''),
@@ -753,6 +800,39 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           ))}
         </div>
 
+        {/* Zmenšování zvuků. Patří k tlačítku pro nahrání, protože
+            rozhoduje o tom, co se zrovna nahraje. */}
+        <label
+          className="flex items-center gap-2 text-[11px] text-neutral-400 cursor-pointer"
+          title="Bezeztrátové zvuky (WAV, AIFF, FLAC) se před nahráním převedou na MP3"
+        >
+          <input
+            type="checkbox"
+            checked={prevadetZvuk}
+            onChange={(e) => {
+              setPrevadetZvuk(e.target.checked);
+              localStorage.setItem('neverlate_prevod_mp3', e.target.checked ? 'ano' : 'ne');
+            }}
+            className="accent-[#0A84FF] cursor-pointer"
+          />
+          <span>Zmenšit zvuk na MP3</span>
+          <select
+            value={kvalitaMp3}
+            disabled={!prevadetZvuk}
+            onChange={(e) => {
+              const k = Number(e.target.value) as Kvalita;
+              setKvalitaMp3(k);
+              localStorage.setItem('neverlate_kvalita_mp3', String(k));
+            }}
+            className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-[11px] cursor-pointer disabled:opacity-40"
+          >
+            <option value={128}>128 kbps</option>
+            <option value={192}>192 kbps</option>
+            <option value={256}>256 kbps</option>
+            <option value={320}>320 kbps</option>
+          </select>
+        </label>
+
         {/* Quick Upload Button */}
         <label className="px-4 py-2.5 bg-white text-black hover:bg-neutral-200 font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-2 transition-all shadow-md">
           <FileUp className="w-4 h-4" />
@@ -891,9 +971,23 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
             />
             {isProcessing ? (
-              <div className="py-2 flex items-center justify-center gap-2 text-[#0A84FF] text-xs font-semibold">
-                <Disc className="w-4 h-4 animate-spin" />
-                <span>Nahrávám a zpracovávám soubory...</span>
+              <div className="py-2 flex flex-col items-center justify-center gap-1 text-[#0A84FF] text-xs font-semibold">
+                <div className="flex items-center gap-2">
+                  <Disc className="w-4 h-4 animate-spin" />
+                  <span>
+                    {prevod
+                      ? `Zmenšuji „${prevod.nazev}" — ${prevod.procent} %`
+                      : 'Nahrávám a zpracovávám soubory...'}
+                  </span>
+                </div>
+                {prevod && (
+                  <div className="w-40 h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#0A84FF] transition-[width] duration-200"
+                      style={{ width: `${prevod.procent}%` }}
+                    />
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center gap-1 text-neutral-400">

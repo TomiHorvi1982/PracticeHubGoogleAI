@@ -424,6 +424,42 @@ export async function parseImageFile(file: File): Promise<ImportResult> {
 }
 
 /**
+ * Zvuk: název, nic víc.
+ *
+ * Nahrávka nemá co číst — text ani akordy v ní nejsou. Dřív spadla do
+ * parseru textu, který sedm megabajtů binárních dat přečetl jako řetězec
+ * a uložil je skladbě do obsahu. Bajty nechává na úložišti, tady zůstává
+ * jen to, co jde poznat z názvu.
+ */
+export async function parseAudioFile(file: File): Promise<ImportResult> {
+  const filename = file.name.replace(/\.[^/.]+$/, '');
+  let title = filename;
+  let artist = 'Nahrávka';
+
+  if (filename.includes(' - ')) {
+    const parts = filename.split(' - ');
+    artist = parts[0].trim();
+    title = parts.slice(1).join(' - ').trim();
+  }
+
+  const attachment: SongAttachment = {
+    id: 'att_' + Math.random().toString(36).substring(2, 9),
+    name: file.name,
+    type: 'audio',
+    // Vyplní se až při otevření skladby, podepsaným odkazem z úložiště.
+    dataUrl: '',
+    size: file.size,
+    uploadedAt: Date.now(),
+    parsedData: { title, artist },
+  };
+
+  return {
+    song: { title, artist, key: 'C', bpm: 120, content: '' },
+    attachment,
+  };
+}
+
+/**
  * Universal dispatcher that parses any supported file format
  */
 export async function parseAnyFile(file: File): Promise<ImportResult> {
@@ -437,6 +473,8 @@ export async function parseAnyFile(file: File): Promise<ImportResult> {
     return parseMidiFile(file);
   } else if (['png', 'jpg', 'jpeg', 'webp', 'svg', 'gif', 'bmp'].includes(ext)) {
     return parseImageFile(file);
+  } else if (['mp3', 'wav', 'wave', 'aif', 'aiff', 'aifc', 'ogg', 'flac', 'm4a', 'caf'].includes(ext)) {
+    return parseAudioFile(file);
   } else {
     // Default to text / ChordPro
     return parseTextFile(file);
