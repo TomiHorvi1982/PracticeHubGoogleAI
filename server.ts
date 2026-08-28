@@ -694,6 +694,13 @@ export async function createApp() {
       query = kategorie.length > 1 ? query.in('category', kategorie) : query.eq('category', kategorie[0]);
     }
 
+    // Druhá úroveň složek. `__bez__` znamená „co ještě nikdo nezařadil" —
+    // právě to je hromádka, kterou správce potřebuje najít.
+    const subcategory = req.query.subcategory as string | undefined;
+    if (subcategory) {
+      query = subcategory === '__bez__' ? query.is('subcategory', null) : query.eq('subcategory', subcategory);
+    }
+
     if (search) {
       // `%` a `_` jsou v ILIKE divoké karty — bez escapování by je uživatel
       // psal jako vzor, ne jako znak.
@@ -966,6 +973,22 @@ export async function createApp() {
    * není potřeba. Obrázky a PDF můžou dál používat podepsaný odkaz —
    * `<img>` a `<iframe>` cizí původ neřeší.
    */
+  /** Strom knihovny — kolik souborů a místa je v které složce. */
+  app.get('/api/assets-strom', requireAuth, async (_req, res) => {
+    const { data, error } = await getSupabaseAdmin().rpc('library_tree');
+    if (error) {
+      return res.status(500).json({ error: 'Strom se nepodařilo načíst.', details: error.message });
+    }
+    res.json({
+      uzly: (data || []).map((u: any) => ({
+        kategorie: u.kategorie,
+        podkategorie: u.podkategorie,
+        souboru: Number(u.souboru || 0),
+        bajtu: Number(u.bajtu || 0),
+      })),
+    });
+  });
+
   app.get('/api/assets/:id/content', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
     const { data: asset } = await admin.from('assets').select('*').eq('id', req.params.id).single();
@@ -1548,14 +1571,17 @@ export async function createApp() {
     if (!asset) {
       return res.status(404).json({ error: 'Asset nenalezen.' });
     }
+    // Vlastní soubory smí upravit každý, cizí a společné jen správce.
+    // Sbírka nemá vlastníka, takže třídit a přejmenovávat v ní může
+    // právě on — jinak by si ji členové kapely přeházeli navzájem.
     const isOwner = asset.owner_id === req.user!.id;
     const isAdmin = await isProfileAdmin(req.user!.id);
     if (!isOwner && !isAdmin) {
-      return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+      return res.status(403).json({ error: 'Upravovat společnou knihovnu může jen správce.' });
     }
 
     const allowedUpdates: Record<string, unknown> = {};
-    for (const key of ['name', 'metadata', 'category'] as const) {
+    for (const key of ['name', 'metadata', 'category', 'subcategory'] as const) {
       if (req.body[key] !== undefined) allowedUpdates[key] = req.body[key];
     }
 

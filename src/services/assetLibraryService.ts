@@ -1,4 +1,5 @@
 import { authService } from './authService';
+import { UzelStromu } from './knihovnaStrom';
 
 /** Mirrors the `assets` table (see docs/migration Phase 2/6). */
 export interface LibraryAsset {
@@ -10,6 +11,7 @@ export interface LibraryAsset {
   size_bytes: number | null;
   storage_bucket: string;
   storage_path: string;
+  subcategory?: string | null;
   asset_type: 'audio' | 'sample' | 'stem' | 'midi' | 'guitar_pro' | 'pdf' | 'image' | 'preset' | 'recording';
   category: string;
   status: 'pending' | 'active' | 'deleted';
@@ -61,18 +63,27 @@ class AssetLibraryService {
    * „zobrazeno 200 z 21 698" místo tichého useknutí.
    */
   public async list(
-    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number; sort?: 'name' | 'created' } = {}
+    params: Parameters<AssetLibraryService['listPage']>[0] = {}
   ): Promise<LibraryAsset[]> {
     const { assets } = await this.listPage(params);
     return assets;
   }
 
   public async listPage(
-    params: { owner?: 'mine' | 'global'; category?: string; search?: string; limit?: number; offset?: number; sort?: 'name' | 'created' } = {}
+    params: {
+      owner?: 'mine' | 'global';
+      category?: string;
+      subcategory?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
+      sort?: 'name' | 'created';
+    } = {}
   ): Promise<{ assets: LibraryAsset[]; total: number }> {
     const qs = new URLSearchParams();
     if (params.owner) qs.set('owner', params.owner);
     if (params.category) qs.set('category', params.category);
+    if (params.subcategory) qs.set('subcategory', params.subcategory);
     if (params.search) qs.set('search', params.search);
     if (params.limit !== undefined) qs.set('limit', String(params.limit));
     if (params.offset !== undefined) qs.set('offset', String(params.offset));
@@ -132,6 +143,33 @@ class AssetLibraryService {
       throw new Error(putData.error || 'Nahrání souboru selhalo.');
     }
     return putData.asset;
+  }
+
+  /** Strom knihovny: kolik souborů a místa je v které složce. */
+  public async strom(): Promise<UzelStromu[]> {
+    const res = await authorizedFetch('/api/assets-strom');
+    if (!res.ok) return [];
+    const d = await res.json();
+    return d.uzly || [];
+  }
+
+  /**
+   * Přeřadí soubor do jiné složky.
+   *
+   * `null` v podkategorii znamená „zpátky na hromádku nezařazených" —
+   * to je platný stav, ne chyba, takže se posílá i on.
+   */
+  public async prerad(
+    id: string,
+    zmena: { category?: string; subcategory?: string | null }
+  ): Promise<LibraryAsset | null> {
+    const res = await authorizedFetch(`/api/assets/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(zmena),
+    });
+    const d = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(d.error || 'Přeřazení se nepovedlo.');
+    return d.asset || null;
   }
 
   public async remove(id: string): Promise<void> {

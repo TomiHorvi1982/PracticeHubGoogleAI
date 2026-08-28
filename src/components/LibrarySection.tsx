@@ -4,6 +4,10 @@ import { PdfNahled } from './songbook/PdfNahled';
 import { najdiPisenProSoubor, jizPripojeno, prilohaZAssetu } from '../services/priradKPisni';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
+import { authService } from '../services/authService';
+import { StromKnihovny } from './knihovna/StromKnihovny';
+import { MistoVUlozisti } from './knihovna/MistoVUlozisti';
+import { UzelStromu, PODLE_ID, navrhniPodkategorii } from '../services/knihovnaStrom';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -33,7 +37,8 @@ import {
   ArrowRight,
   Disc,
   AlignJustify,
-  LayoutGrid
+  LayoutGrid,
+  Pencil,
 } from 'lucide-react';
 import { Song, SongAttachment } from '../types';
 import { parseAnyFile, fileToDataUrl } from '../utils/fileParsers';
@@ -82,7 +87,17 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [celkemVKnihovne, setCelkemVKnihovne] = useState(0);
   const [nacitamKnihovnu, setNacitamKnihovnu] = useState(false);
 
-  const [selectedCategory, setSelectedCategory] = useState<LibraryCategory>('all');
+  /**
+   * Výběr ve stromu. `kategorie === null` znamená celou knihovnu,
+   * `podkategorie === '__bez__'` hromádku nezařazených.
+   */
+  const [kategorieFiltr, setKategorieFiltr] = useState<string | null>(null);
+  const [podkategorieFiltr, setPodkategorieFiltr] = useState<string | null>(null);
+  const [uzly, setUzly] = useState<UzelStromu[]>([]);
+  /** Soubor, který se právě táhne na složku. */
+  const [tazeny, setTazeny] = useState<string | null>(null);
+  const [prejmenovavany, setPrejmenovavany] = useState<{ id: string; nazev: string } | null>(null);
+  const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
   const [searchQuery, setSearchQuery] = useState('');
   const [activeItem, setActiveItem] = useState<LibraryItem | null>(() => libraryItems[0] || null);
 
@@ -167,13 +182,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    * si položku někdo vybere. Podepsat dopředu dvacet tisíc souborů by
    * znamenalo dvacet tisíc zbytečných požadavků.
    */
-  const nactiKnihovnu = async (dotaz: string, kategorie?: string, pridat = false) => {
+  const nactiKnihovnu = async (dotaz: string, _kategorie?: string, pridat = false) => {
     setNacitamKnihovnu(true);
     try {
       const offset = pridat ? libraryItems.length : 0;
       const { assets, total } = await assetLibraryService.listPage({
         search: dotaz.trim() || undefined,
-        category: KATEGORIE_V_DATABAZI[kategorie ?? selectedCategory],
+        category: kategorieFiltr || undefined,
+        subcategory: podkategorieFiltr || undefined,
         limit: 200,
         offset,
         sort: 'name',
@@ -203,7 +219,47 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     const id = window.setTimeout(() => nactiKnihovnu(searchQuery), 300);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, kategorieFiltr, podkategorieFiltr]);
+
+  /** Strom se přepočítá po každé změně — přeřazení i smazání ho mění. */
+  const nactiStrom = async () => {
+    setUzly(await assetLibraryService.strom());
+  };
+
+  useEffect(() => {
+    void nactiStrom();
+    const znovu = () => void nactiStrom();
+    window.addEventListener('neverlate:soubor-nahran', znovu);
+    return () => window.removeEventListener('neverlate:soubor-nahran', znovu);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Přeřadí soubor do jiné složky.
+   *
+   * Seznam se překreslí až po odpovědi serveru. Přesunout ho v prohlížeči
+   * napřed by při neúspěchu ukázalo soubor tam, kam se nikdy nedostal.
+   */
+  const prerad = async (id: string, kategorie: string, podkategorie: string | null) => {
+    try {
+      await assetLibraryService.prerad(id, { category: kategorie, subcategory: podkategorie });
+      await Promise.all([nactiKnihovnu(searchQuery), nactiStrom()]);
+    } catch (e: any) {
+      alert(e?.message || 'Přeřazení se nepovedlo.');
+    }
+  };
+
+  const prejmenuj = async (id: string, nazev: string) => {
+    const cisty = nazev.trim();
+    if (!cisty) return;
+    try {
+      await assetLibraryService.rename(id, cisty);
+      setPrejmenovavany(null);
+      await nactiKnihovnu(searchQuery);
+    } catch (e: any) {
+      alert(e?.message || 'Přejmenování se nepovedlo.');
+    }
+  };
 
   /**
    * Adresa souboru se shání až při výběru — a jen jednou.
@@ -310,10 +366,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
   // Filtered items
   const filteredItems = allCombinedItems.filter((item) => {
-    // Kategorii vybírá server; tenhle filtr je tu kvůli přílohám písní,
-    // které se do seznamu přimíchají až v prohlížeči a server o nich neví.
-    const matchesCategory =
-      selectedCategory === 'all' || item.type === selectedCategory;
+    // Složku vybírá server. Přílohy písní se přimíchají až v prohlížeči
+    // a do žádné složky nepatří, takže se při vybrané složce skryjí.
+    const matchesCategory = !kategorieFiltr && !podkategorieFiltr ? true : !item.id.startsWith('song_att_');
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
       !q ||
@@ -556,6 +611,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     }
     setLibraryItems((prev) => prev.filter((i) => i.id !== itemId));
     setCelkemVKnihovne((n) => Math.max(0, n - 1));
+    // Strom i ukazatel místa se musí dozvědět, že soubor zmizel.
+    void nactiStrom();
+    window.dispatchEvent(new CustomEvent('neverlate:soubor-nahran'));
     if (activeItem?.id === itemId) {
       setActiveItem(libraryItems.filter((i) => i.id !== itemId)[0] || null);
     }
@@ -619,7 +677,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             <p className="text-xs text-neutral-400 mt-1">
               Guitar Pro, PDF noty, textové akordy, obrázky, MIDI a samply — všechno, co appka
               nabízí k písním.{' '}
-              {selectedCategory === 'all'
+              {!kategorieFiltr && !podkategorieFiltr
                 ? `Zobrazeno ${allCombinedItems.length} z ${celkemVKnihovne.toLocaleString('cs')}.`
                 : `V této kategorii je ${celkemVKnihovne.toLocaleString('cs')} souborů, zobrazeno ${filteredItems.length}.`}
             </p>
@@ -671,79 +729,45 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       )}
 
       {/* Main 2-column Grid */}
+      {/* Kolik místa co zabírá. Patří sem, ne do Nastavení: přidává se
+          a maže se tady, takže i důsledek má být vidět tady. */}
+      <MistoVUlozisti />
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Left Column: Explorer Filters & File List (5 cols) */}
         <div className="lg:col-span-5 space-y-3">
           
-          {/* Category Filter Tabs */}
-          <div className="flex flex-wrap gap-1.5 bg-[#16161A]/80 backdrop-blur-xl p-2 rounded-2xl border border-white/[0.08]">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                selectedCategory === 'all'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              Vše ({allCombinedItems.length})
-            </button>
-            <button
-              onClick={() => setSelectedCategory('guitarpro')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                selectedCategory === 'guitarpro'
-                  ? 'bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5" />
-              <span>Guitar Pro</span>
-            </button>
-            <button
-              onClick={() => setSelectedCategory('pdf')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                selectedCategory === 'pdf'
-                  ? 'bg-red-500/20 text-red-400 border border-red-500/30 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <FileText className="w-3.5 h-3.5" />
-              <span>PDF</span>
-            </button>
-            <button
-              onClick={() => setSelectedCategory('txt')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                selectedCategory === 'txt'
-                  ? 'bg-[#30D158]/20 text-[#30D158] border border-[#30D158]/30 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>Text</span>
-            </button>
-            <button
-              onClick={() => setSelectedCategory('image')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                selectedCategory === 'image'
-                  ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              <span>Obrázky</span>
-            </button>
-            <button
-              onClick={() => setSelectedCategory('midi')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                selectedCategory === 'midi'
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Music className="w-3.5 h-3.5" />
-              <span>MIDI</span>
-            </button>
+          {/* Složky knihovny. Nahradily řadu tlačítek: ta uměla jen
+              plochý výběr typu, kdežto tady je vidět i druhá úroveň,
+              počty a kolik co zabírá. */}
+          <div className="bg-[#16161A]/80 backdrop-blur-xl p-2 rounded-2xl border border-white/[0.08] max-h-[38vh] overflow-y-auto">
+            <StromKnihovny
+              uzly={uzly}
+              vybrana={{ kategorie: kategorieFiltr, podkategorie: podkategorieFiltr }}
+              onVybrat={(k, p) => {
+                setKategorieFiltr(k);
+                setPodkategorieFiltr(p);
+              }}
+              onPustit={
+                jsemSpravce
+                  ? (k, p) => {
+                      if (tazeny) void prerad(tazeny, k, p);
+                    }
+                  : undefined
+              }
+            />
           </div>
+
+          {/* Jak soubor pojmenovat, aby si ho appka zařadila sama. Ukazuje
+              se jen u vybrané složky — obecná rada u celé knihovny by
+              platila pro všechno a tím pádem pro nic. */}
+          {kategorieFiltr && PODLE_ID[kategorieFiltr]?.napoveda && (
+            <div className="bg-[#FF9F0A]/[0.07] border border-[#FF9F0A]/25 rounded-2xl px-3 py-2 text-[11px] text-neutral-300">
+              <span className="text-[#FF9F0A] font-bold">Pojmenování: </span>
+              <span className="font-mono">{PODLE_ID[kategorieFiltr].napoveda}</span>
+            </div>
+          )}
 
           {/* Search Box */}
           <div className="relative">
@@ -856,7 +880,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <div
                       key={item.id}
                       onClick={() => setActiveItem(item)}
+                      // Táhnout jde jen soubory z knihovny; přílohy písní
+                      // do složek nepatří a server je nezná.
+                      draggable={jsemSpravce && !item.id.startsWith('song_att_')}
+                      onDragStart={() => setTazeny(item.id)}
+                      onDragEnd={() => setTazeny(null)}
                       className={`px-2.5 py-1.5 rounded-xl cursor-pointer transition-all flex items-center justify-between gap-2 group ${
+                        tazeny === item.id ? 'opacity-40' : ''
+                      } ${
                         isSelected
                           ? 'bg-[#0A84FF]/20 border border-[#0A84FF]/40 text-white shadow-sm font-semibold'
                           : 'bg-black/30 border border-white/5 hover:bg-white/5 hover:border-white/10 text-neutral-300'
@@ -867,7 +898,22 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                           {getItemIcon(item.type)}
                         </div>
                         <div className="text-xs truncate flex items-center gap-1.5 min-w-0">
-                          <span className="font-bold text-white truncate">{item.name}</span>
+                          {prejmenovavany?.id === item.id ? (
+                            <input
+                              autoFocus
+                              value={prejmenovavany.nazev}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) => setPrejmenovavany({ id: item.id, nazev: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') void prejmenuj(item.id, prejmenovavany.nazev);
+                                if (e.key === 'Escape') setPrejmenovavany(null);
+                              }}
+                              onBlur={() => void prejmenuj(item.id, prejmenovavany.nazev)}
+                              className="bg-black/60 border border-[#FF9F0A] rounded px-1.5 py-0.5 text-xs text-white outline-none min-w-[180px]"
+                            />
+                          ) : (
+                            <span className="font-bold text-white truncate">{item.name}</span>
+                          )}
                           {item.artist && (
                             <>
                               <span className="text-neutral-500 font-normal shrink-0">—</span>
@@ -878,6 +924,18 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
+                        {jsemSpravce && !item.id.startsWith('song_att_') && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPrejmenovavany({ id: item.id, nazev: item.name });
+                            }}
+                            className="p-1 rounded text-neutral-600 hover:text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Přejmenovat"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        )}
                         {getItemTypeBadge(item.type)}
                         {item.songId && (
                           <span className="text-[9px] bg-[#30D158]/20 text-[#30D158] px-1.5 py-0.5 rounded font-medium">
@@ -933,7 +991,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 neprojde očima. */}
             {libraryItems.length < celkemVKnihovne && (
               <button
-                onClick={() => void nactiKnihovnu(searchQuery, selectedCategory, true)}
+                onClick={() => void nactiKnihovnu(searchQuery, undefined, true)}
                 disabled={nacitamKnihovnu}
                 className="w-full py-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.11] border border-white/[0.08] text-xs font-semibold text-neutral-300 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-wait"
               >
