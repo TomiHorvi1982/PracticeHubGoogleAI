@@ -14,6 +14,14 @@ interface Props {
   sNahledem?: boolean;
   /** Jak náhled vykreslit — dostane adresu obsahu. */
   nahled?: (url: string, a: LibraryAsset) => React.ReactNode;
+  /**
+   * Kam soubor půjde, řečeno lidsky („na fader Bicí").
+   *
+   * Píše se přímo k tlačítku. Cíl se u pultu vybírá jinde na obrazovce
+   * než se kliká, takže se snadno pošle stopa jinam, než člověk myslel —
+   * a pozná to až podle toho, co začne hrát.
+   */
+  cil?: string;
 }
 
 /**
@@ -24,7 +32,7 @@ interface Props {
  * koncem vypadá, jako by v knihovně nebyl.
  */
 export const VyberZKnihovny: React.FC<Props> = ({
-  kategorie, vychoziDotaz = '', onVybrat, prazdno, sNahledem, nahled,
+  kategorie, vychoziDotaz = '', onVybrat, prazdno, sNahledem, nahled, cil,
 }) => {
   const [dotaz, setDotaz] = useState(vychoziDotaz);
   const [nalezene, setNalezene] = useState<LibraryAsset[]>([]);
@@ -124,10 +132,11 @@ export const VyberZKnihovny: React.FC<Props> = ({
               )}
               <button
                 onClick={() => onVybrat(a)}
-                className="p-1 rounded text-[#30D158] hover:bg-[#30D158]/20 cursor-pointer shrink-0"
-                title="Vložit"
+                className="px-1.5 py-1 rounded flex items-center text-[#30D158] hover:bg-[#30D158]/20 cursor-pointer shrink-0"
+                title={cil ? `Vložit ${cil}` : 'Vložit'}
               >
                 <Plus className="w-3.5 h-3.5" />
+                {cil && <span className="ml-1 text-[10px] font-semibold">{cil}</span>}
               </button>
             </div>
 

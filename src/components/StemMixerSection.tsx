@@ -432,6 +432,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
           <VyberZKnihovny
             kategorie="stem_mix,backing_tracks,recordings,samples"
+            cil={`na ${ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis || cilovyFader}`}
             prazdno="V knihovně zatím žádné použitelné stopy nejsou."
             sNahledem
             nahled={(u) => <audio src={u} controls className="w-full h-8" />}
@@ -448,6 +449,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               ];
               setVlastniStopy(nove);
               stemAudioService.pouzijVlastniStopy(nove);
+              // Posun na první fader, který je ještě prázdný. Stopy se
+              // věší po sadách a přepínat cíl ručně mezi každými dvěma
+              // kliknutími je přesně ta chvíle, kdy se na to zapomene.
+              const volny = ROLE_FADERU.find((r) => !nove.some((v) => v.role === r.id));
+              if (volny) setCilovyFader(volny.id);
             }}
           />
 

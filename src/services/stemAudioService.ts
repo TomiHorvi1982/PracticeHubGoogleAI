@@ -482,6 +482,9 @@ class StemAudioService {
       const rawCtx = Tone.getContext().rawContext as AudioContext;
       let synthTracks: any = null;
 
+      // Nejdřív doplnit, co chybí. Dogenerovat buffer uprostřed spouštění
+      // trvá desítky milisekund a stopy za ním by naskočily později —
+      // pult by hrál rozházeně a nebylo by poznat proč.
       Object.entries(this.players).forEach(([stemId, p]) => {
         if (!p.loaded || !p.buffer || !p.buffer.loaded) {
           if (!synthTracks) {
@@ -492,8 +495,15 @@ class StemAudioService {
             p.buffer = new Tone.ToneAudioBuffer(buf);
           } catch (e) {}
         }
+      });
+
+      // Teprve teď se spouští, a všechny na jeden společný okamžik kousek
+      // v budoucnosti. Bez něj by každá stopa začala tehdy, kdy na ni
+      // v cyklu došlo.
+      const kdy = Tone.now() + 0.12;
+      Object.entries(this.players).forEach(([stemId, p]) => {
         try {
-          p.start(0, this.currentTime);
+          p.start(kdy, this.currentTime);
         } catch (err) {
           console.warn(`[StemAudioService] Error starting player for ${stemId}:`, err);
         }
@@ -522,11 +532,14 @@ class StemAudioService {
     this.currentTime = seconds;
     if (this.isPlaying) {
       Tone.Transport.seconds = seconds;
+      // Přeskočení je totéž spouštění — taky na jeden společný okamžik,
+      // jinak se stopy po každém posunu v čase rozejdou.
+      const kdy = Tone.now() + 0.12;
       Object.values(this.players).forEach((p) => {
         if (p.loaded || p.buffer) {
           try {
             p.stop();
-            p.start(0, seconds);
+            p.start(kdy, seconds);
           } catch (e) {}
         }
       });

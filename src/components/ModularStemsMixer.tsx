@@ -222,6 +222,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 
           <VyberZKnihovny
             kategorie="stem_mix,backing_tracks,recordings,samples"
+            cil={`na ${ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis || cilovyFader}`}
             vychoziDotaz={song.title}
             prazdno="V knihovně zatím žádné použitelné stopy nejsou."
             sNahledem
@@ -239,6 +240,8 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
               ];
               setVlastni(nove);
               stemAudioService.pouzijVlastniStopy(nove);
+              const volny = ROLE_FADERU.find((r) => !nove.some((v) => v.role === r.id));
+              if (volny) setCilovyFader(volny.id);
             }}
           />
 
