@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createHash } from 'node:crypto';
+import { uklidDuplicit } from './knihovnaUklid';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
@@ -1059,43 +1060,14 @@ export async function createApp() {
    * smazání by ukazovala do prázdna.
    */
   app.post('/api/assets/duplicity/uklidit', requireAuth, async (req, res) => {
-    const admin = getSupabaseAdmin();
     if (!(await isProfileAdmin(req.user!.id))) {
       return res.status(403).json({ error: 'Uklízet knihovnu může jen správce.' });
     }
-
-    const { data: skupiny, error } = await admin.rpc('duplicitni_soubory');
-    if (error) return res.status(500).json({ error: error.message });
-
-    const { data: pisne } = await admin.from('songs').select('metadata').eq('status', 'active');
-    const pouzite = JSON.stringify(pisne || []);
-
-    let smazano = 0;
-    let uvolneno = 0;
-    let ponechano = 0;
-
-    for (const s of skupiny || []) {
-      const ids: string[] = s.ids || [];
-      // První v pořadí je nejstarší — ten zůstává vždycky.
-      for (const id of ids.slice(1)) {
-        const { data: a } = await admin
-          .from('assets')
-          .select('storage_bucket, storage_path, size_bytes')
-          .eq('id', id)
-          .single();
-        if (!a) continue;
-        if (pouzite.includes(a.storage_path)) {
-          ponechano++;
-          continue;
-        }
-        await removeStorageObject(a.storage_bucket, a.storage_path);
-        await admin.from('assets').delete().eq('id', id);
-        smazano++;
-        uvolneno += Number(a.size_bytes || 0);
-      }
+    try {
+      res.json(await uklidDuplicit(getSupabaseAdmin(), removeStorageObject));
+    } catch (e: any) {
+      res.status(500).json({ error: 'Úklid selhal.', details: e?.message });
     }
-
-    res.json({ smazano, uvolneno, ponechano });
   });
 
   app.get('/api/assets/:id/content', requireAuth, async (req, res) => {
