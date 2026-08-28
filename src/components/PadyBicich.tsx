@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Play, Pause, Circle, Trash2, Volume2, X, Music4 } from 'lucide-react';
+import { Play, Pause, Circle, Trash2, Volume2, X, Music4, Wand2, Loader2 } from 'lucide-react';
 import { padyService, PADY, KROKU, StavPadu } from '../services/padyService';
+import { vyctiRytmus, VysledekDetekce } from '../services/detekceUderu';
 import { midiService } from '../services/midiService';
 import { authService } from '../services/authService';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
@@ -21,6 +22,10 @@ export const PadyBicich: React.FC = () => {
   const [chyba, setChyba] = useState<string | null>(null);
   /** Pady, které právě uhodily — jen pro problesknutí. */
   const [blikaji, setBlikaji] = useState<Record<string, number>>({});
+  /** Vyčítání rytmu ze stopy bicích. */
+  const [vycitam, setVycitam] = useState<string | null>(null);
+  const [vysledek, setVysledek] = useState<(VysledekDetekce & { zdroj: string }) | null>(null);
+  const [vybiramStopu, setVybiramStopu] = useState(false);
 
   useEffect(() => padyService.subscribe(setStav), []);
 
@@ -98,6 +103,38 @@ export const PadyBicich: React.FC = () => {
     }
   };
 
+  /**
+   * Vyčte rytmus ze stopy bicích v knihovně.
+   *
+   * Bere hotovou stopu, ne celý mix: v mixu se kopák a basa překrývají a
+   * detekce by hlásila údery, které tam nejsou. Stopy z Demucsu leží
+   * v knihovně mezi rozdělenými stopami.
+   */
+  const vyctiZeStopy = async (a: LibraryAsset) => {
+    setChyba(null);
+    setVycitam(a.name);
+    setVybiramStopu(false);
+    try {
+      const token = authService.getCurrentSession()?.token;
+      const res = await fetch(`/api/assets/${a.id}/content`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const ctx = new AudioContext();
+      const zvuk = await ctx.decodeAudioData(await res.arrayBuffer());
+      void ctx.close();
+
+      const v = await vyctiRytmus(zvuk);
+      padyService.nastavMrizku(v.mrizka);
+      padyService.nastavBpm(v.bpm);
+      setVysledek({ ...v, zdroj: a.name });
+    } catch (e: any) {
+      setChyba(`Rytmus se nepodařilo vyčíst: ${e?.message || e}`);
+    } finally {
+      setVycitam(null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Ovládání smyčky */}
@@ -149,6 +186,16 @@ export const PadyBicich: React.FC = () => {
         </div>
 
         <button
+          onClick={() => setVybiramStopu((v) => !v)}
+          disabled={Boolean(vycitam)}
+          className="px-3 py-2 rounded-2xl text-[11px] font-bold bg-[#BF5AF2]/15 border border-[#BF5AF2]/40 text-[#BF5AF2] hover:bg-[#BF5AF2]/25 cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+          title="Vyčte rytmus z hotové stopy bicích a naplní mřížku"
+        >
+          {vycitam ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+          {vycitam ? `Poslouchám „${vycitam.slice(0, 24)}"…` : 'Vyčíst rytmus z nahrávky'}
+        </button>
+
+        <button
           onClick={() => padyService.vymaz()}
           className="ml-auto px-3 py-2 rounded-2xl text-[11px] text-neutral-400 hover:text-[#FF453A] cursor-pointer flex items-center gap-1.5"
         >
@@ -157,6 +204,59 @@ export const PadyBicich: React.FC = () => {
       </div>
 
       {chyba && <div className="text-[11px] text-[#FF453A] px-1">{chyba}</div>}
+
+      {vysledek && (
+        <div className="bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 rounded-2xl px-3 py-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+          <span className="text-white font-semibold truncate max-w-[40%]">{vysledek.zdroj}</span>
+          <span className="text-neutral-300">
+            {vysledek.uderu.toLocaleString('cs')} úderů v {vysledek.taktu} taktech
+          </span>
+          <span className="text-neutral-500 font-mono">
+            {PADY.filter((p) => vysledek.poPasmech[p.id])
+              .map((p) => `${p.nazev} ${vysledek.poPasmech[p.id]}`)
+              .join(' · ')}
+          </span>
+          <span className="text-[#BF5AF2] font-bold">odhad {vysledek.bpm} BPM</span>
+          {/* Odhad tempa může sednout o polovinu vedle — pak sedí i rytmus,
+              jen v jiném dělení. Bez téhle věty to vypadá jako chyba. */}
+          <span className="text-neutral-500">
+            sedí-li rytmus, ale ne tempo, zkus dvojnásobek nebo polovinu
+          </span>
+          <button
+            onClick={() => setVysledek(null)}
+            className="ml-auto text-neutral-500 hover:text-white cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {vybiramStopu && (
+        <div className="bg-[#16161A]/80 border border-[#BF5AF2]/30 rounded-2xl p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Wand2 className="w-4 h-4 text-[#BF5AF2]" />
+            <span className="text-xs font-bold text-white">Ze které stopy bicích?</span>
+            <span className="text-[11px] text-neutral-500">
+              nejlíp oddělená stopa, ne celý mix
+            </span>
+            <button
+              onClick={() => setVybiramStopu(false)}
+              className="ml-auto text-[11px] text-neutral-500 hover:text-white cursor-pointer"
+            >
+              Zavřít
+            </button>
+          </div>
+          <VyberZKnihovny
+            kategorie="stem_mix,drum_loop,recordings,samples"
+            vychoziDotaz="drums"
+            prazdno="V knihovně zatím žádné stopy nejsou."
+            cil="vyčíst"
+            sNahledem
+            nahled={(u) => <audio src={u} controls className="w-full h-8" />}
+            onVybrat={(a) => void vyctiZeStopy(a)}
+          />
+        </div>
+      )}
 
       {/* Pady */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
