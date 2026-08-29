@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Settings, HardDrive, RefreshCw, Laptop, Loader2, AlertCircle } from 'lucide-react';
+import { Settings, HardDrive, RefreshCw, Laptop, Loader2, AlertCircle, Mic } from 'lucide-react';
 import { authService } from '../services/authService';
 import { MidiToolsModal } from './MidiToolsModal';
+import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
 
 interface Kategorie {
   nazev: string;
@@ -50,6 +51,14 @@ export const SettingsSection: React.FC = () => {
   const [nacitam, setNacitam] = useState(true);
   const [chyba, setChyba] = useState<string | null>(null);
   const [midiOtevrene, setMidiOtevrene] = useState(false);
+
+  /** Zvuková zařízení. Načtou se hned; názvy až po povolení mikrofonu. */
+  const [karta, setKarta] = useState<StavKarty>(zvukovaKarta.getStav());
+  useEffect(() => {
+    const odhlas = zvukovaKarta.subscribe(setKarta);
+    void zvukovaKarta.nactiZarizeni();
+    return odhlas;
+  }, []);
 
   const nacti = useCallback(async () => {
     setNacitam(true);
@@ -124,6 +133,67 @@ export const SettingsSection: React.FC = () => {
             Otevřít nastavení MIDI
           </button>
         </div>
+      </div>
+
+      {/* Zvuková karta.
+          Vestavěný mikrofon slyší kytaru přes vzduch i s ozvěnou
+          místnosti; externí karta ji má z kabelu. Je to rozdíl v přesnosti
+          rozpoznání i ve zpoždění, takže volba patří sem. */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+        <div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <Mic className="w-4 h-4 text-[#30D158]" /> Zvuková karta
+          </h3>
+          <p className="text-[11px] text-neutral-400">
+            Odkud se poslouchá kytara a kam se hraje. Týká se poslechu v Hmatníku a ladičky.
+          </p>
+        </div>
+
+        {!karta.nazvyZname && (
+          <button
+            onClick={() => void zvukovaKarta.povolitANacist()}
+            className="px-3 py-1.5 rounded-xl bg-[#30D158]/15 border border-[#30D158]/40 text-[#30D158] text-[11px] font-bold cursor-pointer"
+          >
+            Zobrazit názvy zařízení (povolí mikrofon)
+          </button>
+        )}
+        {karta.chyba && <div className="text-[11px] text-[#FF453A]">{karta.chyba}</div>}
+
+        <div className="grid sm:grid-cols-2 gap-3">
+          <label className="space-y-1 block">
+            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Vstup (mikrofon / linka)</span>
+            <select
+              value={karta.vstup || ''}
+              onChange={(e) => zvukovaKarta.nastavVstup(e.target.value || null)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer"
+            >
+              <option value="">Výchozí zařízení systému</option>
+              {karta.vstupy.map((z) => (
+                <option key={z.id} value={z.id}>{z.nazev}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="space-y-1 block">
+            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Výstup (sluchátka / karta)</span>
+            <select
+              value={karta.vystup || ''}
+              onChange={(e) => zvukovaKarta.nastavVystup(e.target.value || null)}
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer"
+            >
+              <option value="">Výchozí zařízení systému</option>
+              {karta.vystupy.map((z) => (
+                <option key={z.id} value={z.id}>{z.nazev}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <p className="text-[11px] text-neutral-500">
+          Volba výstupu funguje jen v prohlížečích, které to umí — kde ne, hraje se do
+          systémového výstupu. Při hraní z reproduktorů slyší mikrofon i vlastní výstup;
+          do sluchátek je to čisté.
+        </p>
       </div>
 
       <MidiToolsModal isOpen={midiOtevrene} onClose={() => setMidiOtevrene(false)} />
