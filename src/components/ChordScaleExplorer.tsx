@@ -31,9 +31,23 @@ interface ChordScaleExplorerProps {
    * stupnice nic nepřepnul.
    */
   navrh?: { ton: string; stupnice: string; poradi: number };
+  /**
+   * Tón, který zrovna zní — z mikrofonu, s oktávou (třeba „E4").
+   *
+   * Vyznačí se na hmatníku, aby bylo z monitoru vidět, co se zrovna
+   * mačká. Výška sama neurčí strunu: tentýž tón se dá zahrát na několika
+   * místech, takže se označí všechna a nelže se o tom, které to bylo.
+   */
+  znejiciTon?: string | null;
 }
 
-export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, onModeChange, compact, navrh }) => {
+export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
+  mode,
+  onModeChange,
+  compact,
+  navrh,
+  znejiciTon,
+}) => {
   const { activeChord, key } = useMusicalContext();
   const [selectedRoot, setSelectedRoot] = useState('C');
 
@@ -131,6 +145,16 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
   const zahrajPrazec = (zakladStruny: number, prazec: number) => {
     audioSynth.playNote(midiToNoteName(zakladStruny + prazec), zvukKytary, 1.6, 0.7, 0.85);
   };
+
+  /** Znějící tón jako číslo MIDI; `null`, když nic nezní. */
+  const znejiciMidi = React.useMemo(() => {
+    if (!znejiciTon) return null;
+    const m = /^([A-G])(#|b)?(-?\d+)$/.exec(znejiciTon.trim());
+    if (!m) return null;
+    const zaklad: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    const posun = m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0;
+    return (Number(m[3]) + 1) * 12 + zaklad[m[1]] + posun;
+  }, [znejiciTon]);
 
   const currentScale = SCALES_DATABASE.find((s) => s.name === selectedScaleName) || SCALES_DATABASE[2];
   const rootIndex = ROOT_NOTES.indexOf(selectedRoot);
@@ -418,6 +442,10 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
                     const noteMidi = (baseMidi + fret) % 12;
                     const noteName = ROOT_NOTES[noteMidi];
                     const isRoot = noteName === selectedRoot;
+                    // Přesná shoda výšky, ne jen názvu tónu — jinak by se
+                    // rozsvítil celý hmatník od prázdné struny po dvanáctý
+                    // pražec a nebylo by z toho nic poznat.
+                    const zrovnaZni = znejiciMidi !== null && baseMidi + fret === znejiciMidi;
 
                     let isHighlighted = false;
                     let isChordFret = false;
@@ -440,17 +468,28 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
                         key={fret}
                         className={`h-8 border-r border-white/10 flex items-center justify-center relative ${
                           fret === 0 ? 'bg-white/[0.04] border-r-2 border-[#FF9F0A]' : ''
-                        }`}
+                        } ${zrovnaZni ? 'bg-[#30D158]/20' : ''}`}
                       >
                         {/* String Line Background */}
                         <div className="absolute inset-x-0 h-[1.5px] bg-white/20 z-0"></div>
+
+                        {/* Co zrovna zní. Ukazuje se i mimo stupnici —
+                            když člověk sáhne vedle, má to být vidět. */}
+                        {zrovnaZni && !isHighlighted && (
+                          <div
+                            className="w-5 h-5 rounded-full border-2 border-[#30D158] z-10 animate-pulse"
+                            title={`Zrovna zní ${znejiciTon}`}
+                          />
+                        )}
 
                         {/* Note Marker */}
                         {isHighlighted && (
                           <button
                             onClick={() => zahrajPrazec(baseMidi, fret)}
                             className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] font-mono z-10 shadow-md cursor-pointer transition-transform hover:scale-125 active:scale-95 ${
-                              isRoot
+                              zrovnaZni
+                                ? 'bg-[#30D158] text-black ring-2 ring-white scale-125'
+                                : isRoot
                                 ? 'bg-[#FF9F0A] text-black shadow-[0_0_10px_#FF9F0A]'
                                 : isChordFret
                                 ? 'bg-[#30D158] text-black shadow-[0_0_8px_#30D158]'

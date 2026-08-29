@@ -16,7 +16,9 @@ import { ALL_INSTRUMENTS } from '../../data/instrumentPresets';
 
 export const PoslechKytaryPanel: React.FC<{
   onUkazNaHmatniku?: (ton: string, stupnice: string) => void;
-}> = ({ onUkazNaHmatniku }) => {
+  /** Hlásí ven, co zrovna zní — hmatník to podle toho rozsvítí. */
+  onTon?: (ton: string | null) => void;
+}> = ({ onUkazNaHmatniku, onTon }) => {
   const [stav, setStav] = useState<StavPoslechu>({
     ozvena: false, poslouchá: false, ton: null, centy: 0, frekvence: 0,
     historie: [], stupnice: [], akord: [], chyba: null,
@@ -25,18 +27,32 @@ export const PoslechKytaryPanel: React.FC<{
   /**
    * Nástroj, kterým se ozývá to, co se slyší.
    *
-   * Sdílí volbu s hmatníkem — co si člověk vybere pro pražce, tím zní
-   * i jeho vlastní hraní, takže to není dvakrát nastavené jinak.
+   * Na výběr je celá banka, ne jen kytary: rozpoznaná je výška tónu, a tu
+   * zahraje cokoli. Zahraješ na kytaru a z beden jdou housle — a taky je
+   * to jediný způsob, jak si zkusit, jak by ta linka zněla na jiný nástroj.
+   *
+   * Seskupené po kategoriích, protože dvě stě položek v jednom seznamu
+   * se nedá projít.
    */
+  const SKUPINY = (() => {
+    const m = new Map<string, typeof ALL_INSTRUMENTS>();
+    for (const i of ALL_INSTRUMENTS) {
+      const k = i.czCategory || 'Ostatní';
+      if (!m.has(k)) m.set(k, []);
+      m.get(k)!.push(i);
+    }
+    return [...m.entries()];
+  })();
   const KYTARY = ALL_INSTRUMENTS.filter((i) => i.category === 'guitars_plucked');
   const [nastroj, setNastroj] = useState<InstrumentProfile>(() => {
     const ulozeny = localStorage.getItem('neverlate_zvuk_hmatniku');
-    return (ulozeny && KYTARY.some((k) => k.id === ulozeny)
+    return (ulozeny && ALL_INSTRUMENTS.some((k) => k.id === ulozeny)
       ? ulozeny
       : 'acoustic_dreadnought') as InstrumentProfile;
   });
 
   useEffect(() => poslechKytary.subscribe(setStav), []);
+  useEffect(() => { onTon?.(stav.ton); }, [stav.ton, onTon]);
   // Mikrofon nesmí zůstat zapnutý po odchodu ze sekce.
   useEffect(() => () => poslechKytary.stop(), []);
 
@@ -103,8 +119,12 @@ export const PoslechKytaryPanel: React.FC<{
           }}
           className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-neutral-200 cursor-pointer disabled:opacity-40 max-w-[190px]"
         >
-          {KYTARY.map((k) => (
-            <option key={k.id} value={k.id}>{k.icon} {k.czName}</option>
+          {SKUPINY.map(([kategorie, nastroje]) => (
+            <optgroup key={kategorie} label={kategorie}>
+              {nastroje.map((n) => (
+                <option key={n.id} value={n.id}>{n.icon} {n.czName}</option>
+              ))}
+            </optgroup>
           ))}
         </select>
 
