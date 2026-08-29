@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Play, Pause, Users, Music4, Plus, X, Wand2, Mic } from 'lucide-react';
+import { Play, Pause, Users, Music4, Plus, X, Wand2, Mic, Sparkles, Loader2 } from 'lucide-react';
 import { aiKapela, STYLY, StavKapely, Clen, Akord } from '../services/aiKapela';
 import { spessaEngine, StavEngine } from '../services/spessaEngine';
+import { aiSolista, StavSolisty } from '../services/aiSolista';
 import { useMusicalContext } from '../context/MusicalContext';
 
 /**
@@ -24,6 +25,15 @@ export const AiKapelaSection: React.FC = () => {
     pripraven: false, nacita: false, chyba: null, banka: null,
   });
   const [novyAkord, setNovyAkord] = useState('');
+  const [solista, setSolista] = useState<StavSolisty>({
+    stav: 'vypnuto', styl: '', chyba: null, kusu: 0,
+  });
+  /** Čím se sólista popíše modelu. Slovy, ne notami — tak se ovládá. */
+  const [stylSolisty, setStylSolisty] = useState(
+    () => localStorage.getItem('neverlate_styl_solisty') || 'electric guitar solo over rock band',
+  );
+  useEffect(() => aiSolista.subscribe(setSolista), []);
+  useEffect(() => () => aiSolista.stop(), []);
   const { key } = useMusicalContext();
 
   useEffect(() => aiKapela.subscribe(setStav), []);
@@ -234,6 +244,80 @@ export const AiKapelaSection: React.FC = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* AI sólista.
+          Běží mimo prohlížeč, protože model potřebuje Apple Silicon.
+          Když služba neběží, řekne se to a kapela hraje dál bez něj. */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[#FF375F]" />
+          <h3 className="text-sm font-bold text-white">AI sólista</h3>
+          <span className="text-[11px] text-neutral-500">
+            Magenta RealTime — běží na tomhle Macu, ne v prohlížeči
+          </span>
+          <span
+            className={`ml-auto text-[10px] font-bold px-2 py-1 rounded-lg ${
+              solista.stav === 'hraje'
+                ? 'bg-[#30D158]/20 text-[#30D158]'
+                : solista.stav === 'chyba'
+                ? 'bg-[#FF453A]/20 text-[#FF453A]'
+                : 'bg-white/[0.06] text-neutral-400'
+            }`}
+          >
+            {solista.stav === 'hraje'
+              ? `hraje · ${solista.kusu} s`
+              : solista.stav === 'pripojuji'
+              ? 'připojuji…'
+              : solista.stav === 'chyba'
+              ? 'nedostupný'
+              : 'vypnutý'}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            value={stylSolisty}
+            onChange={(e) => {
+              setStylSolisty(e.target.value);
+              localStorage.setItem('neverlate_styl_solisty', e.target.value);
+            }}
+            onBlur={() => solista.stav === 'hraje' && aiSolista.zmenStyl(stylSolisty)}
+            placeholder="anglicky, třeba „bluesy slide guitar, slow"
+            className="flex-1 min-w-[220px] bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#FF375F]"
+          />
+          <button
+            onClick={() =>
+              solista.stav === 'hraje' || solista.stav === 'pripojuji'
+                ? aiSolista.stop()
+                : void aiSolista.start(stylSolisty)
+            }
+            className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 ${
+              solista.stav === 'hraje' ? 'bg-[#FF453A] text-white' : 'bg-[#FF375F] text-white hover:bg-[#FF375F]/85'
+            }`}
+          >
+            {solista.stav === 'pripojuji' ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="w-3.5 h-3.5" />
+            )}
+            {solista.stav === 'hraje' ? 'Zastavit sólistu' : 'Pustit sólistu'}
+          </button>
+        </div>
+
+        {solista.chyba && (
+          <div className="text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/25 rounded-xl px-3 py-2">
+            {solista.chyba}
+            <div className="text-neutral-400 mt-1">
+              Poprvé to stáhne váhy modelu — pár gigabajtů, jednorázově.
+            </div>
+          </div>
+        )}
+
+        <p className="text-[11px] text-neutral-500">
+          Styl se popisuje slovy, ne notami — model rozumí anglicky. Změna se projeví
+          za pochodu, tak si s tím klidně hraj během jamu.
+        </p>
       </div>
 
       <div className="bg-[#16161A]/50 border border-white/[0.06] rounded-2xl px-4 py-3 flex items-start gap-2.5">
