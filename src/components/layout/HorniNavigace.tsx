@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  FileCode, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen, Users,
+  FileCode, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen, Users, Bookmark,
 } from 'lucide-react';
 import { MainTabType } from './sekce';
 
@@ -38,6 +38,7 @@ const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: st
   // Katalog souborů. Bez něj se ke knihovně dá dostat jen přes písničku,
   // takže 17 tisíc souborů nemá kde procházet ani mazat.
   { id: 'library', label: 'Soubory', icon: FolderOpen },
+  { id: 'zalozky', label: 'Záložky', icon: Bookmark },
   { id: 'settings', label: 'Nastavení', icon: Settings },
   // Rozcestník až na konci: hledá se jen když člověk neví kudy dál, a
   // vedle nastavení je po ruce, aniž by zabíral místo těm, kdo to vědí.

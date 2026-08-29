@@ -17,6 +17,7 @@ import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { AiKapelaSection } from './components/AiKapelaSection';
+import { ZalozkySection } from './components/ZalozkySection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { PodiumSection } from './components/PodiumSection';
@@ -283,6 +284,9 @@ function AppContent() {
           }}
         />
       )}
+
+      {/* ZÁLOŽKY */}
+      {activeTab === 'zalozky' && <ZalozkySection />}
 
       {/* AI BAND */}
       {activeTab === 'aikapela' && <AiKapelaSection />}
