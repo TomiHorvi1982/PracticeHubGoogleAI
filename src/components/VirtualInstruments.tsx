@@ -3,6 +3,7 @@ import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
 import { PadyBicich } from './PadyBicich';
 import { PoslechKytaryPanel } from './hmatnik/PoslechKytaryPanel';
+import { midiPlayerService, MidiSongState, profileForProgram } from '../services/midiPlayerService';
 import { ChordScaleExplorer } from './ChordScaleExplorer';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
 import { instrumentFactory } from '../services/instrumentFactory';
@@ -206,6 +207,47 @@ export const VirtualInstruments: React.FC = () => {
   const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools'>('chord');
   /** Stupnice nalezená poslechem — předá se hmatníku i filtru kláves. */
   const [navrhZPoslechu, setNavrhZPoslechu] = useState<{ ton: string; stupnice: string; poradi: number } | null>(null);
+
+  /**
+   * Nastavení nástrojů podle načteného MIDI.
+   *
+   * Tónina a hlavní nástroj se spočítají z not; tady se z toho udělá
+   * stav klavíru i hmatníku. Ruční volbu to přepíše jen při načtení
+   * jiného souboru — kdyby se to hlídalo pořád, nešlo by si během
+   * poslechu nic přepnout.
+   */
+  const [midiStav, setMidiStav] = useState<MidiSongState>(midiPlayerService.getState());
+  useEffect(() => midiPlayerService.subscribe(setMidiStav), []);
+  /** Podle čeho se pozná, že přišel jiný soubor. */
+  const poslednÍSoubor = useRef<string | null>(null);
+  /** Nastavení se dá vypnout, kdyby chtěl někdo cvičit v jiné tónině. */
+  const [ridiSeMidi, setRidiSeMidi] = useState(true);
+
+  useEffect(() => {
+    if (!ridiSeMidi) return;
+    const klic = midiStav.asset?.id || null;
+    if (!klic || klic === poslednÍSoubor.current) return;
+    if (!midiStav.tonina || midiStav.tracks.length === 0) return;
+    poslednÍSoubor.current = klic;
+
+    // Tónina: durová a molová stupnice jsou v databázi první dvě.
+    setSelectedRoot(midiStav.tonina.ton);
+    setSelectedScaleIndex(midiStav.tonina.dur ? 0 : 1);
+    // Nezařazené klávesy se ztmaví a nezahrají — o to právě jde.
+    setOnlyScaleKeysMode(true);
+
+    // Zvuk kláves podle nástroje, kterého je ve skladbě nejvíc.
+    if (midiStav.hlavniNastroj) {
+      setPianoSoundProfile(profileForProgram(midiStav.hlavniNastroj.program, false));
+    }
+
+    // Hmatník dostane tutéž stupnici cestou, kterou už zná z poslechu.
+    setNavrhZPoslechu((prev) => ({
+      ton: midiStav.tonina!.ton,
+      stupnice: midiStav.tonina!.dur ? 'major' : 'minor',
+      poradi: (prev?.poradi || 0) + 1,
+    }));
+  }, [midiStav.asset?.id, midiStav.tonina, midiStav.hlavniNastroj, midiStav.tracks.length, ridiSeMidi]);
   const [isMidiModalOpen, setIsMidiModalOpen] = useState(false);
   const [isSoundLibraryOpen, setIsSoundLibraryOpen] = useState(false);
   const [soundLibCategory, setSoundLibCategory] = useState<string>('all');
@@ -671,6 +713,36 @@ export const VirtualInstruments: React.FC = () => {
       {/* 🎹 PIANO TAB */}
       {activeInstTab === 'piano' && (
         <div className="space-y-4">
+
+          {/* Co se z MIDI vyčetlo a co se podle toho nastavilo. Musí to
+              být vidět a jít vypnout — jinak by se klávesy „samy" ztmavily
+              a nebylo by zřejmé proč. */}
+          {midiStav.tonina && midiStav.tracks.length > 0 && (
+            <div className="bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px]">
+              <span className="text-[10px] uppercase tracking-wider text-neutral-500">Ze skladby</span>
+              <span className="text-white font-bold">
+                {midiStav.tonina.nazev}
+                <span className="ml-1.5 font-normal text-neutral-400">
+                  ({Math.round(midiStav.tonina.jistota * 100)} % jistota)
+                </span>
+              </span>
+              {midiStav.hlavniNastroj && (
+                <span className="text-neutral-300">
+                  hlavní nástroj: <strong className="text-white">{midiStav.hlavniNastroj.nazev}</strong>
+                  <span className="text-neutral-500"> ({midiStav.hlavniNastroj.not} not)</span>
+                </span>
+              )}
+              <label className="ml-auto flex items-center gap-2 cursor-pointer text-neutral-300">
+                <input
+                  type="checkbox"
+                  checked={ridiSeMidi}
+                  onChange={(e) => setRidiSeMidi(e.target.checked)}
+                  className="accent-[#BF5AF2] cursor-pointer"
+                />
+                Nastavit klavír i hmatník podle skladby
+              </label>
+            </div>
+          )}
 
           {/* MIDI přehrávač je tu, ne ve vlastní záložce: pustit si skladbu
               a zahrát do ní je jedna činnost, ne dvě. Přepínáním záložek

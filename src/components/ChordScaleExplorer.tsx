@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CHORDS_DATABASE, SCALES_DATABASE } from '../data/chordsAndScales';
-import { audioSynth } from '../services/audioSynth';
+import { audioSynth, midiToNoteName } from '../services/audioSynth';
 import { midiService } from '../services/midiService';
 import { Grid, Volume2, Info, BookOpen, Zap } from 'lucide-react';
 import { useMusicalContext } from '../context/MusicalContext';
@@ -104,6 +104,17 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
     setExplorerMode('scale');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [navrh?.poradi]);
+
+  /**
+   * Zahraje jeden tón z hmatníku.
+   *
+   * Bere skutečnou výšku podle struny a pražce, ne jen název tónu —
+   * E na prázdné šesté struně a E na dvanáctém pražci první jsou dvě
+   * oktávy od sebe a hmatník by bez toho zněl celý stejně.
+   */
+  const zahrajPrazec = (zakladStruny: number, prazec: number) => {
+    audioSynth.playNote(midiToNoteName(zakladStruny + prazec), 'acoustic_guitar', 1.6, 0.7, 0.85);
+  };
 
   const currentScale = SCALES_DATABASE.find((s) => s.name === selectedScaleName) || SCALES_DATABASE[2];
   const rootIndex = ROOT_NOTES.indexOf(selectedRoot);
@@ -390,18 +401,19 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
 
                         {/* Note Marker */}
                         {isHighlighted && (
-                          <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] font-mono z-10 shadow-md ${
+                          <button
+                            onClick={() => zahrajPrazec(baseMidi, fret)}
+                            className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] font-mono z-10 shadow-md cursor-pointer transition-transform hover:scale-125 active:scale-95 ${
                               isRoot
                                 ? 'bg-[#FF9F0A] text-black shadow-[0_0_10px_#FF9F0A]'
                                 : isChordFret
                                 ? 'bg-[#30D158] text-black shadow-[0_0_8px_#30D158]'
                                 : 'bg-white text-black'
                             }`}
-                            title={`Tón ${noteName} na ${fret}. pražci`}
+                            title={`Zahrát ${noteName} na ${fret}. pražci`}
                           >
                             {noteName}
-                          </div>
+                          </button>
                         )}
                       </div>
                     );

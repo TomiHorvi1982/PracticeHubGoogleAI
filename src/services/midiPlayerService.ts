@@ -3,6 +3,7 @@ import { InstrumentProfile } from './audioSynth';
 import { contentRequest, assetLibraryService, LibraryAsset } from './assetLibraryService';
 import { audioBus } from './audioBus';
 import { spessaEngine } from './spessaEngine';
+import { urciToninu, urciHlavniNastroj, Tonina, HlavniNastroj } from './toninaZMidi';
 
 /**
  * Přehrávač MIDI souborů z knihovny kapely.
@@ -35,6 +36,8 @@ export interface MidiTrack {
   name: string;
   /** Nástroj podle General MIDI, jak ho určuje soubor. */
   programName: string;
+  /** Číslo nástroje 0–127 — podle něj se vybírá zvuk. */
+  program: number;
   isDrum: boolean;
   notes: MidiNote[];
   /** Kterým zvukem se stopa hraje — dá se změnit. */
@@ -54,12 +57,16 @@ export interface MidiSongState {
   tempoFactor: number;
   loading: boolean;
   error: string | null;
+  /** Tónina spočítaná z not — nástroje se podle ní umí nastavit samy. */
+  tonina: Tonina | null;
+  /** Nástroj, kterého je ve skladbě nejvíc. */
+  hlavniNastroj: HlavniNastroj | null;
 }
 
 type Listener = (state: MidiSongState) => void;
 
 /** Hrubé přiřazení GM nástroje na zvuk, který engine umí. */
-function profileForProgram(program: number, isDrum: boolean): InstrumentProfile {
+export function profileForProgram(program: number, isDrum: boolean): InstrumentProfile {
   if (isDrum) return 'rock_kit';
   if (program <= 7) return 'grand_piano_steinway';
   if (program <= 23) return 'hohner_clavinet_d6';
@@ -80,6 +87,8 @@ class MidiPlayerService {
     tempoFactor: 1,
     loading: false,
     error: null,
+    tonina: null,
+    hlavniNastroj: null,
   };
 
   private listeners = new Set<Listener>();
@@ -177,6 +186,7 @@ class MidiPlayerService {
         index: i,
         name: t.name?.trim() || `Stopa ${i + 1}`,
         programName: t.instrument?.name || 'neznámý',
+        program: t.instrument?.number ?? 0,
         isDrum: Boolean(t.instrument?.percussion),
         notes: t.notes.map((n) => ({
           midi: n.midi,
@@ -190,7 +200,15 @@ class MidiPlayerService {
         hlasitost: 0.7,
       }));
 
-    this.state = { ...this.state, tracks, duration: midi.duration, loading: false, position: 0 };
+    this.state = {
+      ...this.state,
+      tracks,
+      duration: midi.duration,
+      loading: false,
+      position: 0,
+      tonina: urciToninu(tracks),
+      hlavniNastroj: urciHlavniNastroj(tracks),
+    };
     this.notify();
   }
 
