@@ -1,5 +1,6 @@
 import { YIN } from 'pitchfinder';
 import { Note, Scale, Chord } from 'tonal';
+import { audioSynth, InstrumentProfile } from './audioSynth';
 
 /**
  * Poslech nástroje z mikrofonu.
@@ -15,6 +16,8 @@ import { Note, Scale, Chord } from 'tonal';
  */
 
 export interface StavPoslechu {
+  /** Hraje se zpět tím, co je vybrané jako nástroj? */
+  ozvena: boolean;
   poslouchá: boolean;
   /** Co zrovna zní, třeba „E2". */
   ton: string | null;
@@ -46,6 +49,7 @@ class PoslechKytary {
   private detektor: ((b: Float32Array) => number | null) | null = null;
 
   private stav: StavPoslechu = {
+    ozvena: false,
     poslouchá: false,
     ton: null,
     centy: 0,
@@ -58,6 +62,15 @@ class PoslechKytary {
 
   /** Poslední tón, ať se stejný neopakuje v historii pořád dokola. */
   private posledniTon: string | null = null;
+  /**
+   * Ozvěna: co se slyší, to se zahraje vybraným nástrojem.
+   *
+   * Drží se konkrétní znějící tón, ne jen třída — jinak by se nedal
+   * pustit ten správný, když se přejde o oktávu. Nový tón předchozí
+   * ukončí; příchod ticha taky, jinak by tón zůstal viset.
+   */
+  private zniciTon: string | null = null;
+  private nastrojOzveny: InstrumentProfile = 'acoustic_dreadnought';
   private posluchaci = new Set<Poslucha>();
 
   public subscribe(f: Poslucha): () => void {
@@ -105,12 +118,35 @@ class PoslechKytary {
   public stop(): void {
     if (this.smycka) cancelAnimationFrame(this.smycka);
     this.smycka = 0;
+    this.utni();
     this.proud?.getTracks().forEach((t) => t.stop());
     this.proud = null;
     void this.ctx?.close();
     this.ctx = null;
     this.analyzer = null;
     this.oznam({ poslouchá: false, ton: null, frekvence: 0, centy: 0 });
+  }
+
+  /** Zapne nebo vypne hraní toho, co se slyší. */
+  public nastavOzvenu(zap: boolean, nastroj?: InstrumentProfile): void {
+    if (nastroj) this.nastrojOzveny = nastroj;
+    if (!zap) this.utni();
+    this.oznam({ ozvena: zap });
+  }
+
+  public nastavNastroj(nastroj: InstrumentProfile): void {
+    if (nastroj === this.nastrojOzveny) return;
+    // Nástroj se mění za znějícího tónu: starý se musí ukončit tím
+    // nástrojem, kterým začal, jinak by zůstal viset.
+    this.utni();
+    this.nastrojOzveny = nastroj;
+  }
+
+  private utni(): void {
+    if (this.zniciTon) {
+      audioSynth.noteOff(this.zniciTon, this.nastrojOzveny);
+      this.zniciTon = null;
+    }
   }
 
   public vymazHistorii(): void {
@@ -137,6 +173,14 @@ class PoslechKytary {
 
         const zmeny: Partial<StavPoslechu> = { ton: jmeno, frekvence: hz, centy };
 
+        // Ozvěna reaguje na změnu znějícího tónu, ne na každý snímek —
+        // šedesátkrát za sekundu spuštěná nota by byla chrastítko.
+        if (this.stav.ozvena && jmeno !== this.zniciTon) {
+          this.utni();
+          audioSynth.noteOn(jmeno, this.nastrojOzveny, 0.85);
+          this.zniciTon = jmeno;
+        }
+
         // Do historie jen změna tónu. Držená struna zní desetiny sekundy,
         // takže by jinak jeden tón zaplnil celou paměť.
         const trida = Note.pitchClass(jmeno);
@@ -156,6 +200,7 @@ class PoslechKytary {
         this.oznam(zmeny);
       }
     } else if (this.stav.ton) {
+      this.utni();
       this.oznam({ ton: null, frekvence: 0, centy: 0 });
     }
 

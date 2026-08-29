@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CHORDS_DATABASE, SCALES_DATABASE } from '../data/chordsAndScales';
-import { audioSynth, midiToNoteName } from '../services/audioSynth';
+import { audioSynth, midiToNoteName, InstrumentProfile } from '../services/audioSynth';
+import { ALL_INSTRUMENTS } from '../data/instrumentPresets';
 import { midiService } from '../services/midiService';
 import { Grid, Volume2, Info, BookOpen, Zap } from 'lucide-react';
 import { useMusicalContext } from '../context/MusicalContext';
@@ -35,6 +36,21 @@ interface ChordScaleExplorerProps {
 export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, onModeChange, compact, navrh }) => {
   const { activeChord, key } = useMusicalContext();
   const [selectedRoot, setSelectedRoot] = useState('C');
+
+  /**
+   * Kterou kytarou hmatník zní.
+   *
+   * Dřív se sáhlo po starém označení `acoustic_guitar`, které v katalogu
+   * není — a syntetizátor kvůli tomu spadl na výchozí zvuk, tedy klavír.
+   * Katalog jich má čtrnáct od španělky po palm mute, tak ať jde vybrat.
+   */
+  const KYTARY = ALL_INSTRUMENTS.filter((i) => i.category === 'guitars_plucked');
+  const [zvukKytary, setZvukKytary] = useState<InstrumentProfile>(() => {
+    const ulozeny = localStorage.getItem('neverlate_zvuk_hmatniku');
+    return (ulozeny && KYTARY.some((k) => k.id === ulozeny)
+      ? ulozeny
+      : 'acoustic_dreadnought') as InstrumentProfile;
+  });
   const [vlastniRezim, setVlastniRezim] = useState<'chord' | 'scale'>('chord');
   const explorerMode = mode ?? vlastniRezim;
   const setExplorerMode = (m: 'chord' | 'scale') => (onModeChange ? onModeChange(m) : setVlastniRezim(m));
@@ -113,7 +129,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
    * oktávy od sebe a hmatník by bez toho zněl celý stejně.
    */
   const zahrajPrazec = (zakladStruny: number, prazec: number) => {
-    audioSynth.playNote(midiToNoteName(zakladStruny + prazec), 'acoustic_guitar', 1.6, 0.7, 0.85);
+    audioSynth.playNote(midiToNoteName(zakladStruny + prazec), zvukKytary, 1.6, 0.7, 0.85);
   };
 
   const currentScale = SCALES_DATABASE.find((s) => s.name === selectedScaleName) || SCALES_DATABASE[2];
@@ -145,13 +161,22 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
   ) || CHORDS_DATABASE.find((c) => c.root === selectedRoot) || CHORDS_DATABASE[0];
 
   const playGuitarAudio = () => {
+    // Zvuk se bere z výběru nad hmatníkem, aby akord i jednotlivé tóny
+    // zněly týmž nástrojem — jinak by hmatník hrál jednou španělku
+    // a podruhé něco jiného.
     if (explorerMode === 'chord' && chordDef) {
-      audioSynth.playGuitarChord(chordDef.frets);
+      const struny = [64, 59, 55, 50, 45, 40];
+      chordDef.frets.forEach((prazec, i) => {
+        if (prazec < 0) return;
+        const zaklad = struny[5 - i];
+        setTimeout(() => {
+          audioSynth.playNote(midiToNoteName(zaklad + prazec), zvukKytary, 2.2, 0.6, 0.8);
+        }, i * 45);
+      });
     } else {
       scaleMidiNotes.forEach((midiOffset, idx) => {
         setTimeout(() => {
-          const freq = 440 * Math.pow(2, (midiOffset + 60 - 69) / 12);
-          audioSynth.playGuitarNote(freq, 1.2, 0.5);
+          audioSynth.playNote(midiToNoteName(midiOffset + 60), zvukKytary, 1.2, 0.5, 0.8);
         }, idx * 180);
       });
     }
@@ -320,7 +345,28 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({ mode, on
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Výběr kytary. Patří k tlačítkům pro přehrání, protože
+                rozhoduje o tom, co se zrovna ozve. */}
+            <select
+              value={zvukKytary}
+              onChange={(e) => {
+                const v = e.target.value as InstrumentProfile;
+                setZvukKytary(v);
+                localStorage.setItem('neverlate_zvuk_hmatniku', v);
+                // Zvuky se stahují po prvním použití; předběžné načtení
+                // ušetří ticho při prvním kliknutí na pražec.
+                void audioSynth.preloadInstrument(v);
+              }}
+              className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-xs text-neutral-200 cursor-pointer max-w-[220px]"
+              title="Kterou kytarou hmatník zní"
+            >
+              {KYTARY.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.icon} {k.czName}
+                </option>
+              ))}
+            </select>
             <button
               onClick={playGuitarAudio}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-[#30D158] border border-[#30D158]/40 font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"

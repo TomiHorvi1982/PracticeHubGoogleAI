@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Mic, MicOff, Eraser, ArrowRight } from 'lucide-react';
 import { Key, Note } from 'tonal';
 import { poslechKytary, StavPoslechu } from '../../services/poslechKytary';
+import { audioSynth, InstrumentProfile } from '../../services/audioSynth';
+import { ALL_INSTRUMENTS } from '../../data/instrumentPresets';
 
 /**
  * Co zrovna hraješ — a co k tomu sedí.
@@ -16,8 +18,22 @@ export const PoslechKytaryPanel: React.FC<{
   onUkazNaHmatniku?: (ton: string, stupnice: string) => void;
 }> = ({ onUkazNaHmatniku }) => {
   const [stav, setStav] = useState<StavPoslechu>({
-    poslouchá: false, ton: null, centy: 0, frekvence: 0,
+    ozvena: false, poslouchá: false, ton: null, centy: 0, frekvence: 0,
     historie: [], stupnice: [], akord: [], chyba: null,
+  });
+
+  /**
+   * Nástroj, kterým se ozývá to, co se slyší.
+   *
+   * Sdílí volbu s hmatníkem — co si člověk vybere pro pražce, tím zní
+   * i jeho vlastní hraní, takže to není dvakrát nastavené jinak.
+   */
+  const KYTARY = ALL_INSTRUMENTS.filter((i) => i.category === 'guitars_plucked');
+  const [nastroj, setNastroj] = useState<InstrumentProfile>(() => {
+    const ulozeny = localStorage.getItem('neverlate_zvuk_hmatniku');
+    return (ulozeny && KYTARY.some((k) => k.id === ulozeny)
+      ? ulozeny
+      : 'acoustic_dreadnought') as InstrumentProfile;
   });
 
   useEffect(() => poslechKytary.subscribe(setStav), []);
@@ -60,6 +76,37 @@ export const PoslechKytaryPanel: React.FC<{
             Zahraj pár taktů a appka pozná stupnici i akordy, které do ní patří.
           </p>
         </div>
+
+        {/* Ozvěna: co mikrofon slyší, to zahraje vybraný nástroj.
+            Kytara se tím dá poslouchat jako klavír nebo mandolína. */}
+        <label
+          className="flex items-center gap-2 text-[11px] text-neutral-300 cursor-pointer"
+          title="Zahraje vybraným nástrojem, co zrovna slyší"
+        >
+          <input
+            type="checkbox"
+            checked={stav.ozvena}
+            onChange={(e) => poslechKytary.nastavOzvenu(e.target.checked, nastroj)}
+            className="accent-[#30D158] cursor-pointer"
+          />
+          Přehrávat, co slyším
+        </label>
+        <select
+          value={nastroj}
+          disabled={!stav.ozvena}
+          onChange={(e) => {
+            const v = e.target.value as InstrumentProfile;
+            setNastroj(v);
+            localStorage.setItem('neverlate_zvuk_hmatniku', v);
+            poslechKytary.nastavNastroj(v);
+            void audioSynth.preloadInstrument(v);
+          }}
+          className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-neutral-200 cursor-pointer disabled:opacity-40 max-w-[190px]"
+        >
+          {KYTARY.map((k) => (
+            <option key={k.id} value={k.id}>{k.icon} {k.czName}</option>
+          ))}
+        </select>
 
         {stav.historie.length > 0 && (
           <button
