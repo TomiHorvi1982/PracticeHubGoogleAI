@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
+import { authorizedFetch } from '../services/assetLibraryService';
 import { DawVerticalFader } from './DawVerticalFader';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
 
@@ -32,8 +33,13 @@ import { VyberZKnihovny } from './songbook/VyberZKnihovny';
 const ROLE_FADERU: { id: string; popis: string }[] = [
   { id: 'vocals', popis: 'Zpěv' },
   { id: 'guitar', popis: 'Kytara' },
+  // Doprovodná a sólová kytara na jednom faderu se nedají ztlumit zvlášť.
+  { id: 'lead', popis: 'Sólo kytara' },
   { id: 'bass', popis: 'Basa' },
   { id: 'drums', popis: 'Bicí' },
+  // Klik, podle kterého se hraje, patří na vlastní tah — jinak se ztlumí
+  // spolu s něčím jiným zrovna ve chvíli, kdy je nejpotřebnější.
+  { id: 'metronome', popis: 'Metronom' },
   { id: 'other', popis: 'Ostatní' },
 ];
 
@@ -44,8 +50,10 @@ interface StemMixerSectionProps {
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string; label: string }> = {
   vocals: { accent: '#f43f5e', badge: 'bg-rose-500', bg: 'from-rose-500/10 to-rose-950/20', border: 'border-rose-500/30', label: 'Zpěv' },
   guitar: { accent: '#f59e0b', badge: 'bg-amber-500', bg: 'from-amber-500/15 to-amber-950/20', border: 'border-amber-500/40', label: 'Kytara' },
+  lead: { accent: '#fb7185', badge: 'bg-rose-400', bg: 'from-rose-400/15 to-rose-950/20', border: 'border-rose-400/40', label: 'Sólo kytara' },
   bass: { accent: '#10b981', badge: 'bg-emerald-500', bg: 'from-emerald-500/10 to-emerald-950/20', border: 'border-emerald-500/30', label: 'Baskytara' },
   drums: { accent: '#3b82f6', badge: 'bg-blue-500', bg: 'from-blue-500/10 to-blue-950/20', border: 'border-blue-500/30', label: 'Bicí' },
+  metronome: { accent: '#94a3b8', badge: 'bg-slate-400', bg: 'from-slate-400/10 to-slate-900/20', border: 'border-slate-400/30', label: 'Metronom' },
   other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30', label: 'Synth / Ostatní' },
 };
 
@@ -57,6 +65,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
   /** Na který fader se právě přiřazuje a co na nich visí. */
   const [cilovyFader, setCilovyFader] = useState<string>('vocals');
+  /** Ukládání poskládaného mixu jako další skladby. */
+  const [nazevMixu, setNazevMixu] = useState('');
+  const [uklada, setUklada] = useState(false);
+  const [hlaska, setHlaska] = useState<string | null>(null);
   const [vlastniStopy, setVlastniStopy] = useState<{ role: string; nazev: string; assetId: string }[]>([]);
   const [customTitle, setCustomTitle] = useState<string>('');
   const [customArtist, setCustomArtist] = useState<string>('');
@@ -458,7 +470,49 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           />
 
           {vlastniStopy.length > 0 && (
-            <div className="border-t border-slate-800 pt-2 space-y-1">
+            <div className="border-t border-slate-800 pt-3 space-y-2">
+              {/* Uložení mixu.
+                  Poskládat stopy je práce na několik minut a dosud žila
+                  jen v otevřené stránce — po načtení byla pryč. Ukládá se
+                  jako další skladba se stopami, takže se objeví v seznamu
+                  vedle ostatních a jde k ní vrátit. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  value={nazevMixu}
+                  onChange={(e) => setNazevMixu(e.target.value)}
+                  placeholder="Název skladby…"
+                  className="flex-1 min-w-[160px] bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-amber-500 outline-none"
+                />
+                <button
+                  disabled={!nazevMixu.trim() || uklada}
+                  onClick={async () => {
+                    setUklada(true);
+                    setHlaska(null);
+                    try {
+                      const res = await authorizedFetch('/api/stems/vlastni', {
+                        method: 'POST',
+                        body: JSON.stringify({ nazev: nazevMixu.trim(), stopy: vlastniStopy }),
+                      });
+                      const d = await res.json();
+                      if (!res.ok) throw new Error(d.error || 'Uložení selhalo.');
+                      setHlaska(`Uloženo jako „${nazevMixu.trim()}" — najdeš to v seznamu skladeb.`);
+                      setNazevMixu('');
+                      // Seznam se musí načíst znovu, jinak by tam nová
+                      // skladba nebyla vidět až do dalšího otevření sekce.
+                      await stemAudioService.fetchSongs();
+                    } catch (e: any) {
+                      setHlaska(e?.message || 'Uložení selhalo.');
+                    } finally {
+                      setUklada(false);
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {uklada ? 'Ukládám…' : 'Uložit jako skladbu'}
+                </button>
+              </div>
+              {hlaska && <div className="text-[11px] text-emerald-400">{hlaska}</div>}
+
               {vlastniStopy.map((v) => (
                 <div key={v.role} className="flex items-center gap-2 text-xs text-slate-300">
                   <span className="text-[10px] font-bold text-amber-400 w-16 shrink-0 uppercase">

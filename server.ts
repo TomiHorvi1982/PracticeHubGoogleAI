@@ -3159,10 +3159,74 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
   const STEM_TYPES: { id: string; name: string }[] = [
     { id: 'vocals', name: 'Zpěv (Lead Vocals)' },
     { id: 'guitar', name: 'Kytara (Guitar)' },
+    { id: 'lead', name: 'Sólová kytara (Lead)' },
     { id: 'bass', name: 'Baskytara (Bass)' },
     { id: 'drums', name: 'Bicí (Drums)' },
+    { id: 'metronome', name: 'Metronom (Click)' },
     { id: 'other', name: 'Ostatní nástroje (Other/Synth)' },
   ];
+
+  /**
+   * Uloží ručně poskládaný mix jako další skladbu se stopami.
+   *
+   * Poskládat mix z jednotlivých souborů je práce na několik minut a
+   * dosud žila jen v otevřené stránce — po načtení byla pryč. Ukládá se
+   * do týchž tabulek jako výsledky separace, takže se nová skladba objeví
+   * v seznamu vedle ostatních a všechno kolem ní funguje samo. Bajty se
+   * nekopírují: stopy ukazují na soubory, které v knihovně už leží.
+   */
+  app.post('/api/stems/vlastni', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const nazev = String(req.body?.nazev || '').trim();
+    const interpret = String(req.body?.interpret || '').trim() || 'vlastní mix';
+    const stopy = Array.isArray(req.body?.stopy) ? req.body.stopy : [];
+
+    if (!nazev) return res.status(400).json({ error: 'Skladba musí mít název.' });
+    if (stopy.length === 0) return res.status(400).json({ error: 'Na faderech nic není.' });
+
+    const platne = stopy.filter(
+      (s: any) => s?.assetId && STEM_TYPES.some((t) => t.id === s.role),
+    );
+    if (platne.length === 0) {
+      return res.status(400).json({ error: 'Žádná ze stop nemá platný fader ani soubor.' });
+    }
+
+    const { data: song, error: chybaPisne } = await admin
+      .from('songs')
+      .insert({
+        title: nazev,
+        artist: interpret,
+        status: 'active',
+        metadata: { puvod: 'mixazni-pult', slozil: req.user!.id },
+      })
+      .select('id')
+      .single();
+    if (chybaPisne || !song) {
+      return res.status(500).json({ error: 'Píseň se nepodařilo založit.', details: chybaPisne?.message });
+    }
+
+    const { data: set, error: chybaSetu } = await admin
+      .from('stem_sets')
+      .insert({ song_id: song.id, status: 'completed', model: 'ruční mix' })
+      .select('id')
+      .single();
+    if (chybaSetu || !set) {
+      // Píseň bez sady stop by v seznamu visela prázdná — uklidí se.
+      await admin.from('songs').delete().eq('id', song.id);
+      return res.status(500).json({ error: 'Sadu stop se nepodařilo založit.', details: chybaSetu?.message });
+    }
+
+    const { error: chybaStop } = await admin.from('stems').insert(
+      platne.map((s: any) => ({ stem_set_id: set.id, asset_id: s.assetId, stem_type: s.role })),
+    );
+    if (chybaStop) {
+      await admin.from('stem_sets').delete().eq('id', set.id);
+      await admin.from('songs').delete().eq('id', song.id);
+      return res.status(500).json({ error: 'Stopy se nepodařilo uložit.', details: chybaStop.message });
+    }
+
+    res.json({ song: await shapeStemSet(admin, { id: set.id, song_id: song.id, status: 'completed' }) });
+  });
 
   /** Shapes one `stem_sets` row (+ its song, jobs, stems/assets) into the
    * StemSongDocument the frontend expects, with signed download URLs. */

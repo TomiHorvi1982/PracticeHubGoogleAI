@@ -32,16 +32,23 @@ interface ModularStemsMixerProps {
 const ROLE_FADERU: { id: string; popis: string }[] = [
   { id: 'vocals', popis: 'Zpěv' },
   { id: 'guitar', popis: 'Kytara' },
+  // Doprovodná a sólová kytara na jednom faderu se nedají ztlumit zvlášť.
+  { id: 'lead', popis: 'Sólo kytara' },
   { id: 'bass', popis: 'Basa' },
   { id: 'drums', popis: 'Bicí' },
+  // Klik, podle kterého se hraje, patří na vlastní tah — jinak se ztlumí
+  // spolu s něčím jiným zrovna ve chvíli, kdy je nejpotřebnější.
+  { id: 'metronome', popis: 'Metronom' },
   { id: 'other', popis: 'Ostatní' },
 ];
 
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string }> = {
   vocals: { accent: '#f43f5e', badge: 'bg-rose-500', bg: 'from-rose-500/10 to-rose-950/20', border: 'border-rose-500/30' },
   guitar: { accent: '#f59e0b', badge: 'bg-amber-500', bg: 'from-amber-500/15 to-amber-950/20', border: 'border-amber-500/40' },
+  lead: { accent: '#fb7185', badge: 'bg-rose-400', bg: 'from-rose-400/15 to-rose-950/20', border: 'border-rose-400/40' },
   bass: { accent: '#10b981', badge: 'bg-emerald-500', bg: 'from-emerald-500/10 to-emerald-950/20', border: 'border-emerald-500/30' },
   drums: { accent: '#3b82f6', badge: 'bg-blue-500', bg: 'from-blue-500/10 to-blue-950/20', border: 'border-blue-500/30' },
+  metronome: { accent: '#94a3b8', badge: 'bg-slate-400', bg: 'from-slate-400/10 to-slate-900/20', border: 'border-slate-400/30' },
   other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30' },
 };
 

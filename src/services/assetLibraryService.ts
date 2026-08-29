@@ -41,7 +41,8 @@ export const ASSET_CATEGORIES: AssetCategoryOption[] = [
   { value: 'presets', label: 'Presety', assetType: 'preset', icon: '⚙️' },
 ];
 
-async function authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
+/** Volání našeho serveru s přihlášením. Sdílí ho i mixážní pult. */
+export async function authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
   const token = authService.getCurrentSession()?.token;
   return fetch(path, {
     ...init,
