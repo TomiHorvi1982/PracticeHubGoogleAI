@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  FileCode, Globe, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen,
+  FileCode, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen,
 } from 'lucide-react';
 import { MainTabType } from './sekce';
 
@@ -30,7 +30,6 @@ interface Props {
  */
 const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'alphatab', label: 'Guitar Pro', icon: FileCode },
-  { id: 'freetar', label: 'Freetar.de', icon: Globe },
   { id: 'instruments', label: 'Virtual Instruments', icon: Piano },
   { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
   { id: 'practice', label: 'Metronom', icon: Clock },

@@ -15,7 +15,6 @@ import { Tuner } from './components/Tuner';
 import { SettingsSection } from './components/SettingsSection';
 import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
-import { FreetarExplorer } from './components/FreetarExplorer';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
@@ -291,20 +290,6 @@ function AppContent() {
           onAddSong={(song) => {
             songDatabaseService.saveSong(song);
             setActiveSong(song);
-          }}
-        />
-      )}
-
-      {/* FREETAR EXPLORER */}
-      {activeTab === 'freetar' && (
-        <FreetarExplorer
-          onSongImported={(newSong) => {
-            songDatabaseService.saveSong(newSong);
-            setActiveSong(newSong);
-          }}
-          onViewSong={(song) => {
-            setActiveSong(song);
-            setActiveTab('songbook');
           }}
         />
       )}

@@ -15,7 +15,6 @@ export type MainTabType =
   | 'youtube'
   | 'mediacenter'
   | 'stemmixer'
-  | 'freetar'
   | 'scales'
   | 'practice'
   | 'tuner'

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   FileUp, Disc, Music, Sliders, Play, Plus, BookOpen, Trash2, 
-  Sparkles, CheckCircle, AlertCircle, RefreshCw, Star, Layers, Search 
+  Sparkles, CheckCircle, AlertCircle, RefreshCw, Star, Layers, Search,
+  ChevronDown, ChevronRight
 } from 'lucide-react';
 import { Song, SongAttachment } from '../types';
 import { parseGuitarProFile } from '../utils/fileParsers';
 import { GuitarProPlayer } from './GuitarProPlayer';
+import { FreetarExplorer } from './FreetarExplorer';
 
 interface AlphaTabSectionProps {
   songs: Song[];
@@ -24,6 +26,8 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
   } | null>(null);
 
   const [isDragging, setIsDragging] = useState(false);
+  /** Vyhledávání je sbalené: většinou se otevírá vlastní soubor. */
+  const [hledaniOtevrene, setHledaniOtevrene] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -147,6 +151,40 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
           >
             Zavřít soubor
           </button>
+        )}
+      </div>
+
+      {/* Hledání tabulatur.
+          Bydlelo ve vlastní sekci, takže se za každou nalezenou
+          tabulaturou muselo přepnout jinam a zpátky. Tady se nález
+          otevře rovnou v přehrávači o kus níž. */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl overflow-hidden">
+        <button
+          onClick={() => setHledaniOtevrene((v) => !v)}
+          className="w-full flex items-center gap-2 px-5 py-3 text-left cursor-pointer hover:bg-white/[0.03]"
+        >
+          {hledaniOtevrene
+            ? <ChevronDown className="w-4 h-4 text-neutral-400" />
+            : <ChevronRight className="w-4 h-4 text-neutral-400" />}
+          <Search className="w-4 h-4 text-[#FF9F0A]" />
+          <span className="text-sm font-bold text-white">Najít tabulaturu</span>
+          <span className="text-[11px] text-neutral-500">
+            naše sbírka, Ultimate Guitar a Freetar — nález se otevře rovnou tady
+          </span>
+        </button>
+        {hledaniOtevrene && (
+          <div className="px-5 pb-5">
+            <FreetarExplorer
+              vlozeny
+              onSongImported={(song) => onAddSong?.(song)}
+              onViewSong={(song) => onAddSong?.(song)}
+              onOtevritVPrehravaci={(soubor) => {
+                setActiveFile(soubor);
+                setSuccessMsg(`„${soubor.filename}" je v přehrávači.`);
+                setErrorMsg(null);
+              }}
+            />
+          </div>
         )}
       </div>
 

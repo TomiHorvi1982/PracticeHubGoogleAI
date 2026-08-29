@@ -28,10 +28,27 @@ import {
 import { Song, SongAttachment } from '../types';
 import { tabLibraryService, TabLibraryEntry } from '../services/tabLibraryService';
 import { PrehledSbirky } from './knihovna/PrehledSbirky';
+import { extractUniqueChords } from '../utils/chordUtils';
 
 interface FreetarExplorerProps {
   onSongImported: (song: Song) => void;
   onViewSong: (song: Song) => void;
+  /**
+   * Otevřít nalezenou tabulaturu rovnou v přehrávači Guitar Pro.
+   *
+   * Vyhledávání bydlí uvnitř sekce Guitar Pro, takže nález nemusí
+   * putovat přes zpěvník a přepínání sekcí — přehraje se na místě.
+   * Týká se jen souborů z vlastní sbírky; z Ultimate Guitar chodí text
+   * s akordy, který přehrávač tabulatur vykreslit neumí.
+   */
+  onOtevritVPrehravaci?: (soubor: {
+    dataUrl: string;
+    filename: string;
+    artist?: string;
+    bpm?: number;
+  }) => void;
+  /** Skryje vlastní hlavičku, když sedí uvnitř jiné sekce. */
+  vlozeny?: boolean;
 }
 
 interface FreetarSearchResult {
@@ -52,6 +69,8 @@ interface FreetarSearchResult {
 
 export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   onSongImported,
+  onOtevritVPrehravaci,
+  vlozeny,
   onViewSong,
 }) => {
   // Mode: 'native_search' | 'live_browser'
@@ -176,8 +195,13 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
   const handlePreviewTab = async (result: FreetarSearchResult) => {
     if (result.source === 'library') {
-      // Guitar Pro soubor je binární — jako text ho ukázat nejde. Otevře se
-      // v přehrávači tabulatur, takže se musí nejdřív dostat do zpěvníku.
+      // Guitar Pro soubor je binární — jako text ho ukázat nejde.
+      // Uvnitř sekce Guitar Pro se rovnou otevře v přehrávači; samostatně
+      // musí napřed do zpěvníku, odkud si ho přehrávač vezme.
+      if (onOtevritVPrehravaci && result.libraryEntry?.stored) {
+        void otevriVPrehravaci(result.libraryEntry);
+        return;
+      }
       setStatusMessage({
         type: result.libraryEntry?.stored ? 'success' : 'error',
         text: result.libraryEntry?.stored
@@ -218,6 +242,44 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
    * do zpěvníku se proto připojí jako příloha odkazem do úložiště, přesně
    * jako u hromadného importu tabů. Přehrávač si ji pak vykreslí.
    */
+  /**
+   * Otevře tabulaturu ze sbírky rovnou v přehrávači.
+   *
+   * Soubor se stáhne přes vlastní server a předá jako datová adresa —
+   * přehrávač si ji přečte sám a nemusí se kvůli tomu zakládat skladba.
+   */
+  const otevriVPrehravaci = async (entry: TabLibraryEntry) => {
+    if (!onOtevritVPrehravaci) return;
+    setStatusMessage(null);
+    const url = await tabLibraryService.fileUrl(entry);
+    if (!url) {
+      setStatusMessage({
+        type: 'error',
+        text: `„${entry.title}" je zatím jen v rejstříku — soubor nahraný není.`,
+      });
+      return;
+    }
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const dataUrl: string = await new Promise((hotovo, chyba) => {
+        const ctecka = new FileReader();
+        ctecka.onload = () => hotovo(ctecka.result as string);
+        ctecka.onerror = chyba;
+        ctecka.readAsDataURL(blob);
+      });
+      onOtevritVPrehravaci({
+        dataUrl,
+        filename: `${entry.title}.${entry.format}`,
+        artist: entry.artist,
+      });
+      setStatusMessage({ type: 'success', text: `„${entry.title}" je v přehrávači.` });
+    } catch (e: any) {
+      setStatusMessage({ type: 'error', text: `Soubor se nepodařilo načíst: ${e?.message || e}` });
+    }
+  };
+
   const handleImportLibraryEntry = async (entry: TabLibraryEntry) => {
     setStatusMessage(null);
     const url = await tabLibraryService.fileUrl(entry);
@@ -298,7 +360,12 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
       key: songData.key || 'C',
       bpm: songData.bpm || 120,
       content: songData.content || `[C]Skladba: ${songData.song || songData.title}\n[G]Zdroj: ${songData.url || 'Freetar.de'}`,
-      chordsUsed: songData.chordsUsed || [],
+      // Akordy se vytáhnou z textu, i když je zdroj nepošle: v hranatých
+      // závorkách v obsahu jsou a ve zpěvníku se pak dají promítnout na
+      // hmatník i klavír.
+      chordsUsed: songData.chordsUsed?.length
+        ? songData.chordsUsed
+        : extractUniqueChords(songData.content || ''),
       attachments: [
         {
           id: 'att_' + Date.now(),
@@ -368,11 +435,20 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   });
 
   return (
-    <div className="space-y-6 font-sans text-white pb-12">
+    <div className={vlozeny ? 'space-y-4 font-sans text-white' : 'space-y-6 font-sans text-white pb-12'}>
       
-      {/* Top Section Header */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
+      {/* Hlavička. Uvnitř jiné sekce se vynechá — svůj nadpis už tam je. */}
+      <div
+        className={`flex flex-wrap items-center justify-between gap-4 ${
+          vlozeny
+            ? ''
+            : 'bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl'
+        }`}
+      >
+        {/* Titulek se uvnitř jiné sekce vynechá — nadpis už tam je.
+            Přepínač režimů ale zůstává: bez něj by nešlo přepnout na
+            vlastní sbírku, což je zrovna to, co se tady hledá nejvíc. */}
+        <div className={`flex items-center gap-3.5 ${vlozeny ? 'hidden' : ''}`}>
           <div className="p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
             <Globe className="w-6 h-6" />
           </div>
@@ -452,7 +528,10 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
       {/* MODE 2: CO MÁME DOMA */}
       {activeMode === 'sbirka' && (
-        <PrehledSbirky onImportovat={(e) => { void handleImportLibraryEntry(e); }} />
+        <PrehledSbirky
+          onOtevrit={onOtevritVPrehravaci ? (e) => { void otevriVPrehravaci(e); } : undefined}
+          onImportovat={(e) => { void handleImportLibraryEntry(e); }}
+        />
       )}
 
       {/* MODE 1: NATIVE SEARCH & TAB VIEWER */}

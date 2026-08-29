@@ -237,10 +237,10 @@ const KROKY: Krok[] = [
     cislo: 3,
     nadpis: 'Prohlédni si taby a akordy',
     popis:
-      'Freetar.de sahá do Ultimate Guitar na tabulatury i akordy s textem; naše knihovna k tomu přidá přes dvě stě partitur a Guitar Pro souborů. Co se hodí, uložíš rovnou k písni.',
+      'Hledání je rovnou v Guitar Pro: sahá do Ultimate Guitar i na Freetar.de a naše sbírka k tomu přidá přes sedmdesát tisíc tabulatur. Co najdeš, otevře se hned v přehrávači a uloží se k písni i s akordy.',
     nahled: 'taby',
-    kam: 'freetar',
-    tlacitko: 'Freetar.de',
+    kam: 'alphatab',
+    tlacitko: 'Guitar Pro',
   },
   {
     cislo: 4,
