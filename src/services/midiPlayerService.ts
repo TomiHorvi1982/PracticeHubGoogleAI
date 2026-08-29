@@ -1,7 +1,8 @@
 import { Midi } from '@tonejs/midi';
-import { audioSynth, InstrumentProfile, midiToNoteName } from './audioSynth';
+import { InstrumentProfile } from './audioSynth';
 import { contentRequest, assetLibraryService, LibraryAsset } from './assetLibraryService';
 import { audioBus } from './audioBus';
+import { spessaEngine } from './spessaEngine';
 
 /**
  * Přehrávač MIDI souborů z knihovny kapely.
@@ -11,10 +12,13 @@ import { audioBus } from './audioBus';
  * ne přes syntetizovaný tón. MIDI totiž nenese zvuk, jen noty; jak to zní,
  * určuje banka, kterou se to přehraje.
  *
- * Časování si vede sám přes `setTimeout` nad jedním časovým počátkem místo
- * plánovače Tone: noty se hrají už existující metodou `audioSynth.playNote`,
- * která je nedělitelná (spustí se hned), takže není co plánovat dopředu —
- * a odpadá tím druhý zvukový graf, který by běžel vedle nástrojů.
+ * Zvuk obstarává `spessaEngine` — skutečný SoundFont syntetizátor běžící
+ * v audio vlákně. Dřív si služba plánovala každou notu vlastním
+ * `setTimeout`: u vícestopé skladby to znamenalo deset tisíc časovačů,
+ * posuvník se kvůli tomu sekal a noty se krátily, protože jejich délku
+ * držel jen odhad, ne zpráva „note off" ze souboru.
+ *
+ * Rozbor na stopy tady zůstává — slouží editoru not, který engine nezná.
  */
 
 export interface MidiNote {
@@ -80,8 +84,6 @@ class MidiPlayerService {
 
   private listeners = new Set<Listener>();
   private timery: number[] = [];
-  private zacatek = 0;
-  private odkud = 0;
   private tikId: number | null = null;
   private odregistrovat: (() => void) | null = null;
 
@@ -151,9 +153,14 @@ class MidiPlayerService {
 
       const res = await fetch(url.adresa, { headers: url.hlavicky });
       if (!res.ok) throw new Error(`Stažení selhalo (HTTP ${res.status}).`);
-      const midi = new Midi(await res.arrayBuffer());
+      const bajty = await res.arrayBuffer();
+      const midi = new Midi(bajty.slice(0));
 
       this.zpracujMidi(midi);
+      // Engine dostává soubor tak, jak přišel: sekvencer si tempo, změny
+      // nástrojů i pedál přečte sám a lépe, než by to šlo z rozebraných not.
+      await spessaEngine.nactiSkladbu(bajty, asset.name);
+      this.uplatniStopy();
     } catch (e: any) {
       this.state = { ...this.state, loading: false, error: e?.message || 'Soubor se nepodařilo načíst.' };
       this.notify();
@@ -191,56 +198,46 @@ class MidiPlayerService {
     if (this.state.isPlaying || this.state.tracks.length === 0) return;
     audioBus.claim('midi-player', this.state.asset?.name || 'MIDI', 'MIDI přehrávač');
 
-    this.zacatek = performance.now();
-    this.odkud = this.state.position;
     this.state = { ...this.state, isPlaying: true };
     this.notify();
+    void spessaEngine.prehraj(this.state.position);
+    this.sleduj();
+  }
 
-    const anySolo = this.state.tracks.some((t) => t.solo);
-
-    for (const track of this.state.tracks) {
-      if (anySolo ? !track.solo : track.muted) continue;
-      for (const note of track.notes) {
-        const za = (note.time - this.odkud) / this.state.tempoFactor;
-        if (za < 0) continue;
-        const id = window.setTimeout(() => {
-          audioSynth.playNote(
-            midiToNoteName(note.midi),
-            track.profile,
-            note.duration / this.state.tempoFactor,
-            track.hlasitost,
-            note.velocity
-          );
-        }, za * 1000);
-        this.timery.push(id);
-      }
-    }
-
+  /**
+   * Posun ukazatele.
+   *
+   * Hlásí se desetkrát za sekundu, ne při každém překreslení. Dřív se
+   * s každým snímkem vyráběl nový stav a celý panel se překresloval
+   * šedesátkrát za sekundu — u vícestopé skladby se kvůli tomu posuvník
+   * sekal.
+   */
+  private sleduj(): void {
     const tik = () => {
       if (!this.state.isPlaying) return;
-      const ubehlo = ((performance.now() - this.zacatek) / 1000) * this.state.tempoFactor;
-      const pozice = this.odkud + ubehlo;
-      if (pozice >= this.state.duration) {
+      const pozice = spessaEngine.pozice;
+      if (spessaEngine.delka > 0 && pozice >= spessaEngine.delka - 0.05) {
         this.stop();
         return;
       }
       this.state = { ...this.state, position: pozice };
       this.notify();
-      this.tikId = window.requestAnimationFrame(tik);
+      this.tikId = window.setTimeout(tik, 100) as unknown as number;
     };
-    this.tikId = window.requestAnimationFrame(tik);
+    tik();
   }
 
   public pause(): void {
     if (!this.state.isPlaying) return;
-    const ubehlo = ((performance.now() - this.zacatek) / 1000) * this.state.tempoFactor;
+    spessaEngine.pauza();
     this.zrusPlan();
-    this.state = { ...this.state, isPlaying: false, position: this.odkud + ubehlo };
+    this.state = { ...this.state, isPlaying: false, position: spessaEngine.pozice };
     this.notify();
     audioBus.release('midi-player');
   }
 
   public stop(): void {
+    spessaEngine.zastav();
     this.zrusPlan();
     this.state = { ...this.state, isPlaying: false, position: 0 };
     this.notify();
@@ -248,19 +245,37 @@ class MidiPlayerService {
   }
 
   public seek(seconds: number): void {
-    const bezel = this.state.isPlaying;
-    this.zrusPlan();
-    this.state = { ...this.state, isPlaying: false, position: Math.max(0, Math.min(seconds, this.state.duration)) };
+    const cil = Math.max(0, Math.min(seconds, this.state.duration));
+    // Sekvencer umí skočit za běhu, takže se přehrávání nemusí zastavit
+    // a znovu rozjet — dřív z toho bylo při každém tažení posuvníku ticho.
+    spessaEngine.skoc(cil);
+    this.state = { ...this.state, position: cil };
     this.notify();
-    if (bezel) this.play();
   }
 
   public setTempoFactor(factor: number): void {
-    const bezel = this.state.isPlaying;
-    if (bezel) this.pause();
-    this.state = { ...this.state, tempoFactor: Math.max(0.25, Math.min(2, factor)) };
+    const nove = Math.max(0.25, Math.min(2, factor));
+    // Sekvencer mění rychlost za chodu; zastavovat a spouštět znovu
+    // není potřeba.
+    spessaEngine.nastavTempo(nove);
+    this.state = { ...this.state, tempoFactor: nove };
     this.notify();
-    if (bezel) this.play();
+  }
+
+  /**
+   * Promítne ztlumení, sóla a hlasitosti do kanálů syntetizátoru.
+   *
+   * Stopa v souboru a kanál v syntetizátoru nejsou totéž — soubor může mít
+   * víc stop na jednom kanálu. Bere se pořadí stop, což u drtivé většiny
+   * souborů odpovídá, a bicí zůstávají na kanálu 10 podle normy.
+   */
+  private uplatniStopy(): void {
+    const jeSolo = this.state.tracks.some((t) => t.solo);
+    this.state.tracks.forEach((t, i) => {
+      const kanal = t.isDrum ? 9 : i < 9 ? i : i + 1;
+      const hraje = jeSolo ? t.solo : !t.muted;
+      spessaEngine.hlasitostKanalu(kanal, hraje ? t.hlasitost : 0);
+    });
   }
 
   public setTrackVolume(index: number, hlasitost: number): void {
@@ -284,23 +299,26 @@ class MidiPlayerService {
     this.upravStopu(index, (t) => ({ ...t, notes: [...notes].sort((a, b) => a.time - b.time) }));
   }
 
+  /**
+   * Změna stopy se projeví okamžitě, i za běhu.
+   *
+   * Ztlumení, sólo a hlasitost jsou zprávy pro syntetizátor, ne důvod
+   * přehrávání přerušit — dřív se kvůli posunutí jednoho jezdce skladba
+   * zastavila a rozjela znovu.
+   */
   private upravStopu(index: number, uprav: (t: MidiTrack) => MidiTrack): void {
-    const bezel = this.state.isPlaying;
-    if (bezel) this.pause();
     this.state = {
       ...this.state,
       tracks: this.state.tracks.map((t) => (t.index === index ? uprav(t) : t)),
     };
     this.notify();
-    if (bezel) this.play();
+    this.uplatniStopy();
   }
 
   /** Zruší naplánované noty i odpočet. Zvuk už znějící dozní sám. */
   private zrusPlan(): void {
-    for (const id of this.timery) window.clearTimeout(id);
-    this.timery = [];
     if (this.tikId !== null) {
-      window.cancelAnimationFrame(this.tikId);
+      window.clearTimeout(this.tikId);
       this.tikId = null;
     }
   }

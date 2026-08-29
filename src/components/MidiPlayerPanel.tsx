@@ -6,6 +6,7 @@ import {
 import { midiPlayerService, MidiSongState, MidiNote } from '../services/midiPlayerService';
 import { assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import { authService } from '../services/authService';
+import { spessaEngine, StavEngine } from '../services/spessaEngine';
 import { audioSynth, INSTRUMENT_PROFILES, InstrumentProfile, midiToNoteName } from '../services/audioSynth';
 
 /**
@@ -90,6 +91,18 @@ export const MidiPlayerPanel: React.FC = () => {
   const osaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => midiPlayerService.subscribe(setStav), []);
+
+  /**
+   * Stav zvukové banky.
+   *
+   * Banka má čtyřicet megabajtů a stahuje se až při prvním přehrání.
+   * Bez téhle hlášky vypadá čekání jako záseknutí a člověk mačká
+   * přehrát podruhé.
+   */
+  const [engine, setEngine] = useState<StavEngine>({
+    pripraven: false, nacita: false, chyba: null, banka: null,
+  });
+  useEffect(() => spessaEngine.subscribe(setEngine), []);
 
   const nacti = async (dotaz: string) => {
     setNacitam(true);
@@ -672,6 +685,18 @@ export const MidiPlayerPanel: React.FC = () => {
               {stav.isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               {stav.isPlaying ? 'Pauza' : 'Přehrát'}
             </button>
+
+            {engine.nacita && (
+              <span className="flex items-center gap-1.5 text-[11px] text-[#FF9F0A]">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                Stahuji zvukovou banku (40 MB)…
+              </span>
+            )}
+            {engine.chyba && (
+              <span className="text-[11px] text-[#FF453A]">
+                Zvuková banka: {engine.chyba}
+              </span>
+            )}
             <button
               onClick={() => midiPlayerService.stop()}
               className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 cursor-pointer"
