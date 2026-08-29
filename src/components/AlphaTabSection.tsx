@@ -176,6 +176,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
           <div className="px-5 pb-5">
             <FreetarExplorer
               vlozeny
+              songs={songs}
               onSongImported={(song) => onAddSong?.(song)}
               onViewSong={(song) => onAddSong?.(song)}
               onOtevritVPrehravaci={(soubor) => {

@@ -49,6 +49,14 @@ interface FreetarExplorerProps {
   }) => void;
   /** Skryje vlastní hlavičku, když sedí uvnitř jiné sekce. */
   vlozeny?: boolean;
+  /**
+   * Skladby, které ve zpěvníku už jsou.
+   *
+   * Slouží jen k tomu, aby automatické ukládání nezakládalo tutéž píseň
+   * podruhé. Bez toho by z pěti prohlédnutých verzí jedné písničky
+   * vzniklo ve zpěvníku pět záznamů.
+   */
+  songs?: Song[];
 }
 
 interface FreetarSearchResult {
@@ -71,6 +79,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   onSongImported,
   onOtevritVPrehravaci,
   vlozeny,
+  songs = [],
   onViewSong,
 }) => {
   // Mode: 'native_search' | 'live_browser'
@@ -90,6 +99,18 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Live Browser State
+  /**
+   * Ukládat prohlédnuté tabulatury rovnou do zpěvníku.
+   *
+   * Dosud se musela každá otevřená tabulatura ještě jednou potvrdit
+   * tlačítkem, přestože ten, kdo si ji otevřel, ji chtěl. Volba zůstává
+   * pro případ, že si někdo jen prohlíží — a co ve zpěvníku už je, se
+   * podruhé nezakládá.
+   */
+  const [ukladatSam, setUkladatSam] = useState(
+    () => localStorage.getItem('neverlate_ug_automaticky') !== 'ne',
+  );
+
   const [currentUrl, setCurrentUrl] = useState<string>('https://freetar.de');
   const [iframeUrl, setIframeUrl] = useState<string>('/api/freetar-proxy?url=https%3A%2F%2Ffreetar.de');
   const [directInput, setDirectInput] = useState<string>('');
@@ -226,6 +247,27 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
       const data = await res.json();
       if (data.success && data.song) {
         setPreviewTab(data.song);
+
+        // Kdo si tabulaturu otevřel, ten ji chce. Zakládá se jen to, co
+        // ve zpěvníku ještě není — porovnává se název s interpretem,
+        // protože ta samá píseň chodí z Ultimate Guitar v několika verzích.
+        if (ukladatSam) {
+          const nazev = String(data.song.title || result.song || '').trim().toLowerCase();
+          const interpret = String(data.song.artist || result.artist || '').trim().toLowerCase();
+          const uzJe = songs.some(
+            (s) =>
+              s.title.trim().toLowerCase() === nazev &&
+              s.artist.trim().toLowerCase() === interpret,
+          );
+          if (!uzJe) {
+            await handleImportToSongbook({ ...data.song, url: result.url, source: result.source });
+          } else {
+            setStatusMessage({
+              type: 'success',
+              text: `„${data.song.title}" už ve zpěvníku je — neukládám podruhé.`,
+            });
+          }
+        }
       } else {
         setStatusMessage({ type: 'error', text: data.error || 'Nepodařilo se načíst obsah tabulatury.' });
       }
@@ -574,6 +616,21 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 )}
               </button>
             </form>
+
+            {/* Ukládání nálezů. Patří k vyhledávání, protože rozhoduje
+                o tom, co se stane hned po otevření tabulatury. */}
+            <label className="flex items-center gap-2 text-[11px] text-neutral-300 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={ukladatSam}
+                onChange={(e) => {
+                  setUkladatSam(e.target.checked);
+                  localStorage.setItem('neverlate_ug_automaticky', e.target.checked ? 'ano' : 'ne');
+                }}
+                className="accent-[#FF9F0A] cursor-pointer"
+              />
+              Otevřenou tabulaturu rovnou uložit do zpěvníku i s akordy
+            </label>
 
             {/* Quick Popular Search Tags */}
             <div className="flex flex-wrap items-center gap-1.5 text-xs">
