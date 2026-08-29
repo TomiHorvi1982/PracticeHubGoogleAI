@@ -15,6 +15,7 @@ export type MainTabType =
   | 'youtube'
   | 'mediacenter'
   | 'stemmixer'
+  | 'aikapela'
   | 'scales'
   | 'practice'
   | 'tuner'

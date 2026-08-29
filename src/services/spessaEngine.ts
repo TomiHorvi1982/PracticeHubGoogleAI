@@ -148,6 +148,30 @@ class SpessaEngine {
   public zmenNastroj(kanal: number, program: number): void {
     this.synth?.programChange(kanal, program);
   }
+
+  /**
+   * Zahraje notu v přesně daný okamžik zvukových hodin.
+   *
+   * Kdyby se noty spouštěly „teď hned" z časovače prohlížeče, kapela by
+   * drhla — časovač se opozdí pokaždé, když se něco vykresluje.
+   * Syntetizátor umí přijmout čas dopředu a zahrát přesně.
+   */
+  public notaOd(kanal: number, nota: number, sila: number, kdy: number): void {
+    this.synth?.noteOn(kanal, nota, Math.round(Math.max(1, Math.min(127, sila))), { time: kdy });
+  }
+
+  public notaDo(kanal: number, nota: number, kdy: number): void {
+    this.synth?.noteOff(kanal, nota, { time: kdy });
+  }
+
+  /** Čas zvukových hodin — podle něj se plánuje dopředu. */
+  public get cas(): number {
+    return this.ctx?.currentTime ?? 0;
+  }
+
+  public get pripraveny(): boolean {
+    return this.stav.pripraven;
+  }
 }
 
 export const spessaEngine = new SpessaEngine();

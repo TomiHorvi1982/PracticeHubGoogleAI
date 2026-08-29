@@ -16,6 +16,7 @@ import { SettingsSection } from './components/SettingsSection';
 import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
 import { AlphaTabSection } from './components/AlphaTabSection';
+import { AiKapelaSection } from './components/AiKapelaSection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { PodiumSection } from './components/PodiumSection';
@@ -282,6 +283,9 @@ function AppContent() {
           }}
         />
       )}
+
+      {/* AI BAND */}
+      {activeTab === 'aikapela' && <AiKapelaSection />}
 
       {/* GUITAR PRO / ALPHATAB SECTION */}
       {activeTab === 'alphatab' && (
