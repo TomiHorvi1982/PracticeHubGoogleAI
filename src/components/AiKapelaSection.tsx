@@ -26,7 +26,7 @@ export const AiKapelaSection: React.FC = () => {
   });
   const [novyAkord, setNovyAkord] = useState('');
   const [solista, setSolista] = useState<StavSolisty>({
-    stav: 'vypnuto', styl: '', chyba: null, kusu: 0,
+    stav: 'vypnuto', styl: '', chyba: null, kusu: 0, drzeniAkordu: 2, posledniAkord: '',
   });
   /** Čím se sólista popíše modelu. Slovy, ne notami — tak se ovládá. */
   const [stylSolisty, setStylSolisty] = useState(
@@ -314,9 +314,36 @@ export const AiKapelaSection: React.FC = () => {
           </div>
         )}
 
+        {/* Jak silně sólistu tlačit do našich akordů.
+            Model umí přijmout klavírní roli, takže nemusí jen „hrát ve
+            stylu" — může hrát do harmonie, kterou drží kapela. */}
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          <span className="text-[10px] uppercase tracking-wider text-neutral-500 shrink-0">
+            Držet se akordů
+          </span>
+          <input
+            type="range"
+            min={0}
+            max={8}
+            step={0.5}
+            value={solista.drzeniAkordu}
+            onChange={(e) => aiSolista.nastavDrzeniAkordu(Number(e.target.value))}
+            className="flex-1 min-w-[160px] accent-[#FF375F] cursor-pointer"
+          />
+          <span className="text-xs font-mono font-bold text-[#FF375F] tabular-nums w-8">
+            {solista.drzeniAkordu}
+          </span>
+          {solista.posledniAkord && (
+            <span className="text-[11px] text-neutral-400">
+              posláno: <strong className="text-white">{solista.posledniAkord}</strong>
+            </span>
+          )}
+        </div>
+
         <p className="text-[11px] text-neutral-500">
           Styl se popisuje slovy, ne notami — model rozumí anglicky. Změna se projeví
-          za pochodu, tak si s tím klidně hraj během jamu.
+          za pochodu. Posuvník říká, jak moc se má držet akordů kapely: na nule si hraje
+          po svém, výš jde do harmonie.
         </p>
       </div>
 

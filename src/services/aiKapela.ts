@@ -1,6 +1,7 @@
 import { Chord, Note, Key } from 'tonal';
 import { spessaEngine } from './spessaEngine';
 import { audioBus } from './audioBus';
+import { aiSolista } from './aiSolista';
 
 /**
  * Virtuální kapela.
@@ -389,6 +390,19 @@ class AiKapela {
             });
           }
         }
+      }
+
+      /**
+       * Sólista dostává, co kapela hraje.
+       *
+       * Posílá se na začátku taktu a v jeho polovině — častěji nemá smysl,
+       * protože model podmínku uplatní na celý blok, a řidčeji by
+       * nestíhal změnu akordu. Úder na nule odlišuje začátek harmonie
+       * od jejího držení.
+       */
+      if (tony.length && (krok === 0 || krok === 8)) {
+        const bouchlo = s.bici.some((l) => l.nota === 36 && l.kroky.includes(krok));
+        aiSolista.posliAkord(tony, akord.nazev, krok === 0, bouchlo);
       }
 
       // Zobrazení se přepne, až ten krok opravdu zazní.

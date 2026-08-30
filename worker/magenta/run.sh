@@ -39,5 +39,19 @@ else
   source .venv/bin/activate
 fi
 
+# Výkon a přesnost se ladí odsud, ne v kódu.
+#
+#   MAGENTA_MODEL   mrt2_small (výchozí) nebo mrt2_base — base chce Pro Max
+#   MAGENTA_FRAMES  kolik snímků na kus; 25 = 1 s. Míň = přesnější
+#                   sledování akordů, ale víc režie. Výchozí 5 (0,2 s)
+#   MAGENTA_BITS    kvantizace vah, třeba 8. Prázdné = exportovaný model
+#   MAGENTA_CFG_NOTES  jak silně se držet podaných akordů (0–8), výchozí 2
+#
+# Například na maximum přesnosti:
+#   MAGENTA_FRAMES=2 MAGENTA_CFG_NOTES=3 ./worker/magenta/run.sh
+# Nebo na maximum rychlosti:
+#   MAGENTA_BITS=8 MAGENTA_FRAMES=10 ./worker/magenta/run.sh
+
 echo "==> Spouštím sólistu"
+echo "    model ${MAGENTA_MODEL:-mrt2_small}, ${MAGENTA_FRAMES:-5} snímků na kus, kvantizace ${MAGENTA_BITS:-žádná}"
 exec python server.py

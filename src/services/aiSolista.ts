@@ -24,7 +24,18 @@ export interface StavSolisty {
   chyba: string | null;
   /** Kolik kousků už dorazilo — poznat, že to opravdu teče. */
   kusu: number;
+  /** Jak silně se sólista drží podaných akordů, 0 až 8. */
+  drzeniAkordu: number;
+  /** Co se mu naposledy poslalo — kvůli kontrole v UI. */
+  posledniAkord: string;
 }
+
+/** Kolik tónů má klavírní role, kterou model přijímá. */
+const TONU = 128;
+/** Hodnoty v roli: ticho, úder, držení. */
+const TICHO = 0;
+const UDER = 1;
+const DRZENI = 2;
 
 type Poslucha = (s: StavSolisty) => void;
 
@@ -34,7 +45,16 @@ class AiSolista {
   private hlasitost: GainNode | null = null;
   /** Kdy má začít další kousek. Drží návaznost. */
   private dalsiCas = 0;
-  private stav: StavSolisty = { stav: 'vypnuto', styl: '', chyba: null, kusu: 0 };
+  private stav: StavSolisty = {
+    stav: 'vypnuto',
+    styl: '',
+    chyba: null,
+    kusu: 0,
+    drzeniAkordu: 2,
+    posledniAkord: '',
+  };
+  /** Aby se táž podmínka neposílala pořád dokola. */
+  private posledniPodminka = '';
   private posluchaci = new Set<Poslucha>();
 
   public subscribe(f: Poslucha): () => void {
@@ -139,6 +159,55 @@ class AiSolista {
     this.oznam({ kusu: this.stav.kusu + 1 });
   }
 
+  public nastavDrzeniAkordu(v: number): void {
+    const nove = Math.max(0, Math.min(8, v));
+    this.oznam({ drzeniAkordu: nove });
+    // Pošle se hned, ať je změna slyšet do dvou desetin sekundy.
+    this.posli({ typ: 'noty', cfg: nove });
+  }
+
+  /**
+   * Řekne sólistovi, co kapela zrovna hraje.
+   *
+   * Posílá se klavírní role — 128 hodnot, jedna na každý tón — a jestli
+   * v tom okamžiku bouchly bicí. Model si podle toho drží harmonii, takže
+   * nehraje jen „ve stylu", ale do našich akordů.
+   *
+   * `uder` odlišuje začátek akordu od jeho držení: bez toho by model
+   * neměl jak poznat, kdy se harmonie změnila.
+   */
+  public posliAkord(tony: number[], nazev: string, uder: boolean, bici = false): void {
+    if (this.stav.stav !== 'hraje') return;
+
+    const otisk = `${nazev}|${uder}|${bici}`;
+    if (otisk === this.posledniPodminka) return;
+    this.posledniPodminka = otisk;
+
+    const role = new Array(TONU).fill(TICHO);
+    for (const t of tony) {
+      // Tón se podá ve třech oktávách: model tak ví, že jde o harmonii,
+      // ne o jednu konkrétní polohu, a může si sólo položit, kam chce.
+      for (const oktava of [-12, 0, 12]) {
+        const n = t + oktava;
+        if (n >= 0 && n < TONU) role[n] = uder ? UDER : DRZENI;
+      }
+    }
+
+    this.posli({
+      typ: 'noty',
+      noty: role,
+      bici: bici ? 1 : 0,
+      cfg: this.stav.drzeniAkordu,
+    });
+    this.oznam({ posledniAkord: nazev });
+  }
+
+  private posli(zprava: Record<string, unknown>): void {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify(zprava));
+    }
+  }
+
   public zmenStyl(styl: string): void {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ typ: 'styl', styl }));
@@ -156,7 +225,8 @@ class AiSolista {
     this.ctx = null;
     this.hlasitost = null;
     audioBus.release('ai-solista');
-    this.oznam({ stav: 'vypnuto', kusu: 0 });
+    this.posledniPodminka = '';
+    this.oznam({ stav: 'vypnuto', kusu: 0, posledniAkord: '' });
   }
 }
 
