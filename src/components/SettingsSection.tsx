@@ -85,7 +85,9 @@ export const SettingsSection: React.FC = () => {
     }
     setUgUlozeno(Boolean(d.ulozeno));
     setUgCookie('');
-    setUgHlaska(d.ulozeno ? 'Přihlášení uloženo.' : 'Přihlášení smazáno.');
+    setUgHlaska(
+      d.varovani || (d.ulozeno ? 'Přihlášení uloženo.' : 'Přihlášení smazáno.'),
+    );
   };
 
   /** Zvuková zařízení. Načtou se hned; názvy až po povolení mikrofonu. */
@@ -248,14 +250,25 @@ export const SettingsSection: React.FC = () => {
             </p>
           </div>
 
-          <div className="text-[11px] text-neutral-400 bg-black/30 rounded-xl px-3 py-2.5 space-y-1">
-            <p className="text-neutral-300 font-semibold">Kde cookie vzít</p>
-            <p>1. Přihlas se na ultimate-guitar.com ve svém prohlížeči.</p>
-            <p>2. Otevři vývojářské nástroje (⌥⌘I) → Application → Cookies.</p>
-            <p>3. Zkopíruj řádek se všemi cookies pro doménu a vlož ho sem.</p>
-            <p className="text-neutral-500 pt-1">
-              Heslo sem nedávej — appka ho nepotřebuje a neuložila by ho.
-              Cookie se dá kdykoli zneplatnit odhlášením na UG.
+          <div className="text-[11px] text-neutral-400 bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
+            <p className="text-neutral-300 font-semibold">Kde cookie vzít — jeden řádek, ne skládačka</p>
+            <p>1. Přihlas se na <strong className="text-neutral-300">ultimate-guitar.com</strong> ve svém prohlížeči.</p>
+            <p>2. Otevři vývojářské nástroje: <strong className="text-neutral-300">⌥⌘I</strong> (Chrome) nebo ⌥⌘C (Safari).</p>
+            <p>3. Záložka <strong className="text-neutral-300">Network</strong>, pak obnov stránku (⌘R).</p>
+            <p>4. Klikni na první požadavek v seznamu (jmenuje se jako ta stránka).</p>
+            <p>
+              5. Vpravo <strong className="text-neutral-300">Headers → Request Headers</strong>, najdi řádek{' '}
+              <code className="text-[#FF9F0A]">cookie:</code> a zkopíruj <em>celou</em> hodnotu za dvojtečkou.
+            </p>
+            <p>6. Vlož ji sem a dej Uložit.</p>
+            <p className="text-neutral-500 pt-1 border-t border-white/[0.06] mt-1.5">
+              Přes <strong>Application → Cookies</strong> to jde taky, ale musel bys skládat
+              <code className="mx-1">název=hodnota</code> ručně a na něco zapomenout je snadné.
+              Network dá celý řetězec naráz.
+            </p>
+            <p className="text-neutral-500">
+              Heslo sem nedávej — appka ho nepotřebuje a neuložila by ho. Cookie zneplatníš
+              kdykoli odhlášením na UG.
             </p>
           </div>
 

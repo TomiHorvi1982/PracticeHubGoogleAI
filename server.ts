@@ -2466,17 +2466,59 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
   // odhlásit) a nedá se z ní heslo zpětně získat. Ukládá ji a používá
   // jen správce.
 
+  /**
+   * Uklidí zkopírovanou cookie.
+   *
+   * Do HTTP hlavičky jde jen Latin-1. Kdo kopíruje z tabulky
+   * `Application → Cookies`, přinese s sebou i zaškrtávátka (✓, kód
+   * 10003) a tabulátory mezi sloupci — a fetch pak spadne na tom, že
+   * hlavička nesmí obsahovat znak nad 255. Tady se to ořeže a řekne se,
+   * kolik toho vypadlo, ať je poznat, že se kopírovalo špatné místo.
+   */
+  function uklidCookie(syrova: string): { cookie: string; vyhozeno: number } {
+    // Oddělovače napřed, teprve pak úklid. Obráceně by se tabulátor
+    // smazal jako řídicí znak a dvě cookie by se slepily v jednu —
+    // `session=abc` a `user=tomas` by daly `session=abcuser=tomas`.
+    const sOddelovaci = syrova.replace(/[\t\r\n]+/g, '; ');
+
+    let vyhozeno = 0;
+    const cookie = [...sOddelovaci]
+      .filter((z) => {
+        const kod = z.codePointAt(0) ?? 0;
+        if (kod > 255 || kod < 32) {
+          vyhozeno++;
+          return false;
+        }
+        return true;
+      })
+      .join('')
+      // Po vyhození zaškrtávátek zbydou prázdné kousky mezi středníky.
+      .replace(/;\s*;+/g, ';')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/^[;\s]+|[;\s]+$/g, '');
+    return { cookie, vyhozeno };
+  }
+
   /** Uloží nebo smaže session cookie k Ultimate Guitar. */
   app.post('/api/ug/session', requireAuth, async (req, res) => {
     if (!(await isProfileAdmin(req.user!.id))) {
       return res.status(403).json({ error: 'Přihlášení k UG spravuje jen správce.' });
     }
-    const cookie = String(req.body?.cookie || '').trim();
+    const syrova = String(req.body?.cookie || '').trim();
     const admin = getSupabaseAdmin();
 
-    if (!cookie) {
+    if (!syrova) {
       await admin.from('integrace').delete().eq('klic', 'ug_session');
       return res.json({ ulozeno: false });
+    }
+
+    const { cookie, vyhozeno } = uklidCookie(syrova);
+    if (!cookie.includes('=')) {
+      return res.status(400).json({
+        error:
+          'To nevypadá na cookie — chybí tvar název=hodnota. Zkopíruj řádek '
+          + '`cookie:` z Network → Headers → Request Headers.',
+      });
     }
 
     const { error } = await admin.from('integrace').upsert({
@@ -2487,7 +2529,18 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
       updated_at: new Date().toISOString(),
     });
     if (error) return res.status(500).json({ error: error.message });
-    res.json({ ulozeno: true });
+    res.json({
+      ulozeno: true,
+      vyhozeno,
+      // Když se toho vyhodilo hodně, kopírovalo se z tabulky cookies
+      // a chybí kusy hodnot — to se pozná až při prvním stažení.
+      varovani:
+        vyhozeno > 3
+          ? `Z vloženého textu vypadlo ${vyhozeno} znaků, které do hlavičky nepatří `
+            + '(zaškrtávátka a tabulátory z tabulky cookies). Jestli stahování '
+            + 'nepůjde, zkopíruj radši řádek `cookie:` z Network → Request Headers.'
+          : null,
+    });
   });
 
   /** Řekne, jestli je přihlášení uložené — hodnotu samotnou nevydá. */
@@ -2530,9 +2583,11 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
       });
     }
 
+    // Uklidí se i to, co už v databázi leží: uložit se to mohlo dřív,
+    // než tahle kontrola existovala.
     const hlavicky = {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36',
-      Cookie: sezeni.hodnota,
+      Cookie: uklidCookie(String(sezeni.hodnota)).cookie,
     };
 
     try {
@@ -2544,6 +2599,26 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
       const data = JSON.parse(
         shoda[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'"),
       );
+
+      /**
+       * Poznat, jestli cookie vůbec zabrala.
+       *
+       * Bez toho končí každá potíž stejnou hláškou „soubor nevydal" a
+       * není z ní poznat, jestli je špatná cookie, nebo účet nemá Pro —
+       * a to jsou dvě úplně jiné nápravy. Nepřihlášenému vrací UG
+       * uživatele s `id: 0` a jménem `Unregistered`.
+       */
+      const uzivatel = data?.store?.user;
+      if (!uzivatel?.id || uzivatel.id === 0) {
+        return res.status(401).json({
+          error:
+            'Cookie na UG nefunguje — server je pro ně nepřihlášený. Nejspíš se '
+            + 'kopírovala z tabulky Application → Cookies, kde chybí kusy hodnot. '
+            + 'Vezmi radši řádek `cookie:` z Network → Headers → Request Headers, '
+            + 'nebo se na UG přihlas znovu a zkopíruj čerstvou.',
+        });
+      }
+
       const pohled = data?.store?.page?.data?.tab_view;
       const tab = data?.store?.page?.data?.tab;
       const binarka = pohled?.binary_id;
@@ -2557,11 +2632,14 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
       );
       const typ = souborRes.headers.get('content-type') || '';
       if (typ.includes('text/html')) {
-        // Přihlášení nezabralo — cookie vypršela nebo účet nemá Pro.
+        // Sem se dojde jen s platnou session, takže cookie je v pořádku
+        // a chybí samotné předplatné — nebo tahle verze souboru není
+        // ke stažení.
         return res.status(403).json({
           error:
-            'UG soubor nevydal — přihlášení nejspíš vypršelo nebo účet nemá Pro. '
-            + 'Přihlas se znovu v prohlížeči a vlož čerstvou cookie.',
+            `Jsi přihlášený jako ${uzivatel.username}, ale UG soubor nevydal. `
+            + 'Buď účet nemá Pro předplatné, nebo tahle verze ke stažení není — '
+            + 'zkus jinou Pro verzi ze seznamu.',
         });
       }
 
