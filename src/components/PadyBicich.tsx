@@ -15,10 +15,38 @@ import { LibraryAsset } from '../services/assetLibraryService';
  * pověsí vlastní zvuky a rytmus si na ně naťuká sám.
  */
 
+/**
+ * Odkud se na pad věší zvuk.
+ *
+ * Knihovna má přes čtyři sta zvuků a v jednom seznamu se v nich nedá
+ * hledat — jednorázová rána vypadá stejně jako čtyřtaktová smyčka.
+ * Rozdělené podle toho, co člověk zrovna staví: kit se skládá z ran,
+ * podklad ze smyček, a občas se hodí pověsit na pad cokoli jiného.
+ */
+const ZDROJE: { id: string; nazev: string; kategorie: string; popis: string }[] = [
+  {
+    id: 'rany', nazev: 'Bicí samply', kategorie: 'drum_kit_sample',
+    popis: 'Jednotlivé rány — z těch se skládá kit.',
+  },
+  {
+    id: 'smycky', nazev: 'Bicí smyčky', kategorie: 'drum_loop',
+    popis: 'Celé takty. Na padu se při dalším úderu utnou, aby se dvě nepřekrývaly.',
+  },
+  {
+    id: 'samply', nazev: 'Samply nástrojů', kategorie: 'bass_sample,guitar_sample,vocal_sample',
+    popis: 'Basa, kytara a vokály ze sekce Samples.',
+  },
+  {
+    id: 'stopy', nazev: 'Stopy a nahrávky', kategorie: 'stem_mix,recordings,backing_tracks',
+    popis: 'Rozdělené stopy a vlastní nahrávky — hodí se na vpády a útržky.',
+  },
+];
+
 export const PadyBicich: React.FC = () => {
   const [stav, setStav] = useState<StavPadu>(padyService.stav());
   /** Pad, ke kterému se zrovna vybírá zvuk. */
   const [vybiram, setVybiram] = useState<string | null>(null);
+  const [zdroj, setZdroj] = useState(ZDROJE[0]);
   const [chyba, setChyba] = useState<string | null>(null);
   /** Pady, které právě uhodily — jen pro problesknutí. */
   const [blikaji, setBlikaji] = useState<Record<string, number>>({});
@@ -247,7 +275,7 @@ export const PadyBicich: React.FC = () => {
             </button>
           </div>
           <VyberZKnihovny
-            kategorie="stem_mix,drum_loop,recordings,samples"
+            kategorie="stem_mix,drum_loop,recordings,backing_tracks"
             vychoziDotaz="drums"
             prazdno="V knihovně zatím žádné stopy nejsou."
             cil="vyčíst"
@@ -289,8 +317,13 @@ export const PadyBicich: React.FC = () => {
                 </kbd>
               </div>
 
-              <div className="text-[10px] text-neutral-500 truncate h-4">
-                {stav.vzorky[p.id] || 'zatím bez zvuku'}
+              <div className="text-[10px] text-neutral-500 truncate h-4 flex items-center gap-1">
+                {stav.delky[p.id] >= 1.5 && (
+                  <span className="text-[9px] px-1 rounded bg-[#0A84FF]/20 text-[#5AC8FA] shrink-0">
+                    smyčka {stav.delky[p.id].toFixed(1)} s
+                  </span>
+                )}
+                <span className="truncate">{stav.vzorky[p.id] || 'zatím bez zvuku'}</span>
               </div>
 
               <div className="flex items-center gap-1 mt-1.5">
@@ -330,9 +363,26 @@ export const PadyBicich: React.FC = () => {
               Zavřít
             </button>
           </div>
+          <div className="flex flex-wrap gap-1.5">
+            {ZDROJE.map((z) => (
+              <button
+                key={z.id}
+                onClick={() => setZdroj(z)}
+                title={z.popis}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer ${
+                  zdroj.id === z.id ? 'bg-[#FF9F0A] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                }`}
+              >
+                {z.nazev}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-neutral-500">{zdroj.popis}</p>
+
           <VyberZKnihovny
-            kategorie="drum_kit_sample,drum_loop,bass_sample,guitar_sample,vocal_sample,samples"
-            prazdno="V knihovně zatím žádné samply nejsou."
+            key={zdroj.id}
+            kategorie={zdroj.kategorie}
+            prazdno={`V kategorii ${zdroj.nazev.toLowerCase()} zatím nic není.`}
             cil={`na ${PADY.find((p) => p.id === vybiram)?.nazev}`}
             sNahledem
             nahled={(u) => <audio src={u} controls className="w-full h-8" />}

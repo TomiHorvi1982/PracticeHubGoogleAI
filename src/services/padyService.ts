@@ -43,6 +43,14 @@ export interface StavPadu {
   mrizka: Record<string, boolean[]>;
   /** Co na kterém padu visí — název souboru, kvůli popisku. */
   vzorky: Record<string, string>;
+  /**
+   * Jak je zvuk na padu dlouhý, ve vteřinách.
+   *
+   * Na pad se dá pověsit jednorázová rána i celá smyčka a v seznamu
+   * knihovny to od sebe nikdo nepozná. Podle délky je to vidět na první
+   * pohled a řídí se podle ní i chování při opakovaném úderu.
+   */
+  delky: Record<string, number>;
   nahrava: boolean;
   klikani: boolean;
 }
@@ -64,6 +72,8 @@ const prazdnaMrizka = (): Record<string, boolean[]> =>
 class PadyService {
   private ctx: AudioContext | null = null;
   private buffery: Record<string, AudioBuffer> = {};
+  /** Co na padu právě hraje — kvůli utnutí smyčky při dalším úderu. */
+  private zniciZdroje: Record<string, AudioBufferSourceNode> = {};
   private nazvy: Record<string, string> = {};
   private mrizka = prazdnaMrizka();
 
@@ -106,6 +116,9 @@ class PadyService {
       bpm: this.bpm,
       mrizka: this.mrizka,
       vzorky: { ...this.nazvy },
+      delky: Object.fromEntries(
+        Object.entries(this.buffery).map(([pad, buf]) => [pad, buf.duration])
+      ),
       nahrava: this.nahrava,
       klikani: this.klikani,
     };
@@ -171,6 +184,7 @@ class PadyService {
 
   public sundejVzorek(padId: string): void {
     delete this.buffery[padId];
+    delete this.zniciZdroje[padId];
     delete this.nazvy[padId];
     delete this.assety[padId];
     this.uloz();
@@ -181,15 +195,45 @@ class PadyService {
     return Boolean(this.buffery[padId]);
   }
 
+  /**
+   * Kde končí rána a začíná smyčka.
+   *
+   * Delší zvuk se při dalším úderu utne, kratší se nechá dohrát. Dvě
+   * smyčky přes sebe je kaše; useknutý dozvuk činelu při rychlé dvojhmatu
+   * je slyšet stejně špatně, a ten se proto neutíná.
+   */
+  private static readonly SMYCKA_OD = 1.5;
+
+  public jeSmycka(padId: string): boolean {
+    const buf = this.buffery[padId];
+    return !!buf && buf.duration >= PadyService.SMYCKA_OD;
+  }
+
   /** Přehraje pad v daný čas; bez času hned. */
   private zahraj(padId: string, kdy?: number): void {
     const buf = this.buffery[padId];
     if (!buf) return;
     const ctx = this.kontext();
+
+    if (buf.duration >= PadyService.SMYCKA_OD) {
+      const bezici = this.zniciZdroje[padId];
+      if (bezici) {
+        try {
+          bezici.stop(kdy ?? ctx.currentTime);
+        } catch {
+          /* mohla doběhnout sama */
+        }
+      }
+    }
+
     const zdroj = ctx.createBufferSource();
     zdroj.buffer = buf;
     zdroj.connect(ctx.destination);
     zdroj.start(kdy ?? ctx.currentTime);
+    this.zniciZdroje[padId] = zdroj;
+    zdroj.onended = () => {
+      if (this.zniciZdroje[padId] === zdroj) delete this.zniciZdroje[padId];
+    };
   }
 
   /**
