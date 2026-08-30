@@ -213,6 +213,69 @@ function odhadniTempo(nabehy: Float32Array, vzorkovani: number): number {
   return Math.round(bpm);
 }
 
+/**
+ * Tempo vybraného úseku nahrávky.
+ *
+ * Cvičení se dělá na pár vteřinách, ne na celé písničce, a tempo se
+ * v ní může měnit. Počítá se proto z toho, co je zrovna ve smyčce.
+ * Kratší úsek než dvě vteřiny nemá dost opakování na to, aby z něj
+ * autokorelace něco poznala.
+ */
+export async function odhadniTempoZUsekuPresne(
+  zvuk: AudioBuffer,
+  od: number,
+  doo: number,
+): Promise<number | null> {
+  const delka = doo - od;
+  if (delka < 2) return null;
+
+  const sr = zvuk.sampleRate;
+  const zacatek = Math.floor(od * sr);
+  const konec = Math.min(zvuk.length, Math.floor(doo * sr));
+  const usek = new AudioBuffer({
+    length: konec - zacatek,
+    sampleRate: sr,
+    numberOfChannels: 1,
+  });
+  usek.copyToChannel(zvuk.getChannelData(0).slice(zacatek, konec), 0);
+
+  const v = await vyctiRytmus(usek);
+  return v.bpm;
+}
+
+/**
+ * Rychlý odhad tempa bez filtrů — pro tlačítko v cvičební místnosti.
+ *
+ * Celý rozbor po pásmech je na úsek pár vteřin zbytečný; stačí obálka
+ * hlasitosti a autokorelace. Vrací `null`, když je úsek moc krátký.
+ */
+export function odhadniTempoZUseku(zvuk: AudioBuffer, od: number, doo: number): number | null {
+  const sr = zvuk.sampleRate;
+  if (doo - od < 2) return null;
+
+  const data = zvuk.getChannelData(0);
+  const zacatek = Math.floor(od * sr);
+  const konec = Math.min(data.length, Math.floor(doo * sr));
+  const HOP = 512;
+  const bloku = Math.floor((konec - zacatek) / HOP);
+  if (bloku < 40) return null;
+
+  const obalka = new Float32Array(bloku);
+  for (let i = 0; i < bloku; i++) {
+    let soucet = 0;
+    for (let j = 0; j < HOP; j++) {
+      const v = data[zacatek + i * HOP + j];
+      soucet += v * v;
+    }
+    obalka[i] = Math.sqrt(soucet / HOP);
+  }
+
+  const nabehy = new Float32Array(bloku);
+  for (let i = 1; i < bloku; i++) nabehy[i] = Math.max(0, obalka[i] - obalka[i - 1]);
+
+  return odhadniTempo(nabehy, sr / HOP);
+}
+
 export interface Nastaveni {
   /** Tempo, když ho člověk zná líp než odhad. */
   bpm?: number;

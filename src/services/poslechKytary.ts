@@ -98,6 +98,11 @@ class PoslechKytary {
   private posledniUder = 0;
   private posluchaci = new Set<Poslucha>();
 
+  /** Výchozí stav pro první vykreslení komponenty. */
+  public getStavVerejny(): StavPoslechu {
+    return this.stav;
+  }
+
   public subscribe(f: Poslucha): () => void {
     this.posluchaci.add(f);
     f(this.stav);

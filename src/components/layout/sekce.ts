@@ -17,6 +17,7 @@ export type MainTabType =
   | 'stemmixer'
   | 'aikapela'
   | 'zalozky'
+  | 'practise'
   | 'scales'
   | 'practice'
   | 'tuner'
