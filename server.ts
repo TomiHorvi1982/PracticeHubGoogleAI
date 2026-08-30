@@ -2455,6 +2455,167 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
     }
   });
 
+  // --- ULTIMATE GUITAR: VLASTNÍ PŘEDPLATNÉ -----------------------------
+  //
+  // Guitar Pro soubory dává UG jen předplatitelům. Kdo předplatné má,
+  // má na ty soubory nárok — jen se k nim z appky nedá dostat, protože
+  // server není přihlášený.
+  //
+  // Řeší se to session cookie, ne heslem. Heslo by muselo projít naším
+  // serverem a zůstat v logu; cookie je odvolatelná (stačí se na UG
+  // odhlásit) a nedá se z ní heslo zpětně získat. Ukládá ji a používá
+  // jen správce.
+
+  /** Uloží nebo smaže session cookie k Ultimate Guitar. */
+  app.post('/api/ug/session', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Přihlášení k UG spravuje jen správce.' });
+    }
+    const cookie = String(req.body?.cookie || '').trim();
+    const admin = getSupabaseAdmin();
+
+    if (!cookie) {
+      await admin.from('integrace').delete().eq('klic', 'ug_session');
+      return res.json({ ulozeno: false });
+    }
+
+    const { error } = await admin.from('integrace').upsert({
+      klic: 'ug_session',
+      hodnota: cookie,
+      poznamka: 'Session cookie správcova účtu na ultimate-guitar.com',
+      upravil: req.user!.id,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ ulozeno: true });
+  });
+
+  /** Řekne, jestli je přihlášení uložené — hodnotu samotnou nevydá. */
+  app.get('/api/ug/session', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) return res.json({ ulozeno: false });
+    const { data } = await getSupabaseAdmin()
+      .from('integrace')
+      .select('updated_at')
+      .eq('klic', 'ug_session')
+      .maybeSingle();
+    res.json({ ulozeno: Boolean(data), kdy: data?.updated_at || null });
+  });
+
+  /**
+   * Stáhne Guitar Pro soubor z UG a uloží ho do knihovny kapely.
+   *
+   * Stránka tabulatury nese token `binary_id`; s ním a s přihlášením
+   * vydá UG samotný soubor. Bez přihlášení vrátí místo souboru HTML —
+   * to se pozná podle typu obsahu a řekne se rovnou, místo aby se do
+   * knihovny uložila webová stránka s příponou .gp.
+   */
+  app.post('/api/ug/stahnout', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Stahovat z UG může jen správce.' });
+    }
+    const url = String(req.body?.url || '');
+    if (!/^https:\/\/(tabs\.)?ultimate-guitar\.com\//.test(url)) {
+      return res.status(400).json({ error: 'Očekávám odkaz na ultimate-guitar.com.' });
+    }
+
+    const admin = getSupabaseAdmin();
+    const { data: sezeni } = await admin
+      .from('integrace')
+      .select('hodnota')
+      .eq('klic', 'ug_session')
+      .maybeSingle();
+    if (!sezeni?.hodnota) {
+      return res.status(412).json({
+        error: 'Není uložené přihlášení k UG. Vlož session cookie v Nastavení.',
+      });
+    }
+
+    const hlavicky = {
+      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+      Cookie: sezeni.hodnota,
+    };
+
+    try {
+      const strankaRes = await fetch(url, { headers: hlavicky });
+      const html = await strankaRes.text();
+      const shoda = /data-content="([^"]+)"/.exec(html);
+      if (!shoda) return res.status(502).json({ error: 'Stránku UG se nepodařilo přečíst.' });
+
+      const data = JSON.parse(
+        shoda[1].replace(/&quot;/g, '"').replace(/&amp;/g, '&').replace(/&#039;/g, "'"),
+      );
+      const pohled = data?.store?.page?.data?.tab_view;
+      const tab = data?.store?.page?.data?.tab;
+      const binarka = pohled?.binary_id;
+      if (!binarka) {
+        return res.status(404).json({ error: 'Tahle tabulatura nemá Guitar Pro soubor.' });
+      }
+
+      const souborRes = await fetch(
+        `https://tabs.ultimate-guitar.com/tab/download?id=${binarka}`,
+        { headers: hlavicky, redirect: 'follow' },
+      );
+      const typ = souborRes.headers.get('content-type') || '';
+      if (typ.includes('text/html')) {
+        // Přihlášení nezabralo — cookie vypršela nebo účet nemá Pro.
+        return res.status(403).json({
+          error:
+            'UG soubor nevydal — přihlášení nejspíš vypršelo nebo účet nemá Pro. '
+            + 'Přihlas se znovu v prohlížeči a vlož čerstvou cookie.',
+        });
+      }
+
+      const bajty = Buffer.from(await souborRes.arrayBuffer());
+      if (bajty.length < 200) {
+        return res.status(502).json({ error: 'Soubor přišel prázdný.' });
+      }
+
+      const nazev = `${tab?.artist_name || 'UG'} - ${tab?.song_name || 'tab'}.gp5`
+        .replace(/[/\\]/g, '-');
+      const otisk = createHash('sha256').update(bajty).digest('hex');
+
+      // Co už v knihovně je, se nestahuje podruhé.
+      const { data: uzTam } = await admin
+        .from('assets')
+        .select('id, name')
+        .eq('content_hash', otisk)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (uzTam) {
+        return res.json({ jizByl: true, asset: uzTam });
+      }
+
+      const assetId = crypto.randomUUID();
+      const cesta = `assets/global/guitar_pro/${assetId}-${slugifyFilename(nazev)}`;
+      await uploadObject(cesta, bajty, 'application/octet-stream');
+
+      const { data: novy, error: chyba } = await admin
+        .from('assets')
+        .insert({
+          id: assetId,
+          owner_id: null,
+          name: nazev,
+          original_filename: nazev,
+          mime_type: 'application/octet-stream',
+          size_bytes: bajty.length,
+          storage_bucket: 'r2',
+          storage_path: cesta,
+          asset_type: 'guitar_pro',
+          category: 'guitar_pro',
+          status: 'active',
+          content_hash: otisk,
+          metadata: { zdroj: 'ultimate-guitar', url },
+        })
+        .select()
+        .single();
+      if (chyba) return res.status(500).json({ error: chyba.message });
+
+      res.json({ asset: novy, velikost: bajty.length });
+    } catch (e: any) {
+      res.status(502).json({ error: `Stažení selhalo: ${e?.message || e}` });
+    }
+  });
+
   app.get('/api/ug-tab', async (req, res) => {
     const url = String(req.query.url || '').trim();
     if (!/^https:\/\/(tabs\.)?ultimate-guitar\.com\//.test(url)) {

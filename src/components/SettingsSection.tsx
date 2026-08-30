@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Settings, HardDrive, RefreshCw, Laptop, Loader2, AlertCircle, Mic } from 'lucide-react';
+import { Settings, HardDrive, RefreshCw, Laptop, Loader2, AlertCircle, Mic, KeyRound } from 'lucide-react';
 import { authService } from '../services/authService';
 import { MidiToolsModal } from './MidiToolsModal';
 import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
@@ -51,6 +51,42 @@ export const SettingsSection: React.FC = () => {
   const [nacitam, setNacitam] = useState(true);
   const [chyba, setChyba] = useState<string | null>(null);
   const [midiOtevrene, setMidiOtevrene] = useState(false);
+
+  /** Přihlášení k Ultimate Guitar — jen pro správce. */
+  const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
+  const [ugCookie, setUgCookie] = useState('');
+  const [ugUlozeno, setUgUlozeno] = useState(false);
+  const [ugHlaska, setUgHlaska] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!jsemSpravce) return;
+    const token = authService.getCurrentSession()?.token;
+    if (!token) return;
+    void fetch('/api/ug/session', { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.json())
+      .then((d) => setUgUlozeno(Boolean(d?.ulozeno)))
+      .catch(() => { /* nedostupnost není důvod rozbít nastavení */ });
+  }, [jsemSpravce]);
+
+  const ulozUg = async (cookie: string) => {
+    const token = authService.getCurrentSession()?.token;
+    const r = await fetch('/api/ug/session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ cookie }),
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setUgHlaska(d.error || 'Uložení selhalo.');
+      return;
+    }
+    setUgUlozeno(Boolean(d.ulozeno));
+    setUgCookie('');
+    setUgHlaska(d.ulozeno ? 'Přihlášení uloženo.' : 'Přihlášení smazáno.');
+  };
 
   /** Zvuková zařízení. Načtou se hned; názvy až po povolení mikrofonu. */
   const [karta, setKarta] = useState<StavKarty>(zvukovaKarta.getStav());
@@ -195,6 +231,64 @@ export const SettingsSection: React.FC = () => {
           do sluchátek je to čisté.
         </p>
       </div>
+
+      {/* Přihlášení k Ultimate Guitar.
+          Guitar Pro soubory dává UG jen předplatitelům; kdo je platí, má
+          na ně nárok. Ukládá se session cookie, ne heslo — to by muselo
+          projít naším serverem a zůstat někde v logu. */}
+      {jsemSpravce && (
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+          <div>
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <KeyRound className="w-4 h-4 text-[#FF9F0A]" /> Ultimate Guitar Pro
+            </h3>
+            <p className="text-[11px] text-neutral-400">
+              Když máš u nich předplatné, stahují se Guitar Pro soubory rovnou do knihovny.
+              Jen pro správce.
+            </p>
+          </div>
+
+          <div className="text-[11px] text-neutral-400 bg-black/30 rounded-xl px-3 py-2.5 space-y-1">
+            <p className="text-neutral-300 font-semibold">Kde cookie vzít</p>
+            <p>1. Přihlas se na ultimate-guitar.com ve svém prohlížeči.</p>
+            <p>2. Otevři vývojářské nástroje (⌥⌘I) → Application → Cookies.</p>
+            <p>3. Zkopíruj řádek se všemi cookies pro doménu a vlož ho sem.</p>
+            <p className="text-neutral-500 pt-1">
+              Heslo sem nedávej — appka ho nepotřebuje a neuložila by ho.
+              Cookie se dá kdykoli zneplatnit odhlášením na UG.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="password"
+              value={ugCookie}
+              onChange={(e) => setUgCookie(e.target.value)}
+              placeholder={ugUlozeno ? 'Uloženo — vlož novou pro výměnu' : 'název=hodnota; další=hodnota'}
+              className="flex-1 min-w-[240px] bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono"
+            />
+            <button
+              onClick={() => void ulozUg(ugCookie)}
+              disabled={!ugCookie.trim()}
+              className="px-3 py-2 rounded-xl bg-[#FF9F0A] text-black text-xs font-bold cursor-pointer disabled:opacity-40"
+            >
+              Uložit
+            </button>
+            {ugUlozeno && (
+              <button
+                onClick={() => void ulozUg('')}
+                className="px-3 py-2 rounded-xl bg-white/[0.06] text-neutral-300 text-xs font-bold cursor-pointer"
+              >
+                Zapomenout
+              </button>
+            )}
+            <span className={`text-[11px] ${ugUlozeno ? 'text-[#30D158]' : 'text-neutral-500'}`}>
+              {ugUlozeno ? 'přihlášení uloženo' : 'nepřihlášeno'}
+            </span>
+          </div>
+          {ugHlaska && <p className="text-[11px] text-neutral-300">{ugHlaska}</p>}
+        </div>
+      )}
 
       <MidiToolsModal isOpen={midiOtevrene} onClose={() => setMidiOtevrene(false)} />
     </div>

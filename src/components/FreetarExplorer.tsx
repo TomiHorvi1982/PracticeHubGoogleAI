@@ -29,6 +29,7 @@ import { Song, SongAttachment } from '../types';
 import { tabLibraryService, TabLibraryEntry } from '../services/tabLibraryService';
 import { PrehledSbirky } from './knihovna/PrehledSbirky';
 import { extractUniqueChords } from '../utils/chordUtils';
+import { authService } from '../services/authService';
 
 interface FreetarExplorerProps {
   onSongImported: (song: Song) => void;
@@ -110,6 +111,9 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   const [ukladatSam, setUkladatSam] = useState(
     () => localStorage.getItem('neverlate_ug_automaticky') !== 'ne',
   );
+
+  /** Stahovat z UG smí jen správce — používá se jeho vlastní předplatné. */
+  const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
 
   const [currentUrl, setCurrentUrl] = useState<string>('https://freetar.de');
   const [iframeUrl, setIframeUrl] = useState<string>('/api/freetar-proxy?url=https%3A%2F%2Ffreetar.de');
@@ -236,19 +240,49 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
       /**
        * Guitar Pro soubory jsou na Ultimate Guitar za předplatným.
        *
-       * Stránka sice nese odkaz na soubor, ale bez přihlášeného účtu
-       * vrátí místo něj HTML. Stahovat je za člověka by znamenalo obcházet
-       * placení, takže se jen otevře stránka — kdo předplatné má, stáhne
-       * si soubor sám a přetáhne ho do přehrávače o kus výš.
+       * Kdo předplatné má, má na ně nárok — a když je přihlášení uložené
+       * v Nastavení, stáhnou se rovnou do knihovny. Bez něj se jen otevře
+       * stránka, ať si to člověk stáhne sám; obcházet placení appka nebude.
        */
+      if (jsemSpravce) {
+        setStatusMessage({ type: 'success', text: `Stahuji „${result.song}" z Ultimate Guitar…` });
+        try {
+          const token = authService.getCurrentSession()?.token;
+          const r = await fetch('/api/ug/stahnout', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify({ url: result.url }),
+          });
+          const d = await r.json().catch(() => ({}));
+          if (r.ok) {
+            setStatusMessage({
+              type: 'success',
+              text: d.jizByl
+                ? `„${d.asset?.name}" už v knihovně je — nestahuji podruhé.`
+                : `„${d.asset?.name}" je v knihovně (${Math.round((d.velikost || 0) / 1024)} kB). `
+                  + 'Najdeš ho v seznamu souborů vlevo.',
+            });
+            return;
+          }
+          setStatusMessage({ type: 'error', text: d.error || 'Stažení selhalo.' });
+          if (r.status === 412) window.open(result.url, '_blank', 'noopener,noreferrer');
+          return;
+        } catch (e: any) {
+          setStatusMessage({ type: 'error', text: `Stažení selhalo: ${e?.message || e}` });
+          return;
+        }
+      }
+
       window.open(result.url, '_blank', 'noopener,noreferrer');
       setStatusMessage({
         type: 'error',
         text:
           `„${result.song}" je ${result.type} — Guitar Pro soubory dává Ultimate Guitar `
-          + 'jen předplatitelům. Otevřel jsem stránku: kdo předplatné má, stáhne soubor '
-          + 'a přetáhne ho sem do přehrávače. Ve vlastní sbírce máme přes 74 tisíc tabulatur, '
-          + 'zkuste ji nejdřív.',
+          + 'jen předplatitelům. Otevřel jsem stránku, ať si soubor stáhneš sám. '
+          + 'Ve vlastní sbírce máme přes 74 tisíc tabulatur, zkus ji nejdřív.',
       });
       return;
     }
