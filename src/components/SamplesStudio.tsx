@@ -3,7 +3,7 @@ import {
   Play, Square, Loader2, Search, Plus, Trash2, Volume2, VolumeX, Layers, Repeat, ListMusic, AlertCircle,
 } from 'lucide-react';
 import { authService } from '../services/authService';
-import { skladackaService, StavSkladacky, Sampl } from '../services/skladackaService';
+import { skladackaService, StavSkladacky, Sampl, pozadiPolicka } from '../services/skladackaService';
 import { drumLoopService } from '../services/drumLoopService';
 import { useMusicalContext } from '../context/MusicalContext';
 
@@ -23,6 +23,43 @@ const RAZENI: { id: Razeni; popis: string }[] = [
   { id: 'takt', popis: 'Takt' },
   { id: 'nazev', popis: 'Název' },
 ];
+
+/**
+ * Vlnovka samplu za jeho názvem.
+ *
+ * Samotný název („loop_04") o samplu neřekne nic. Tvar zvuku ano — je z něj
+ * vidět, jestli jsou to čtyři rány, nebo ležatý pad. Přehraná část se
+ * obarví, takže vlnovka rovnou slouží i jako ukazatel.
+ *
+ * Kreslí se jen u samplu, který se poslouchá: vrcholky jsou až ze
+ * staženého zvuku a stahovat kvůli obrázku celou knihovnu nemá cenu.
+ */
+const Vlnovka: React.FC<{ id: string; postup: number }> = ({ id, postup }) => {
+  const v = skladackaService.vrcholky(id, 56);
+  if (!v) return null;
+  const kde = postup * v.length;
+  return (
+    <svg
+      viewBox={`0 0 ${v.length} 20`}
+      preserveAspectRatio="none"
+      className="absolute inset-0 w-full h-full pointer-events-none"
+    >
+      {v.map((h, i) => {
+        const vyska = Math.max(1, h * 18);
+        return (
+          <rect
+            key={i}
+            x={i + 0.15}
+            y={(20 - vyska) / 2}
+            width={0.7}
+            height={vyska}
+            fill={i < kde ? 'rgba(48,209,88,0.55)' : 'rgba(255,255,255,0.11)'}
+          />
+        );
+      })}
+    </svg>
+  );
+};
 
 /**
  * Samply a skládání.
@@ -49,6 +86,7 @@ export const SamplesStudio: React.FC = () => {
   // Odchod ze sekce nesmí nechat nic hrát na pozadí.
   useEffect(() => () => {
     skladackaService.stop();
+    skladackaService.nahledStop();
     drumLoopService.stop();
   }, []);
 
@@ -237,9 +275,12 @@ export const SamplesStudio: React.FC = () => {
                             ? skladackaService.vloz(stopa.id, c.id, null)
                             : setCil(vybrane ? null : { stopa: stopa.id, cast: c.id })
                         }
+                        style={pozadiPolicka(!!s, stav.hraje && stav.aktivniCast === c.id, stav.postup)}
                         className={`px-1.5 py-1.5 rounded-lg text-[10px] truncate border cursor-pointer transition-all ${
                           s
-                            ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+                            ? `border-[#30D158]/40 text-[#30D158] ${
+                                stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-[#30D158]/15'
+                              }`
                             : vybrane
                               ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-[#FF9F0A]'
                               : 'bg-white/[0.03] border-white/[0.08] text-neutral-600 hover:border-white/25'
@@ -337,25 +378,67 @@ export const SamplesStudio: React.FC = () => {
             </p>
           )}
 
-          {serazene.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => vloz(s)}
-              disabled={!cil}
-              className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-left transition-all ${
-                cil
-                  ? 'bg-white/[0.03] border-white/[0.08] hover:border-[#FF9F0A]/60 cursor-pointer'
-                  : 'bg-white/[0.02] border-white/[0.05] cursor-default'
-              }`}
-              title={cil ? 'Vložit do označeného políčka' : 'Nejdřív klikni do políčka ve skládačce'}
-            >
-              <span className="text-[12px] text-white truncate flex-1">{s.nazev}</span>
-              {udaj('', s.bpm ? `${s.bpm} BPM` : '')}
-              {udaj('', s.tonina)}
-              {udaj('', s.takt)}
-              {cil && <Plus className="w-3.5 h-3.5 text-[#30D158] shrink-0" />}
-            </button>
-          ))}
+          {serazene.map((s) => {
+            const nahled = stav.nahled?.id === s.id ? stav.nahled : null;
+            return (
+              <div
+                key={s.id}
+                className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all ${
+                  nahled
+                    ? 'bg-white/[0.05] border-[#30D158]/40'
+                    : cil
+                      ? 'bg-white/[0.03] border-white/[0.08] hover:border-[#FF9F0A]/60'
+                      : 'bg-white/[0.02] border-white/[0.05]'
+                }`}
+              >
+                <button
+                  onClick={() => void skladackaService.nahledPust(s)}
+                  className={`p-1 rounded-lg shrink-0 cursor-pointer ${
+                    nahled ? 'text-[#30D158]' : 'text-neutral-500 hover:text-white'
+                  }`}
+                  title={nahled ? 'Zastavit ukázku' : 'Poslechnout sampl'}
+                >
+                  {nahled ? (
+                    <Square className="w-3.5 h-3.5 fill-current" />
+                  ) : (
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                  )}
+                </button>
+
+                <button
+                  onClick={() => vloz(s)}
+                  disabled={!cil}
+                  className={`relative flex-1 min-w-0 text-left overflow-hidden rounded-md px-1 py-1 ${
+                    cil ? 'cursor-pointer' : 'cursor-default'
+                  }`}
+                  title={cil ? 'Vložit do označeného políčka' : 'Nejdřív klikni do políčka ve skládačce'}
+                >
+                  {nahled && <Vlnovka id={s.id} postup={nahled.postup} />}
+                  {/* Stín drží název čitelný i tam, kde je pod ním
+                      nejhustší část vlnovky. */}
+                  <span
+                    className="relative text-[12px] text-white truncate block"
+                    style={{ textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.8)' }}
+                  >
+                    {s.nazev}
+                  </span>
+                </button>
+
+                {udaj('', s.bpm ? `${s.bpm} BPM` : '')}
+                {udaj('', s.tonina)}
+                {udaj('', s.takt)}
+                {cil && (
+                  <button
+                    onClick={() => vloz(s)}
+                    className="p-0.5 shrink-0 cursor-pointer"
+                    title="Vložit do označeného políčka"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-[#30D158]" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Play, Square, Loader2, Layers, Repeat, ListMusic, VolumeX, Volume2 } from 'lucide-react';
-import { skladackaService, StavSkladacky } from '../../services/skladackaService';
+import { skladackaService, StavSkladacky, pozadiPolicka } from '../../services/skladackaService';
 import { useMusicalContext } from '../../context/MusicalContext';
 
 /**
@@ -117,9 +117,12 @@ export const SamplyModul: React.FC = () => {
                 return (
                   <div
                     key={c.id}
+                    style={pozadiPolicka(!!s, stav.hraje && stav.aktivniCast === c.id, stav.postup)}
                     className={`px-1 py-1 rounded text-[9px] truncate border ${
                       s
-                        ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+                        ? `border-[#30D158]/40 text-[#30D158] ${
+                            stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-[#30D158]/15'
+                          }`
                         : 'bg-white/[0.02] border-white/[0.06] text-neutral-700'
                     }`}
                     title={s?.nazev}

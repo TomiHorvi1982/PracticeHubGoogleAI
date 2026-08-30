@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { audioBus } from './audioBus';
 import { contentRequest } from './assetLibraryService';
 
@@ -48,6 +49,23 @@ export interface StavSkladacky {
   bpm: number;
   nacita: boolean;
   chyba: string | null;
+  /**
+   * Kde je přehrávání uvnitř právě znějící části, 0 až 1.
+   *
+   * Samotné svícení části nestačí: u čtyřtaktového refrénu člověk neví,
+   * jestli je na začátku, nebo mu za vteřinu uteče. Počítá se ze
+   * zvukových hodin, ne z časovače — ten se opozdí a ukazatel by
+   * poskakoval.
+   */
+  postup: number;
+  /**
+   * Sampl, který se právě přehrává jen na ukázku, a kde v něm jsme.
+   *
+   * Skládat naslepo podle názvů souborů nejde — „loop_04" nikomu nic
+   * neřekne. Ukázka se pouští mimo skládačku, takže si ji člověk může
+   * poslechnout, aniž by ji musel nejdřív někam vložit.
+   */
+  nahled: { id: string; postup: number } | null;
 }
 
 const VYCHOZI_CASTI: Cast[] = [
@@ -65,6 +83,8 @@ class SkladackaService {
   private stav: StavSkladacky = {
     stopy: [],
     casti: [...VYCHOZI_CASTI],
+    postup: 0,
+    nahled: null,
     hraje: false,
     aktivniCast: 'verse',
     rezim: 'cast',
@@ -80,6 +100,15 @@ class SkladackaService {
   private zesileni = new Map<string, GainNode>();
   private odregistruj: (() => void) | null = null;
   private planovac: number | null = null;
+  /** Běh, který hlídá, kde přehrávání je. */
+  private ukazatel: number | null = null;
+  /** Naplánované části i s délkou, kvůli ukazateli postupu. */
+  private plan: { cas: number; castId: string; delka: number }[] = [];
+  private nahledZdroj: AudioBufferSourceNode | null = null;
+  private nahledBeh: number | null = null;
+  /** Spočítané vrcholky pro vlnovku. Počítat je při každém překreslení
+   *  by znamenalo projít celý buffer patnáctkrát za sekundu. */
+  private vrcholkyCache = new Map<string, number[]>();
 
   private zvuk(): AudioContext {
     if (!this.ctx) {
@@ -237,12 +266,14 @@ class SkladackaService {
 
     let kdy = ctx.currentTime + 0.15;
     const zacatek = kdy;
-    const naplanovane: { cas: number; castId: string }[] = [];
+    const naplanovane: { cas: number; castId: string; delka: number }[] = [];
 
     for (const c of casti) {
       for (let i = 0; i < Math.max(1, c.opakovani); i++) {
         let nejdelsi = 0;
-        naplanovane.push({ cas: kdy, castId: c.id });
+        // Délka se doplní až po projití stop — teď se neví.
+        const zaznam = { cas: kdy, castId: c.id, delka: 0 };
+        naplanovane.push(zaznam);
 
         for (const stopa of this.stav.stopy) {
           const sampl = stopa.vCastech[c.id];
@@ -271,7 +302,9 @@ class SkladackaService {
         }
 
         // Prázdná část by jinak trvala nula a celá stavba by proběhla naráz.
-        kdy += nejdelsi || 2;
+        const delkaCasti = nejdelsi || 2;
+        zaznam.delka = delkaCasti;
+        kdy += delkaCasti;
       }
     }
 
@@ -286,23 +319,44 @@ class SkladackaService {
       this.planovac = window.setTimeout(() => this.stop(), (konec - ctx.currentTime) * 1000 + 100);
     }
 
-    // Ukazatel právě hrající části.
-    for (const n of naplanovane) {
-      const za = (n.cas - ctx.currentTime) * 1000;
-      window.setTimeout(() => {
-        if (this.stav.hraje) {
-          this.stav = { ...this.stav, aktivniCast: n.castId };
-          this.oznam();
-        }
-      }, Math.max(0, za));
-    }
+    // Ukazatel právě hrající části i postupu v ní. Jeden běh, který se
+    // ptá zvukových hodin — na každou část zvlášť by to bylo desítky
+    // časovačů a postup by se stejně musel počítat odsud.
+    this.plan = naplanovane;
+    this.sleduj();
 
     this.stav = { ...this.stav, hraje: true };
     this.oznam();
     void zacatek;
   }
 
+  /**
+   * Sleduje, kde přehrávání je.
+   *
+   * Patnáctkrát za sekundu stačí: víc oko nepozná a překreslování mřížky
+   * není zadarmo.
+   */
+  private sleduj(): void {
+    if (this.ukazatel !== null) window.clearInterval(this.ukazatel);
+    this.ukazatel = window.setInterval(() => {
+      if (!this.stav.hraje) return;
+      const ted = this.zvuk().currentTime;
+      const beziciCast = this.plan.find((n) => ted >= n.cas && ted < n.cas + n.delka);
+      if (!beziciCast) return;
+      const postup = Math.max(0, Math.min(1, (ted - beziciCast.cas) / beziciCast.delka));
+      if (this.stav.aktivniCast !== beziciCast.castId || Math.abs(this.stav.postup - postup) > 0.005) {
+        this.stav = { ...this.stav, aktivniCast: beziciCast.castId, postup };
+        this.oznam();
+      }
+    }, 66);
+  }
+
   private zastavZdroje(): void {
+    if (this.ukazatel !== null) {
+      window.clearInterval(this.ukazatel);
+      this.ukazatel = null;
+    }
+    this.plan = [];
     if (this.planovac !== null) {
       clearTimeout(this.planovac);
       this.planovac = null;
@@ -317,10 +371,116 @@ class SkladackaService {
     this.zdroje = [];
   }
 
+  /**
+   * Pustí sampl na ukázku, nebo ho zastaví, když už hraje.
+   *
+   * Skládačku to nejdřív zastaví — dvě věci naráz by se přebíjely a
+   * z ukázky by nebylo nic slyšet.
+   */
+  public async nahledPust(sampl: Sampl): Promise<void> {
+    if (this.stav.nahled?.id === sampl.id) {
+      this.nahledStop();
+      return;
+    }
+    this.nahledStop();
+    if (this.stav.hraje) this.stop();
+
+    const ctx = this.zvuk();
+    if (ctx.state === 'suspended') await ctx.resume();
+
+    this.stav = { ...this.stav, nahled: { id: sampl.id, postup: 0 }, chyba: null };
+    this.oznam();
+
+    const buf = await this.nactiZvuk(sampl);
+    // Než se sampl stáhl, mohl člověk kliknout jinam.
+    if (!buf || this.stav.nahled?.id !== sampl.id) {
+      if (!buf && this.stav.nahled?.id === sampl.id) {
+        this.stav = { ...this.stav, nahled: null, chyba: `Sampl „${sampl.nazev}" se nepodařilo načíst.` };
+        this.oznam();
+      }
+      return;
+    }
+
+    audioBus.claim('skladacka', `Ukázka — ${sampl.nazev}`, 'Samples');
+    const zdroj = ctx.createBufferSource();
+    zdroj.buffer = buf;
+    zdroj.connect(ctx.destination);
+    const zacatek = ctx.currentTime;
+    zdroj.start();
+    zdroj.onended = () => {
+      if (this.nahledZdroj === zdroj) this.nahledStop();
+    };
+    this.nahledZdroj = zdroj;
+
+    this.nahledBeh = window.setInterval(() => {
+      const p = Math.min(1, (ctx.currentTime - zacatek) / buf.duration);
+      if (this.stav.nahled) {
+        this.stav = { ...this.stav, nahled: { id: sampl.id, postup: p } };
+        this.oznam();
+      }
+    }, 50);
+  }
+
+  public nahledStop(): void {
+    if (this.nahledBeh !== null) {
+      window.clearInterval(this.nahledBeh);
+      this.nahledBeh = null;
+    }
+    if (this.nahledZdroj) {
+      const z = this.nahledZdroj;
+      this.nahledZdroj = null;
+      z.onended = null;
+      try {
+        z.stop();
+      } catch {
+        /* mohl doběhnout sám */
+      }
+    }
+    if (this.stav.nahled) {
+      this.stav = { ...this.stav, nahled: null };
+      if (!this.stav.hraje) audioBus.release('skladacka');
+      this.oznam();
+    }
+  }
+
+  /**
+   * Vrcholky pro vlnovku, nebo null, dokud se sampl nestáhl.
+   *
+   * Bere se největší výchylka v úseku, ne průměr — průměr vlnovku
+   * srovná do čáry a z tvaru samplu nezbyde nic.
+   */
+  public vrcholky(id: string, kolik = 64): number[] | null {
+    const hotove = this.vrcholkyCache.get(id);
+    if (hotove && hotove.length === kolik) return hotove;
+
+    const buf = this.zvuky.get(id);
+    if (!buf) return null;
+
+    const data = buf.getChannelData(0);
+    const krok = Math.max(1, Math.floor(data.length / kolik));
+    const ven: number[] = [];
+    let nejvic = 0;
+    for (let i = 0; i < kolik; i++) {
+      let vrchol = 0;
+      const od = i * krok;
+      const do_ = Math.min(data.length, od + krok);
+      for (let j = od; j < do_; j++) {
+        const v = Math.abs(data[j]);
+        if (v > vrchol) vrchol = v;
+      }
+      ven.push(vrchol);
+      if (vrchol > nejvic) nejvic = vrchol;
+    }
+    // Normalizace, ať je tiše nahraný sampl vidět stejně dobře.
+    const vysledek = nejvic > 0 ? ven.map((v) => v / nejvic) : ven;
+    this.vrcholkyCache.set(id, vysledek);
+    return vysledek;
+  }
+
   public stop(): void {
     this.zastavZdroje();
     if (this.stav.hraje) {
-      this.stav = { ...this.stav, hraje: false };
+      this.stav = { ...this.stav, hraje: false, postup: 0 };
       audioBus.release('skladacka');
       this.oznam();
     }
@@ -334,3 +494,24 @@ class SkladackaService {
 }
 
 export const skladackaService = new SkladackaService();
+
+/**
+ * Jak vybarvit políčko v mřížce.
+ *
+ * Když se hraje, zelená se v běžící části plní zleva a zbytek zůstává
+ * šedý — svítící část sama o sobě neřekne, jestli je člověk na jejím
+ * začátku, nebo mu za vteřinu uteče. Mimo přehrávání je políčko se
+ * samplem celé zelené jako dřív.
+ */
+export function pozadiPolicka(
+  maSampl: boolean,
+  bezi: boolean,
+  postup: number
+): CSSProperties | undefined {
+  if (!maSampl || !bezi) return undefined;
+  const kde = Math.round(Math.max(0, Math.min(1, postup)) * 100);
+  return {
+    backgroundImage:
+      `linear-gradient(to right, rgba(48,209,88,0.5) ${kde}%, rgba(255,255,255,0.05) ${kde}%)`,
+  };
+}
