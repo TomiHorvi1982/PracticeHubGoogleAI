@@ -64,10 +64,10 @@ export const PadyBicich: React.FC = () => {
     const ulozene = padyService.ulozeneAssety();
     const token = authService.getCurrentSession()?.token;
     if (!token) return;
-    for (const [padId, { assetId, nazev }] of Object.entries(ulozene)) {
+    for (const [padId, { assetId, nazev, smycka }] of Object.entries(ulozene)) {
       void fetch(`/api/assets/${assetId}/content`, { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => (r.ok ? r.arrayBuffer() : null))
-        .then((b) => b && padyService.nastavVzorek(padId, b, nazev, assetId))
+        .then((b) => b && padyService.nastavVzorek(padId, b, nazev, assetId, smycka))
         .catch(() => { /* zvuk se mezitím mohl smazat z knihovny */ });
     }
   }, []);
@@ -114,7 +114,10 @@ export const PadyBicich: React.FC = () => {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      await padyService.nastavVzorek(padId, await res.arrayBuffer(), a.name, a.id);
+      // Smyčka se pozná podle toho, odkud v knihovně je, ne podle délky.
+      await padyService.nastavVzorek(
+        padId, await res.arrayBuffer(), a.name, a.id, a.category === 'drum_loop',
+      );
       setVybiram(null);
     } catch (e: any) {
       setChyba(`Zvuk se nepodařilo načíst: ${e?.message || e}`);
@@ -318,9 +321,12 @@ export const PadyBicich: React.FC = () => {
               </div>
 
               <div className="text-[10px] text-neutral-500 truncate h-4 flex items-center gap-1">
-                {stav.delky[p.id] >= 1.5 && (
-                  <span className="text-[9px] px-1 rounded bg-[#0A84FF]/20 text-[#5AC8FA] shrink-0">
-                    smyčka {stav.delky[p.id].toFixed(1)} s
+                {stav.smycky[p.id] && (
+                  <span
+                    className="text-[9px] px-1 rounded bg-[#0A84FF]/20 text-[#5AC8FA] shrink-0"
+                    title="Smyčka — při dalším úderu se utne, aby přes sebe nehrály dvě"
+                  >
+                    smyčka {stav.delky[p.id] ? `${stav.delky[p.id].toFixed(1)} s` : ''}
                   </span>
                 )}
                 <span className="truncate">{stav.vzorky[p.id] || 'zatím bez zvuku'}</span>

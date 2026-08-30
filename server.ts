@@ -1514,7 +1514,15 @@ export async function createApp() {
    * neříká nic.
    */
   const NASTROJ_KATEGORIE: Record<string, string[]> = {
-    bicí: ['drum_loop', 'drum_kit_sample'],
+    /**
+     * Bicí ve skládačce znamená smyčky, ne jednotlivé rány.
+     *
+     * Dřív se vracelo obojí a jednorázových vzorků je třikrát víc, takže
+     * zaplnily seznam a smyčky se v něm ztratily. Kopák sám o sobě navíc
+     * není, z čeho by se dala poskládat část skladby — od toho jsou pady
+     * v sekci Bicí, které si o `drum_kit_sample` říkají samy.
+     */
+    bicí: ['drum_loop'],
     basa: ['bass_sample'],
     kytara: ['guitar_sample'],
     vokal: ['vocal_sample'],

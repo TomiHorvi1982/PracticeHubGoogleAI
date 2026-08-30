@@ -43,14 +43,17 @@ export interface StavPadu {
   mrizka: Record<string, boolean[]>;
   /** Co na kterém padu visí — název souboru, kvůli popisku. */
   vzorky: Record<string, string>;
-  /**
-   * Jak je zvuk na padu dlouhý, ve vteřinách.
-   *
-   * Na pad se dá pověsit jednorázová rána i celá smyčka a v seznamu
-   * knihovny to od sebe nikdo nepozná. Podle délky je to vidět na první
-   * pohled a řídí se podle ní i chování při opakovaném úderu.
-   */
+  /** Jak je zvuk na padu dlouhý, ve vteřinách. */
   delky: Record<string, number>;
+  /**
+   * Které pady drží smyčku, ne ránu.
+   *
+   * Neodhaduje se to z délky — to byl omyl. Činel dozvučí devět vteřin a
+   * kopák s ocasem pět, takže podle délky vycházely jednorázové rány jako
+   * smyčky a při rychlém rytmu se navzájem utínaly po sto milisekundách.
+   * Rozhoduje kategorie v knihovně, protože ta o souboru něco ví.
+   */
+  smycky: Record<string, boolean>;
   nahrava: boolean;
   klikani: boolean;
 }
@@ -74,6 +77,8 @@ class PadyService {
   private buffery: Record<string, AudioBuffer> = {};
   /** Co na padu právě hraje — kvůli utnutí smyčky při dalším úderu. */
   private zniciZdroje: Record<string, AudioBufferSourceNode> = {};
+  /** Které pady nesou smyčku. */
+  private jeSmyckou: Record<string, boolean> = {};
   private nazvy: Record<string, string> = {};
   private mrizka = prazdnaMrizka();
 
@@ -119,6 +124,7 @@ class PadyService {
       delky: Object.fromEntries(
         Object.entries(this.buffery).map(([pad, buf]) => [pad, buf.duration])
       ),
+      smycky: { ...this.jeSmyckou },
       nahrava: this.nahrava,
       klikani: this.klikani,
     };
@@ -135,10 +141,13 @@ class PadyService {
     data: ArrayBuffer,
     nazev: string,
     assetId?: string,
+    jeSmycka = false,
   ): Promise<void> {
     const buf = await this.kontext().decodeAudioData(data.slice(0));
     this.buffery[padId] = buf;
     this.nazvy[padId] = nazev;
+    if (jeSmycka) this.jeSmyckou[padId] = true;
+    else delete this.jeSmyckou[padId];
     if (assetId) this.assety[padId] = assetId;
     else delete this.assety[padId];
     this.uloz();
@@ -146,10 +155,12 @@ class PadyService {
   }
 
   /** Co bylo na padech naposled — komponenta si zvuky dotáhne sama. */
-  public ulozeneAssety(): Record<string, { assetId: string; nazev: string }> {
-    const out: Record<string, { assetId: string; nazev: string }> = {};
+  public ulozeneAssety(): Record<string, { assetId: string; nazev: string; smycka: boolean }> {
+    const out: Record<string, { assetId: string; nazev: string; smycka: boolean }> = {};
     for (const [pad, assetId] of Object.entries(this.assety)) {
-      if (!this.buffery[pad]) out[pad] = { assetId, nazev: this.nazvy[pad] || '' };
+      if (!this.buffery[pad]) {
+        out[pad] = { assetId, nazev: this.nazvy[pad] || '', smycka: !!this.jeSmyckou[pad] };
+      }
     }
     return out;
   }
@@ -158,7 +169,10 @@ class PadyService {
     try {
       localStorage.setItem(
         KLIC,
-        JSON.stringify({ mrizka: this.mrizka, assety: this.assety, nazvy: this.nazvy, bpm: this.bpm }),
+        JSON.stringify({
+          mrizka: this.mrizka, assety: this.assety, nazvy: this.nazvy,
+          smycky: this.jeSmyckou, bpm: this.bpm,
+        }),
       );
     } catch {
       /* plné nebo zakázané úložiště není důvod přestat hrát */
@@ -176,6 +190,7 @@ class PadyService {
       }
       if (d.assety) this.assety = d.assety;
       if (d.nazvy) this.nazvy = d.nazvy;
+      if (d.smycky) this.jeSmyckou = d.smycky;
       if (d.bpm) this.bpm = d.bpm;
     } catch {
       /* co se nepřečte, prostě začne prázdné */
@@ -185,6 +200,7 @@ class PadyService {
   public sundejVzorek(padId: string): void {
     delete this.buffery[padId];
     delete this.zniciZdroje[padId];
+    delete this.jeSmyckou[padId];
     delete this.nazvy[padId];
     delete this.assety[padId];
     this.uloz();
@@ -195,18 +211,8 @@ class PadyService {
     return Boolean(this.buffery[padId]);
   }
 
-  /**
-   * Kde končí rána a začíná smyčka.
-   *
-   * Delší zvuk se při dalším úderu utne, kratší se nechá dohrát. Dvě
-   * smyčky přes sebe je kaše; useknutý dozvuk činelu při rychlé dvojhmatu
-   * je slyšet stejně špatně, a ten se proto neutíná.
-   */
-  private static readonly SMYCKA_OD = 1.5;
-
   public jeSmycka(padId: string): boolean {
-    const buf = this.buffery[padId];
-    return !!buf && buf.duration >= PadyService.SMYCKA_OD;
+    return !!this.jeSmyckou[padId];
   }
 
   /** Přehraje pad v daný čas; bez času hned. */
@@ -215,7 +221,10 @@ class PadyService {
     if (!buf) return;
     const ctx = this.kontext();
 
-    if (buf.duration >= PadyService.SMYCKA_OD) {
+    // Utíná se jen smyčka. Dvě smyčky přes sebe je kaše, ale useknutá
+    // rána je horší: kopák s dlouhým ocasem by se v šestnáctinách usekl
+    // po stovce milisekund a z bicích by zbylo cvakání.
+    if (this.jeSmyckou[padId]) {
       const bezici = this.zniciZdroje[padId];
       if (bezici) {
         try {
