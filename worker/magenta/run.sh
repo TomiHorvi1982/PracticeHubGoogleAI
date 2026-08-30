@@ -49,6 +49,8 @@ fi
 #                   sledování akordů, ale víc režie. Výchozí 5 (0,2 s)
 #   MAGENTA_BITS    kvantizace vah, třeba 8. Prázdné = exportovaný model
 #   MAGENTA_CFG_NOTES  jak silně se držet podaných akordů (0–8), výchozí 2
+#   MAGENTA_TEMP    jak divoce hraje (výchozí 1.3); níž uměřeněji
+#   MAGENTA_TOPK    z kolika možností vybírá (výchozí 40); míň = předvídatelněji
 #
 # Například na maximum přesnosti:
 #   MAGENTA_FRAMES=2 MAGENTA_CFG_NOTES=3 ./worker/magenta/run.sh

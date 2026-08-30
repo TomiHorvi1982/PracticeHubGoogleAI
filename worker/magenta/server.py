@@ -55,6 +55,15 @@ BITY = os.environ.get("MAGENTA_BITS", "").strip()
 # tlačí sólistu do našich akordů. Dá se měnit za chodu z appky.
 CFG_NOTY = float(os.environ.get("MAGENTA_CFG_NOTES", "2.0"))
 
+# Jak divoce hraje.
+#
+# Na kvalitu zvuku má tohle větší vliv než velikost modelu, protože větší
+# model tady stejně nestíhá. Nižší teplota a menší `top_k` znamenají
+# uměřenější, předvídatelnější fráze; vyšší hodnoty odvážnější sólo,
+# které ale častěji ujede mimo.
+TEPLOTA = float(os.environ.get("MAGENTA_TEMP", "1.3"))
+TOP_K = int(os.environ.get("MAGENTA_TOPK", "40"))
+
 # Klavírní role: 128 tónů, ke každému hodnota z knihy o čtyřech
 # (`PIANOROLL_WITH_ONSETS`: rvq_levels=128, codebook_size=4).
 #
@@ -107,8 +116,8 @@ class Solista:
 
             self._mrt = MagentaRT2System(
                 size=MODEL,
-                temperature=1.3,
-                top_k=40,
+                temperature=TEPLOTA,
+                top_k=TOP_K,
                 cfg_scales=meritka,
                 bits=int(BITY),
             )
@@ -117,7 +126,7 @@ class Solista:
             from magenta_rt.mlx.system import MagentaRT2SystemStdMlxfn
 
             self._mrt = MagentaRT2SystemStdMlxfn(
-                size=MODEL, temperature=1.3, top_k=40, cfg_scales=meritka
+                size=MODEL, temperature=TEPLOTA, top_k=TOP_K, cfg_scales=meritka
             )
             log.info("Model %s (exportovaný).", MODEL)
 

@@ -29,6 +29,8 @@ Všechno se nastavuje proměnnými prostředí, ne v kódu:
 | `MAGENTA_FRAMES` | `5` | Snímků na kus; 25 = 1 s. Míň = přesnější sledování akordů, víc režie |
 | `MAGENTA_BITS` | prázdné | Kvantizace vah (např. `8`) — rychlejší, o kousek míň přesné |
 | `MAGENTA_CFG_NOTES` | `2.0` | Jak silně se držet akordů kapely; mění se i posuvníkem v appce |
+| `MAGENTA_TEMP` | `1.3` | Jak divoce hraje. Níž uměřeněji, výš odvážněji a častěji mimo |
+| `MAGENTA_TOPK` | `40` | Z kolika možností si vybírá. Menší číslo = předvídatelnější fráze |
 
 Na maximum přesnosti:
 
@@ -52,10 +54,22 @@ zvukových hodinách.
 
 ## Naměřeno na M1 Pro / 16 GB
 
-| Model | Výpočet na 1 s zvuku | Stíhá? |
+| Varianta | Výpočet na 1 s zvuku | Stíhá? |
 |---|---|---|
-| `mrt2_small` | 0,61 s | ano, s rezervou |
-| `mrt2_base` | 1,40 s | ne, trvale se opožďuje |
+| `mrt2_small` exportovaný | 0,61 s | ano, s rezervou |
+| `mrt2_small` kvantizovaný na 8 bitů | 0,84 s | ano, ale pomaleji |
+| `mrt2_small` kvantizovaný na 4 bity | 0,83 s | totéž — bity nerozhodují |
+| `mrt2_base` exportovaný | 1,40 s | ne, trvale se opožďuje |
+
+Kvantizace tady nepomáhá: mezi čtyřmi a osmi bity není rozdíl, takže
+model není omezený propustností paměti, ale samotným počítáním. Rychlost
+dělá export do `.mlxfn`, ne přesnost vah — proto je kvantizovaná varianta
+pomalejší než exportovaná. Na `mrt2_base` z toho plyne, že ho na tomhle
+stroji nerozjede ani kvantizace; chybí mu k reálnému času víc než
+dvojnásobek.
+
+Na to, jak sólista zní, má proto větší vliv styl, `MAGENTA_TEMP` a
+`MAGENTA_TOPK` než volba modelu.
 
 Přes službu i s posíláním po WebSocketu vychází `mrt2_small` na 1,66×
 reálného času. Server ten náskok schválně nevyužívá a generuje na
