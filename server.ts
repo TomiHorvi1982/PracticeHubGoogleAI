@@ -3985,6 +3985,75 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     res.json({ tagy: data || [] });
   });
 
+  // --- DEEZER: HLEDÁNÍ SKLADEB A JEJICH ÚDAJŮ ---
+  /**
+   * Veřejný katalog Deezeru na doplnění toho, co o skladbě nevíme.
+   *
+   * Bere se jen to, co Deezer sám veřejně vydává: název, interpret,
+   * album, délka, obal, ISRC, tempo a třicetivteřinová ukázka, kterou
+   * nabízí k poslechu. Celé nahrávky ne — ty jsou licencované a stahovat
+   * je odsud by znamenalo obejít to, na čem stojí.
+   *
+   * Jde přes server, ne z prohlížeče: tempo leží až v detailu stopy,
+   * takže by to bylo třináct dotazů z každé klávesnice, a Deezer má
+   * omezení na počet volání.
+   */
+  app.get('/api/deezer/hledat', requireAuth, async (req, res) => {
+    const dotaz = String(req.query.q || '').trim();
+    if (!dotaz) return res.json({ skladby: [] });
+
+    try {
+      const odpoved = await fetch(
+        `https://api.deezer.com/search?q=${encodeURIComponent(dotaz)}&limit=12`
+      );
+      if (!odpoved.ok) throw new Error(`Deezer vrátil ${odpoved.status}`);
+      const data: any = await odpoved.json();
+      if (data?.error) throw new Error(String(data.error?.message || 'Deezer odmítl dotaz.'));
+
+      const zaklad: any[] = Array.isArray(data?.data) ? data.data : [];
+
+      /**
+       * Tempo je až v detailu stopy, ne ve výsledcích hledání.
+       *
+       * Doptává se paralelně; sekvenčně by dvanáct skladeb trvalo přes
+       * vteřinu. Když detail nedorazí, položka zůstane bez tempa —
+       * Deezer ho stejně nemá u všeho.
+       */
+      const skladby = await Promise.all(
+        zaklad.map(async (t) => {
+          let bpm = 0;
+          let rok = '';
+          try {
+            const d = await fetch(`https://api.deezer.com/track/${t.id}`);
+            if (d.ok) {
+              const detail: any = await d.json();
+              bpm = Math.round(Number(detail?.bpm) || 0);
+              rok = String(detail?.release_date || '').slice(0, 4);
+            }
+          } catch {
+            /* bez detailu se položka ukáže bez tempa */
+          }
+          return {
+            id: String(t.id),
+            nazev: String(t.title || ''),
+            interpret: String(t.artist?.name || ''),
+            album: String(t.album?.title || ''),
+            delka: Number(t.duration) || 0,
+            obal: String(t.album?.cover_medium || ''),
+            ukazka: String(t.preview || ''),
+            isrc: String(t.isrc || ''),
+            bpm,
+            rok,
+          };
+        })
+      );
+
+      res.json({ skladby });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Deezer neodpověděl.' });
+    }
+  });
+
   return { app, PORT };
 }
 

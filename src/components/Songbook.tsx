@@ -464,21 +464,26 @@ export const Songbook: React.FC<SongbookProps> = ({
                 void songDatabaseService.saveSong(nova);
                 if (activeSong?.id === songId) setActiveSong(nova);
               }}
-              onPridat={(interpret, nazev) => {
+              onPridat={async (interpret, nazev, doplnky) => {
                 const nova: Song = {
                   id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
                   title: nazev,
                   artist: interpret,
                   key: '',
+                  // Tempo od zdroje, když ho zná. Ušetří to hledání, které
+                  // se stejně muselo udělat ručně před prvním cvičením.
+                  ...(doplnky?.bpm ? { bpm: doplnky.bpm } : {}),
                   content: '',
                   chordsUsed: [],
                   createdAt: Date.now(),
                   updatedAt: Date.now(),
                 };
-                void songDatabaseService.saveSong(nova).then((ulozena) => {
-                  spustDoplneni(ulozena.id);
-                  setToastMsg(`„${nazev}" přidáno. Sháním k tomu materiály…`);
-                });
+                // Vrací se dál, aby zdroj poznal, jestli uložení prošlo.
+                // Tlačítko, které hlásí „přidáno" i po chybě, je horší než
+                // žádné.
+                const ulozena = await songDatabaseService.saveSong(nova);
+                spustDoplneni(ulozena.id);
+                setToastMsg(`„${nazev}" přidáno. Sháním k tomu materiály…`);
               }}
             />
 

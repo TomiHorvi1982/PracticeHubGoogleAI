@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Radio, Disc3, Youtube } from 'lucide-react';
+import { Radio, Disc3, Youtube, Music2 } from 'lucide-react';
 import { Song, YouTubeVideo } from '../../types';
 import { LastFmPanel } from './LastFmPanel';
+import { DeezerPanel } from './DeezerPanel';
 import { MediaCenterSection } from '../MediaCenter/MediaCenterSection';
 import { YouTubeSection } from '../YouTubeSection';
 
 interface Props {
-  /** Přidání do knihovny. Doplnění materiálů se rozjede samo. */
-  onPridat: (interpret: string, nazev: string) => void;
+  /**
+   * Přidání do knihovny. Doplnění materiálů se rozjede samo.
+   *
+   * `doplnky` nese, co zdroj o skladbě ví navíc — třeba tempo. Ne každý
+   * zdroj to má, proto je volitelné.
+   */
+  onPridat: (interpret: string, nazev: string, doplnky?: { bpm?: number }) => void | Promise<void>;
   songs: Song[];
   activeSong: Song | null;
   onVybratSkladbu: (s: Song) => void;
@@ -15,10 +21,11 @@ interface Props {
   onUlozitVidea: (songId: string, videa: YouTubeVideo[]) => void;
 }
 
-type Zdroj = 'lastfm' | 'mediacenter' | 'youtube';
+type Zdroj = 'lastfm' | 'deezer' | 'mediacenter' | 'youtube';
 
 const ZDROJE: { id: Zdroj; popis: string; ikona: React.FC<{ className?: string }>; co: string }[] = [
   { id: 'lastfm', popis: 'Last.fm', ikona: Radio, co: 'žebříčky, styly, alba' },
+  { id: 'deezer', popis: 'Deezer', ikona: Music2, co: 'tempo, délka, ukázka' },
   { id: 'mediacenter', popis: 'Media Center', ikona: Disc3, co: 'fronta a knihovna' },
   { id: 'youtube', popis: 'YouTube Jam', ikona: Youtube, co: 'videa a backing tracky' },
 ];
@@ -26,12 +33,12 @@ const ZDROJE: { id: Zdroj; popis: string; ikona: React.FC<{ className?: string }
 /**
  * Základna pro hledání hudby venku.
  *
- * Tři místa, kde se dá hledat a poslouchat, pod jednou střechou. Dřív byla
- * každá vlastní položkou ve vrchní liště, takže hledání jedné písně
- * znamenalo přepínat sekce a pokaždé začít znovu — a přitom všechny tři
+ * Čtyři místa, kde se dá hledat a poslouchat, pod jednou střechou. Dřív
+ * byla každá vlastní položkou ve vrchní liště, takže hledání jedné písně
+ * znamenalo přepínat sekce a pokaždé začít znovu — a přitom všechny
  * odpovídají na stejnou otázku: co si pustit a co si přidat do knihovny.
  *
- * Otevřený je vždycky jeden. Všechny tři naráz by daly tři přehrávače a
+ * Otevřený je vždycky jeden. Všechny naráz by daly čtyři přehrávače a
  * pár tisíc řádků na jednu obrazovku.
  */
 export const ObjevSkladby: React.FC<Props> = ({
@@ -82,6 +89,8 @@ export const ObjevSkladby: React.FC<Props> = ({
       </div>
 
       {zdroj === 'lastfm' && <LastFmPanel onPridat={onPridat} />}
+
+      {zdroj === 'deezer' && <DeezerPanel onPridat={onPridat} />}
 
       {/* Media Center a YouTube Jam byly celé stránky. Uvnitř karty
           dostanou vlastní výřez s rolováním, ať karta neroste do nekonečna. */}
