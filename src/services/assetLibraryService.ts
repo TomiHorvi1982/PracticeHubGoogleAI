@@ -77,6 +77,12 @@ class AssetLibraryService {
       subcategory?: string;
       /** Složka, ze které se sbírka nahrávala (jen MIDI a podobné sbírky). */
       slozka?: string;
+      /** Sbírka, ze které soubor pochází. */
+      sbirka?: string;
+      /** Jen soubory s tímhle štítkem. */
+      tag?: string;
+      /** Podsložka ve zdrojovém stromu. */
+      zdrojovaSlozka?: string;
       search?: string;
       limit?: number;
       offset?: number;
@@ -88,6 +94,9 @@ class AssetLibraryService {
     if (params.category) qs.set('category', params.category);
     if (params.subcategory) qs.set('subcategory', params.subcategory);
     if (params.slozka) qs.set('slozka', params.slozka);
+    if (params.sbirka) qs.set('sbirka', params.sbirka);
+    if (params.tag) qs.set('tag', params.tag);
+    if (params.zdrojovaSlozka) qs.set('zdrojovaSlozka', params.zdrojovaSlozka);
     if (params.search) qs.set('search', params.search);
     if (params.limit !== undefined) qs.set('limit', String(params.limit));
     if (params.offset !== undefined) qs.set('offset', String(params.offset));
@@ -116,7 +125,9 @@ class AssetLibraryService {
     category: string,
     assetType: LibraryAsset['asset_type'],
     visibility: 'private' | 'global' = 'private',
-    subcategory?: string | null
+    subcategory?: string | null,
+    /** Odkud soubor je — sbírka, podsložka ve zdrojovém stromu, štítky. */
+    puvod?: { sbirka?: string; zdrojovaSlozka?: string; tagy?: string[] }
   ): Promise<LibraryAsset> {
     const initRes = await authorizedFetch('/api/assets/upload-url', {
       method: 'POST',
@@ -128,6 +139,9 @@ class AssetLibraryService {
         size_bytes: file.size,
         visibility,
         subcategory: subcategory || null,
+        sbirka: puvod?.sbirka || null,
+        zdrojovaSlozka: puvod?.zdrojovaSlozka || null,
+        tagy: puvod?.tagy || null,
       }),
     });
     const initData = await initRes.json();

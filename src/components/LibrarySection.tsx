@@ -10,6 +10,7 @@ import { MistoVUlozisti } from './knihovna/MistoVUlozisti';
 import { PohledSamples } from './knihovna/PohledSamples';
 import { UzelStromu, PODLE_ID, navrhniPodkategorii, nazevKategorie } from '../services/knihovnaStrom';
 import { prevedNaMp3, jePrevoditelny, Kvalita } from '../services/prevodNaMp3';
+import { SbirkyPanel } from './knihovna/SbirkyPanel';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -118,7 +119,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    * sedne do tempa. Proto má vlastní pohled — v seznamu souborů by to byly
    * jen další řádky.
    */
-  const [pohled, setPohled] = useState<'soubory' | 'samples'>('soubory');
+  const [pohled, setPohled] = useState<'soubory' | 'samples' | 'sbirky'>('soubory');
 
   /**
    * Zmenšovat zvuky před nahráním?
@@ -787,7 +788,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
         <div className="flex items-center gap-2">
         <div className="flex rounded-xl bg-white/[0.04] border border-white/10 p-0.5">
-          {(['soubory', 'samples'] as const).map((p) => (
+          {(['soubory', 'samples', 'sbirky'] as const).map((p) => (
             <button
               key={p}
               onClick={() => setPohled(p)}
@@ -795,7 +796,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 pohled === p ? 'bg-[#0A84FF] text-white' : 'text-neutral-400 hover:text-white'
               }`}
             >
-              {p === 'soubory' ? 'Soubory' : 'Samples'}
+              {p === 'soubory' ? 'Soubory' : p === 'samples' ? 'Samples' : 'Sbírky'}
             </button>
           ))}
         </div>
@@ -884,6 +885,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       <MistoVUlozisti jsemSpravce={jsemSpravce} />
 
       {pohled === 'samples' && <PohledSamples jsemSpravce={jsemSpravce} />}
+
+      {pohled === 'sbirky' && <SbirkyPanel />}
 
       {pohled === 'soubory' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">

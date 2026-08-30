@@ -492,7 +492,10 @@ export async function createApp() {
    * povolený náš původ; to je nastavení u Cloudflare, ne v kódu.
    */
   app.post('/api/assets/upload-url', requireAuth, async (req, res) => {
-    const { name, mime_type, category, asset_type, size_bytes, visibility, subcategory } = req.body;
+    const {
+      name, mime_type, category, asset_type, size_bytes, visibility, subcategory,
+      sbirka, zdrojovaSlozka, tagy,
+    } = req.body;
     if (!name || !category || !asset_type) {
       return res.status(400).json({ error: 'name, category a asset_type jsou povinné.' });
     }
@@ -539,6 +542,19 @@ export async function createApp() {
         // nezařazené a někdo ho tam musí najít a přetáhnout — a čím víc
         // jich tam leží, tím míň se to dělá.
         subcategory: subcategory || null,
+        /**
+         * Odkud soubor přišel.
+         *
+         * Zapisuje se při nahrání, protože později se to nezjistí: v
+         * úložišti leží soubory pod jménem podle id a cesta z disku je
+         * pryč. Sbírka drží celou dávku pohromadě i po roztřídění do
+         * různých kategorií, zdrojová složka zachová strom uvnitř ní.
+         */
+        metadata: {
+          ...(sbirka ? { sbirka: String(sbirka) } : {}),
+          ...(zdrojovaSlozka ? { zdrojovaSlozka: String(zdrojovaSlozka) } : {}),
+          ...(Array.isArray(tagy) && tagy.length ? { tagy: tagy.map(String) } : {}),
+        },
         status: 'pending',
       })
       .select()
@@ -748,9 +764,20 @@ export async function createApp() {
       query = query.or(`name.ilike.${vzor},original_filename.ilike.${vzor}`);
     }
 
-    // Složka, ze které se sbírka nahrávala. Drží se v `legacy_id`, takže
-    // se filtruje podle něj — jinak by šlo listovat jen tou stránkou,
-    // kterou prohlížeč zrovna má.
+    // Sbírka, štítek a podsložka ze zdrojového stromu.
+    const sbirka = req.query.sbirka as string | undefined;
+    if (sbirka) query = query.eq('metadata->>sbirka', sbirka);
+
+    const tag = req.query.tag as string | undefined;
+    // `contains` na jsonb: hledá se soubor, jehož pole štítků ten štítek má.
+    if (tag) query = query.contains('metadata', { tagy: [tag] });
+
+    const zdrojovaSlozka = req.query.zdrojovaSlozka as string | undefined;
+    if (zdrojovaSlozka) query = query.eq('metadata->>zdrojovaSlozka', zdrojovaSlozka);
+
+    // Složka, ze které se stará sbírka nahrávala. Drží se v `legacy_id`,
+    // takže se filtruje podle něj — jinak by šlo listovat jen tou
+    // stránkou, kterou prohlížeč zrovna má.
     const slozka = req.query.slozka as string | undefined;
     if (slozka) {
       const vzor = `%/${slozka.replace(/[\\%_]/g, (c) => `\\${c}`)}/%`;
@@ -3802,6 +3829,160 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
   app.delete('/api/texty/prepis/:id', requireAuth, (req, res) => {
     prepisy.delete(req.params.id);
     res.json({ success: true });
+  });
+
+  // --- SBÍRKY A ŠTÍTKY ---
+  /**
+   * Sbírka je „odkud to je", kategorie „co to je".
+   *
+   * Stažená banka se po roztřídění rozpadne do několika kategorií a v
+   * jedné kategorii pak leží kusy z deseti bank. Sbírka je jediné, co po
+   * tom třídění pořád drží dohromady věci, které spolu byly nahrané a
+   * ladí spolu.
+   */
+  app.get('/api/sbirky', requireAuth, async (_req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin
+      .from('sbirky')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) return res.status(500).json({ error: error.message });
+
+    // Počty souborů po sbírkách jedním dotazem — na sto sbírek by to
+    // jinak bylo sto dotazů při každém otevření knihovny. Sčítá se v
+    // databázi, protože PostgREST agregace na straně klienta odmítá.
+    const { data: pocty } = await admin.rpc('pocty_sbirek');
+    const mapa = new Map<string, number>(
+      Array.isArray(pocty) ? pocty.map((p: any) => [String(p.sbirka), Number(p.pocet)]) : [],
+    );
+
+    res.json({
+      sbirky: (data || []).map((s: any) => ({ ...s, souboru: mapa.get(s.id) ?? 0 })),
+    });
+  });
+
+  app.post('/api/sbirky', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Sbírky zakládá jen správce.' });
+    }
+    const nazev = String(req.body?.nazev || '').trim();
+    if (!nazev) return res.status(400).json({ error: 'Sbírka musí mít název.' });
+
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin
+      .from('sbirky')
+      .insert({
+        nazev,
+        barva: String(req.body?.barva || '#FF9F0A'),
+        zdroj: req.body?.zdroj ? String(req.body.zdroj) : null,
+        owner_id: null,
+      })
+      .select()
+      .single();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ sbirka: data });
+  });
+
+  app.patch('/api/sbirky/:id', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Sbírky mění jen správce.' });
+    }
+    const zmeny: Record<string, unknown> = {};
+    if (typeof req.body?.nazev === 'string' && req.body.nazev.trim()) zmeny.nazev = req.body.nazev.trim();
+    if (typeof req.body?.barva === 'string') zmeny.barva = req.body.barva;
+    if (!Object.keys(zmeny).length) return res.status(400).json({ error: 'Není co měnit.' });
+
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin.from('sbirky').update(zmeny).eq('id', req.params.id).select().single();
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ sbirka: data });
+  });
+
+  /**
+   * Zruší sbírku, soubory nechá být.
+   *
+   * Smazat s ní i soubory by znamenalo, že překlep v názvu stojí sedm set
+   * vzorků. Soubory jen ztratí zařazení.
+   */
+  app.delete('/api/sbirky/:id', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Sbírky maže jen správce.' });
+    }
+    const admin = getSupabaseAdmin();
+    const { error } = await admin.from('sbirky').delete().eq('id', req.params.id);
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ success: true });
+  });
+
+  /**
+   * Hromadná úprava souborů.
+   *
+   * Třídit se dá jen po dávkách — kdo přehazuje pět set vzorků po jednom,
+   * to nedodělá. Mění se jen to, co přijde: co v požadavku není, zůstane.
+   */
+  app.post('/api/assets/hromadne', requireAuth, async (req, res) => {
+    if (!(await isProfileAdmin(req.user!.id))) {
+      return res.status(403).json({ error: 'Knihovnu třídí jen správce.' });
+    }
+    const ids: string[] = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : [];
+    if (!ids.length) return res.status(400).json({ error: 'Chybí soubory.' });
+    if (ids.length > 1000) return res.status(400).json({ error: 'Najednou nejvýš tisíc souborů.' });
+
+    const admin = getSupabaseAdmin();
+    const zmeny: Record<string, unknown> = {};
+    if (typeof req.body?.category === 'string' && req.body.category) zmeny.category = req.body.category;
+    if (req.body?.subcategory !== undefined) {
+      zmeny.subcategory = req.body.subcategory === null ? null : String(req.body.subcategory);
+    }
+
+    if (Object.keys(zmeny).length) {
+      const { error } = await admin.from('assets').update(zmeny).in('id', ids);
+      if (error) return res.status(500).json({ error: error.message });
+    }
+
+    /**
+     * Štítky a sbírka sedí v metadatech, takže se nedají přepsat jedním
+     * `update` — jeho hodnota by smazala všechno ostatní, co v nich je
+     * (tempo, tónina, vrstva sady). Čtou se a slévají se po řádcích.
+     */
+    const pridatTagy: string[] = Array.isArray(req.body?.pridatTagy) ? req.body.pridatTagy.map(String) : [];
+    const odebratTagy: string[] = Array.isArray(req.body?.odebratTagy) ? req.body.odebratTagy.map(String) : [];
+    const novaSbirka = req.body?.sbirka;
+
+    if (pridatTagy.length || odebratTagy.length || novaSbirka !== undefined) {
+      const { data: radky, error } = await admin.from('assets').select('id, metadata').in('id', ids);
+      if (error) return res.status(500).json({ error: error.message });
+
+      for (const r of radky || []) {
+        const meta = { ...((r.metadata || {}) as Record<string, unknown>) };
+        const stare = Array.isArray(meta.tagy) ? (meta.tagy as string[]) : [];
+        const nove = [...new Set([...stare, ...pridatTagy])].filter((t) => !odebratTagy.includes(t));
+        if (nove.length) meta.tagy = nove;
+        else delete meta.tagy;
+
+        if (novaSbirka !== undefined) {
+          if (novaSbirka) meta.sbirka = String(novaSbirka);
+          else delete meta.sbirka;
+        }
+        await admin.from('assets').update({ metadata: meta }).eq('id', r.id);
+      }
+    }
+
+    res.json({ success: true, upraveno: ids.length });
+  });
+
+  /**
+   * Štítky, které se v knihovně používají, i s počty.
+   *
+   * Vlastní cesta, ne `/api/assets/tagy`: tam už sedí `/api/assets/:id`
+   * a Express by „tagy" vzal jako číslo souboru — odpovědí bylo „Asset
+   * nenalezen".
+   */
+  app.get('/api/tagy', requireAuth, async (_req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data, error } = await admin.rpc('pocty_tagu');
+    if (error) return res.status(500).json({ error: error.message });
+    res.json({ tagy: data || [] });
   });
 
   return { app, PORT };
