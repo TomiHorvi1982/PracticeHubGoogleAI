@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Mic, MicOff, Piano, Keyboard, AlertCircle } from 'lucide-react';
 import { vstupHrace, ZdrojVstupu } from '../../../services/vstupHrace';
 import { poslechKytary } from '../../../services/poslechKytary';
+import { KytaraFader } from '../../mixer/KytaraFader';
 
 /**
  * Odkud se bere, co hráč hraje.
@@ -65,6 +66,14 @@ export const VstupPanel: React.FC<{
         <p className="text-[11px] text-[#FF453A] flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
+      )}
+
+      {/* Když se hraje na nástroj, má být vidět, jak silný signál chodí —
+          slabý vstup detekce tónů nepozná a přebuzený jí lže. */}
+      {zdroje.includes('mikrofon') && (
+        <div className="pt-1">
+          <KytaraFader />
+        </div>
       )}
     </div>
   );

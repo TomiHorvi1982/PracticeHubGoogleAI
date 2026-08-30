@@ -4,6 +4,7 @@ import { Key, Note } from 'tonal';
 import { poslechKytary, StavPoslechu } from '../../services/poslechKytary';
 import { audioSynth, InstrumentProfile } from '../../services/audioSynth';
 import { ALL_INSTRUMENTS } from '../../data/instrumentPresets';
+import { KytaraFader } from '../mixer/KytaraFader';
 
 /**
  * Co zrovna hraješ — a co k tomu sedí.
@@ -139,6 +140,15 @@ export const PoslechKytaryPanel: React.FC<{
       </div>
 
       {stav.chyba && <div className="text-[11px] text-[#FF453A]">{stav.chyba}</div>}
+
+      {/* Kanál vstupu. Když detekce mlčí, je odsud vidět proč: buď ze
+          zvukovky nechodí nic, nebo je signál tak slabý, že se ztratí
+          v prahu. */}
+      {stav.poslouchá && (
+        <div className="flex">
+          <KytaraFader />
+        </div>
+      )}
 
       {/* Právě znějící tón */}
       <div className="flex items-center gap-5">

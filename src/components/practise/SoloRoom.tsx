@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Target, BookOpen } from 'lucide-react';
+import { Mic, MicOff, Target, BookOpen, Sliders } from 'lucide-react';
 import { Scale, Note } from 'tonal';
 import { poslechKytary, StavPoslechu } from '../../services/poslechKytary';
+import { prehravacCviceni, StavCviceni } from '../../services/prehravacCviceni';
+import { FaderKanalu } from '../mixer/FaderKanalu';
+import { KytaraFader } from '../mixer/KytaraFader';
 import { RiffRoom } from './RiffRoom';
 
 /**
@@ -31,8 +34,10 @@ export const SoloRoom: React.FC = () => {
   /** Posledních pár tónů s tím, jestli patřily do stupnice. */
   const [historie, setHistorie] = useState<{ ton: string; sedi: boolean }[]>([]);
   const posledni = useRef<string | null>(null);
+  const [cviceni, setCviceni] = useState<StavCviceni>(prehravacCviceni.subscribeStav());
 
   useEffect(() => poslechKytary.subscribe(setStav), []);
+  useEffect(() => prehravacCviceni.subscribe(setCviceni), []);
   useEffect(() => () => poslechKytary.stop(), []);
 
   const tonyStupnice = Scale.get(`${ton} ${stupnice}`).notes;
@@ -140,6 +145,41 @@ export const SoloRoom: React.FC = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/*
+        Pult: stopa proti vlastnímu nástroji.
+        Cvičí se do nahrávky a vlastní kytara musí být slyšet nad ní —
+        bez dvou faderů se jedno přebíjí druhým a slyšet není ani jedno.
+      */}
+      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2">
+          <Sliders className="w-4 h-4 text-[#FF9F0A]" />
+          <h3 className="text-sm font-bold text-white">Pult</h3>
+          <span className="text-[11px] text-neutral-500">
+            stopa proti kytaře — a je vidět, jak silný signál ze zvukovky chodí
+          </span>
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <FaderKanalu
+            nazev="Stopa (sólo)"
+            barva="#0A84FF"
+            hlasitost={cviceni.hlasitost}
+            onHlasitost={(v) => prehravacCviceni.nastavHlasitost(v)}
+            uroven={cviceni.uroven}
+            spicka={cviceni.spicka}
+          />
+          <KytaraFader
+            sNahravanim
+            onNahravka={(b) => void prehravacCviceni.nactiZBlobu(b)}
+          />
+        </div>
+
+        <p className="text-[10px] text-neutral-600">
+          Nahranou kytaru si „Poslechnout" načte rovnou do přehrávače níž — dá se pak zpomalit a
+          projet ve smyčce, takže je vidět, kde to ujíždí.
+        </p>
       </div>
 
       {/* Pilování sóla — stejný nástroj jako u riffů */}

@@ -31,6 +31,11 @@ export interface StavCviceni {
   /** O kolik zrychlit po každém kole, v procentech. */
   pridavat: number;
   klik: boolean;
+  /** Hlasitost stopy, 0 až 1,4. */
+  hlasitost: number;
+  /** Hladina stopy pro měřák, 0 až 1. */
+  uroven: number;
+  spicka: number;
   /** Přeladění v půltónech — nahrávka na tvoje ladění. */
   posun: number;
   /** Držet původní výšku i při zpomalení. */
@@ -47,6 +52,9 @@ class PrehravacCviceni {
   private hlasitost: GainNode | null = null;
   /** Posuv výšky za hlasitostí — dorovnává zpomalení a ladí na kytaru. */
   private posuvVysky: Tone.PitchShift | null = null;
+  /** Měřák stopy — aby fader nebyl slepý jako u kytary. */
+  private analyzer: AnalyserNode | null = null;
+  private mereni: Float32Array | null = null;
   /** Čas hodin, kdy začalo aktuální kolo. */
   private zacatekKola = 0;
   private tik: number | null = null;
@@ -55,7 +63,7 @@ class PrehravacCviceni {
   private stav: StavCviceni = {
     nacita: false, hraje: false, pozice: 0, delka: 0,
     od: 0, do: 0, rychlost: 1, kol: 0, pridavat: 0, klik: false,
-    posun: 0, drzetLadeni: true, chyba: null,
+    hlasitost: 1, uroven: 0, spicka: 0, posun: 0, drzetLadeni: true, chyba: null,
   };
   private posluchaci = new Set<Poslucha>();
 
@@ -140,6 +148,45 @@ class PrehravacCviceni {
    *
    * Kdo má kytaru o půltón níž, nemusí ji kvůli jedné písni přelaďovat.
    */
+  /**
+   * Hlasitost stopy.
+   *
+   * Cvičí se proti nahrávce a vlastní nástroj musí být slyšet nad ní —
+   * bez stažení stopy se hraje do zdi.
+   */
+  public nastavHlasitost(v: number): void {
+    const nova = Math.max(0, Math.min(1.4, v));
+    this.oznam({ hlasitost: nova });
+    if (this.hlasitost && this.ctx) {
+      this.hlasitost.gain.setTargetAtTime(nova, this.ctx.currentTime, 0.01);
+    }
+  }
+
+  /**
+   * Načte zvuk z paměti, ne z knihovny.
+   *
+   * Právě nahranou kytaru je potřeba si pustit hned a ve smyčce, ne až
+   * po nahrání do knihovny — na porovnání „kde mi to ujíždí" je čekání
+   * na upload zbytečná okluka.
+   */
+  public async nactiZBlobu(blob: Blob, _nazev = 'nahrávka'): Promise<void> {
+    this.stop();
+    this.oznam({ nacita: true, chyba: null });
+    try {
+      if (!this.ctx) this.ctx = Tone.getContext().rawContext as AudioContext;
+      this.buffer = await this.ctx.decodeAudioData(await blob.arrayBuffer());
+      this.oznam({
+        nacita: false,
+        delka: this.buffer.duration,
+        od: 0,
+        do: this.buffer.duration,
+        pozice: 0,
+      });
+    } catch (e: any) {
+      this.oznam({ nacita: false, chyba: `Nahrávku se nepodařilo přehrát: ${e?.message || e}` });
+    }
+  }
+
   public nastavPosun(poltonu: number): void {
     const v = Math.max(-12, Math.min(12, poltonu));
     this.oznam({ posun: v });
@@ -210,6 +257,13 @@ class PrehravacCviceni {
     this.zdroj?.stop();
     if (!this.hlasitost) {
       this.hlasitost = this.ctx.createGain();
+      this.hlasitost.gain.value = this.stav.hlasitost;
+      this.analyzer = this.ctx.createAnalyser();
+      this.analyzer.fftSize = 1024;
+      this.mereni = new Float32Array(this.analyzer.fftSize);
+      // Měřák visí na odbočce, ne v cestě zvuku — kdyby byl v řetězu a
+      // něco se v něm zaseklo, zmlkla by celá stopa.
+      this.hlasitost.connect(this.analyzer);
       this.posuvVysky = new Tone.PitchShift({ pitch: 0, windowSize: 0.1 }).toDestination();
       Tone.connect(this.hlasitost, this.posuvVysky);
       this.dolaďVysku();
@@ -239,11 +293,31 @@ class PrehravacCviceni {
         this.oznam({ kol: this.stav.kol + 1, rychlost: nova, pozice: this.stav.od });
         this.rozjed();
       } else {
-        this.oznam({ pozice: this.stav.od + ubehlo });
+        this.oznam({ pozice: this.stav.od + ubehlo, ...this.hladina() });
       }
       this.tik = window.setTimeout(krok, 60);
     };
     krok();
+  }
+
+  /** Efektivní hodnota a špička stopy pro měřák. */
+  private hladina(): { uroven: number; spicka: number } {
+    if (!this.analyzer || !this.mereni) return { uroven: 0, spicka: 0 };
+    this.analyzer.getFloatTimeDomainData(this.mereni);
+    let soucet = 0;
+    let max = 0;
+    for (let i = 0; i < this.mereni.length; i++) {
+      const v = this.mereni[i];
+      soucet += v * v;
+      const a = Math.abs(v);
+      if (a > max) max = a;
+    }
+    const rms = Math.sqrt(soucet / this.mereni.length);
+    // Špička klesá pomalu, ať se dá přečíst; nahoru skáče hned.
+    return {
+      uroven: Math.min(1, rms * 3),
+      spicka: Math.min(1, Math.max(max, this.stav.spicka * 0.9)),
+    };
   }
 
   /** Klik metronomu podle tempa cvičení a nastavené rychlosti. */
@@ -267,6 +341,7 @@ class PrehravacCviceni {
   }
 
   public stop(): void {
+    this.oznam({ uroven: 0, spicka: 0 });
     if (this.tik !== null) window.clearTimeout(this.tik);
     this.tik = null;
     if (this.klikTimer !== null) window.clearInterval(this.klikTimer);
