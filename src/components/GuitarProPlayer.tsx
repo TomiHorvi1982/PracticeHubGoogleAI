@@ -24,6 +24,8 @@ import {
   Maximize2,
   Minimize2,
   AlertTriangle,
+  X,
+  Guitar,
 } from 'lucide-react';
 
 interface GuitarProPlayerProps {
@@ -80,6 +82,111 @@ async function fetchScoreBytes(source: string): Promise<Uint8Array> {
   return bytes;
 }
 
+/**
+ * Lišta pozice, která umí i vybrat smyčku.
+ *
+ * Kliknutí přeskočí, tažení vybere úsek. Vybraný úsek se v ní zakreslí,
+ * takže je vidět, co se opakuje — jinak se člověk kouká na tabulaturu a
+ * neví, proč mu to skáče zpátky.
+ */
+/**
+ * Nástroje k výběru na stopu.
+ *
+ * Zlomek General MIDI, ne celá dvoustovka: v tabulatuře se mění nástroj
+ * proto, aby se stopa dala odlišit nebo si ji člověk zkusil jinak
+ * znějící, ne aby procházel seznam varhan.
+ */
+const NASTROJE_GM: { program: number; nazev: string }[] = [
+  { program: 24, nazev: 'Nylonová kytara' },
+  { program: 25, nazev: 'Akustická kytara' },
+  { program: 26, nazev: 'Jazzová kytara' },
+  { program: 27, nazev: 'Čistá elektrická' },
+  { program: 29, nazev: 'Muted elektrická' },
+  { program: 30, nazev: 'Overdrive' },
+  { program: 31, nazev: 'Distortion' },
+  { program: 33, nazev: 'Prstová basa' },
+  { program: 34, nazev: 'Trsátková basa' },
+  { program: 35, nazev: 'Bezpražcová basa' },
+  { program: 0, nazev: 'Klavír' },
+  { program: 16, nazev: 'Varhany' },
+  { program: 48, nazev: 'Smyčce' },
+  { program: 56, nazev: 'Trubka' },
+  { program: 65, nazev: 'Saxofon' },
+];
+
+const ListaPozice: React.FC<{
+  cas: number;
+  delka: number;
+  usek: { od: number; do: number } | null;
+  celkemTiku: number;
+  onSkok: (cas: number) => void;
+  onVyber: (od: number, do_: number) => void;
+}> = ({ cas, delka, usek, celkemTiku, onSkok, onVyber }) => {
+  const pruh = useRef<HTMLDivElement>(null);
+  const [tahne, setTahne] = useState<{ od: number; do: number } | null>(null);
+
+  const casZUdalosti = (e: React.MouseEvent): number => {
+    const el = pruh.current;
+    if (!el || !delka) return 0;
+    const r = el.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * delka;
+  };
+
+  const podil = delka ? Math.min(1, cas / delka) : 0;
+  // Úsek je v ticích, lišta v čase — přepočet je úměrou, na zákres stačí.
+  const usekOd = usek && celkemTiku ? usek.od / celkemTiku : null;
+  const usekDo = usek && celkemTiku ? usek.do / celkemTiku : null;
+
+  const vyber = tahne
+    ? { od: Math.min(tahne.od, tahne.do) / delka, do: Math.max(tahne.od, tahne.do) / delka }
+    : null;
+
+  return (
+    <div
+      ref={pruh}
+      onMouseDown={(e) => {
+        const t = casZUdalosti(e);
+        setTahne({ od: t, do: t });
+      }}
+      onMouseMove={(e) => {
+        if (tahne) setTahne({ ...tahne, do: casZUdalosti(e) });
+      }}
+      onMouseUp={(e) => {
+        if (!tahne) return;
+        const t = casZUdalosti(e);
+        // Krátké tažení je kliknutí; delší je výběr úseku.
+        if (Math.abs(t - tahne.od) < 0.3) onSkok(t);
+        else onVyber(tahne.od, t);
+        setTahne(null);
+      }}
+      onMouseLeave={() => setTahne(null)}
+      className="relative w-full h-5 flex items-center cursor-pointer select-none group"
+      title="Klikni pro přeskočení, táhni pro výběr úseku do smyčky"
+    >
+      <div className="absolute inset-x-0 h-2 bg-white/10 rounded-lg overflow-hidden">
+        {usekOd !== null && usekDo !== null && (
+          <div
+            className="absolute inset-y-0 bg-[#30D158]/30 border-x border-[#30D158]"
+            style={{ left: `${usekOd * 100}%`, width: `${(usekDo - usekOd) * 100}%` }}
+          />
+        )}
+        {vyber && (
+          <div
+            className="absolute inset-y-0 bg-[#30D158]/40"
+            style={{ left: `${vyber.od * 100}%`, width: `${(vyber.do - vyber.od) * 100}%` }}
+          />
+        )}
+        <div className="absolute inset-y-0 left-0 bg-[#FF9F0A]/70" style={{ width: `${podil * 100}%` }} />
+      </div>
+
+      <div
+        className="absolute w-3 h-3 -ml-1.5 rounded-full bg-[#FF9F0A] shadow ring-2 ring-black/40 pointer-events-none"
+        style={{ left: `${podil * 100}%` }}
+      />
+    </div>
+  );
+};
+
 export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   dataUrl,
   filename,
@@ -93,7 +200,13 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(1.0);
   const [zoomScale, setZoomScale] = useState<number>(1.0);
-  const [staveProfile, setStaveProfile] = useState<'default' | 'tab' | 'score'>('default');
+  /**
+   * Kytarista čte tabulaturu, ne noty.
+   *
+   * Výchozí „noty + tab" znamená, že polovinu výšky zabírá osnova, na
+   * kterou se nikdo nedívá, a tabulatura se kvůli ní musí rolovat.
+   */
+  const [staveProfile, setStaveProfile] = useState<'default' | 'tab' | 'score'>('tab');
   const [isLooping, setIsLooping] = useState(false);
   const [isMetronome, setIsMetronome] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -104,6 +217,20 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   // Time & Position State
   const [currentTime, setCurrentTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
+  /** Tiky ke konci skladby — kvůli zákresu smyčky do lišty. */
+  const [totalTicks, setTotalTicks] = useState(0);
+  /** Vybraný úsek ve smyčce, v ticích. */
+  const [usek, setUsek] = useState<{ od: number; do: number } | null>(null);
+  /**
+   * Posun ladění v půltónech.
+   *
+   * Mění se výška přehrávání, ne zápis — kdo má kytaru o půltón níž,
+   * chce slyšet svoje ladění, ale hmaty na hmatníku zůstávají tam, kde
+   * jsou napsané.
+   */
+  const [posunLadeni, setPosunLadeni] = useState(0);
+  /** Nástroj po stopách; klíčem je index stopy, hodnotou GM program. */
+  const [nastroje, setNastroje] = useState<Record<number, number>>({});
   const [songBpm, setSongBpm] = useState(initialBpm || 120);
 
   // Track info
@@ -170,6 +297,45 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       apiRef.current.settings.display.staveProfile = alphaTab.StaveProfile.Default;
     }
     apiRef.current.updateSettings();
+    // Bez tohohle se nic nestalo: `updateSettings` novou hodnotu jen uloží,
+    // překreslit osnovu musí `render()`. Tlačítka se přepínala a partitura
+    // zůstávala, jak byla.
+    apiRef.current.render();
+  };
+
+  /**
+   * Přeladí přehrávání, zápis nechá být.
+   *
+   * `changeTrackTranspositionPitch` posouvá jen to, co zní. Kdyby se
+   * použilo nastavení transpozice, přepočítala by se i tabulatura a čísla
+   * pražců by se rozešla s tím, co má člověk pod prsty.
+   */
+  const zmenLadeni = (poltonu: number) => {
+    const v = Math.max(-12, Math.min(12, poltonu));
+    setPosunLadeni(v);
+    const api = apiRef.current;
+    if (api?.score) api.changeTrackTranspositionPitch(api.score.tracks, v);
+  };
+
+  /**
+   * Vymění nástroj stopy.
+   *
+   * Program se zapíše do modelu a MIDI se z partitury vygeneruje znovu —
+   * banka podle něj sáhne po jiném zvuku. Jen přepsat číslo nestačí,
+   * hrálo by se dál to staré.
+   */
+  const zmenNastroj = (track: alphaTab.model.Track, program: number) => {
+    const api = apiRef.current;
+    if (!api) return;
+    track.playbackInfo.program = program;
+    setNastroje((p) => ({ ...p, [track.index]: program }));
+    api.loadMidiForScore();
+  };
+
+  /** Zruší vybraný úsek a vrátí přehrávání na celou skladbu. */
+  const zrusUsek = () => {
+    setUsek(null);
+    if (apiRef.current) apiRef.current.playbackRange = null;
   };
 
   // Handle Loop Toggle
@@ -251,6 +417,8 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       const settings = new alphaTab.Settings();
       settings.core.fontDirectory = FONT_DIRECTORY;
       settings.player.enablePlayer = true;
+      // Tabulatura sama, bez notové osnovy — viz `staveProfile` výš.
+      settings.display.staveProfile = alphaTab.StaveProfile.Tab;
       // Vestavěná banka je záchranná síť: nastaví se rovnou, aby tabulatura
       // hrála i kdyby se ta pořádná nestáhla, a přepíše se, jakmile dorazí.
       settings.player.soundFont = FALLBACK_SOUNDFONT;
@@ -299,6 +467,14 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         if (score.tempo > 0) {
           setSongBpm(score.tempo);
         }
+        setNastroje(
+          Object.fromEntries(
+            (score.tracks || []).map((t) => [t.index, t.playbackInfo?.program ?? 0]),
+          ),
+        );
+        // Nová skladba hraje ve svém ladění, ne v tom po předchozí.
+        setPosunLadeni(0);
+        setUsek(null);
       });
 
       api.error.on((err) => {
@@ -320,6 +496,27 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       api.playerPositionChanged.on((args) => {
         setCurrentTime(args.currentTime / 1000);
         setTotalTime(args.endTime / 1000);
+        setTotalTicks(args.endTick);
+      });
+
+      /**
+       * Úsek se vybírá tažením myši přímo v tabulatuře.
+       *
+       * Umí to alphaTab sám, jen o tom nikdo nevěděl: výběr nastavil
+       * rozsah přehrávání, ale nikde to nebylo vidět a smyčka zůstala
+       * vypnutá, takže to vypadalo, že se neděje nic. Teď se výběr ukáže
+       * v liště a smyčka se k němu rovnou zapne — kvůli tomu se úsek
+       * vybírá.
+       */
+      api.playbackRangeChanged.on((args) => {
+        const r = args.playbackRange;
+        if (!r) {
+          setUsek(null);
+          return;
+        }
+        setUsek({ od: r.startTick, do: r.endTick });
+        setIsLooping(true);
+        api.isLooping = true;
       });
 
       // Tabulatura se načítá asynchronně — ze zpěvníku se musí nejdřív
@@ -467,6 +664,44 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
     setIsVoiceListening(!isVoiceListening);
   };
 
+  /**
+   * Přichytí tik na začátek nejbližší doby.
+   *
+   * Lišta zná čas, ne noty, a rozsah tažený myší by jinak začínal
+   * uprostřed tónu. `tickCache` ví, kde doby jsou, takže se smyčka
+   * chytne tam, kde se dá naskočit.
+   */
+  const naDobu = (tick: number): number => {
+    const api = apiRef.current;
+    const cache = api?.tickCache;
+    if (!api?.score || !cache) return Math.max(0, Math.round(tick));
+    const stopy = new Set(api.score.tracks.map((t) => t.index));
+    const nalez = cache.findBeat(stopy, Math.max(0, Math.round(tick)));
+    return nalez ? nalez.start : Math.max(0, Math.round(tick));
+  };
+
+  /**
+   * Vybere úsek tažením po liště.
+   *
+   * Tiky se z času odhadují úměrou, protože lišta měří čas a smyčka se
+   * zadává v ticích. U skladby, která mění tempo, by odhad ujel — proto
+   * se výsledek ještě přichytí na nejbližší dobu.
+   */
+  const vyberUsekZListy = (odCas: number, doCas: number) => {
+    const api = apiRef.current;
+    if (!api || !totalTime || !totalTicks) return;
+    const [a, b] = odCas <= doCas ? [odCas, doCas] : [doCas, odCas];
+    // Kratší výběr než doba je omyl při klikání, ne úmysl.
+    if (b - a < 0.3) return;
+    const od = naDobu((a / totalTime) * totalTicks);
+    const doTick = naDobu((b / totalTime) * totalTicks);
+    if (doTick <= od) return;
+    api.playbackRange = { startTick: od, endTick: doTick } as alphaTab.synth.PlaybackRange;
+    setUsek({ od, do: doTick });
+    setIsLooping(true);
+    api.isLooping = true;
+  };
+
   const formatTime = (secs: number) => {
     const m = Math.floor(secs / 60);
     const s = Math.floor(secs % 60);
@@ -597,16 +832,22 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
             </div>
           </div>
 
-          {/* Positional Playing Seekbar Slider */}
-          <div className="flex-1 min-w-[150px] flex items-center gap-2 px-2">
-            <span className="text-[11px] text-neutral-400 font-semibold uppercase whitespace-nowrap">Pozice:</span>
-            <input
-              type="range"
-              min={0}
-              max={totalTime || 1}
-              value={currentTime}
-              onChange={(e) => handleSeek(Number(e.target.value))}
-              className="w-full h-2 accent-[#FF9F0A] bg-white/10 hover:bg-white/20 rounded-lg appearance-none cursor-pointer transition-colors"
+          {/*
+            Lišta pozice, která zároveň vybírá smyčku.
+            Kliknutí přeskočí, tažení vybere úsek. Posuvník z prohlížeče
+            tohle neumí — proto vlastní pruh.
+          */}
+          <div className="flex-1 min-w-[200px] flex items-center gap-2 px-2">
+            <span className="text-[11px] text-neutral-400 font-semibold uppercase whitespace-nowrap">
+              Pozice:
+            </span>
+            <ListaPozice
+              cas={currentTime}
+              delka={totalTime}
+              usek={usek}
+              celkemTiku={totalTicks}
+              onSkok={handleSeek}
+              onVyber={vyberUsekZListy}
             />
           </div>
 
@@ -642,6 +883,57 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
             >
               <Repeat className="w-3.5 h-3.5" /> Smyčka
             </button>
+
+            {usek && (
+              <button
+                onClick={zrusUsek}
+                className="px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-[#30D158]/40 bg-[#30D158]/10 text-[#30D158] cursor-pointer flex items-center gap-1.5"
+                title="Zrušit vybraný úsek a hrát celou skladbu"
+              >
+                úsek {formatTime((usek.od / (totalTicks || 1)) * totalTime)}–
+                {formatTime((usek.do / (totalTicks || 1)) * totalTime)}
+                <X className="w-3 h-3" />
+              </button>
+            )}
+
+            {/*
+              Přeladění. Mění se jen to, co zní — čísla na tabulatuře
+              zůstávají, protože prsty se nikam nestěhují.
+            */}
+            <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-0.5">
+              <Guitar className="w-3.5 h-3.5 text-[#BF5AF2] mx-1.5" />
+              <button
+                onClick={() => zmenLadeni(posunLadeni - 1)}
+                className="px-1.5 py-1 text-xs text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
+                title="O půltón níž"
+              >
+                −
+              </button>
+              <span
+                className={`text-[11px] font-bold tabular-nums w-9 text-center ${
+                  posunLadeni ? 'text-[#BF5AF2]' : 'text-neutral-500'
+                }`}
+                title="Posun ladění v půltónech; zápis se nemění"
+              >
+                {posunLadeni > 0 ? `+${posunLadeni}` : posunLadeni}
+              </span>
+              <button
+                onClick={() => zmenLadeni(posunLadeni + 1)}
+                className="px-1.5 py-1 text-xs text-neutral-400 hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
+                title="O půltón výš"
+              >
+                +
+              </button>
+              {posunLadeni !== 0 && (
+                <button
+                  onClick={() => zmenLadeni(0)}
+                  className="px-1.5 py-1 text-[10px] text-neutral-500 hover:text-white cursor-pointer"
+                  title="Zpět na původní ladění"
+                >
+                  ↺
+                </button>
+              )}
+            </div>
 
             <button
               onClick={handleToggleMetronome}
@@ -778,6 +1070,25 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                       className="w-20 accent-[#FF9F0A] cursor-pointer disabled:opacity-30"
                       title={`Hlasitost ${Math.round((hlasitostiStop[track.index] ?? 1) * 100)} %`}
                     />
+
+                    {/* Nástroj stopy. Co je v souboru napsané jako čistá
+                        kytara, si člověk může poslechnout zkreslené — a
+                        hlavně tím od sebe odliší dvě stejně znějící stopy. */}
+                    <select
+                      value={nastroje[track.index] ?? track.playbackInfo?.program ?? 0}
+                      onChange={(e) => zmenNastroj(track, Number(e.target.value))}
+                      className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-[10px] text-neutral-200 outline-none focus:border-[#FF9F0A] max-w-[130px] cursor-pointer"
+                      title="Zvuk stopy"
+                    >
+                      {!NASTROJE_GM.some((n) => n.program === (nastroje[track.index] ?? track.playbackInfo?.program)) && (
+                        <option value={nastroje[track.index] ?? track.playbackInfo?.program ?? 0}>
+                          ze souboru ({nastroje[track.index] ?? track.playbackInfo?.program ?? 0})
+                        </option>
+                      )}
+                      {NASTROJE_GM.map((n) => (
+                        <option key={n.program} value={n.program}>{n.nazev}</option>
+                      ))}
+                    </select>
                   </div>
                 );
               })}
