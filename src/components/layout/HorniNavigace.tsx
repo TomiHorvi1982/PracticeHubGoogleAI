@@ -1,6 +1,7 @@
 import React from 'react';
 import {
-  FileCode, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen, Users, Bookmark, GraduationCap,
+  FileCode, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen, Users,
+  Bookmark, GraduationCap, FileText,
 } from 'lucide-react';
 import { MainTabType } from './sekce';
 
@@ -34,6 +35,7 @@ const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: st
   { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
   { id: 'aikapela', label: 'AI Band', icon: Users },
   { id: 'practise', label: 'Practise Hub', icon: GraduationCap },
+  { id: 'texty', label: 'Texty', icon: FileText },
   { id: 'practice', label: 'Metronom', icon: Clock },
   { id: 'tuner', label: 'Ladička', icon: Mic },
   // Katalog souborů. Bez něj se ke knihovně dá dostat jen přes písničku,

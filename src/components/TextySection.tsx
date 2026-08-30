@@ -1,0 +1,166 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import { PenLine, Mic, FileText, Check, AlertCircle } from 'lucide-react';
+import { songDatabaseService } from '../services/songDatabaseService';
+import { Song } from '../types';
+import { UsekPrepisu, cas } from '../services/textyService';
+import { PrepisPanel } from './texty/PrepisPanel';
+import { EditorTextu } from './texty/EditorTextu';
+
+/**
+ * Texty.
+ *
+ * Dvě strany jedné práce. Přepis vytáhne z nahrávky, co se zpívalo —
+ * včetně časů, takže se text dá pustit na Pódiu vedle přehrávače.
+ * Editor je na to, co se ještě nezpívalo: hlídá slabiky a rýmy, aby to
+ * šlo zazpívat, ne jen přečíst.
+ *
+ * Text se ukládá do písně ve zpěvníku, ne stranou — jinak by kapela měla
+ * dvě verze a nikdo by nevěděl, která platí.
+ */
+
+type Zalozka = 'psani' | 'prepis';
+
+/** Časy z přepisu jako komentář nad řádkem — zůstanou, ale nezpívají se. */
+function jakoText(useky: UsekPrepisu[], sCasy: boolean): string {
+  if (!sCasy) return useky.map((u) => u.text).join('\n');
+  return useky.map((u) => `{${cas(u.zacatek)}}\n${u.text}`).join('\n');
+}
+
+export const TextySection: React.FC = () => {
+  const [zalozka, setZalozka] = useState<Zalozka>('psani');
+  const [pisne, setPisne] = useState<Song[]>(songDatabaseService.getSongs());
+  const [vybrana, setVybrana] = useState<string>('');
+  const [text, setText] = useState('');
+  const [sCasy, setSCasy] = useState(true);
+  const [uklada, setUklada] = useState(false);
+  const [hlaska, setHlaska] = useState<{ text: string; chyba?: boolean } | null>(null);
+
+  useEffect(() => songDatabaseService.subscribe(setPisne), []);
+
+  const pisen = useMemo(() => pisne.find((p) => p.id === vybrana) || null, [pisne, vybrana]);
+
+  // Slovník na rýmy: texty všech ostatních písní. Vlastní se vynechá,
+  // ať se nenabízí to, co už na obrazovce stojí.
+  const korpus = useMemo(
+    () => pisne.filter((p) => p.id !== vybrana).map((p) => p.content || '').filter((t) => t.length > 20),
+    [pisne, vybrana]
+  );
+
+  const otevri = (id: string) => {
+    setVybrana(id);
+    setText(pisne.find((p) => p.id === id)?.content || '');
+    setHlaska(null);
+  };
+
+  const uloz = async () => {
+    if (!pisen) return;
+    setUklada(true);
+    setHlaska(null);
+    try {
+      await songDatabaseService.saveSong({ ...pisen, content: text });
+      setHlaska({ text: `Uloženo do „${pisen.title}".` });
+    } catch (e: any) {
+      setHlaska({ text: e?.message || 'Uložení selhalo.', chyba: true });
+    } finally {
+      setUklada(false);
+    }
+  };
+
+  const vlozPrepis = (useky: UsekPrepisu[]) => {
+    const novy = jakoText(useky, sCasy);
+    setText((t) => (t.trim() ? `${t.trim()}\n\n${novy}` : novy));
+    setZalozka('psani');
+  };
+
+  return (
+    <div className="space-y-4 font-sans text-white pb-12">
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+        <div className="flex flex-wrap items-center gap-3.5 mb-4">
+          <div className="p-3 bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 text-[#BF5AF2] rounded-2xl">
+            <FileText className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+              Texty
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
+              Psaní a přepis
+            </h2>
+            <p className="text-xs text-neutral-400 mt-1">
+              Přepis vytáhne text z nahrávky i s časy; editor hlídá slabiky a rýmy. Obojí se ukládá
+              rovnou do písně ve zpěvníku.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            onClick={() => setZalozka('psani')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+              zalozka === 'psani' ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+            }`}
+          >
+            <PenLine className="w-3.5 h-3.5" /> Psaní
+          </button>
+          <button
+            onClick={() => setZalozka('prepis')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+              zalozka === 'prepis' ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+            }`}
+          >
+            <Mic className="w-3.5 h-3.5" /> Přepis z nahrávky
+          </button>
+
+          <div className="ml-auto flex items-center gap-2">
+            <select
+              value={vybrana}
+              onChange={(e) => otevri(e.target.value)}
+              className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] max-w-[240px]"
+            >
+              <option value="">— vyber píseň —</option>
+              {pisne.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.artist} — {p.title}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {hlaska && (
+          <p
+            className={`text-[11px] mt-2 flex items-center gap-1.5 ${
+              hlaska.chyba ? 'text-[#FF453A]' : 'text-[#30D158]'
+            }`}
+          >
+            {hlaska.chyba ? <AlertCircle className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
+            {hlaska.text}
+          </p>
+        )}
+      </div>
+
+      {zalozka === 'psani' ? (
+        <EditorTextu
+          text={text}
+          onZmena={setText}
+          korpus={korpus}
+          onUlozit={pisen ? uloz : undefined}
+          uklada={uklada}
+        />
+      ) : (
+        <div className="space-y-3">
+          <label className="flex items-center gap-2 text-[11px] text-neutral-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={sCasy}
+              onChange={(e) => setSCasy(e.target.checked)}
+              className="accent-[#BF5AF2]"
+            />
+            Vložit i časy ve složených závorkách — text pak jde na Pódiu rolovat podle přehrávače.
+          </label>
+          <PrepisPanel onVlozit={vlozPrepis} />
+        </div>
+      )}
+    </div>
+  );
+};

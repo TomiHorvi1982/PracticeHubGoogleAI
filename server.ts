@@ -7,6 +7,9 @@ import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/su
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
 import { isR2Configured, signedDownloadUrl, getObjectBytes, uploadObject, deleteObject as r2Delete } from './r2';
+import {
+  prepisSoubor, docasnySoubor, jePrepisDostupny, StavPrepisu,
+} from './prepisTextu';
 
 dotenv.config();
 
@@ -3704,6 +3707,93 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       console.error('[stems] Failed to start separation:', err.message);
       res.status(500).json({ error: 'Nepodařilo se zahájit separaci.', details: err.message });
     }
+  });
+
+  // --- MÍSTNÍ PŘEPIS TEXTU Z NAHRÁVKY ---
+  /**
+   * Přepis běží na tomhle stroji, ne v cloudu.
+   *
+   * Nahrávky kapely nemají co dělat na cizím serveru a zároveň je to
+   * jediná cesta, jak přepisovat i věci, které nikde jinde neexistují.
+   * Úlohy se drží v paměti: přežít restart nemusí, protože přepis trvá
+   * minuty, ne hodiny, a po restartu se prostě spustí znovu.
+   */
+  const prepisy = new Map<string, StavPrepisu & { kdy: number }>();
+  /** Jeden přepis v jednu chvíli. Dva naráz si vezmou stroj a nedoběhne ani jeden. */
+  let prepisBezi = false;
+
+  /** Zapomene úlohy starší než hodinu, ať paměť neroste donekonečna. */
+  function uklidPrepisu(): void {
+    const hranice = Date.now() - 3600_000;
+    for (const [id, u] of prepisy) if (u.kdy < hranice) prepisy.delete(id);
+  }
+
+  app.get('/api/texty/pripravenost', requireAuth, (_req, res) => {
+    const { ok, chybi } = jePrepisDostupny();
+    res.json({ ok, chybi, bezi: prepisBezi });
+  });
+
+  app.post('/api/texty/prepis', requireAuth, async (req, res) => {
+    const { ok, chybi } = jePrepisDostupny();
+    if (!ok) return res.status(503).json({ error: `Přepis není připravený — chybí ${chybi.join(', ')}.` });
+    if (prepisBezi) return res.status(409).json({ error: 'Jeden přepis už běží. Počkej, až doběhne.' });
+
+    const assetId = String(req.body?.assetId || '');
+    const oddelitVokal = req.body?.oddelitVokal !== false;
+    // `auto` nechá model jazyk poznat sám; zpěvník má české i anglické písně.
+    const jazyk = String(req.body?.jazyk || 'auto');
+    if (!assetId) return res.status(400).json({ error: 'Chybí assetId.' });
+
+    const admin = getSupabaseAdmin();
+    const { data: asset } = await admin.from('assets').select('*').eq('id', assetId).single();
+    if (!asset) return res.status(404).json({ error: 'Nahrávka nenalezena.' });
+
+    const canView =
+      asset.owner_id === null || asset.owner_id === req.user!.id || (await isProfileAdmin(req.user!.id));
+    if (!canView) return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
+
+    uklidPrepisu();
+    const id = crypto.randomUUID();
+    prepisy.set(id, {
+      faze: 'priprava', postup: 0, zprava: 'Stahuju nahrávku…',
+      useky: [], chyba: null, kdy: Date.now(),
+    });
+    prepisBezi = true;
+    res.json({ id });
+
+    // Dál už se běží na pozadí; prohlížeč se ptá na stav.
+    void (async () => {
+      const zapis = (z: Partial<StavPrepisu>) => {
+        const stary = prepisy.get(id);
+        if (stary) prepisy.set(id, { ...stary, ...z, kdy: Date.now() });
+      };
+      let uklid: (() => Promise<void>) | null = null;
+      try {
+        const obsah = await nactiObsah(asset.storage_bucket, asset.storage_path);
+        if (!obsah) throw new Error('Nahrávku se nepodařilo stáhnout z úložiště.');
+        const docasny = await docasnySoubor(new Uint8Array(obsah.body), asset.name || 'audio');
+        uklid = docasny.uklid;
+
+        const useky = await prepisSoubor(docasny.cesta, { oddelitVokal, jazyk }, zapis);
+        zapis({ faze: 'hotovo', postup: 100, zprava: `Hotovo — ${useky.length} řádků.`, useky });
+      } catch (e: any) {
+        zapis({ faze: 'chyba', postup: 0, zprava: '', chyba: e?.message || 'Přepis selhal.' });
+      } finally {
+        await uklid?.();
+        prepisBezi = false;
+      }
+    })();
+  });
+
+  app.get('/api/texty/prepis/:id', requireAuth, (req, res) => {
+    const stav = prepisy.get(req.params.id);
+    if (!stav) return res.status(404).json({ error: 'Úloha nenalezena — nejspíš už vypršela.' });
+    res.json(stav);
+  });
+
+  app.delete('/api/texty/prepis/:id', requireAuth, (req, res) => {
+    prepisy.delete(req.params.id);
+    res.json({ success: true });
   });
 
   return { app, PORT };

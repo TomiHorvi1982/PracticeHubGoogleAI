@@ -19,6 +19,7 @@ import { AlphaTabSection } from './components/AlphaTabSection';
 import { AiKapelaSection } from './components/AiKapelaSection';
 import { ZalozkySection } from './components/ZalozkySection';
 import { PractiseHubSection } from './components/PractiseHubSection';
+import { TextySection } from './components/TextySection';
 import { StemMixerSection } from './components/StemMixerSection';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { PodiumSection } from './components/PodiumSection';
@@ -288,6 +289,7 @@ function AppContent() {
 
       {/* PRACTISE HUB */}
       {activeTab === 'practise' && <PractiseHubSection />}
+      {activeTab === 'texty' && <TextySection />}
 
       {/* ZÁLOŽKY */}
       {activeTab === 'zalozky' && <ZalozkySection />}

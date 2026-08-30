@@ -18,6 +18,7 @@ export type MainTabType =
   | 'aikapela'
   | 'zalozky'
   | 'practise'
+  | 'texty'
   | 'scales'
   | 'practice'
   | 'tuner'

@@ -27,3 +27,6 @@ api/_server.mjs
 
 # Zálohy databáze před hromadnými zápisy — patří na disk, ne do repa.
 backups/
+
+# Modely pro místní přepis (stahují se, do gitu nepatří)
+modely/
