@@ -2475,6 +2475,22 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
    * hlavička nesmí obsahovat znak nad 255. Tady se to ořeže a řekne se,
    * kolik toho vypadlo, ať je poznat, že se kopírovalo špatné místo.
    */
+  /**
+   * Jak se server představuje Ultimate Guitar.
+   *
+   * Musí sedět s prohlížečem, ze kterého cookie pochází. Mezi cookies
+   * jsou `cf_clearance` a `__cf_bm` od Cloudflare a ty jsou vázané na
+   * IP adresu **a na User-Agent**; při nesouladu se session neuzná, i
+   * když je jinak platná. Server běží na stejném stroji, takže IP sedí —
+   * zbývá hlásit se stejnou verzí prohlížeče.
+   *
+   * Až prohlížeč povyroste, tohle se musí přepsat; jinak stahování
+   * z UG přestane fungovat a nebude poznat proč.
+   */
+  const UG_PROHLIZEC =
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
+    + '(KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36';
+
   function uklidCookie(syrova: string): { cookie: string; vyhozeno: number } {
     // Oddělovače napřed, teprve pak úklid. Obráceně by se tabulátor
     // smazal jako řídicí znak a dvě cookie by se slepily v jednu —
@@ -2585,13 +2601,25 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
 
     // Uklidí se i to, co už v databázi leží: uložit se to mohlo dřív,
     // než tahle kontrola existovala.
+    // Hlavičky co nejblíž tomu, co posílá prohlížeč — Cloudflare porovnává
+    // víc než jen cookie.
     const hlavicky = {
-      'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+      'User-Agent': UG_PROHLIZEC,
       Cookie: uklidCookie(String(sezeni.hodnota)).cookie,
+      'Accept-Language': 'cs,en;q=0.9',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,'
+        + 'image/webp,*/*;q=0.8',
+      'Sec-Ch-Ua': '"Not=A?Brand";v="99", "Google Chrome";v="151", "Chromium";v="151"',
+      'Sec-Ch-Ua-Mobile': '?0',
+      'Sec-Ch-Ua-Platform': '"macOS"',
+      'Upgrade-Insecure-Requests': '1',
     };
 
     try {
-      const strankaRes = await fetch(url, { headers: hlavicky });
+      const strankaRes = await fetch(url, {
+        headers: { ...hlavicky, 'Sec-Fetch-Dest': 'document', 'Sec-Fetch-Mode': 'navigate' },
+      });
       const html = await strankaRes.text();
       const shoda = /data-content="([^"]+)"/.exec(html);
       if (!shoda) return res.status(502).json({ error: 'Stránku UG se nepodařilo přečíst.' });
