@@ -233,9 +233,22 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     }
 
     if (result.viewable === false) {
+      /**
+       * Guitar Pro soubory jsou na Ultimate Guitar za předplatným.
+       *
+       * Stránka sice nese odkaz na soubor, ale bez přihlášeného účtu
+       * vrátí místo něj HTML. Stahovat je za člověka by znamenalo obcházet
+       * placení, takže se jen otevře stránka — kdo předplatné má, stáhne
+       * si soubor sám a přetáhne ho do přehrávače o kus výš.
+       */
+      window.open(result.url, '_blank', 'noopener,noreferrer');
       setStatusMessage({
         type: 'error',
-        text: `„${result.song}" je placená verze (${result.type}) — její obsah Ultimate Guitar nevydá. Zkuste jinou verzi ze seznamu.`,
+        text:
+          `„${result.song}" je ${result.type} — Guitar Pro soubory dává Ultimate Guitar `
+          + 'jen předplatitelům. Otevřel jsem stránku: kdo předplatné má, stáhne soubor '
+          + 'a přetáhne ho sem do přehrávače. Ve vlastní sbírce máme přes 74 tisíc tabulatur, '
+          + 'zkuste ji nejdřív.',
       });
       return;
     }

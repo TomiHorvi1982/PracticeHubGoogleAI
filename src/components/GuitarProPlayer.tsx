@@ -108,6 +108,15 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
   // Track info
   const [tracks, setTracks] = useState<alphaTab.model.Track[]>([]);
+  /**
+   * Hlasitost celku a jednotlivých stop.
+   *
+   * Mute a solo tu byly, ale hlasitost ne — a při cvičení je potřeba
+   * něco stáhnout, ne umlčet: bicí potichu drží tempo, kdežto umlčené
+   * nechají člověka bez opory.
+   */
+  const [hlasitostCelku, setHlasitostCelku] = useState(1);
+  const [hlasitostiStop, setHlasitostiStop] = useState<Record<number, number>>({});
   const [activeTrackIndex, setActiveTrackIndex] = useState<number>(0);
   const [trackMutes, setTrackMutes] = useState<{ [index: number]: boolean }>({});
   const [trackSolos, setTrackSolos] = useState<{ [index: number]: boolean }>({});
@@ -187,6 +196,18 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
     if (apiRef.current) {
       apiRef.current.renderTracks([track]);
     }
+  };
+
+  /** Hlasitost celého přehrávače. */
+  const zmenHlasitostCelku = (v: number) => {
+    setHlasitostCelku(v);
+    if (apiRef.current) apiRef.current.masterVolume = v;
+  };
+
+  /** Hlasitost jedné stopy. AlphaTab bere rozsah 0 až 1. */
+  const zmenHlasitostStopy = (track: alphaTab.model.Track, v: number) => {
+    setHlasitostiStop((p) => ({ ...p, [track.index]: v }));
+    apiRef.current?.changeTrackVolume([track], v);
   };
 
   // Handle Mute Toggle for Track
@@ -270,6 +291,10 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         if (score.tracks && score.tracks.length > 0) {
           setTracks(score.tracks);
           setActiveTrackIndex(score.tracks[0].index);
+          // Nová skladba = nové stopy; staré hlasitosti by patřily jinam.
+          setHlasitostiStop(
+            Object.fromEntries(score.tracks.map((t) => [t.index, 1])),
+          );
         }
         if (score.tempo > 0) {
           setSongBpm(score.tempo);
@@ -740,9 +765,38 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                         S
                       </button>
                     </div>
+
+                    {/* Hlasitost stopy. Umlčená stopa posuvník nepotřebuje —
+                        a šedý posuvník rovnou říká, že se s ním nedá hnout. */}
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={Math.round((hlasitostiStop[track.index] ?? 1) * 100)}
+                      onChange={(e) => zmenHlasitostStopy(track, Number(e.target.value) / 100)}
+                      disabled={isMuted}
+                      className="w-20 accent-[#FF9F0A] cursor-pointer disabled:opacity-30"
+                      title={`Hlasitost ${Math.round((hlasitostiStop[track.index] ?? 1) * 100)} %`}
+                    />
                   </div>
                 );
               })}
+            </div>
+
+            {/* Hlasitost celku */}
+            <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/[0.06]">
+              <span className="text-[10px] uppercase tracking-wider text-neutral-500">Celková hlasitost</span>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round(hlasitostCelku * 100)}
+                onChange={(e) => zmenHlasitostCelku(Number(e.target.value) / 100)}
+                className="flex-1 max-w-[220px] accent-[#FF9F0A] cursor-pointer"
+              />
+              <span className="text-xs font-mono font-bold text-[#FF9F0A] tabular-nums w-10">
+                {Math.round(hlasitostCelku * 100)} %
+              </span>
             </div>
           </div>
         )}
