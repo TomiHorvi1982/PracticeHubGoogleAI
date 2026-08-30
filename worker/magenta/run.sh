@@ -2,8 +2,8 @@
 # Spustí AI sólistu (Magenta RealTime 2) na tomhle Macu.
 #
 # Model má přes gigabajt a běží v reálném čase jen na Apple Silicon.
-# Podle tabulky autorů zvládne `mrt2_small` každý M-čip včetně Airů;
-# `mrt2_base` chce Pro Max.
+# Naměřeno na M1 Pro: `mrt2_small` vteřinu zvuku za 0,61 s, `mrt2_base`
+# za 1,4 s — base tedy nestíhá a sólista by se opožďoval.
 #
 # Použití:
 #   ./worker/magenta/run.sh          # spustí službu, Ctrl+C ukončí
@@ -29,7 +29,10 @@ if [ ! -d .venv ]; then
   uv venv --python 3.12
   # shellcheck disable=SC1091
   source .venv/bin/activate
-  uv pip install "magenta-rt[mlx]" websockets
+  # MLX připnuté schválně: 0.32.2 exportovaný model nepřečte a spadne na
+  # „Invalid string size". Formát .mlxfn se mezi verzemi změnil a modely
+  # na HuggingFace jsou vyexportované tou starší.
+  uv pip install "magenta-rt[mlx]" "mlx==0.32.0" websockets
   echo "==> Stahuji podpůrné modely"
   mrt models init
   echo "==> Stahuji váhy generátoru"
@@ -41,7 +44,7 @@ fi
 
 # Výkon a přesnost se ladí odsud, ne v kódu.
 #
-#   MAGENTA_MODEL   mrt2_small (výchozí) nebo mrt2_base — base chce Pro Max
+#   MAGENTA_MODEL   mrt2_small (výchozí) nebo mrt2_base — base na M1 Pro nestíhá
 #   MAGENTA_FRAMES  kolik snímků na kus; 25 = 1 s. Míň = přesnější
 #                   sledování akordů, ale víc režie. Výchozí 5 (0,2 s)
 #   MAGENTA_BITS    kvantizace vah, třeba 8. Prázdné = exportovaný model

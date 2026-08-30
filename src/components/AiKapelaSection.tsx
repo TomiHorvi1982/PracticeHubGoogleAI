@@ -26,7 +26,7 @@ export const AiKapelaSection: React.FC = () => {
   });
   const [novyAkord, setNovyAkord] = useState('');
   const [solista, setSolista] = useState<StavSolisty>({
-    stav: 'vypnuto', styl: '', chyba: null, kusu: 0, drzeniAkordu: 2, posledniAkord: '',
+    stav: 'vypnuto', styl: '', chyba: null, kusu: 0, vterin: 0, drzeniAkordu: 2, posledniAkord: '',
   });
   /** Čím se sólista popíše modelu. Slovy, ne notami — tak se ovládá. */
   const [stylSolisty, setStylSolisty] = useState(
@@ -266,7 +266,7 @@ export const AiKapelaSection: React.FC = () => {
             }`}
           >
             {solista.stav === 'hraje'
-              ? `hraje · ${solista.kusu} s`
+              ? `hraje · ${Math.round(solista.vterin)} s`
               : solista.stav === 'pripojuji'
               ? 'připojuji…'
               : solista.stav === 'chyba'

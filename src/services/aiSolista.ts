@@ -24,6 +24,13 @@ export interface StavSolisty {
   chyba: string | null;
   /** Kolik kousků už dorazilo — poznat, že to opravdu teče. */
   kusu: number;
+  /**
+   * Kolik vteřin zvuku už přišlo.
+   *
+   * Sčítá se ze skutečné délky kousků, ne z jejich počtu: kolik je
+   * v jednom kusu, rozhoduje služba a v prohlížeči se to neví.
+   */
+  vterin: number;
   /** Jak silně se sólista drží podaných akordů, 0 až 8. */
   drzeniAkordu: number;
   /** Co se mu naposledy poslalo — kvůli kontrole v UI. */
@@ -50,6 +57,7 @@ class AiSolista {
     styl: '',
     chyba: null,
     kusu: 0,
+    vterin: 0,
     drzeniAkordu: 2,
     posledniAkord: '',
   };
@@ -77,7 +85,7 @@ class AiSolista {
       this.zmenStyl(styl);
       return;
     }
-    this.oznam({ stav: 'pripojuji', chyba: null, kusu: 0, styl });
+    this.oznam({ stav: 'pripojuji', chyba: null, kusu: 0, vterin: 0, styl });
 
     this.ctx = new AudioContext({ latencyHint: 'playback' });
     this.hlasitost = this.ctx.createGain();
@@ -156,7 +164,7 @@ class AiSolista {
     zdroj.start(this.dalsiCas);
     this.dalsiCas += buffer.duration;
 
-    this.oznam({ kusu: this.stav.kusu + 1 });
+    this.oznam({ kusu: this.stav.kusu + 1, vterin: this.stav.vterin + buffer.duration });
   }
 
   public nastavDrzeniAkordu(v: number): void {
@@ -226,7 +234,7 @@ class AiSolista {
     this.hlasitost = null;
     audioBus.release('ai-solista');
     this.posledniPodminka = '';
-    this.oznam({ stav: 'vypnuto', kusu: 0, posledniAkord: '' });
+    this.oznam({ stav: 'vypnuto', kusu: 0, vterin: 0, posledniAkord: '' });
   }
 }
 
