@@ -209,11 +209,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
   });
 
   const getInviteFormattedText = (invite: UserInvitation) => {
-    return `Ahoj ${invite.displayName},\n\nzvu tě do naší kapelní aplikace STRUM_OS!\n\nPřihlašovací údaje:\n• Web: ${invite.inviteUrl}\n• E-mail: ${invite.email}\n• Dočasné heslo: ${invite.temporaryPassword}\n• Přidělená role: ${ROLE_LABELS[invite.role].label}\n\nPo přihlášení si můžeš heslo kdykoliv změnit v profilu. Těšíme se na zkoušce!`;
+    return `Ahoj ${invite.displayName},\n\nzvu tě do naší kapelní aplikace Never Late Studio!\n\nPřihlašovací údaje:\n• Web: ${invite.inviteUrl}\n• E-mail: ${invite.email}\n• Dočasné heslo: ${invite.temporaryPassword}\n• Přidělená role: ${ROLE_LABELS[invite.role].label}\n\nPo přihlášení si můžeš heslo kdykoliv změnit v profilu. Těšíme se na zkoušce!`;
   };
 
   const sendEmailInvite = (invite: UserInvitation) => {
-    const subject = encodeURIComponent(`Pozvánka do kapely STRUM_OS - ${invite.displayName}`);
+    const subject = encodeURIComponent(`Pozvánka do kapely — Never Late Studio (${invite.displayName})`);
     const body = encodeURIComponent(getInviteFormattedText(invite));
     window.open(`mailto:${invite.email}?subject=${subject}&body=${body}`, '_blank');
   };

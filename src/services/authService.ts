@@ -2,6 +2,19 @@ import { UserAccount, UserRole, UserPermissions, UserInvitation, AuthSession } f
 import { supabase } from './supabaseClient';
 import type { Session } from '@supabase/supabase-js';
 
+/**
+ * Adresa, na kterou se pozvaný má přihlásit.
+ *
+ * Bere se z okna, ne z nastavení: aplikace běží doma na `localhost` i
+ * nasazená na doméně a pozvánka má vést tam, odkud ji správce posílá.
+ * Prázdný řetězec tu byl dřív a v odeslaném mailu z toho zbylo „Web:"
+ * a nic za tím — pozvaný neměl kam kliknout.
+ */
+function adresaAplikace(): string {
+  if (typeof window === 'undefined') return '';
+  return window.location.origin;
+}
+
 export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
   admin: {
     canEditSongs: true,
@@ -334,7 +347,7 @@ class AuthService {
         createdAt: new Date(p.created_at).getTime(),
         expiresAt: new Date(p.created_at).getTime() + 30 * 24 * 3600 * 1000,
         status: 'pending' as const,
-        inviteUrl: '',
+        inviteUrl: adresaAplikace(),
       }));
   }
 
@@ -370,7 +383,7 @@ class AuthService {
         createdAt: Date.now(),
         expiresAt: Date.now() + 30 * 24 * 3600 * 1000,
         status: 'pending',
-        inviteUrl: '',
+        inviteUrl: adresaAplikace(),
       },
     };
   }

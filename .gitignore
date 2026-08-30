@@ -19,6 +19,9 @@ data/playlist.json
 data/photos.json
 data/stems.json
 worker/.venv
+# Každé Python prostředí, ať leží kdekoli. To u Magenty má bezmála
+# gigabajt a jednou omylem přidané by se z historie špatně dostávalo.
+**/.venv/
 api/_server.mjs
 .claude/scheduled_tasks.lock
 .claude/*.lock
