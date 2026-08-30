@@ -42,11 +42,32 @@ const ZDROJE: { id: string; nazev: string; kategorie: string; popis: string }[] 
   },
 ];
 
+/**
+ * Čím se v knihovně hledá zvuk pro který pad.
+ *
+ * Sbírka má přes sedm set vzorků a v seznamu se jich ukáže čtyřicet —
+ * kdo staví kopák, prošel by devatenáct činelů a kopák by nenašel.
+ * Slov je víc, protože sbírky se jmenují každá jinak: „Absolution Kick"
+ * a „Ludwig_Bassdrum_22" jsou totéž a jedno slovo je nenajde obě.
+ */
+const HLEDANI: Record<string, string[]> = {
+  kick: ['bassdrum', 'kick'],
+  snare: ['snare', 'rim'],
+  hihat_closed: ['hat closed', 'hi-hat', 'hihat'],
+  hihat_open: ['hat open', 'hi-hat', 'hihat'],
+  tom_low: ['floortom', 'tom'],
+  tom_high: ['tom'],
+  crash: ['crash', 'splash'],
+  ride: ['ride', 'china'],
+};
+
 export const PadyBicich: React.FC = () => {
   const [stav, setStav] = useState<StavPadu>(padyService.stav());
   /** Pad, ke kterému se zrovna vybírá zvuk. */
   const [vybiram, setVybiram] = useState<string | null>(null);
   const [zdroj, setZdroj] = useState(ZDROJE[0]);
+  /** Čím se v knihovně hledá; předvyplní se podle padu. */
+  const [dotaz, setDotaz] = useState('');
   const [chyba, setChyba] = useState<string | null>(null);
   /** Pady, které právě uhodily — jen pro problesknutí. */
   const [blikaji, setBlikaji] = useState<Record<string, number>>({});
@@ -334,7 +355,16 @@ export const PadyBicich: React.FC = () => {
 
               <div className="flex items-center gap-1 mt-1.5">
                 <button
-                  onClick={(e) => { e.stopPropagation(); setVybiram(vybiram === p.id ? null : p.id); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const otevrit = vybiram !== p.id;
+                    setVybiram(otevrit ? p.id : null);
+                    // Rovnou zúžit na to, co se na tenhle pad hodí.
+                    if (otevrit) {
+                      setZdroj(ZDROJE[0]);
+                      setDotaz(HLEDANI[p.id]?.[0] || '');
+                    }
+                  }}
                   className="text-[10px] px-2 py-1 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
                 >
                   Z knihovny
@@ -385,8 +415,34 @@ export const PadyBicich: React.FC = () => {
           </div>
           <p className="text-[10px] text-neutral-500">{zdroj.popis}</p>
 
+          {zdroj.id === 'rany' && (HLEDANI[vybiram]?.length ?? 0) > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[10px] uppercase tracking-wider text-neutral-500">Zúžit na</span>
+              {HLEDANI[vybiram].map((slovo) => (
+                <button
+                  key={slovo}
+                  onClick={() => setDotaz(slovo)}
+                  className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold cursor-pointer ${
+                    dotaz === slovo ? 'bg-[#30D158] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  {slovo}
+                </button>
+              ))}
+              <button
+                onClick={() => setDotaz('')}
+                className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold cursor-pointer ${
+                  dotaz === '' ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
+                }`}
+              >
+                vše
+              </button>
+            </div>
+          )}
+
           <VyberZKnihovny
-            key={zdroj.id}
+            key={`${zdroj.id}:${dotaz}`}
+            vychoziDotaz={dotaz}
             kategorie={zdroj.kategorie}
             prazdno={`V kategorii ${zdroj.nazev.toLowerCase()} zatím nic není.`}
             cil={`na ${PADY.find((p) => p.id === vybiram)?.nazev}`}

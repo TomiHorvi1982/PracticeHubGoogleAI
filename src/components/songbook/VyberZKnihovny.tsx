@@ -36,6 +36,8 @@ export const VyberZKnihovny: React.FC<Props> = ({
 }) => {
   const [dotaz, setDotaz] = useState(vychoziDotaz);
   const [nalezene, setNalezene] = useState<LibraryAsset[]>([]);
+  /** Kolik jich v knihovně je celkem — v seznamu je vidět jen kus. */
+  const [celkem, setCelkem] = useState<number | null>(null);
   const [hledam, setHledam] = useState(false);
   /** Co si člověk zrovna prohlíží, než to vloží. */
   const [nahlizeny, setNahlizeny] = useState<LibraryAsset | null>(null);
@@ -65,8 +67,16 @@ export const VyberZKnihovny: React.FC<Props> = ({
     setHledam(true);
     const t = setTimeout(() => {
       void assetLibraryService
-        .list({ search: dotaz.trim() || undefined, category: kategorie, limit: 40, sort: 'name' })
-        .then((a) => zivy && setNalezene(a))
+        .listPage({ search: dotaz.trim() || undefined, category: kategorie, limit: 40, sort: 'name' })
+        .then(({ assets, total }) => {
+          if (!zivy) return;
+          setNalezene(assets);
+          // Kolik jich dotazu odpovídá celkem. Bez toho vypadá seznam
+          // čtyřiceti položek jako celá knihovna a soubory za jeho koncem
+          // jako by neexistovaly — u sedmi set vzorků bicích to znamená,
+          // že člověk devět z deseti nikdy neuvidí.
+          setCelkem(total);
+        })
         .finally(() => zivy && setHledam(false));
     }, 300);
     return () => {
@@ -97,6 +107,11 @@ export const VyberZKnihovny: React.FC<Props> = ({
           <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
             <Database className="w-3 h-3 shrink-0" />
             {prazdno || 'V knihovně nic takového není.'}
+          </p>
+        )}
+        {celkem !== null && celkem > nalezene.length && (
+          <p className="text-[10px] text-neutral-600 px-1">
+            Ukazuje se {nalezene.length} z {celkem} — zbytek najdeš hledáním.
           </p>
         )}
         {nalezene.map((a) => (
