@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Play, Pause, Users, Music4, Plus, X, Wand2, Mic, Sparkles, Loader2 } from 'lucide-react';
+import { Play, Pause, Users, Music4, Plus, X, Wand2, Mic, Sparkles, Loader2, FileMusic } from 'lucide-react';
 import { aiKapela, STYLY, StavKapely, Clen, Akord } from '../services/aiKapela';
 import { spessaEngine, StavEngine } from '../services/spessaEngine';
 import { aiSolista, StavSolisty } from '../services/aiSolista';
+import { assetLibraryService } from '../services/assetLibraryService';
 import { useMusicalContext } from '../context/MusicalContext';
 
 /**
@@ -26,8 +27,13 @@ export const AiKapelaSection: React.FC = () => {
   });
   const [novyAkord, setNovyAkord] = useState('');
   const [solista, setSolista] = useState<StavSolisty>({
-    stav: 'vypnuto', styl: '', chyba: null, kusu: 0, vterin: 0, drzeniAkordu: 2, posledniAkord: '',
+    stav: 'vypnuto', styl: '', chyba: null, kusu: 0, vterin: 0, drzeniAkordu: 2,
+    posledniAkord: '', render: null,
   });
+  const [kolRenderu, setKolRenderu] = useState(2);
+  /** Hotové sólo, dokud si ho člověk neuloží nebo nepustí jiné. */
+  const [hotoveSolo, setHotoveSolo] = useState<{ blob: Blob; url: string; vterin: number } | null>(null);
+  const [uklada, setUklada] = useState(false);
   /** Čím se sólista popíše modelu. Slovy, ne notami — tak se ovládá. */
   const [stylSolisty, setStylSolisty] = useState(
     () => localStorage.getItem('neverlate_styl_solisty') || 'electric guitar solo over rock band',
@@ -35,6 +41,51 @@ export const AiKapelaSection: React.FC = () => {
   useEffect(() => aiSolista.subscribe(setSolista), []);
   useEffect(() => () => aiSolista.stop(), []);
   const { key } = useMusicalContext();
+
+  /**
+   * Nechá vyrenderovat sólo přes celý postup.
+   *
+   * Kapela se zastaví: render bere tutéž službu a větší model, takže by
+   * si vzájemně braly stroj a nedoběhlo by ani jedno.
+   */
+  const renderuj = async () => {
+    aiKapela.stop();
+    // Render jde přes tutéž službu, takže musí být spojení. Když sólista
+    // neběží, připojí se kvůli renderu a po něm zase zmlkne.
+    if (solista.stav !== 'hraje') {
+      await aiSolista.start(stylSolisty);
+      await new Promise((r) => window.setTimeout(r, 400));
+    }
+    if (hotoveSolo) URL.revokeObjectURL(hotoveSolo.url);
+    setHotoveSolo(null);
+    try {
+      const takty = aiKapela.taktyProRender(kolRenderu);
+      const blob = await aiSolista.vyrenderuj(stylSolisty, stav.bpm, 4, takty);
+      const url = URL.createObjectURL(blob);
+      // Délka z velikosti: 16 bitů, dva kanály, 48 kHz.
+      const vterin = (blob.size - 44) / 2 / 2 / 48000;
+      setHotoveSolo({ blob, url, vterin });
+    } catch {
+      /* chyba se ukáže ze stavu sólisty */
+    }
+  };
+
+  const ulozSolo = async () => {
+    if (!hotoveSolo) return;
+    setUklada(true);
+    try {
+      const nazev = `AI sólo — ${stav.styl} ${stav.bpm} BPM ${new Date()
+        .toISOString()
+        .slice(0, 16)
+        .replace('T', ' ')}.wav`;
+      const soubor = new File([hotoveSolo.blob], nazev, { type: 'audio/wav' });
+      await assetLibraryService.upload(soubor, 'recordings', 'recording', 'global');
+      URL.revokeObjectURL(hotoveSolo.url);
+      setHotoveSolo(null);
+    } finally {
+      setUklada(false);
+    }
+  };
 
   useEffect(() => aiKapela.subscribe(setStav), []);
   useEffect(() => spessaEngine.subscribe(setEngine), []);
@@ -304,6 +355,72 @@ export const AiKapelaSection: React.FC = () => {
             {solista.stav === 'hraje' ? 'Zastavit sólistu' : 'Pustit sólistu'}
           </button>
         </div>
+
+        {/*
+          Render mimo reálný čas.
+          Živě hraje malý model, protože větší nestíhá. Když se na sólo
+          počká, může ho zahrát ten větší — a harmonii dostane přesně na
+          takt, ne dopředu na blok, který zrovna počítá.
+        */}
+        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
+          <FileMusic className="w-3.5 h-3.5 text-[#BF5AF2]" />
+          <span className="text-[11px] text-neutral-400 flex-1 min-w-[180px]">
+            Nechat sólo vyrenderovat větším modelem — zní líp, ale musíš počkat.
+          </span>
+
+          <label className="flex items-center gap-1 text-[11px] text-neutral-400">
+            kol
+            <input
+              type="number" min={1} max={16} value={kolRenderu}
+              onChange={(e) => setKolRenderu(Math.max(1, Math.min(16, Number(e.target.value) || 1)))}
+              className="w-14 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-white outline-none"
+            />
+          </label>
+
+          <button
+            onClick={() => void renderuj()}
+            disabled={!!solista.render}
+            className="px-3 py-1.5 rounded-xl bg-[#BF5AF2] text-white text-[11px] font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+            title="Vyrenderovat sólo přes celý postup větším modelem"
+          >
+            {solista.render ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileMusic className="w-3.5 h-3.5" />}
+            {solista.render
+              ? `Renderuju ${solista.render.hotovo}/${solista.render.celkem} taktů`
+              : 'Vyrenderovat sólo'}
+          </button>
+        </div>
+
+        {solista.render && (
+          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[#BF5AF2] transition-[width] duration-300"
+              style={{ width: `${(solista.render.hotovo / Math.max(1, solista.render.celkem)) * 100}%` }}
+            />
+          </div>
+        )}
+
+        {hotoveSolo && (
+          <div className="flex flex-wrap items-center gap-2 bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 rounded-xl px-3 py-2">
+            <span className="text-[11px] text-white flex-1">
+              Sólo hotové — {hotoveSolo.vterin.toFixed(1)} s
+            </span>
+            <audio src={hotoveSolo.url} controls className="h-8 max-w-[240px]" />
+            <button
+              onClick={() => void ulozSolo()}
+              disabled={uklada}
+              className="px-2.5 py-1.5 rounded-lg bg-[#30D158] text-black text-[11px] font-bold cursor-pointer disabled:opacity-40"
+            >
+              {uklada ? 'Ukládám…' : 'Do knihovny'}
+            </button>
+            <a
+              href={hotoveSolo.url}
+              download={`ai-solo-${Date.now()}.wav`}
+              className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 text-[11px] font-bold cursor-pointer"
+            >
+              Stáhnout
+            </a>
+          </div>
+        )}
 
         {solista.chyba && (
           <div className="text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/25 rounded-xl px-3 py-2">

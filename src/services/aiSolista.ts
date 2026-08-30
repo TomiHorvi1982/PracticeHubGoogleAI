@@ -35,6 +35,14 @@ export interface StavSolisty {
   drzeniAkordu: number;
   /** Co se mu naposledy poslalo — kvůli kontrole v UI. */
   posledniAkord: string;
+  /** Průběh renderu mimo reálný čas, nebo null, když žádný neběží. */
+  render: { hotovo: number; celkem: number } | null;
+}
+
+/** Jeden takt pro render: harmonie a jestli v něm bouchají bicí. */
+export interface TaktRenderu {
+  tony: number[];
+  bici: boolean;
 }
 
 /** Kolik tónů má klavírní role, kterou model přijímá. */
@@ -60,9 +68,14 @@ class AiSolista {
     vterin: 0,
     drzeniAkordu: 2,
     posledniAkord: '',
+    render: null,
   };
+  /** Rozdělaný render — čeká na binární data, která přijdou po hlášce. */
+  private cekaNaRender: ((b: Blob) => void) | null = null;
   /** Aby se táž podmínka neposílala pořád dokola. */
   private posledniPodminka = '';
+  /** Příznak, že příští binární zpráva je vyrenderovaný soubor. */
+  private dalsiBinarniJeRender = false;
   private posluchaci = new Set<Poslucha>();
 
   public subscribe(f: Poslucha): () => void {
@@ -85,6 +98,25 @@ class AiSolista {
       this.zmenStyl(styl);
       return;
     }
+    // Staré spojení musí pryč, ne jen zapomenout.
+    //
+    // Zůstávalo otevřené a jeho generující smyčka na serveru běžela dál;
+    // dvě smyčky nad jedním modelem si přepisovaly rozehraný stav a
+    // model pak volání odmítl. Poznalo se to tak, že sólista po
+    // opětovném spuštění chvíli hrál a pak zmlkl.
+    if (this.ws) {
+      const stare = this.ws;
+      this.ws = null;
+      stare.onmessage = null;
+      stare.onclose = null;
+      stare.onerror = null;
+      try {
+        stare.close();
+      } catch {
+        /* už zavřené */
+      }
+    }
+
     this.oznam({ stav: 'pripojuji', chyba: null, kusu: 0, vterin: 0, styl });
 
     this.ctx = new AudioContext({ latencyHint: 'playback' });
@@ -112,8 +144,30 @@ class AiSolista {
       if (typeof e.data === 'string') {
         const z = JSON.parse(e.data);
         if (z.typ === 'hraje') this.oznam({ stav: 'hraje' });
+        // Render si bere stroj pro sebe, takže živé hraní skončí.
+        else if (z.typ === 'stojí') this.oznam({ stav: 'vypnuto', kusu: 0, vterin: 0 });
+        else if (z.typ === 'render-postup') {
+          this.oznam({ render: { hotovo: z.hotovo, celkem: z.celkem } });
+        } else if (z.typ === 'render-hotovo') {
+          // Data přijdou hned za touhle hláškou; příští binární zpráva
+          // není kus k přehrání, ale hotový soubor.
+          this.dalsiBinarniJeRender = true;
+        } else if (z.typ === 'render-chyba') {
+          this.oznam({ render: null, chyba: z.chyba || 'Render selhal.' });
+          this.cekaNaRender = null;
+        }
         return;
       }
+
+      if (this.dalsiBinarniJeRender) {
+        this.dalsiBinarniJeRender = false;
+        const hotovo = this.cekaNaRender;
+        this.cekaNaRender = null;
+        this.oznam({ render: null });
+        hotovo?.(new Blob([e.data as ArrayBuffer], { type: 'audio/wav' }));
+        return;
+      }
+
       this.prehrajKus(e.data as ArrayBuffer);
     };
 
@@ -191,14 +245,11 @@ class AiSolista {
     if (otisk === this.posledniPodminka) return;
     this.posledniPodminka = otisk;
 
-    const role = new Array(TONU).fill(TICHO);
-    for (const t of tony) {
-      // Tón se podá ve třech oktávách: model tak ví, že jde o harmonii,
-      // ne o jednu konkrétní polohu, a může si sólo položit, kam chce.
-      for (const oktava of [-12, 0, 12]) {
-        const n = t + oktava;
-        if (n >= 0 && n < TONU) role[n] = uder ? UDER : DRZENI;
-      }
+    // Tón se podá ve třech oktávách: model tak ví, že jde o harmonii,
+    // ne o jednu konkrétní polohu, a může si sólo položit, kam chce.
+    const role = this.role(tony);
+    if (!uder) {
+      for (let i = 0; i < role.length; i++) if (role[i] === UDER) role[i] = DRZENI;
     }
 
     this.posli({
@@ -214,6 +265,58 @@ class AiSolista {
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(zprava));
     }
+  }
+
+  /**
+   * Nechá sólo vyrenderovat dopředu větším modelem.
+   *
+   * Živě hraje ten malý, protože větší na tomhle stroji nestíhá. Když se
+   * ale na výsledek počká, na rychlosti nezáleží a je slyšet rozdíl.
+   * Navíc se harmonie podá přesně na takt, ne dopředu na blok, který
+   * model zrovna počítá — takže sólo drží akordy líp než živě.
+   *
+   * Živé hraní se přitom zastaví: dva modely naráz by se přetahovaly.
+   */
+  public vyrenderuj(
+    styl: string,
+    bpm: number,
+    dobVTaktu: number,
+    takty: TaktRenderu[]
+  ): Promise<Blob> {
+    return new Promise((hotovo, selhalo) => {
+      if (this.ws?.readyState !== WebSocket.OPEN) {
+        selhalo(new Error('Sólista neběží. Spusť ho příkazem ./worker/magenta/run.sh'));
+        return;
+      }
+      if (this.cekaNaRender) {
+        selhalo(new Error('Jeden render už běží.'));
+        return;
+      }
+
+      this.cekaNaRender = hotovo;
+      this.oznam({ render: { hotovo: 0, celkem: takty.length }, chyba: null });
+
+      this.posli({
+        typ: 'render',
+        styl,
+        bpm,
+        dobVTaktu,
+        cfg: this.stav.drzeniAkordu,
+        takty: takty.map((t) => ({ noty: this.role(t.tony), bici: t.bici ? 1 : 0 })),
+      });
+    });
+  }
+
+  /** Klavírní role z tónů akordu, ve třech oktávách. */
+  private role(tony: number[]): number[] {
+    const role = new Array(TONU).fill(TICHO);
+    for (const t of tony) {
+      for (const oktava of [-12, 0, 12]) {
+        const n = t + oktava;
+        if (n >= 0 && n < TONU) role[n] = UDER;
+      }
+    }
+    return role;
   }
 
   public zmenStyl(styl: string): void {

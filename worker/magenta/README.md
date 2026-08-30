@@ -93,6 +93,27 @@ Věci, které nejsou v dokumentaci a stály hodinu hledání:
   jsou proto jedno na celý proces.
 - **Hraje vždycky nejvýš jedno spojení.** Model si mezi voláními nese
   streamovaný stav; dvě generující spojení si ho přepisovala.
+- **Měřítka musí být desetinná čísla.** Z JSON přijde `2` jako celé číslo
+  a `min`/`max` v Pythonu vrací ten svůj argument, takže celé zůstane —
+  model je ale vystopovaný na desetinná a volání odmítne. Projeví se to
+  zákeřně: sólista chvíli hraje a zmlkne přesně ve chvíli, kdy dorazí
+  první akord, protože do té doby se posílala nula napsaná jako `0.0`.
+- **Dva modely v jednom procesu nejdou.** Po načtení druhého začne první
+  padat na tutéž neshodu vstupů a přepínání za chodu se zasekne. Render
+  proto běží ve vlastním procesu (`render.py`).
+
+## Vyrenderované sólo
+
+Živý sólista je omezený tím, co stihne. Když se na sólo počká, může ho
+zahrát větší model — a navíc dostane harmonii přesně na takt, ne dopředu
+na blok, který zrovna počítá. V AI Bandu je na to tlačítko: vyrenderuje
+sólo přes celý postup, přehraje ho a uloží do knihovny mezi nahrávky.
+
+Osm taktů na 110 BPM (17,6 s zvuku) trvá kolem třiceti vteřin i s
+načtením `mrt2_base`. Model renderu se přepíná proměnnou
+`MAGENTA_RENDER_MODEL`.
+
+Živé hraní se na dobu renderu zastaví — obojí naráz by si bralo stroj.
 
 ## Co pořád není ověřené
 

@@ -22,7 +22,9 @@ import json
 import logging
 import os
 import struct
+import sys
 import time
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -79,7 +81,8 @@ TICHO, UDER, DRZENI = 0, 1, 2
 class Solista:
     """Drží model a jeho průběžný stav."""
 
-    def __init__(self) -> None:
+    def __init__(self, model: str = MODEL) -> None:
+        self._model_name = model
         self._mrt: Any = None
         self._klic: str = ""
         self._klic_not: str = ""
@@ -96,7 +99,7 @@ class Solista:
     def nacti(self) -> None:
         if self._mrt is not None:
             return
-        log.info("Načítám %s (poprvé to chvíli trvá)…", MODEL)
+        log.info("Načítám %s (poprvé to chvíli trvá)…", self._model_name)
         from magenta_rt.config import MUSICCOCA, PIANOROLL_WITH_ONSETS, DRUM_PIANOROLL
 
         self._klic = MUSICCOCA.key
@@ -115,20 +118,20 @@ class Solista:
             from magenta_rt.mlx.system import MagentaRT2System
 
             self._mrt = MagentaRT2System(
-                size=MODEL,
+                size=self._model_name,
                 temperature=TEPLOTA,
                 top_k=TOP_K,
                 cfg_scales=meritka,
                 bits=int(BITY),
             )
-            log.info("Model %s kvantovaný na %s bitů.", MODEL, BITY)
+            log.info("Model %s kvantovaný na %s bitů.", self._model_name, BITY)
         else:
             from magenta_rt.mlx.system import MagentaRT2SystemStdMlxfn
 
             self._mrt = MagentaRT2SystemStdMlxfn(
-                size=MODEL, temperature=TEPLOTA, top_k=TOP_K, cfg_scales=meritka
+                size=self._model_name, temperature=TEPLOTA, top_k=TOP_K, cfg_scales=meritka
             )
-            log.info("Model %s (exportovaný).", MODEL)
+            log.info("Model %s (exportovaný).", self._model_name)
 
     def nastav_styl(self, popis: str) -> None:
         """Změní styl. Stav se zahodí, jinak by nový styl dozníval starým."""
@@ -145,7 +148,14 @@ class Solista:
         self._noty = noty
         self._bici = bici
         if cfg is not None:
-            self._cfg_noty = max(0.0, min(8.0, cfg))
+            # Přetypovat, ne jen omezit rozsahem.
+            #
+            # `min`/`max` v Pythonu vrací ten svůj argument, takže z JSON
+            # celého čísla vyleze zase celé číslo — a model je vystopovaný
+            # na desetinná. Volání pak skončí na „No imported function
+            # found", a to až ve chvíli, kdy dorazí první akord: do té doby
+            # se posílala nula napsaná jako `0.0`.
+            self._cfg_noty = float(max(0.0, min(8.0, float(cfg))))
 
     def kus(self) -> tuple[bytes, int, int]:
         """Další kousek zvuku jako 16bitové vzorky."""
@@ -164,14 +174,23 @@ class Solista:
             self._klic_not: self._noty if self._noty else [TICHO] * 128,
             self._klic_bicich: [self._bici if self._bici is not None else 0],
         }
-        cfg = self._cfg_noty if self._noty else 0.0
+        cfg = float(self._cfg_noty) if self._noty else 0.0
 
-        wav, self._stav = self._mrt.generate(
-            conditioning=podminka,
-            cfg_scales={"notes": cfg},
-            frames=SNIMKU_NA_KUS,
-            state=self._stav,
-        )
+        try:
+            wav, self._stav = self._mrt.generate(
+                conditioning=podminka,
+                cfg_scales={"notes": cfg},
+                frames=SNIMKU_NA_KUS,
+                state=self._stav,
+            )
+        except Exception:
+            log.error(
+                "Volání modelu selhalo. not=%s bicí=%s cfg=%r",
+                len(podminka[self._klic_not]),
+                podminka[self._klic_bicich],
+                cfg,
+            )
+            raise
         vzorky = np.asarray(wav.samples, dtype=np.float32)
         if vzorky.ndim == 1:
             vzorky = vzorky[:, None]
@@ -196,6 +215,26 @@ class Solista:
 VLAKNO = ThreadPoolExecutor(max_workers=1, thread_name_prefix="magenta")
 SOLISTA = Solista()
 
+# Nad modelem smí být v jednu chvíli jedno volání.
+#
+# Zrušení úlohy nezruší práci, která už leží ve frontě vlákna: stará
+# generující smyčka tak stihla ještě jedno volání souběžně s novou a
+# rozehraný stav modelu se jim promíchal. Zámek to seřadí.
+ZAMEK = asyncio.Lock()
+
+# Render běží ve vlastním procesu s větším modelem.
+#
+# Živě hraje ten malý, protože větší nestíhá — na M1 Pro potřebuje 1,4 s
+# na vteřinu zvuku. Když se sólo renderuje dopředu, na čase nezáleží a
+# vyplatí se počkat, protože větší zní líp.
+#
+# Vlastní proces, ne druhý model tady: dvě importované funkce v jednom
+# procesu si pletou volání a po renderu začal živý sólista padat na
+# „No imported function found". Přepínat model za chodu taky nešlo, tam
+# se načítání zaseklo natvrdo. Samostatný proces má MLX čisté a po sobě
+# uklidí sám.
+MODEL_RENDERU = os.environ.get("MAGENTA_RENDER_MODEL", "mrt2_base")
+
 # Hraje vždycky nejvýš jeden.
 #
 # Model si mezi voláními nese streamovaný stav a je jen jeden. Dvě
@@ -206,13 +245,100 @@ SOLISTA = Solista()
 AKTIVNI: asyncio.Task | None = None
 
 
+async def renderuj(websocket, vModelu, prikaz: dict) -> None:
+    """Vyrenderuje sólo přes zadaný postup a pošle ho jako hotový WAV.
+
+    Po taktech, protože harmonie se mění po taktech. Kus se tak kryje
+    s taktem a model dostane akord přesně na dobu, po kterou platí — což
+    živě nejde, tam se posílá dopředu a uplatní se na blok, který zrovna
+    počítá.
+    """
+    styl = str(prikaz.get("styl") or "electric guitar solo")
+    bpm = float(prikaz.get("bpm") or 110)
+    dob_v_taktu = int(prikaz.get("dobVTaktu") or 4)
+    cfg = float(prikaz.get("cfg") or CFG_NOTY)
+    takty: list[dict] = list(prikaz.get("takty") or [])
+    if not takty:
+        await websocket.send(json.dumps({"typ": "render-chyba", "chyba": "Prázdný postup."}))
+        return
+
+    # Kolik snímků je jeden takt. Model jede pevných 25 snímků za vteřinu.
+    snimku = max(1, round(25 * dob_v_taktu * 60.0 / bpm))
+    log.info("Render: %d taktů po %d snímcích, styl %r", len(takty), snimku, styl)
+
+    zadani = json.dumps({
+        "model": MODEL_RENDERU,
+        "styl": styl,
+        "takty": takty,
+        "snimku": snimku,
+        "cfg": cfg,
+        "teplota": TEPLOTA,
+        "topK": TOP_K,
+    }).encode()
+
+    proces = await asyncio.create_subprocess_exec(
+        sys.executable,
+        str(Path(__file__).with_name("render.py")),
+        stdin=asyncio.subprocess.PIPE,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    assert proces.stdin and proces.stdout and proces.stderr
+    proces.stdin.write(zadani)
+    await proces.stdin.drain()
+    proces.stdin.close()
+
+    async def hlas_o_prubehu() -> None:
+        # Průběh chodí po řádcích na chybovém výstupu, hotový zvuk na
+        # standardním — jinak by se to v jednom proudu nedalo rozebrat.
+        while True:
+            radek = await proces.stderr.readline()
+            if not radek:
+                return
+            try:
+                z = json.loads(radek)
+            except ValueError:
+                log.debug("render: %s", radek.decode(errors="replace").strip())
+                continue
+            if z.get("typ") == "postup":
+                await websocket.send(json.dumps({
+                    "typ": "render-postup",
+                    "hotovo": z["hotovo"],
+                    "celkem": z["celkem"],
+                }))
+            elif z.get("typ") == "nacitam":
+                log.info("Render načítá %s", z.get("model"))
+
+    sledovac = asyncio.create_task(hlas_o_prubehu())
+    data = await proces.stdout.read()
+    await proces.wait()
+    sledovac.cancel()
+
+    if proces.returncode != 0 or not data:
+        log.warning("Render selhal, návratový kód %s", proces.returncode)
+        await websocket.send(json.dumps({
+            "typ": "render-chyba",
+            "chyba": "Render selhal. Podrobnosti jsou v logu služby.",
+        }))
+        return
+
+    await websocket.send(json.dumps({
+        "typ": "render-hotovo",
+        "bajtu": len(data),
+        "model": MODEL_RENDERU,
+    }))
+    await websocket.send(data)
+    log.info("Render hotový: %.1f MB", len(data) / 1e6)
+
+
 async def obsluz(websocket) -> None:
     solista = SOLISTA
     hraje = False
     smycka = asyncio.get_running_loop()
 
     async def vModelu(fn, *args):
-        return await smycka.run_in_executor(VLAKNO, fn, *args)
+        async with ZAMEK:
+            return await smycka.run_in_executor(VLAKNO, fn, *args)
 
     async def posilej() -> None:
         # Úloha si musí chyby hlásit sama.
@@ -282,6 +408,22 @@ async def obsluz(websocket) -> None:
                     prikaz.get("bici"),
                     prikaz.get("cfg"),
                 )
+
+            elif prikaz.get("typ") == "render":
+                # Renderování mimo reálný čas.
+                #
+                # Živý sólista se zastaví: model renderu je větší a oba
+                # naráz by se na jednom vlákně přetahovaly, takže by ani
+                # jeden nestíhal. Po dokončení se dá pustit znovu.
+                if hraje:
+                    hraje = False
+                    if odesilatel:
+                        odesilatel.cancel()
+                    # Klient o zastavení musí vědět, jinak dál ukazuje
+                    # „hraje" u sólisty, kterému nic nechodí.
+                    await websocket.send(json.dumps({"typ": "stojí"}))
+
+                await renderuj(websocket, vModelu, prikaz)
 
             elif prikaz.get("typ") == "stop":
                 hraje = False

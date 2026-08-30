@@ -331,6 +331,28 @@ class AiKapela {
    * Bez rozumné polohy by doprovod skákal přes celou klaviaturu; drží se
    * proto kolem malé oktávy a basa o dvě oktávy níž.
    */
+  /**
+   * Rozepíše postup na jednotlivé takty pro render sóla.
+   *
+   * Render potřebuje takt po taktu, ne akord po akordu: akord se může
+   * držet víc taktů a model dostává harmonii na každý zvlášť. Vrací se
+   * i to, jestli v taktu bouchá kopák — model se podle toho chytá doby.
+   */
+  public taktyProRender(opakovani = 1): { tony: number[]; bici: boolean }[] {
+    const s = this.styl;
+    const kopakNaJednicku = s.bici.some((l) => l.nota === BICI.kopak && l.kroky.includes(0));
+    const ven: { tony: number[]; bici: boolean }[] = [];
+    for (let kolo = 0; kolo < Math.max(1, opakovani); kolo++) {
+      for (const akord of this.stav.postup) {
+        const tony = this.tonyAkordu(akord.nazev);
+        for (let t = 0; t < Math.max(1, akord.taktu); t++) {
+          ven.push({ tony, bici: kopakNaJednicku });
+        }
+      }
+    }
+    return ven;
+  }
+
   private tonyAkordu(nazev: string): number[] {
     const info = Chord.get(nazev);
     if (!info.notes.length) return [];
