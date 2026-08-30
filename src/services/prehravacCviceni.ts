@@ -1,3 +1,4 @@
+import * as Tone from 'tone';
 import { authService } from './authService';
 import { audioBus } from './audioBus';
 
@@ -8,10 +9,12 @@ import { audioBus } from './audioBus';
  * na pár vteřinách, zpomalení bez změny výšky tónu, postupné zrychlování
  * po opakováních a klik metronomu navrch.
  *
- * Rychlost mění `playbackRate` na zdroji. Výšku to posune spolu s tempem —
- * poloviční rychlost zní o oktávu níž. Pro cvičení hmatu to nevadí a je
- * to poctivější než zapínat úpravu, která zvuk rozmaže; kdo si chce
- * poslechnout tón, pustí si to na sto procent.
+ * Rychlost mění `playbackRate` na zdroji, což by samo o sobě posunulo i
+ * výšku — na polovině by nahrávka zněla o oktávu níž a cvičil bys jiné
+ * tóny, než jaké jsou napsané. Za zdrojem proto sedí posuv výšky, který
+ * to dorovná zpátky, a tentýž posuv slouží i k přeladění nahrávky na
+ * vlastní kytaru. Zrnitá úprava výšky zvuk trochu rozmaže; při velkém
+ * zpomalení je to slyšet, ale je to lepší než hrát o tercii vedle.
  */
 
 export interface StavCviceni {
@@ -28,6 +31,10 @@ export interface StavCviceni {
   /** O kolik zrychlit po každém kole, v procentech. */
   pridavat: number;
   klik: boolean;
+  /** Přeladění v půltónech — nahrávka na tvoje ladění. */
+  posun: number;
+  /** Držet původní výšku i při zpomalení. */
+  drzetLadeni: boolean;
   chyba: string | null;
 }
 
@@ -38,6 +45,8 @@ class PrehravacCviceni {
   private buffer: AudioBuffer | null = null;
   private zdroj: AudioBufferSourceNode | null = null;
   private hlasitost: GainNode | null = null;
+  /** Posuv výšky za hlasitostí — dorovnává zpomalení a ladí na kytaru. */
+  private posuvVysky: Tone.PitchShift | null = null;
   /** Čas hodin, kdy začalo aktuální kolo. */
   private zacatekKola = 0;
   private tik: number | null = null;
@@ -45,7 +54,8 @@ class PrehravacCviceni {
 
   private stav: StavCviceni = {
     nacita: false, hraje: false, pozice: 0, delka: 0,
-    od: 0, do: 0, rychlost: 1, kol: 0, pridavat: 0, klik: false, chyba: null,
+    od: 0, do: 0, rychlost: 1, kol: 0, pridavat: 0, klik: false,
+    posun: 0, drzetLadeni: true, chyba: null,
   };
   private posluchaci = new Set<Poslucha>();
 
@@ -79,7 +89,9 @@ class PrehravacCviceni {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      if (!this.ctx) this.ctx = new AudioContext();
+      // Tentýž kontext jako mixážní pult: dva by znamenaly dvoje hodiny,
+      // dvojí latenci a posuv výšky z Tone by neměl kam sáhnout.
+      if (!this.ctx) this.ctx = Tone.getContext().rawContext as AudioContext;
       this.buffer = await this.ctx.decodeAudioData(await res.arrayBuffer());
       this.oznam({
         nacita: false,
@@ -99,21 +111,56 @@ class PrehravacCviceni {
    * Sto tisíc vzorků na pixel se kreslit nedá; z každého úseku se vezme
    * největší výchylka, takže je v obrázku vidět, kde co bouchne.
    */
-  public vrcholky(kolik: number): number[] {
+  public vrcholky(kolik: number, odS?: number, doS?: number): number[] {
     if (!this.buffer) return [];
     const data = this.buffer.getChannelData(0);
-    const naUsek = Math.max(1, Math.floor(data.length / kolik));
+    const vzorku = this.buffer.sampleRate;
+    // Bez rozsahu se bere celý soubor; s rozsahem jen výřez, jinak by
+    // přiblížení jen roztáhlo tytéž vrcholky a nic nového by neukázalo.
+    const zac = Math.max(0, Math.floor((odS ?? 0) * vzorku));
+    const kon = Math.min(data.length, Math.ceil((doS ?? this.buffer.duration) * vzorku));
+    const delka = Math.max(1, kon - zac);
+    const naUsek = Math.max(1, Math.floor(delka / kolik));
+
     const out: number[] = [];
     for (let i = 0; i < kolik; i++) {
       let max = 0;
-      const od = i * naUsek;
-      for (let j = od; j < od + naUsek && j < data.length; j++) {
+      const od = zac + i * naUsek;
+      for (let j = od; j < od + naUsek && j < kon; j++) {
         const v = Math.abs(data[j]);
         if (v > max) max = v;
       }
       out.push(max);
     }
     return out;
+  }
+
+  /**
+   * Přeladí nahrávku o půltóny.
+   *
+   * Kdo má kytaru o půltón níž, nemusí ji kvůli jedné písni přelaďovat.
+   */
+  public nastavPosun(poltonu: number): void {
+    const v = Math.max(-12, Math.min(12, poltonu));
+    this.oznam({ posun: v });
+    this.dolaďVysku();
+  }
+
+  public prepniDrzeniLadeni(): void {
+    this.oznam({ drzetLadeni: !this.stav.drzetLadeni });
+    this.dolaďVysku();
+  }
+
+  /**
+   * Nastaví posuv tak, aby seděla výška.
+   *
+   * Zpomalení stáhne výšku o `12·log2(rychlost)` půltónů; když se má
+   * ladění držet, přičte se to zpátky. K tomu se přidá vlastní přeladění.
+   */
+  private dolaďVysku(): void {
+    if (!this.posuvVysky) return;
+    const zRychlosti = this.stav.drzetLadeni ? -12 * Math.log2(this.stav.rychlost) : 0;
+    this.posuvVysky.pitch = this.stav.posun + zRychlosti;
   }
 
   public nastavSmycku(od: number, doo: number): void {
@@ -128,6 +175,7 @@ class PrehravacCviceni {
     const nova = Math.max(0.25, Math.min(1.5, v));
     this.oznam({ rychlost: nova });
     if (this.zdroj) this.zdroj.playbackRate.value = nova;
+    this.dolaďVysku();
   }
 
   public nastavPridavani(procent: number): void {
@@ -146,6 +194,9 @@ class PrehravacCviceni {
 
   public prehraj(): void {
     if (this.stav.hraje || !this.buffer) return;
+    // Tone svůj kontext do prvního kliknutí drží pozastavený; bez tohohle
+    // by se tlačítko zmáčklo a nic by se neozvalo.
+    void Tone.start();
     audioBus.claim('cviceni', 'Cvičení', 'Practise Hub');
     this.oznam({ hraje: true, kol: 0 });
     this.rozjed();
@@ -159,7 +210,9 @@ class PrehravacCviceni {
     this.zdroj?.stop();
     if (!this.hlasitost) {
       this.hlasitost = this.ctx.createGain();
-      this.hlasitost.connect(this.ctx.destination);
+      this.posuvVysky = new Tone.PitchShift({ pitch: 0, windowSize: 0.1 }).toDestination();
+      Tone.connect(this.hlasitost, this.posuvVysky);
+      this.dolaďVysku();
     }
     const z = this.ctx.createBufferSource();
     z.buffer = this.buffer;
