@@ -33,7 +33,7 @@ const MISTNOSTI: { id: Mistnost; nazev: string; popis: string; ikona: typeof Fla
   },
   {
     id: 'test', nazev: 'Testing Room',
-    popis: 'Zkoušení akordů, stupnic, intervalů a hmatníku',
+    popis: 'Kvíz, trefování tónů podle detekce a zkoušení rytmu',
     ikona: Brain, barva: '#BF5AF2',
   },
 ];

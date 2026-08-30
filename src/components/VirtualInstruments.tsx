@@ -3,6 +3,7 @@ import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
 import { PadyBicich } from './PadyBicich';
 import { PoslechKytaryPanel } from './hmatnik/PoslechKytaryPanel';
+import { BASE_PIANO_LAYOUT } from '../data/pcKlavesnice';
 import { midiPlayerService, MidiSongState, profileForProgram } from '../services/midiPlayerService';
 import { ChordScaleExplorer } from './ChordScaleExplorer';
 import { audioSynth, INSTRUMENT_PROFILES, DRUM_KITS, InstrumentProfile } from '../services/audioSynth';
@@ -166,36 +167,6 @@ const PRESET_LOOPS: Record<string, { name: string; bpm: number; kit: InstrumentP
 };
 
 // Base layout relative notes for two full octaves (25 keys total)
-const BASE_PIANO_LAYOUT = [
-  // Octave 1 relative (0..11)
-  { root: 'C', relOctave: 0, keyShortcut: 'a', isBlack: false },
-  { root: 'C#', relOctave: 0, keyShortcut: 'w', isBlack: true },
-  { root: 'D', relOctave: 0, keyShortcut: 's', isBlack: false },
-  { root: 'D#', relOctave: 0, keyShortcut: 'e', isBlack: true },
-  { root: 'E', relOctave: 0, keyShortcut: 'd', isBlack: false },
-  { root: 'F', relOctave: 0, keyShortcut: 'f', isBlack: false },
-  { root: 'F#', relOctave: 0, keyShortcut: 't', isBlack: true },
-  { root: 'G', relOctave: 0, keyShortcut: 'g', isBlack: false },
-  { root: 'G#', relOctave: 0, keyShortcut: 'y', isBlack: true },
-  { root: 'A', relOctave: 0, keyShortcut: 'h', isBlack: false },
-  { root: 'A#', relOctave: 0, keyShortcut: 'u', isBlack: true },
-  { root: 'B', relOctave: 0, keyShortcut: 'j', isBlack: false },
-  // Octave 2 relative (12..23)
-  { root: 'C', relOctave: 1, keyShortcut: 'k', isBlack: false },
-  { root: 'C#', relOctave: 1, keyShortcut: 'o', isBlack: true },
-  { root: 'D', relOctave: 1, keyShortcut: 'l', isBlack: false },
-  { root: 'D#', relOctave: 1, keyShortcut: 'p', isBlack: true },
-  { root: 'E', relOctave: 1, keyShortcut: 'z', isBlack: false },
-  { root: 'F', relOctave: 1, keyShortcut: 'x', isBlack: false },
-  { root: 'F#', relOctave: 1, keyShortcut: '1', isBlack: true },
-  { root: 'G', relOctave: 1, keyShortcut: 'c', isBlack: false },
-  { root: 'G#', relOctave: 1, keyShortcut: '2', isBlack: true },
-  { root: 'A', relOctave: 1, keyShortcut: 'v', isBlack: false },
-  { root: 'A#', relOctave: 1, keyShortcut: '3', isBlack: true },
-  { root: 'B', relOctave: 1, keyShortcut: 'b', isBlack: false },
-  // Ending C
-  { root: 'C', relOctave: 2, keyShortcut: 'n', isBlack: false },
-];
 
 export const VirtualInstruments: React.FC = () => {
   // Hmatník žije v dolním panelu (SmartStudioDock), kde má vlastní přepínač

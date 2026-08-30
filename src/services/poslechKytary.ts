@@ -34,7 +34,24 @@ export interface StavPoslechu {
   chyba: string | null;
 }
 
+/**
+ * Jeden úder — zahraný tón i s tím, kdy padl.
+ *
+ * Stav samotný na cvičení nestačí: říká, co zrovna zní, ale ne kolikrát
+ * to zaznělo a kdy. Rytmus i trefování tónů potřebuje jednotlivé události.
+ */
+export interface UderZMikrofonu {
+  ton: string;
+  midi: number;
+  /** Odchylka od čisté výšky. */
+  centy: number;
+  hlasitost: number;
+  /** Čas v `performance.now()`, ať se dá srovnávat s MIDI i s metronomem. */
+  cas: number;
+}
+
 type Poslucha = (s: StavPoslechu) => void;
+type Uderova = (u: UderZMikrofonu) => void;
 
 /** Kolik tónů se drží v paměti pro rozpoznání stupnice. */
 const PAMET = 24;
@@ -97,6 +114,9 @@ class PoslechKytary {
   /** Kdy se naposledy spustil tón; brání zdvojení jednoho úderu. */
   private posledniUder = 0;
   private posluchaci = new Set<Poslucha>();
+  private uderovi = new Set<Uderova>();
+  /** Poslední znějící výška — podle její změny se pozná nový tón i bez ozvěny. */
+  private posledniVyska: string | null = null;
 
   /** Výchozí stav pro první vykreslení komponenty. */
   public getStavVerejny(): StavPoslechu {
@@ -107,6 +127,12 @@ class PoslechKytary {
     this.posluchaci.add(f);
     f(this.stav);
     return () => this.posluchaci.delete(f);
+  }
+
+  /** Hlásí každý zachycený úder. Vrací funkci, kterou se odhlásíš. */
+  public naUder(f: Uderova): () => void {
+    this.uderovi.add(f);
+    return () => this.uderovi.delete(f);
   }
 
   private oznam(zmena: Partial<StavPoslechu>) {
@@ -216,11 +242,29 @@ class PoslechKytary {
           hlasitost > PRAH_HLASITOSTI * 2.5 &&
           ted - this.posledniUder > 60;
 
+        // Nový tón, nebo znovu ten samý. Rozestup se hlídá i u změny
+        // výšky: YIN občas na okamžik skočí o oktávu a bez něj by z
+        // jednoho brnknutí byly tři údery.
+        const jinyTon = jmeno !== this.posledniVyska;
+        if ((znovuUder || jinyTon) && ted - this.posledniUder > 60) {
+          this.posledniUder = ted;
+          this.posledniVyska = jmeno;
+          if (this.uderovi.size) {
+            const uder: UderZMikrofonu = {
+              ton: jmeno,
+              midi: Note.midi(jmeno) ?? 0,
+              centy,
+              hlasitost,
+              cas: ted,
+            };
+            this.uderovi.forEach((f) => f(uder));
+          }
+        }
+
         if (this.stav.ozvena && (jmeno !== this.zniciTon || znovuUder)) {
           this.utni();
           audioSynth.noteOn(jmeno, this.nastrojOzveny, Math.min(1, 0.5 + hlasitost * 6));
           this.zniciTon = jmeno;
-          this.posledniUder = ted;
         }
 
         // Do historie jen změna tónu. Držená struna zní desetiny sekundy,
@@ -243,6 +287,8 @@ class PoslechKytary {
       }
     } else if (this.stav.ton) {
       this.utni();
+      // Ticho ukončí tón, aby se po pauze týž tón počítal jako nový úder.
+      this.posledniVyska = null;
       this.oznam({ ton: null, frekvence: 0, centy: 0 });
     }
 
