@@ -208,8 +208,22 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     return matchesSearch && matchesRole;
   });
 
+  /**
+   * Text pozvánky.
+   *
+   * Odkazem na nastavení hesla, ne heslem: to by po odeslání zůstalo
+   * ležet v poště obou stran a platilo, dokud ho někdo nezmění. Odkaz
+   * platí jednou a vyprší. Heslo se přiloží, jen když se odkaz vyrobit
+   * nepodařilo — pozvaný se musí dostat dovnitř tak či tak.
+   */
   const getInviteFormattedText = (invite: UserInvitation) => {
-    return `Ahoj ${invite.displayName},\n\nzvu tě do naší kapelní aplikace Never Late Studio!\n\nPřihlašovací údaje:\n• Web: ${invite.inviteUrl}\n• E-mail: ${invite.email}\n• Dočasné heslo: ${invite.temporaryPassword}\n• Přidělená role: ${ROLE_LABELS[invite.role].label}\n\nPo přihlášení si můžeš heslo kdykoliv změnit v profilu. Těšíme se na zkoušce!`;
+    const uvod = `Ahoj ${invite.displayName},\n\nzvu tě do naší kapelní aplikace Never Late Studio!`;
+    const role = `• Přidělená role: ${ROLE_LABELS[invite.role].label}`;
+
+    if (invite.odkazNaHeslo) {
+      return `${uvod}\n\nHeslo si nastavíš sám tímhle odkazem:\n${invite.odkazNaHeslo}\n\n• E-mail, kterým se přihlašuješ: ${invite.email}\n${role}\n\nOdkaz platí jednou a po čase vyprší — kdyby nefungoval, napiš a pošlu nový. Appka je na ${invite.inviteUrl}. Těšíme se na zkoušce!`;
+    }
+    return `${uvod}\n\nPřihlašovací údaje:\n• Web: ${invite.inviteUrl}\n• E-mail: ${invite.email}\n• Dočasné heslo: ${invite.temporaryPassword}\n${role}\n\nHeslo si po přihlášení hned změň v profilu. Těšíme se na zkoušce!`;
   };
 
   const sendEmailInvite = (invite: UserInvitation) => {
@@ -909,18 +923,39 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         <span>Role:</span>
                         <span className="font-semibold text-[#30D158]">{ROLE_LABELS[lastCreatedInvite.user.role].label}</span>
                       </div>
-                      <div className="flex justify-between items-center text-neutral-400 pt-1.5 border-t border-white/[0.06]">
-                        <span>Dočasné heslo:</span>
-                        <span className="font-mono font-bold text-[#FF9F0A] text-sm bg-white/[0.08] px-2 py-0.5 rounded-lg border border-white/10">
-                          {lastCreatedInvite.invitation.temporaryPassword}
-                        </span>
-                      </div>
+                      {/* Odkaz místo hesla: platí jednou a vyprší. Heslo
+                          se ukáže jen tehdy, když odkaz nešlo vyrobit —
+                          dovnitř se pozvaný musí dostat tak či tak. */}
+                      {lastCreatedInvite.invitation.odkazNaHeslo ? (
+                        <div className="pt-1.5 border-t border-white/[0.06] space-y-1">
+                          <span className="text-neutral-400">Odkaz na nastavení hesla:</span>
+                          <input
+                            readOnly
+                            value={lastCreatedInvite.invitation.odkazNaHeslo}
+                            onFocus={(e) => e.currentTarget.select()}
+                            className="w-full font-mono text-[10px] text-[#30D158] bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
+                          />
+                          <span className="text-[10px] text-neutral-500">
+                            Platí jednou a po čase vyprší. Heslo si pozvaný nastaví sám.
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex justify-between items-center text-neutral-400 pt-1.5 border-t border-white/[0.06]">
+                          <span>Dočasné heslo:</span>
+                          <span className="font-mono font-bold text-[#FF9F0A] text-sm bg-white/[0.08] px-2 py-0.5 rounded-lg border border-white/10">
+                            {lastCreatedInvite.invitation.temporaryPassword}
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* QR Code Quick Scan for Mobile */}
                     <div className="bg-white p-3.5 flex flex-col items-center justify-center rounded-2xl shadow-md">
                       <QRCodeSVG
-                        value={lastCreatedInvite.invitation.inviteUrl}
+                        value={
+                          lastCreatedInvite.invitation.odkazNaHeslo ||
+                          lastCreatedInvite.invitation.inviteUrl
+                        }
                         size={130}
                         bgColor="#FFFFFF"
                         fgColor="#000000"

@@ -238,6 +238,13 @@ export interface UserInvitation {
   role: UserRole;
   permissions: UserPermissions;
   temporaryPassword: string;
+  /**
+   * Odkaz, kterým si pozvaný nastaví vlastní heslo.
+   *
+   * Prázdný jen tehdy, když se ho nepodařilo vyrobit — pak se posílá
+   * dočasné heslo, aby se pozvaný dostal dovnitř tak či tak.
+   */
+  odkazNaHeslo: string;
   token: string;
   createdAt: number;
   expiresAt: number;

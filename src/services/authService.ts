@@ -342,7 +342,8 @@ class AuthService {
         displayName: p.display_name,
         role: p.role,
         permissions: p.permissions,
-        temporaryPassword: '(zobrazeno pouze při vytvoření)',
+        temporaryPassword: '',
+        odkazNaHeslo: '',
         token: p.user_id,
         createdAt: new Date(p.created_at).getTime(),
         expiresAt: new Date(p.created_at).getTime() + 30 * 24 * 3600 * 1000,
@@ -363,7 +364,9 @@ class AuthService {
   }): Promise<{ user: UserAccount; invitation: UserInvitation }> {
     const res = await this.authorizedFetch('/api/users', {
       method: 'POST',
-      body: JSON.stringify(params),
+      // Kam má odkaz z mailu vést. Ví to jen prohlížeč — server běží
+      // stejně na localhostu i na doméně a sám by to netrefil.
+      body: JSON.stringify({ ...params, redirectTo: adresaAplikace() }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -378,7 +381,8 @@ class AuthService {
         displayName: user.displayName,
         role: user.role,
         permissions: user.permissions,
-        temporaryPassword: data.temporaryPassword,
+        temporaryPassword: data.temporaryPassword || '',
+        odkazNaHeslo: data.odkazNaHeslo || '',
         token: user.id,
         createdAt: Date.now(),
         expiresAt: Date.now() + 30 * 24 * 3600 * 1000,

@@ -323,6 +323,40 @@ export async function createApp() {
     return `${prefix}-${num}${sym}`;
   }
 
+  /**
+   * Odkaz, kterým si člověk nastaví vlastní heslo.
+   *
+   * Posílat dočasné heslo mailem znamená, že zůstane ležet v poště
+   * odesílatele i příjemce a platí, dokud ho někdo nezmění. Odkaz ze
+   * Supabase vyprší a dá se použít jednou — a appka na něj umí
+   * zareagovat: pozná `PASSWORD_RECOVERY` a vynutí nastavení hesla dřív,
+   * než pustí dál.
+   *
+   * Když se odkaz vyrobit nepodaří, vrací null a volající sáhne po
+   * dočasném heslu — pozvaný se musí dostat dovnitř tak či tak.
+   */
+  async function odkazNaNastaveniHesla(
+    admin: ReturnType<typeof getSupabaseAdmin>,
+    email: string,
+    redirectTo?: unknown,
+  ): Promise<string | null> {
+    if (!email) return null;
+    const kam = String(redirectTo || '').trim();
+    // Jen http(s) — jinak by se do odkazu dalo podstrčit `javascript:`.
+    const cil = /^https?:\/\//.test(kam) ? kam : undefined;
+    try {
+      const { data } = await admin.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: cil ? { redirectTo: cil } : undefined,
+      });
+      return data?.properties?.action_link || null;
+    } catch (e: any) {
+      console.error('[users] Odkaz na nastavení hesla se nepodařilo vytvořit:', e?.message);
+      return null;
+    }
+  }
+
   // List all users (their profiles)
   app.get('/api/users', requireAuth, requireRole('admin'), async (req, res) => {
     const { data, error } = await getSupabaseAdmin().from('profiles').select('*').order('created_at', { ascending: false });
@@ -334,7 +368,7 @@ export async function createApp() {
 
   // Create a new user (real Supabase Auth account + profile row)
   app.post('/api/users', requireAuth, requireRole('admin'), async (req, res) => {
-    const { email, displayName, role, permissions, password, instrument, notes } = req.body;
+    const { email, displayName, role, permissions, password, instrument, notes, redirectTo } = req.body;
     if (!email || !displayName) {
       return res.status(400).json({ error: 'Email a jméno jsou povinné.' });
     }
@@ -374,7 +408,26 @@ export async function createApp() {
       return res.status(500).json({ error: 'Uživatel byl vytvořen, ale nepodařilo se uložit profil.', details: profileError?.message });
     }
 
-    res.json({ success: true, profile, temporaryPassword: tempPassword });
+    /**
+     * Místo hesla se posílá odkaz, kterým si ho pozvaný nastaví sám.
+     *
+     * Dočasné heslo v mailu zůstane ležet v poště odesílatele i příjemce
+     * a platí, dokud ho někdo nezmění. Odkaz z Supabase vyprší a dá se
+     * použít jednou; appka na něj umí zareagovat — pozná `PASSWORD_
+     * RECOVERY` a rovnou vynutí nastavení vlastního hesla.
+     *
+     * Heslo se účtu stejně nastavuje, aby existoval, ale ven nejde.
+     */
+    const odkaz = await odkazNaNastaveniHesla(admin, cleanEmail, redirectTo);
+
+    res.json({
+      success: true,
+      profile,
+      odkazNaHeslo: odkaz,
+      // Ponechané jako záloha, když by odkaz nešel vyrobit — jinak by
+      // pozvaný neměl jak dovnitř.
+      temporaryPassword: odkaz ? null : tempPassword,
+    });
   });
 
   // Update a user's profile (role, status, display fields — never a password)
@@ -425,7 +478,20 @@ export async function createApp() {
     }
 
     const { data: profile } = await admin.from('profiles').select('*').eq('user_id', userId).single();
-    res.json({ success: true, profile, temporaryPassword: tempPassword });
+
+    // I reset posílá odkaz, ne heslo — ze stejného důvodu jako pozvánka.
+    const odkaz = await odkazNaNastaveniHesla(
+      admin,
+      updated.user.email || profile?.email || '',
+      req.body?.redirectTo,
+    );
+
+    res.json({
+      success: true,
+      profile,
+      odkazNaHeslo: odkaz,
+      temporaryPassword: odkaz ? null : tempPassword,
+    });
   });
 
   // Delete a user (Supabase cascades the profiles row via its FK)
