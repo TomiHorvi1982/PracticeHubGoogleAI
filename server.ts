@@ -3919,6 +3919,40 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
   });
 
+  /**
+   * Překlad textu — záloha, když prohlížeč vlastní překladač nemá.
+   *
+   * Tudy text odchází Googlu, což prohlížečová cesta nedělá. Aplikace
+   * proto u výsledku ukazuje, kterou cestou šel.
+   */
+  app.post('/api/preklad', requireAuth, async (req, res) => {
+    const text = String(req.body?.text || '').trim();
+    const doJazyka = String(req.body?.doJazyka || 'en');
+    if (!text) return res.status(400).json({ error: 'Chybí text.' });
+    if (text.length > 4000) return res.status(400).json({ error: 'Text je moc dlouhý — přelož ho po částech.' });
+
+    const jazyk = doJazyka === 'en' ? 'angličtiny' : doJazyka;
+    const zadani = [
+      `Přelož následující text do ${jazyk}.`,
+      'Jde o text písně, takže zachovej členění na řádky a nic nedoplňuj.',
+      'Vrať jenom překlad, bez úvodu a bez poznámek.',
+      '',
+      text,
+    ].join('\n');
+
+    try {
+      const ai = getAIClient();
+      const odpoved = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: [{ role: 'user', parts: [{ text: zadani }] }],
+      });
+      res.json({ text: (odpoved.text || '').trim() });
+    } catch (e: any) {
+      const { stav, text: hlaska } = vysvetliChybu(String(e?.message || e));
+      res.status(stav).json({ error: hlaska });
+    }
+  });
+
   app.get('/api/hlas/moznosti', requireAuth, (_req, res) => {
     const { ok, chybi } = jeHlasDostupny();
     res.json({ mistni: ok, chybi, nejdelsiSekund: NEJDELSI_PRIKAZ_S });

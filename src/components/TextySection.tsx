@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { PenLine, Mic, FileText, Check, AlertCircle } from 'lucide-react';
+import { PenLine, Mic, FileText, Check, AlertCircle, Languages } from 'lucide-react';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { Song } from '../types';
 import { UsekPrepisu, cas } from '../services/textyService';
 import { PrepisPanel } from './texty/PrepisPanel';
 import { EditorTextu } from './texty/EditorTextu';
+import { DiktovaniPanel } from './texty/DiktovaniPanel';
 
 /**
  * Texty.
@@ -18,7 +19,7 @@ import { EditorTextu } from './texty/EditorTextu';
  * dvě verze a nikdo by nevěděl, která platí.
  */
 
-type Zalozka = 'psani' | 'prepis';
+type Zalozka = 'psani' | 'prepis' | 'diktovani';
 
 /** Časy z přepisu jako komentář nad řádkem — zůstanou, ale nezpívají se. */
 function jakoText(useky: UsekPrepisu[], sCasy: boolean): string {
@@ -110,6 +111,14 @@ export const TextySection: React.FC = () => {
           >
             <Mic className="w-3.5 h-3.5" /> Přepis z nahrávky
           </button>
+          <button
+            onClick={() => setZalozka('diktovani')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
+              zalozka === 'diktovani' ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+            }`}
+          >
+            <Languages className="w-3.5 h-3.5" /> Diktování & překlad
+          </button>
 
           <div className="ml-auto flex items-center gap-2">
             <select
@@ -139,7 +148,17 @@ export const TextySection: React.FC = () => {
         )}
       </div>
 
-      {zalozka === 'psani' ? (
+      {zalozka === 'diktovani' ? (
+        <DiktovaniPanel
+          onVlozit={(novy) => {
+            // Diktovaný text se přidává pod ten stávající, ne místo něj —
+            // sloka se často doříkává na několikrát.
+            setText((p) => (p ? `${p}\n${novy}` : novy));
+            setZalozka('psani');
+            setHlaska({ text: 'Nadiktovaný text je v editoru.' });
+          }}
+        />
+      ) : zalozka === 'psani' ? (
         <EditorTextu
           text={text}
           onZmena={setText}
