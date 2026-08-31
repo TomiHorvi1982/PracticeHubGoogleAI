@@ -3,6 +3,7 @@ import path from 'path';
 import { GoogleGenAI } from '@google/genai';
 import { createHash } from 'node:crypto';
 import { spocitejDuplicity, uklidDuplicit } from './knihovnaUklid';
+import { verejnaAdresa } from './server/verejnaAdresa';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
@@ -335,32 +336,16 @@ export async function createApp() {
    * Když se odkaz vyrobit nepodaří, vrací null a volající sáhne po
    * dočasném heslu — pozvaný se musí dostat dovnitř tak či tak.
    */
-  /**
-   * Veřejná adresa aplikace pro pozvánky.
-   *
-   * Dřív ji posílal prohlížeč jako `window.location.origin`. To je adresa,
-   * kde zrovna sedí správce — když pozvánku vyrábí na localhostu, pozvaný
-   * dostane odkaz na localhost a nikam se nedostane. Adresa musí být ta
-   * veřejná, ať ji zakládá kdokoli odkudkoli.
-   *
-   * Pořadí: `APP_URL` ze souboru s proměnnými, jinak doména, kterou o sobě
-   * hlásí Vercel, jinak to, odkud požadavek přišel — poslední záchrana pro
-   * běh na vlastním stroji.
-   */
-  function verejnaAdresa(req: express.Request): string {
-    const zEnv = String(process.env.APP_URL || '').trim();
-    if (/^https?:\/\//.test(zEnv)) return zEnv.replace(/\/+$/, '');
-
-    const zVercelu = String(
-      process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || '',
-    ).trim();
-    if (zVercelu) return `https://${zVercelu.replace(/^https?:\/\//, '').replace(/\/+$/, '')}`;
-
-    const puvod = String(req.headers.origin || '').trim();
-    if (/^https?:\/\//.test(puvod)) return puvod.replace(/\/+$/, '');
-
-    const host = String(req.headers.host || '').trim();
-    return host ? `${req.protocol}://${host}` : '';
+  /** Zdroje adresy z běhového prostředí a požadavku — logika viz `server/verejnaAdresa.ts`. */
+  function adresaZPozadavku(req: express.Request): string {
+    return verejnaAdresa({
+      appUrl: process.env.APP_URL,
+      vercelProductionUrl: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+      vercelUrl: process.env.VERCEL_URL,
+      origin: req.headers.origin as string | undefined,
+      host: req.headers.host,
+      protocol: req.protocol,
+    });
   }
 
   async function odkazNaNastaveniHesla(
@@ -393,7 +378,7 @@ export async function createApp() {
     }
     // Adresa jde s seznamem, ať ji má i přehled čekajících pozvánek —
     // text pozvánky se skládá i tam a localhost by v něm byl stejná chyba.
-    res.json({ users: data, inviteUrl: verejnaAdresa(req) });
+    res.json({ users: data, inviteUrl: adresaZPozadavku(req) });
   });
 
   // Create a new user (real Supabase Auth account + profile row)
@@ -448,7 +433,7 @@ export async function createApp() {
      *
      * Heslo se účtu stejně nastavuje, aby existoval, ale ven nejde.
      */
-    const adresa = verejnaAdresa(req);
+    const adresa = adresaZPozadavku(req);
     const odkaz = await odkazNaNastaveniHesla(admin, cleanEmail, redirectTo || adresa);
 
     res.json({
@@ -512,7 +497,7 @@ export async function createApp() {
     const { data: profile } = await admin.from('profiles').select('*').eq('user_id', userId).single();
 
     // I reset posílá odkaz, ne heslo — ze stejného důvodu jako pozvánka.
-    const adresa = verejnaAdresa(req);
+    const adresa = adresaZPozadavku(req);
     const odkaz = await odkazNaNastaveniHesla(
       admin,
       updated.user.email || profile?.email || '',
