@@ -8,6 +8,7 @@ import { Song, SongAttachment } from '../types';
 import { parseGuitarProFile } from '../utils/fileParsers';
 import { GuitarProPlayer } from './GuitarProPlayer';
 import { FreetarExplorer } from './FreetarExplorer';
+import { usePamet } from '../hooks/usePamet';
 
 interface AlphaTabSectionProps {
   songs: Song[];
@@ -18,19 +19,37 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
   songs,
   onAddSong,
 }) => {
-  const [activeFile, setActiveFile] = useState<{
+  /**
+   * Načtená tabulatura přežije přepnutí do jiné sekce.
+   *
+   * Dřív se při návratu ztratila a musela se hledat znovu — což je
+   * u tabulatury, kterou člověk zrovna cvičí, ta nejotravnější možná
+   * ztráta.
+   */
+  const [activeFile, setActiveFile] = usePamet<{
     dataUrl: string;
     filename: string;
     artist?: string;
     bpm?: number;
-  } | null>(null);
+  } | null>('gp_otevrena', null);
 
   const [isDragging, setIsDragging] = useState(false);
   /** Vyhledávání je sbalené: většinou se otevírá vlastní soubor. */
-  const [hledaniOtevrene, setHledaniOtevrene] = useState(false);
+  const [hledaniOtevrene, setHledaniOtevrene] = usePamet('gp_hledani_otevrene', false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  /**
+   * Jakmile je tabulatura v přehrávači, hledání se sbalí.
+   *
+   * Vede k tomu víc cest — nález z vyhledávače, soubor ze zpěvníku,
+   * přetažené GP z disku — a každá by na to musela myslet zvlášť.
+   * Jedna reakce na načtený soubor je pojistka, kterou nejde obejít.
+   */
+  useEffect(() => {
+    if (activeFile) setHledaniOtevrene(false);
+  }, [activeFile?.filename, activeFile?.dataUrl]);
 
   // Extract all existing Guitar Pro files from the library songs
   const libraryGpFiles = songs.flatMap(song => 
@@ -172,181 +191,152 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             naše sbírka, Ultimate Guitar a Freetar — nález se otevře rovnou tady
           </span>
         </button>
-        {hledaniOtevrene && (
-          <div className="px-5 pb-5">
-            <FreetarExplorer
-              vlozeny
-              songs={songs}
-              onSongImported={(song) => onAddSong?.(song)}
-              onViewSong={(song) => onAddSong?.(song)}
-              onOtevritVPrehravaci={(soubor) => {
-                setActiveFile(soubor);
-                setSuccessMsg(`„${soubor.filename}" je v přehrávači.`);
-                setErrorMsg(null);
-              }}
-            />
-          </div>
-        )}
-      </div>
+        {/**
+         * Vyhledávač zůstává připojený i po sbalení.
+         *
+         * Dřív se odpojoval, a s ním zmizely výsledky i to, co bylo
+         * rozepsané — po každém otevření tabulatury se hledalo znovu.
+         * Skrývá se proto stylem, ne odpojením.
+         */}
+        <div className={hledaniOtevrene ? 'px-5 pb-5 space-y-4' : 'hidden'}>
+          <FreetarExplorer
+            vlozeny
+            songs={songs}
+            onSongImported={(song) => onAddSong?.(song)}
+            onViewSong={(song) => onAddSong?.(song)}
+            onOtevritVPrehravaci={(soubor) => {
+              setActiveFile(soubor);
+              setSuccessMsg(`„${soubor.filename}" je v přehrávači.`);
+              setErrorMsg(null);
+            }}
+          />
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        
-        {/* Left column: file management / lists */}
-        <div className="space-y-4 lg:col-span-1">
-          
-          {/* File Upload Box */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={handleDrop}
-            className={`border-2 border-dashed p-6 text-center transition-all cursor-pointer relative rounded-3xl ${
-              isDragging
-                ? 'border-[#30D158] bg-[#30D158]/10'
-                : 'border-white/15 hover:border-[#FF9F0A]/60 bg-[#16161A]/80 backdrop-blur-xl'
-            }`}
-          >
-            <input
-              type="file"
-              accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp"
-              onChange={handleFileSelect}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
+        {/* File Upload Box */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={handleDrop}
+          className={`border-2 border-dashed p-6 text-center transition-all cursor-pointer relative rounded-3xl ${
+            isDragging
+              ? 'border-[#30D158] bg-[#30D158]/10'
+              : 'border-white/15 hover:border-[#FF9F0A]/60 bg-[#16161A]/80 backdrop-blur-xl'
+          }`}
+        >
+          <input
+            type="file"
+            accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp"
+            onChange={handleFileSelect}
+            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+          />
 
-            {isProcessing ? (
-              <div className="py-4 flex flex-col items-center gap-2">
-                <Disc className="w-8 h-8 text-[#FF9F0A] animate-spin" />
-                <span className="text-xs font-semibold text-[#FF9F0A] animate-pulse">
-                  Zpracovávám data tabulatury...
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-2.5">
-                <div className="p-3 bg-white/5 rounded-2xl border border-white/10 text-[#FF9F0A]">
-                  <FileUp className="w-6 h-6" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white mb-0.5">
-                    Nahrát nový soubor (.GP)
-                  </p>
-                  <p className="text-[11px] text-neutral-400 leading-tight">
-                    Klikněte nebo přetáhněte GP3, GP4, GP5 či GPX
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* List of library files */}
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 space-y-3 shadow-lg">
-            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5 pb-2 flex items-center gap-2">
-              <Layers className="w-4 h-4 text-[#FF9F0A]" />
-              <span>Soubory ve zpěvníku ({libraryGpFiles.length})</span>
-            </h3>
-
-            {libraryGpFiles.length === 0 ? (
-              <p className="text-xs text-neutral-400 py-2 leading-relaxed">
-                Zatím nemáte v knihovně žádné kytarové soubory s příponou .GP. Nahrajte soubor výše nebo stáhněte z freetar.de!
-              </p>
-            ) : (
-              <div className="space-y-1.5 max-h-[250px] overflow-y-auto pr-1">
-                {libraryGpFiles.map((fileItem, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => loadLibraryGp(fileItem)}
-                    className="w-full text-left p-2.5 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-2xl transition-all text-xs font-medium block group cursor-pointer"
-                  >
-                    <span className="text-white group-hover:text-[#FF9F0A] font-semibold block truncate">
-                      🎸 {fileItem.attachment.name}
-                    </span>
-                    <span className="text-[11px] text-neutral-400 block truncate mt-0.5">
-                      {fileItem.songArtist} — {fileItem.songTitle}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Quick instructions / features list */}
-          <div className="bg-[#16161A]/60 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 text-xs space-y-2.5 leading-relaxed">
-            <h4 className="font-bold text-[#FF9F0A]">Co AlphaTab dokáže?</h4>
-            <ul className="space-y-1.5 text-neutral-300">
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#30D158] font-bold">✓</span> Přehrává interaktivní tabulaturu přes Syntetizér
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#30D158] font-bold">✓</span> Zobrazuje samostatně noty, tabulaturu nebo obojí
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#30D158] font-bold">✓</span> Umožňuje měnit rychlost cvičení (50% až 150%)
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#30D158] font-bold">✓</span> Obsahuje zapínatelný doprovodný metronom
-              </li>
-              <li className="flex items-start gap-1.5">
-                <span className="text-[#30D158] font-bold">✓</span> Můžete ztišit či zesílit jednotlivé nástroje
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Right column: main active player or placeholder */}
-        <div className="lg:col-span-3 space-y-4">
-          
-          {/* Status feedback alerts */}
-          {successMsg && (
-            <div className="bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          {errorMsg && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {/* Player Rendering or Placeholder empty state */}
-          {activeFile ? (
-            <div className="space-y-3">
-              <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
-                <span className="text-neutral-400 font-medium">Aktivní tabulatura:</span>
-                <span className="font-bold text-[#FF9F0A]">{activeFile.filename}</span>
-              </div>
-              <GuitarProPlayer
-                dataUrl={activeFile.dataUrl}
-                filename={activeFile.filename}
-                artist={activeFile.artist}
-                bpm={activeFile.bpm}
-              />
+          {isProcessing ? (
+            <div className="py-4 flex flex-col items-center gap-2">
+              <Disc className="w-8 h-8 text-[#FF9F0A] animate-spin" />
+              <span className="text-xs font-semibold text-[#FF9F0A] animate-pulse">
+                Zpracovávám data tabulatury...
+              </span>
             </div>
           ) : (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-12 sm:p-16 text-center text-xs space-y-4 shadow-xl">
-              <div className="flex justify-center">
-                <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-neutral-500">
-                  <Music className="w-10 h-10" />
-                </div>
+            <div className="flex flex-col items-center gap-2.5">
+              <div className="p-3 bg-white/5 rounded-2xl border border-white/10 text-[#FF9F0A]">
+                <FileUp className="w-6 h-6" />
               </div>
-              <div className="max-w-md mx-auto space-y-1.5">
-                <p className="font-bold text-white text-base">
-                  Žádný Guitar Pro soubor nebyl načten
+              <div>
+                <p className="text-xs font-bold text-white mb-0.5">
+                  Nahrát nový soubor (.GP)
                 </p>
-                <p className="text-xs text-neutral-400 leading-relaxed">
-                  Chcete-li zobrazit interaktivní tabulaturu a spustit doprovod, nahrajte soubor s příponou <strong className="text-[#FF9F0A]">.gp</strong>, <strong className="text-[#FF9F0A]">.gp5</strong>, nebo vyberte z existujících souborů ve vaší knihovně.
+                <p className="text-[11px] text-neutral-400 leading-tight">
+                  Klikněte nebo přetáhněte GP3, GP4, GP5 či GPX
                 </p>
-              </div>
-              <div className="pt-2">
-                <span className="inline-block px-4 py-2 bg-white/5 text-neutral-300 rounded-xl border border-white/10 font-semibold text-xs">
-                  Připraven k cvičení
-                </span>
               </div>
             </div>
           )}
         </div>
 
+        {/* List of library files */}
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 space-y-3 shadow-lg">
+          <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider border-b border-white/5 pb-2 flex items-center gap-2">
+            <Layers className="w-4 h-4 text-[#FF9F0A]" />
+            <span>Soubory ve zpěvníku ({libraryGpFiles.length})</span>
+          </h3>
+
+          {libraryGpFiles.length === 0 ? (
+            <p className="text-xs text-neutral-400 py-2 leading-relaxed">
+              Zatím nemáte v knihovně žádné kytarové soubory s příponou .GP. Nahrajte soubor výše nebo stáhněte z freetar.de!
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-[250px] overflow-y-auto pr-1">
+              {libraryGpFiles.map((fileItem, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => loadLibraryGp(fileItem)}
+                  className="w-full text-left p-2.5 bg-black/40 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-2xl transition-all text-xs font-medium block group cursor-pointer"
+                >
+                  <span className="text-white group-hover:text-[#FF9F0A] font-semibold block truncate">
+                    🎸 {fileItem.attachment.name}
+                  </span>
+                  <span className="text-[11px] text-neutral-400 block truncate mt-0.5">
+                    {fileItem.songArtist} — {fileItem.songTitle}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        </div>
       </div>
+
+        {/* Status feedback alerts */}
+        {successMsg && (
+          <div className="bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        {errorMsg && (
+          <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMsg}</span>
+          </div>
+        )}
+
+        {/* Player Rendering or Placeholder empty state */}
+        {activeFile ? (
+          <div className="space-y-3">
+            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+              <span className="text-neutral-400 font-medium">Aktivní tabulatura:</span>
+              <span className="font-bold text-[#FF9F0A]">{activeFile.filename}</span>
+            </div>
+            <GuitarProPlayer
+              dataUrl={activeFile.dataUrl}
+              filename={activeFile.filename}
+              artist={activeFile.artist}
+              bpm={activeFile.bpm}
+            />
+          </div>
+        ) : (
+          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-12 sm:p-16 text-center text-xs space-y-4 shadow-xl">
+            <div className="flex justify-center">
+              <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-neutral-500">
+                <Music className="w-10 h-10" />
+              </div>
+            </div>
+            <div className="max-w-md mx-auto space-y-1.5">
+              <p className="font-bold text-white text-base">
+                Žádný Guitar Pro soubor nebyl načten
+              </p>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Chcete-li zobrazit interaktivní tabulaturu a spustit doprovod, nahrajte soubor s příponou <strong className="text-[#FF9F0A]">.gp</strong>, <strong className="text-[#FF9F0A]">.gp5</strong>, nebo vyberte z existujících souborů ve vaší knihovně.
+              </p>
+            </div>
+            <div className="pt-2">
+              <span className="inline-block px-4 py-2 bg-white/5 text-neutral-300 rounded-xl border border-white/10 font-semibold text-xs">
+                Připraven k cvičení
+              </span>
+            </div>
+          </div>
+        )}
     </div>
   );
 };
