@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
   Play, Lock, Unlock, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
+  FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano,
 } from 'lucide-react';
 import { Song } from '../../types';
 import { KlicRazeni, SLOUPCE, seradPodle, odhadniJazyk } from '../../services/songSort';
 import { MiniPrehravac } from './MiniPrehravac';
+import { dostupnostPisne } from '../../services/dostupnostPisne';
 
 interface Props {
   songs: Song[];
@@ -46,6 +48,46 @@ function video(s: Song): { id: string; title: string } | null {
  * tempo píše pod sebe, jde srovnat pohledem; ve větě „Metal · 76 BPM" se
  * hledá očima pokaždé znovu.
  */
+/**
+ * Řádka značek pod názvem písně.
+ *
+ * Jen to, co píseň má — chybějící se nekreslí ani našedle. Sedm bledých
+ * ikon u prázdné písně vypadá jako sedm možností, ne jako nic.
+ */
+const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
+  const co = dostupnostPisne(song);
+  if (!co.length) return null;
+
+  type Ikona = React.FC<{ className?: string; style?: React.CSSProperties }>;
+  const IKONY: Record<string, { I: Ikona; barva: string }> = {
+    text: { I: FileText, barva: '#0A84FF' },
+    akordy: { I: Music4, barva: '#FF9F0A' },
+    taby: { I: FileCode, barva: '#FFD60A' },
+    video: { I: Youtube, barva: '#FF453A' },
+    audio: { I: Volume2, barva: '#30D158' },
+    stopy: { I: Sliders, barva: '#64D2FF' },
+    midi: { I: Piano, barva: '#BF5AF2' },
+  };
+
+  return (
+    <div className="flex items-center gap-1 mt-0.5">
+      {co.map(({ co: k, popis }) => {
+        const { I, barva } = IKONY[k];
+        return (
+          <span
+            key={k}
+            title={popis}
+            className="w-4 h-4 rounded flex items-center justify-center shrink-0"
+            style={{ background: `${barva}22` }}
+          >
+            <I className="w-2.5 h-2.5" style={{ color: barva }} />
+          </span>
+        );
+      })}
+    </div>
+  );
+};
+
 export const SeznamSkladeb: React.FC<Props> = ({
   songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onUpravit,
 }) => {
@@ -221,13 +263,19 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   <span />
                 )}
 
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span
-                    className={`text-[13px] font-semibold truncate ${aktivni ? 'text-[#FF9F0A]' : 'text-white'}`}
-                  >
-                    {s.title}
-                  </span>
-                  {s.isLocked && <Lock className="w-3 h-3 text-[#FF9F0A] shrink-0" />}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      className={`text-[13px] font-semibold truncate ${aktivni ? 'text-[#FF9F0A]' : 'text-white'}`}
+                    >
+                      {s.title}
+                    </span>
+                    {s.isLocked && <Lock className="w-3 h-3 text-[#FF9F0A] shrink-0" />}
+                  </div>
+
+                  {/* Co už je u písně po ruce. Bez toho se musí každá
+                      otevřít, aby se zjistilo, jestli k ní vůbec něco je. */}
+                  <ZnackyDostupnosti song={s} />
                 </div>
 
                 {zapnute.map((k) => (

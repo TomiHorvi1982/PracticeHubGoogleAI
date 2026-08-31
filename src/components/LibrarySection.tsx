@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { usePamet, usePametMnoziny } from '../hooks/usePamet';
 import { WaveformPrehravac } from './songbook/WaveformPrehravac';
 import { PdfNahled } from './songbook/PdfNahled';
-import { najdiPisenProSoubor, jizPripojeno, prilohaZAssetu } from '../services/priradKPisni';
+import {
+  najdiPisenProSoubor, jizPripojeno, prilohaZAssetu, rozeberNazevSouboru,
+} from '../services/priradKPisni';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import { authService } from '../services/authService';
@@ -593,6 +595,30 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               updatedAt: Date.now(),
             });
             priraadene.push(`„${file.name}" → ${nalez.song.artist} – ${nalez.song.title}`);
+          } else if (!nalez && kategorie === 'my_songs') {
+            /**
+             * Do „Mojich skladeb" se nahrává nahrávka, ke které píseň
+             * teprve má vzniknout.
+             *
+             * Jinde se soubor jen připojí k existující písni a když
+             * žádná nesedí, zůstane v knihovně ležet. Tady je to obráceně:
+             * právě proto se sem nahrává — aby se skladba objevila ve
+             * zpěvníku i s nahrávkou, ne aby se pak ručně zakládala.
+             */
+            const { interpret, nazev } = rozeberNazevSouboru(file.name);
+            const nova: Song = {
+              id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+              title: nazev || file.name.replace(/\.[a-z0-9]+$/i, ''),
+              artist: interpret || 'Moje nahrávky',
+              key: '',
+              content: '',
+              chordsUsed: [],
+              attachments: [prilohaZAssetu(ulozeny)],
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+            const ulozenaPisen = await songDatabaseService.saveSong(nova);
+            priraadene.push(`„${file.name}" → nová skladba ${ulozenaPisen.artist} – ${ulozenaPisen.title}`);
           }
         } catch (e: any) {
           setStatusMessage({ type: 'error', text: `„${file.name}" se nepodařilo nahrát: ${e?.message || 'neznámá chyba'}` });

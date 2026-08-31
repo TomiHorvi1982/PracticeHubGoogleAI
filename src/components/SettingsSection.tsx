@@ -19,6 +19,7 @@ interface Vyuziti {
 
 /** Lidské názvy kategorií, ať v přehledu nestojí `drum_kit_sample`. */
 const POPIS: Record<string, string> = {
+  my_songs: 'Moje skladby',
   midi: 'MIDI soubory',
   guitar_pro: 'Guitar Pro',
   pdf: 'Noty a PDF',

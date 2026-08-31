@@ -27,6 +27,13 @@ export interface Kategorie {
 
 export const KATEGORIE: Kategorie[] = [
   {
+    id: 'my_songs',
+    nazev: 'Moje skladby',
+    ikona: '⭐',
+    podkategorie: ['nahrávky kapely', 'dema', 'podklady', 'ke cvičení'],
+    napoveda: 'Interpret - Název.mp3 — z názvu vznikne píseň ve zpěvníku.',
+  },
+  {
     id: 'guitar_pro',
     nazev: 'Tabulatury',
     ikona: '🎸',
@@ -119,6 +126,7 @@ export const KATEGORIE: Kategorie[] = [
  * jako prázdné složky.
  */
 export const OCEKAVANE = [
+  'my_songs',
   'drum_kit_sample',
   'drum_loop',
   'bass_sample',

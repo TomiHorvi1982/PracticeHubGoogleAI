@@ -177,7 +177,9 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     spustDoplneni(newSong.id);
 
     setSuccessMsg(
-      `Píseň "${newSong.title}" byla uložena do Song Library. Zkouším k ní sehnat text, akordy a tabulatury — objeví se samy.`
+      `Píseň „${newSong.title}" je v Mojich skladbách i s odkazem na video. `
+      + 'Zkouším k ní sehnat text, akordy a tabulatury — objeví se samy. '
+      + 'Nahrávku pro poslech bez internetu k ní přidáš v Souborech, ve složce Moje skladby.'
     );
     setDirectYtResults([]);
     setYoutubeQuery('');
@@ -444,7 +446,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                         className="px-3 py-1 bg-[#FF453A] hover:bg-[#ff5b52] text-white font-bold text-[10px] uppercase rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95"
                       >
                         <Plus className="w-3 h-3" />
-                        <span>Do Song Library</span>
+                        <span>Do Mojich skladeb</span>
                       </button>
                     </div>
                   </div>
