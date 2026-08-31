@@ -75,3 +75,41 @@ export function zpracujOdpoved(text: string): Preklad {
   }
   return { kroky, vyhrady };
 }
+
+export interface ChybaPrekladu {
+  stav: number;
+  text: string;
+}
+
+/**
+ * Převede chybu od Googlu na hlášku, ze které je poznat, co dělat.
+ *
+ * „Překlad selhal" je pravda, ale k ničemu: došlý kredit, neplatný klíč
+ * a zrušený model se řeší pokaždé jinde, a bez rozlišení je člověk hledá
+ * v kódu, kde chyba není. Vzory odpovídají textům, které Google opravdu
+ * posílá — ověřeno proti jeho odpovědím, ne odhadnuto.
+ */
+export function vysvetliChybu(zprava: string): ChybaPrekladu {
+  const z = String(zprava || '');
+
+  if (/credits are depleted|RESOURCE_EXHAUSTED|quota|"code":\s*429/i.test(z)) {
+    return {
+      stav: 402,
+      text: 'Účtu u Googlu došel kredit — dobij ho na ai.studio/projects. '
+        + 'Kroky si zatím poskládej ručně, hlasové ovládání tím netrpí.',
+    };
+  }
+  if (/API key not valid|API_KEY_INVALID/i.test(z)) {
+    return {
+      stav: 401,
+      text: 'Klíč ke Gemini neplatí — oprav GEMINI_API_KEY v .env a restartuj server.',
+    };
+  }
+  if (/no longer available|is not found|"code":\s*404/i.test(z)) {
+    return {
+      stav: 502,
+      text: 'Google tenhle model zrušil — je potřeba ho v serveru vyměnit za novější.',
+    };
+  }
+  return { stav: 502, text: `Překlad selhal: ${z.slice(0, 200)}` };
+}

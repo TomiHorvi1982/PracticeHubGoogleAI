@@ -12,7 +12,7 @@ import {
   prepisSoubor, docasnySoubor, jePrepisDostupny, StavPrepisu,
 } from './prepisTextu';
 import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
-import { postavZadani, zpracujOdpoved } from './hlasPreklad';
+import { postavZadani, zpracujOdpoved, vysvetliChybu } from './hlasPreklad';
 
 dotenv.config();
 
@@ -3912,7 +3912,10 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       });
       res.json(zpracujOdpoved(odpoved.text || ''));
     } catch (e: any) {
-      res.status(502).json({ error: `Překlad selhal: ${e?.message || e}` });
+      // Rozlišení příčin i jejich texty žijí v `hlasPreklad.ts`, kde jsou
+      // ověřené proti skutečným odpovědím Googlu.
+      const { stav, text } = vysvetliChybu(String(e?.message || e));
+      res.status(stav).json({ error: text });
     }
   });
 

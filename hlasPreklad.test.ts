@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postavZadani, zpracujOdpoved, katalogProModel } from './hlasPreklad';
+import { postavZadani, zpracujOdpoved, katalogProModel, vysvetliChybu } from './hlasPreklad';
 
 test('zadání nese jen akce, které aplikace opravdu má', () => {
   const z = postavZadani('otevři pódium');
@@ -48,4 +48,30 @@ test('krok bez akce se zahodí', () => {
   const v = zpracujOdpoved('[{"hodnoty":{}},"nesmysl"]');
   assert.equal(v.kroky.length, 0);
   assert.equal(v.vyhrady.length, 2);
+});
+
+// Texty níž jsou doslovné odpovědi Googlu, zachycené při zkoušení klíče.
+test('došlý kredit se pozná a poradí, kam jít', () => {
+  const skutecna = '{"error":{"code":429,"message":"Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing.","status":"RESOURCE_EXHAUSTED"}}';
+  const v = vysvetliChybu(skutecna);
+  assert.equal(v.stav, 402);
+  assert.match(v.text, /kredit/);
+});
+
+test('neplatný klíč se pozná', () => {
+  const skutecna = '{"error":{"code":400,"message":"API key not valid. Please pass a valid API key.","status":"INVALID_ARGUMENT"}}';
+  const v = vysvetliChybu(skutecna);
+  assert.equal(v.stav, 401);
+  assert.match(v.text, /GEMINI_API_KEY/);
+});
+
+test('zrušený model se pozná', () => {
+  const skutecna = '{"error":{"code":404,"message":"This model models/gemini-2.0-flash is no longer available."}}';
+  assert.match(vysvetliChybu(skutecna).text, /zrušil/);
+});
+
+test('neznámá chyba projde beze změny významu', () => {
+  const v = vysvetliChybu('spojení se přerušilo');
+  assert.equal(v.stav, 502);
+  assert.match(v.text, /spojení se přerušilo/);
 });
