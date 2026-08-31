@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useMusicalContext } from '../context/MusicalContext';
+import { tonikaZPredznamenani, tonika } from '../services/tonina';
 import * as alphaTab from '@coderline/alphatab';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
 import {
@@ -20,7 +22,7 @@ import {
   Sparkles,
   HelpCircle,
   Mic,
-  MicOff,
+ 
   Maximize2,
   Minimize2,
   AlertTriangle,
@@ -248,11 +250,30 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   const [trackMutes, setTrackMutes] = useState<{ [index: number]: boolean }>({});
   const [trackSolos, setTrackSolos] = useState<{ [index: number]: boolean }>({});
 
-  // Voice Command State
-  const [isVoiceListening, setIsVoiceListening] = useState(false);
-  const [voiceCommandStatus, setVoiceCommandStatus] = useState<string>('Vypnuto');
-  const [lastHeardCommand, setLastHeardCommand] = useState<string>('');
-  const recognitionRef = useRef<any>(null);
+  /**
+   * Které takty která stopa hraje.
+   *
+   * Klíč je pořadí stopy, hodnota pole podle taktů — `false` znamená,
+   * že v tom taktu stopa mlčí. AlphaTab tohle sám neumí: zná umlčení
+   * celé stopy, ne po taktech. Přepíná se proto za běhu, jak se
+   * přehrávač posouvá přes hranice taktů.
+   */
+  const [taktyStop, setTaktyStop] = useState<Record<number, boolean[]>>({});
+  const [pocetTaktu, setPocetTaktu] = useState(0);
+  /** Začátky taktů v tikách — podle nich se pozná, ve kterém taktu jsme. */
+  const zacatkyTaktu = useRef<number[]>([]);
+  const taktRef = useRef(-1);
+  /** Aktuální podoba mřížky pro obsluhu pozice, která se nepřemontovává. */
+  const taktyRef = useRef<Record<number, boolean[]>>({});
+  taktyRef.current = taktyStop;
+  const [aktualniTakt, setAktualniTakt] = useState(0);
+
+  /** Tónina a stupnice vyčtené z tabulatury. */
+  const [tonina, setTonina] = useState<{ nazev: string; durMoll: 'dur' | 'moll' } | null>(null);
+  const [toninaPredana, setToninaPredana] = useState(false);
+  // Tónina se nástrojům nepodstrkuje sama: kdo cvičí v jiné, nechce ji
+  // po každém otevření tabulatury přepsat.
+  const { setKey } = useMusicalContext();
 
   // Handle Play/Pause
   const handlePlayPause = () => {
@@ -475,6 +496,42 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         // Nová skladba hraje ve svém ladění, ne v tom po předchozí.
         setPosunLadeni(0);
         setUsek(null);
+
+        /**
+         * Mřížka taktů a tónina.
+         *
+         * Takty se berou z `masterBars`, které jsou společné všem stopám
+         * — počet i hranice tedy sedí napříč partiturou. Na začátku hraje
+         * všechno; odškrtává se, co hrát nemá.
+         */
+        const takty = score.masterBars || [];
+        zacatkyTaktu.current = takty.map((t) => t.start);
+        setPocetTaktu(takty.length);
+        setTaktyStop(
+          Object.fromEntries(
+            (score.tracks || []).map((t) => [t.index, new Array(takty.length).fill(true)]),
+          ),
+        );
+        taktRef.current = -1;
+        setAktualniTakt(0);
+        setToninaPredana(false);
+
+        /**
+         * Tónina stojí v předznamenání prvního taktu.
+         *
+         * `keySignature` je počet křížků (kladně) nebo béček (záporně),
+         * `keySignatureType` říká dur nebo moll. Bere se první takt:
+         * modulace uvnitř skladby se tím minou, ale pro nastavení
+         * nástrojů je rozhodující, v čem to začíná.
+         */
+        const prvni = takty[0];
+        if (prvni) {
+          const moll = String(prvni.keySignatureType ?? '').toLowerCase().includes('minor')
+            || Number(prvni.keySignatureType) === 1;
+          setTonina({ nazev: tonikaZPredznamenani(Number(prvni.keySignature) || 0, moll), durMoll: moll ? 'moll' : 'dur' });
+        } else {
+          setTonina(null);
+        }
       });
 
       api.error.on((err) => {
@@ -497,6 +554,30 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         setCurrentTime(args.currentTime / 1000);
         setTotalTime(args.endTime / 1000);
         setTotalTicks(args.endTick);
+
+        /**
+         * Umlčení podle taktu.
+         *
+         * Přepíná se jen na hranici taktu, ne při každém hlášení pozice —
+         * to chodí desetkrát za vteřinu a přenastavovat kvůli tomu
+         * hlasitosti by bylo slyšet.
+         */
+        const zacatky = zacatkyTaktu.current;
+        if (!zacatky.length) return;
+        let takt = 0;
+        for (let i = zacatky.length - 1; i >= 0; i -= 1) {
+          if (args.currentTick >= zacatky[i]) { takt = i; break; }
+        }
+        if (takt === taktRef.current) return;
+        taktRef.current = takt;
+        setAktualniTakt(takt);
+
+        const mrizka = taktyRef.current;
+        for (const stopa of api.score?.tracks || []) {
+          const radek = mrizka[stopa.index];
+          if (!radek) continue;
+          api.changeTrackMute([stopa], radek[takt] === false);
+        }
       });
 
       /**
@@ -549,120 +630,6 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
     }
   }, [dataUrl]);
 
-  // Speech Recognition hook for Voice commands
-  useEffect(() => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setVoiceCommandStatus('Nepodporováno v tomto prohlížeči');
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = 'cs-CZ'; // Czech language triggers
-
-    recognition.onstart = () => {
-      setVoiceCommandStatus('Poslouchám hlasové příkazy...');
-    };
-
-    recognition.onresult = (event: any) => {
-      const resultIndex = event.resultIndex;
-      const transcript = event.results[resultIndex][0].transcript.toLowerCase().trim();
-      console.log('Hlasový příkaz:', transcript);
-      setLastHeardCommand(transcript);
-
-      // Trigger matching
-      // "taby na max" -> Maximizes window
-      // "hrej" / "hraj" -> plays
-      // "ticho" / "pauza" / "stop" -> pauses
-      // "pokračuj" -> resumes
-      if (transcript.includes('taby na max') || transcript.includes('maximalizuj') || transcript.includes('taby na maximum')) {
-        setIsMaximized(true);
-      } else if (transcript.includes('taby zpět') || transcript.includes('normalizuj') || transcript.includes('taby na min') || transcript.includes('zmenši')) {
-        setIsMaximized(false);
-      } else if (transcript.includes('hrej') || transcript.includes('spusť') || transcript.includes('hraj') || transcript.includes('přehrát')) {
-        if (apiRef.current && !isPlaying) {
-          apiRef.current.play();
-          setIsPlaying(true);
-        }
-      } else if (transcript.includes('ticho') || transcript.includes('pauza') || transcript.includes('stop') || transcript.includes('zastav') || transcript.includes('ticho')) {
-        if (apiRef.current && isPlaying) {
-          apiRef.current.pause();
-          setIsPlaying(false);
-        }
-      } else if (transcript.includes('pokračuj') || transcript.includes('dál')) {
-        if (apiRef.current && !isPlaying) {
-          apiRef.current.play();
-          setIsPlaying(true);
-        }
-      }
-    };
-
-    recognition.onerror = (event: any) => {
-      console.warn('Speech recognition status/error:', event.error);
-      if (event.error === 'aborted') {
-        // 'aborted' is standard when recognition is stopped or restarted, ignore it gracefully
-        return;
-      }
-      if (event.error === 'not-allowed') {
-        setVoiceCommandStatus('Chyba: Mikrofon zakázán');
-        setIsVoiceListening(false);
-      } else if (event.error === 'no-speech') {
-        // quiet room, standard behavior
-      } else {
-        setVoiceCommandStatus(`Chyba: ${event.error}`);
-      }
-    };
-
-    let restartTimeout: any = null;
-
-    recognition.onend = () => {
-      // Keep listening with a gentle delay to prevent immediate re-abort loops
-      if (isVoiceListening) {
-        restartTimeout = setTimeout(() => {
-          if (isVoiceListening) {
-            try {
-              recognition.start();
-            } catch (e) {
-              // already running
-            }
-          }
-        }, 1000);
-      } else {
-        setVoiceCommandStatus('Vypnuto');
-      }
-    };
-
-    recognitionRef.current = recognition;
-
-    if (isVoiceListening) {
-      try {
-        recognition.start();
-      } catch (e) {
-        console.warn('Failed to start speech recognition:', e);
-      }
-    } else {
-      try {
-        recognition.abort();
-      } catch (e) {
-        // already stopped
-      }
-    }
-
-    return () => {
-      if (restartTimeout) {
-        clearTimeout(restartTimeout);
-      }
-      try {
-        recognition.abort();
-      } catch (e) {}
-    };
-  }, [isVoiceListening]);
-
-  const toggleVoiceControl = () => {
-    setIsVoiceListening(!isVoiceListening);
-  };
 
   /**
    * Přichytí tik na začátek nejbližší doby.
@@ -728,25 +695,31 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               </h3>
               <p className="text-xs text-neutral-400">
                 {filename} {artist && `• ${artist}`} • <span className="text-[#FF9F0A] font-semibold">{Math.round(songBpm * playbackSpeed)} BPM</span>
+                {tonina && (
+                  <>
+                    {' • '}
+                    <span className="text-[#BF5AF2] font-semibold">
+                      {tonina.nazev} {tonina.durMoll}
+                    </span>
+                    <button
+                      onClick={() => {
+                        // Do kontextu jde jen tónika; „moll" nese stupnice,
+                        // kterou si nástroje odvodí samy.
+                        setKey(tonika(tonina.nazev));
+                        setToninaPredana(true);
+                      }}
+                      className="ml-1.5 text-[10px] font-bold text-[#BF5AF2] hover:text-white underline underline-offset-2 cursor-pointer"
+                      title="Nastavit podle toho virtuální nástroje a hmatník"
+                    >
+                      {toninaPredana ? 'nastaveno' : 'nastavit nástroje'}
+                    </button>
+                  </>
+                )}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Voice Control Indicator / Switch */}
-            <button
-              onClick={toggleVoiceControl}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all border cursor-pointer ${
-                isVoiceListening
-                  ? 'bg-[#30D158]/20 border-[#30D158] text-[#30D158] shadow-[0_0_12px_rgba(48,209,88,0.25)]'
-                  : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white hover:bg-white/10'
-              }`}
-              title="Zapnout hlasové ovládání příkazy (Hrej, Ticho, Pokračuj, Taby na max)"
-            >
-              {isVoiceListening ? <Mic className="w-3.5 h-3.5 animate-pulse text-[#30D158]" /> : <MicOff className="w-3.5 h-3.5 text-neutral-500" />}
-              <span>Hlas: {isVoiceListening ? 'Aktivní' : 'Vypnut'}</span>
-            </button>
-
             {/* Maximize Toggle Button */}
             <button
               onClick={() => setIsMaximized(!isMaximized)}
@@ -777,23 +750,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
           </div>
         </div>
 
-        {/* Voice Recognition Command Feedback bar */}
-        {isVoiceListening && (
-          <div className="bg-[#30D158]/10 border border-[#30D158]/30 p-2 px-3.5 flex flex-wrap items-center justify-between gap-2 text-xs text-[#30D158] rounded-2xl">
-            <span className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#30D158] animate-ping" />
-              <span className="font-semibold">{voiceCommandStatus}</span>
-            </span>
-            <span className="text-neutral-300">
-              Příkazy: <strong className="text-white">"hrej"</strong> | <strong className="text-white">"ticho"</strong> | <strong className="text-white">"pokračuj"</strong> | <strong className="text-white">"taby na max"</strong>
-            </span>
-            {lastHeardCommand && (
-              <span className="text-white">
-                Slyšeno: <strong className="text-[#FF9F0A]">"{lastHeardCommand}"</strong>
-              </span>
-            )}
-          </div>
-        )}
+
 
         {/* Main Interactive Controls Toolbar */}
         <div className="bg-black/40 border border-white/5 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -1108,6 +1065,77 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               <span className="text-xs font-mono font-bold text-[#FF9F0A] tabular-nums w-10">
                 {Math.round(hlasitostCelku * 100)} %
               </span>
+            </div>
+          </div>
+        )}
+
+        {/**
+         * Mřížka taktů.
+         *
+         * Jeden řádek na stopu, jedna kostička na takt. Odškrtnutý takt
+         * stopa přeskočí — hodí se, když se má sloka hrát jen s kytarou
+         * a refrén s celou kapelou, aniž by se kvůli tomu skladba dělila.
+         * Číslo taktu je v kostičce, takže je vidět, co se zrovna vypíná.
+         */}
+        {pocetTaktu > 0 && tracks.length > 0 && (
+          <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+                Takty ({pocetTaktu}) — odškrtni, co hrát nemá
+              </span>
+              <button
+                onClick={() =>
+                  setTaktyStop(
+                    Object.fromEntries(tracks.map((t) => [t.index, new Array(pocetTaktu).fill(true)])),
+                  )
+                }
+                className="text-[10px] font-semibold text-neutral-400 hover:text-white cursor-pointer"
+              >
+                všechno zpět
+              </button>
+            </div>
+
+            <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-1">
+              {tracks.map((track) => {
+                const radek = taktyStop[track.index] || [];
+                return (
+                  <div key={track.index} className="flex items-center gap-2">
+                    <span
+                      className="text-[10px] text-neutral-400 truncate w-24 shrink-0"
+                      title={track.name}
+                    >
+                      {track.name || `Stopa ${track.index + 1}`}
+                    </span>
+                    <div className="flex gap-0.5 overflow-x-auto pb-1">
+                      {Array.from({ length: pocetTaktu }, (_, takt) => {
+                        const hraje = radek[takt] !== false;
+                        const ted = takt === aktualniTakt;
+                        return (
+                          <button
+                            key={takt}
+                            onClick={() =>
+                              setTaktyStop((p) => {
+                                const stary = p[track.index] || new Array(pocetTaktu).fill(true);
+                                const novy = [...stary];
+                                novy[takt] = !hraje;
+                                return { ...p, [track.index]: novy };
+                              })
+                            }
+                            title={`Takt ${takt + 1} — ${hraje ? 'hraje' : 'mlčí'}`}
+                            className={`w-6 h-6 shrink-0 rounded text-[9px] font-bold tabular-nums border transition-colors cursor-pointer ${
+                              hraje
+                                ? 'bg-[#FF9F0A]/25 border-[#FF9F0A]/50 text-[#FF9F0A] hover:bg-[#FF9F0A]/40'
+                                : 'bg-white/[0.04] border-white/10 text-neutral-600 hover:bg-white/10'
+                            } ${ted ? 'ring-2 ring-[#30D158]' : ''}`}
+                          >
+                            {takt + 1}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
