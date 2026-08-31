@@ -3,6 +3,7 @@ import { Settings, HardDrive, RefreshCw, Laptop, Loader2, AlertCircle, Mic, KeyR
 import { authService } from '../services/authService';
 import { MidiToolsModal } from './MidiToolsModal';
 import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
+import { HlasovyPanel } from './hlas/HlasovyPanel';
 
 interface Kategorie {
   nazev: string;
@@ -233,6 +234,22 @@ export const SettingsSection: React.FC = () => {
           systémového výstupu. Při hraní z reproduktorů slyší mikrofon i vlastní výstup;
           do sluchátek je to čisté.
         </p>
+      </div>
+
+      {/* Hlasové ovládání.
+          Katalog i editor patří sem, a ne do samostatné sekce: příkazy
+          se nastavují jednou za čas, kdežto mluví se z celé aplikace —
+          proto je mikrofon v horní liště a nastavení až tady. */}
+      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+        <div>
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <Mic className="w-4 h-4 text-[#FF9F0A]" /> Hlasové ovládání
+          </h3>
+          <p className="text-[11px] text-neutral-400">
+            Mikrofon je v horní liště, takže mluvit jde odkudkoli. Tady se nastavuje, na co appka slyší.
+          </p>
+        </div>
+        <HlasovyPanel jsemSpravce={jsemSpravce} />
       </div>
 
       {/* Přihlášení k Ultimate Guitar.
