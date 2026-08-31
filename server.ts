@@ -4256,6 +4256,7 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
             nazev: String(t.title || ''),
             interpret: String(t.artist?.name || ''),
             album: String(t.album?.title || ''),
+            albumId: String(t.album?.id || ''),
             delka: Number(t.duration) || 0,
             obal: String(t.album?.cover_medium || ''),
             ukazka: String(t.preview || ''),
@@ -4269,6 +4270,144 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       res.json({ skladby });
     } catch (e: any) {
       res.status(502).json({ error: e?.message || 'Deezer neodpověděl.' });
+    }
+  });
+
+  /**
+   * Skladby z alba, v pořadí, v jakém na něm jsou.
+   *
+   * Deezer u každé stopy vrací i album, takže od nalezené písničky vede
+   * k celému albu jediný dotaz. Pořadí se bere z `track_position` —
+   * seznam sám o sobě dorazí seřazený, ale spoléhat se na to by znamenalo
+   * mít setlist rozházený, jakmile to Deezer jednou vrátí jinak.
+   */
+  app.get('/api/album/deezer', requireAuth, async (req, res) => {
+    const id = String(req.query.id || '').trim();
+    if (!/^\d+$/.test(id)) return res.status(400).json({ error: 'Očekávám číselné id alba.' });
+
+    try {
+      const odpoved = await fetch(`https://api.deezer.com/album/${id}`);
+      if (!odpoved.ok) throw new Error(`Deezer vrátil ${odpoved.status}`);
+      const data: any = await odpoved.json();
+      if (data?.error) throw new Error(String(data.error?.message || 'Deezer odmítl dotaz.'));
+
+      const stopy: any[] = Array.isArray(data?.tracks?.data) ? data.tracks.data : [];
+      res.json({
+        album: {
+          id: String(data.id || ''),
+          nazev: String(data.title || ''),
+          interpret: String(data.artist?.name || ''),
+          obal: String(data.cover_medium || ''),
+          rok: String(data.release_date || '').slice(0, 4),
+          pocet: stopy.length,
+          zdroj: 'deezer',
+        },
+        skladby: stopy
+          .map((t, i) => ({
+            id: String(t.id || ''),
+            poradi: Number(t.track_position) || i + 1,
+            nazev: String(t.title || ''),
+            interpret: String(t.artist?.name || data.artist?.name || ''),
+            delka: Number(t.duration) || 0,
+            ukazka: String(t.preview || ''),
+          }))
+          .sort((a, b) => a.poradi - b.poradi),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Deezer neodpověděl.' });
+    }
+  });
+
+  /**
+   * Album podle jména — záloha pro to, co Deezer nezná.
+   *
+   * MusicBrainz je katalog vydaných nahrávek a zná i malé kapely a
+   * staré tisky, které u streamovacích služeb nejsou. Chce po volajícím
+   * poctivou hlavičku `User-Agent` a nejvýš jeden dotaz za vteřinu;
+   * obojí se tu dodržuje, jinak nás odstřihnou.
+   */
+  app.get('/api/album/musicbrainz', requireAuth, async (req, res) => {
+    const interpret = String(req.query.interpret || '').trim();
+    const album = String(req.query.album || '').trim();
+    if (!album) return res.status(400).json({ error: 'Chybí název alba.' });
+
+    // MusicBrainz chce v hlavičce i kontakt na provozovatele, jinak
+    // odpovídá 503. Uvádí se veřejná adresa aplikace, ne ničí e-mail.
+    const hlavicky = {
+      'User-Agent': `NeverLateStudio/1.0 ( ${verejnaAdresa({
+        appUrl: process.env.APP_URL,
+        vercelProductionUrl: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+      }) || 'https://github.com/TomiHorvi1982/PracticeHubGoogleAI'} )`,
+      Accept: 'application/json',
+    };
+    const dotaz = [
+      `release:"${album.replace(/"/g, '')}"`,
+      interpret ? `artist:"${interpret.replace(/"/g, '')}"` : '',
+    ].filter(Boolean).join(' AND ');
+
+    /**
+     * MusicBrainz běžně odpovídá 503 „server je zaneprázdněný".
+     *
+     * Není to chyba dotazu ani chybějící album — za chvíli projde tentýž
+     * dotaz v pořádku. Jeden opakovaný pokus většinu z toho spolkne;
+     * víc už by jen protahovalo čekání uživateli.
+     */
+    const zkus = async (adresa: string): Promise<Response> => {
+      let odpoved = await fetch(adresa, { headers: hlavicky });
+      if (odpoved.status === 503) {
+        await new Promise((r) => setTimeout(r, 1200));
+        odpoved = await fetch(adresa, { headers: hlavicky });
+      }
+      if (odpoved.status === 503) {
+        throw new Error('MusicBrainz je zrovna přetížený — zkus to za chvíli znovu.');
+      }
+      if (!odpoved.ok) throw new Error(`MusicBrainz vrátil ${odpoved.status}`);
+      return odpoved;
+    };
+
+    try {
+      const hledani = await zkus(
+        `https://musicbrainz.org/ws/2/release?query=${encodeURIComponent(dotaz)}&fmt=json&limit=5`,
+      );
+      const nalez: any = await hledani.json();
+      const prvni = nalez?.releases?.[0];
+      if (!prvni?.id) return res.status(404).json({ error: 'Takové album MusicBrainz nezná.' });
+
+      const detail = await zkus(
+        `https://musicbrainz.org/ws/2/release/${prvni.id}?inc=recordings+artist-credits&fmt=json`,
+      );
+      const d: any = await detail.json();
+
+      // Vícediskové album má stop rozdělených do medií; číslují se od
+      // jedničky v každém, takže se přečíslují průběžně přes celé album.
+      const stopy: any[] = [];
+      for (const medium of d?.media || []) {
+        for (const t of medium?.tracks || []) {
+          stopy.push({
+            id: String(t.id || ''),
+            poradi: stopy.length + 1,
+            nazev: String(t.title || ''),
+            interpret: String(d['artist-credit']?.[0]?.name || interpret),
+            delka: Math.round(Number(t.length || 0) / 1000),
+            ukazka: '',
+          });
+        }
+      }
+
+      res.json({
+        album: {
+          id: String(d.id || ''),
+          nazev: String(d.title || album),
+          interpret: String(d['artist-credit']?.[0]?.name || interpret),
+          obal: `https://coverartarchive.org/release/${d.id}/front-250`,
+          rok: String(d.date || '').slice(0, 4),
+          pocet: stopy.length,
+          zdroj: 'musicbrainz',
+        },
+        skladby: stopy,
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'MusicBrainz neodpověděl.' });
     }
   });
 

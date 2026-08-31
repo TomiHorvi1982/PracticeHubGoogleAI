@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Loader2, Play, Pause, Plus, AlertCircle, Gauge } from 'lucide-react';
+import { Search, Loader2, Play, Pause, Plus, AlertCircle, Gauge, Disc3, X } from 'lucide-react';
 import { authService } from '../../services/authService';
 
 /**
@@ -20,6 +20,7 @@ interface Skladba {
   nazev: string;
   interpret: string;
   album: string;
+  albumId: string;
   delka: number;
   obal: string;
   ukazka: string;
@@ -29,6 +30,25 @@ interface Skladba {
 }
 
 const cas = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+
+interface StopaAlba {
+  id: string;
+  poradi: number;
+  nazev: string;
+  interpret: string;
+  delka: number;
+  ukazka: string;
+}
+
+interface Album {
+  id: string;
+  nazev: string;
+  interpret: string;
+  obal: string;
+  rok: string;
+  pocet: number;
+  zdroj: string;
+}
 
 export const DeezerPanel: React.FC<{
   onPridat: (interpret: string, nazev: string, doplnky?: { bpm?: number }) => void | Promise<void>;
@@ -40,6 +60,45 @@ export const DeezerPanel: React.FC<{
   const [hraje, setHraje] = useState<string | null>(null);
   const [pridane, setPridane] = useState<Set<string>>(new Set());
   const [zvuk] = useState(() => new Audio());
+  const [album, setAlbum] = useState<{ info: Album; stopy: StopaAlba[] } | null>(null);
+  const [nacitamAlbum, setNacitamAlbum] = useState<string | null>(null);
+
+  /**
+   * Načte celé album, ze kterého nalezená skladba pochází.
+   *
+   * Písnička se skoro nikdy necvičí sama: na zkoušce se hraje pořadí
+   * z alba, a dohledávat ho po jedné je zbytečná práce. Deezer u každé
+   * stopy album vede, takže je to jeden dotaz navíc; když ho nezná,
+   * doptá se MusicBrainzu, který má i vydání mimo streamovací služby.
+   */
+  const otevriAlbum = async (s: Skladba) => {
+    if (album?.info.id === s.albumId) { setAlbum(null); return; }
+    setNacitamAlbum(s.id);
+    setChyba(null);
+    const token = authService.getCurrentSession()?.token;
+    const hlavicky = token ? { Authorization: `Bearer ${token}` } : undefined;
+    try {
+      let d: any = null;
+      if (s.albumId) {
+        const r = await fetch(`/api/album/deezer?id=${encodeURIComponent(s.albumId)}`, { headers: hlavicky });
+        if (r.ok) d = await r.json();
+      }
+      if (!d) {
+        const r = await fetch(
+          `/api/album/musicbrainz?interpret=${encodeURIComponent(s.interpret)}&album=${encodeURIComponent(s.album)}`,
+          { headers: hlavicky },
+        );
+        const z = await r.json();
+        if (!r.ok) throw new Error(z?.error || 'Album se nepodařilo načíst.');
+        d = z;
+      }
+      setAlbum({ info: d.album, stopy: d.skladby || [] });
+    } catch (err: any) {
+      setChyba(err?.message || 'Album se nepodařilo načíst.');
+    } finally {
+      setNacitamAlbum(null);
+    }
+  };
 
   const hledej = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -110,6 +169,75 @@ export const DeezerPanel: React.FC<{
         </p>
       )}
 
+      {album && (
+        <div className="bg-black/40 border border-[#FF9F0A]/30 rounded-2xl p-3 space-y-2">
+          <div className="flex items-center gap-2.5">
+            {album.info.obal && (
+              <img src={album.info.obal} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+            )}
+            <div className="min-w-0 flex-1">
+              <div className="text-[13px] font-bold text-white truncate">{album.info.nazev}</div>
+              <div className="text-[10px] text-neutral-500 truncate">
+                {album.info.interpret}
+                {album.info.rok && ` · ${album.info.rok}`}
+                {` · ${album.stopy.length} skladeb`}
+                {album.info.zdroj === 'musicbrainz' && ' · z MusicBrainzu'}
+              </div>
+            </div>
+            <button
+              onClick={async () => {
+                setChyba(null);
+                for (const t of album.stopy) {
+                  try {
+                    await onPridat(t.interpret || album.info.interpret, t.nazev);
+                    setPridane((p) => new Set(p).add(`al_${t.id}`));
+                  } catch (err: any) {
+                    setChyba(err?.message || 'Část alba se nepodařilo uložit.');
+                    break;
+                  }
+                }
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-[#30D158]/15 text-[#30D158] text-[10px] font-bold cursor-pointer flex items-center gap-1 shrink-0"
+            >
+              <Plus className="w-3 h-3" /> celé album
+            </button>
+            <button
+              onClick={() => setAlbum(null)}
+              className="p-1.5 rounded-lg text-neutral-500 hover:text-white cursor-pointer shrink-0"
+              title="Zavřít album"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="space-y-0.5 max-h-[36vh] overflow-y-auto pr-1">
+            {album.stopy.map((t) => (
+              <div key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.04]">
+                <span className="text-[10px] text-neutral-600 tabular-nums w-6 shrink-0">{t.poradi}.</span>
+                <span className="text-[12px] text-white truncate flex-1">{t.nazev}</span>
+                {t.delka > 0 && (
+                  <span className="text-[10px] text-neutral-600 tabular-nums shrink-0">{cas(t.delka)}</span>
+                )}
+                <button
+                  onClick={async () => {
+                    try {
+                      await onPridat(t.interpret || album.info.interpret, t.nazev);
+                      setPridane((p) => new Set(p).add(`al_${t.id}`));
+                    } catch (err: any) {
+                      setChyba(err?.message || 'Do knihovny se to nepodařilo uložit.');
+                    }
+                  }}
+                  disabled={pridane.has(`al_${t.id}`)}
+                  className="px-1.5 py-0.5 rounded bg-[#30D158]/15 text-[#30D158] text-[10px] font-bold cursor-pointer disabled:opacity-40 shrink-0"
+                >
+                  {pridane.has(`al_${t.id}`) ? '✓' : '+'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="space-y-1 max-h-[52vh] overflow-y-auto pr-1">
         {nalezene.map((s) => (
           <div
@@ -153,6 +281,18 @@ export const DeezerPanel: React.FC<{
               </span>
             )}
             <span className="text-[10px] text-neutral-600 tabular-nums shrink-0">{cas(s.delka)}</span>
+
+            <button
+              onClick={() => void otevriAlbum(s)}
+              disabled={nacitamAlbum === s.id}
+              title={`Ukázat celé album „${s.album}"`}
+              className="px-2 py-1 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-[10px] font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1 shrink-0"
+            >
+              {nacitamAlbum === s.id
+                ? <Loader2 className="w-3 h-3 animate-spin" />
+                : <Disc3 className="w-3 h-3" />}
+              album
+            </button>
 
             <button
               onClick={async () => {
