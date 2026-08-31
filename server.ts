@@ -12,6 +12,7 @@ import {
   prepisSoubor, docasnySoubor, jePrepisDostupny, StavPrepisu,
 } from './prepisTextu';
 import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
+import { postavZadani, zpracujOdpoved } from './hlasPreklad';
 
 dotenv.config();
 
@@ -3887,6 +3888,34 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * je `server.ts` serverless funkce bez ffmpegu a modelů. Prohlížeč se
    * podle toho rozhodne, jestli posílat zvuk sem, nebo si poradit sám.
    */
+  /**
+   * Přeloží popis příkazu na kroky z katalogu.
+   *
+   * Model tu nic nespouští a spustit nemůže — vrací návrh, který člověk
+   * v aplikaci uvidí po krocích a teprve pak uloží. Co si vymyslí nad
+   * rámec katalogu, se zahodí ještě tady: `vyhradyKeKroku` odmítne
+   * neexistující akci, tempo mimo rozsah i sekci, která v appce není.
+   *
+   * Ven odchází jen ten popis, nic jiného — žádné nahrávky ani uložené
+   * příkazy. Aplikace na to upozorňuje u samotného pole.
+   */
+  app.post('/api/hlas/preloz', requireAuth, async (req, res) => {
+    const popis = String(req.body?.popis || '').trim();
+    if (!popis) return res.status(400).json({ error: 'Chybí popis.' });
+    if (popis.length > 500) return res.status(400).json({ error: 'Popis je moc dlouhý.' });
+
+    try {
+      const ai = getAIClient();
+      const odpoved = await ai.models.generateContent({
+        model: 'gemini-3.6-flash',
+        contents: [{ role: 'user', parts: [{ text: postavZadani(popis) }] }],
+      });
+      res.json(zpracujOdpoved(odpoved.text || ''));
+    } catch (e: any) {
+      res.status(502).json({ error: `Překlad selhal: ${e?.message || e}` });
+    }
+  });
+
   app.get('/api/hlas/moznosti', requireAuth, (_req, res) => {
     const { ok, chybi } = jeHlasDostupny();
     res.json({ mistni: ok, chybi, nejdelsiSekund: NEJDELSI_PRIKAZ_S });

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Mic, Plus, Trash2, Check, X, Loader2, ShieldAlert, CircleDot, Circle } from 'lucide-react';
+import { Mic, Plus, Trash2, Check, X, Loader2, ShieldAlert, CircleDot, Circle, Wand2 } from 'lucide-react';
 import { AKCE, Akce, HlasovyPrikaz, Krok, SEKCE } from '../../services/hlas/katalog';
 import { prikazyService } from '../../services/hlas/prikazyService';
 import { dostupneAkce } from '../../services/hlas/vykonavac';
 import { Moznosti, poslouchej, zjistiMoznosti } from '../../services/hlas/poslech';
+import { authService } from '../../services/authService';
 
 /**
  * Správa hlasového ovládání.
@@ -29,6 +30,8 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
   const [navrh, setNavrh] = useState<ReturnType<typeof prazdny> | null>(null);
   const [nahravaFrazi, setNahravaFrazi] = useState<number | null>(null);
   const [hlaseni, setHlaseni] = useState<{ text: string; dobre: boolean } | null>(null);
+  const [popis, setPopis] = useState('');
+  const [prekladaSe, setPrekladaSe] = useState(false);
 
   const nacti = async () => setPrikazy(await prikazyService.nacti());
 
@@ -54,6 +57,48 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       setHlaseni({ text: e?.message || 'Nahrávání selhalo.', dobre: false });
     } finally {
       setNahravaFrazi(null);
+    }
+  };
+
+  /**
+   * Nechá popis přeložit na kroky.
+   *
+   * Výsledek se jen předvyplní do editoru — spustit ho nemá kdo, dokud
+   * to člověk neuloží. Co model navrhl mimo katalog, zahodí už server a
+   * pošle o tom výhradu, ať je vidět, že se něco nepovedlo.
+   */
+  const prelozPopis = async () => {
+    if (!popis.trim()) return;
+    setPrekladaSe(true);
+    try {
+      const token = authService.getCurrentSession()?.token;
+      const r = await fetch('/api/hlas/preloz', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ popis }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Překlad selhal.');
+      if (!d.kroky?.length) {
+        setHlaseni({
+          text: d.vyhrady?.length
+            ? `Z popisu nic použitelného nevzniklo: ${d.vyhrady.join(' ')}`
+            : 'Popisu neodpovídá žádná akce, kterou appka umí.',
+          dobre: false,
+        });
+        return;
+      }
+      setNavrh((n) => (n ? { ...n, kroky: d.kroky } : n));
+      setHlaseni({
+        text: d.vyhrady?.length
+          ? `Kroky doplněné — část návrhu jsem zahodil: ${d.vyhrady.join(' ')}`
+          : 'Kroky doplněné. Projdi je a ulož.',
+        dobre: !d.vyhrady?.length,
+      });
+    } catch (e: any) {
+      setHlaseni({ text: e?.message || 'Překlad selhal.', dobre: false });
+    } finally {
+      setPrekladaSe(false);
     }
   };
 
@@ -227,6 +272,31 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
               >
                 + další způsob, jak to říct
               </button>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="text-[10px] uppercase tracking-widest text-neutral-500">
+                Nebo popiš, co má dělat
+              </div>
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={popis}
+                  onChange={(e) => setPopis(e.target.value)}
+                  placeholder="otevři pódium a nastav tempo na 140"
+                  className="flex-1 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-2 text-xs"
+                />
+                <button
+                  onClick={() => void prelozPopis()}
+                  disabled={prekladaSe || !popis.trim()}
+                  title="Přeložit popis na kroky"
+                  className="p-2 rounded-xl bg-white/[0.06] border border-white/10 hover:bg-white/[0.12] cursor-pointer disabled:opacity-40"
+                >
+                  {prekladaSe ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+              <p className="text-[10px] text-amber-500/70">
+                Popis se posílá Googlu k překladu. Nahrávky ani hotové příkazy ven nechodí.
+              </p>
             </div>
 
             <div className="space-y-1.5">
