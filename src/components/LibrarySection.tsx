@@ -14,6 +14,7 @@ import { PohledSamples } from './knihovna/PohledSamples';
 import { UzelStromu, PODLE_ID, navrhniPodkategorii, nazevKategorie } from '../services/knihovnaStrom';
 import { prevedNaMp3, jePrevoditelny, Kvalita } from '../services/prevodNaMp3';
 import { SbirkyPanel } from './knihovna/SbirkyPanel';
+import { HromadneAkce } from './knihovna/HromadneAkce';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -1173,49 +1174,28 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             </div>
           </div>
 
-          {/* Hromadné akce. Jen pro správce — mazat knihovnu smí jen on. */}
-          {jsemSpravce && filteredItems.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 px-1">
-              <button
-                onClick={() =>
-                  setOznacene((p) =>
-                    filteredItems.every((i) => p.has(i.id))
-                      ? new Set()
-                      : new Set(filteredItems.map((i) => i.id))
-                  )
+          {/* Hromadné akce — týž díl jako ve Sbírkách a Samplech. */}
+          <div className="px-1">
+            <HromadneAkce
+              oznacene={oznacene}
+              onZmenaVyberu={setOznacene}
+              viditelne={filteredItems.map((i) => i.id)}
+              jsemSpravce={jsemSpravce}
+              onHotovo={(smazane) => {
+                if (smazane.length) {
+                  setLibraryItems((prev) => prev.filter((i) => !smazane.includes(i.id)));
+                  setCelkemVKnihovne((n) => Math.max(0, n - smazane.length));
+                  setZvukoveNahledy((p) => p.filter((n) => !smazane.includes(n.id)));
+                  if (activeItem && smazane.includes(activeItem.id)) setActiveItem(null);
+                } else {
+                  // Přesun mění zařazení, ne obsah — seznam se načte znovu.
+                  void nactiKnihovnu(searchQuery);
                 }
-                className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-[11px] font-bold cursor-pointer flex items-center gap-1.5"
-                title="Označit nebo odznačit všechno, co je vidět"
-              >
-                {filteredItems.every((i) => oznacene.has(i.id)) ? (
-                  <CheckSquare className="w-3.5 h-3.5" />
-                ) : (
-                  <Square className="w-3.5 h-3.5" />
-                )}
-                Označit vše ({filteredItems.length})
-              </button>
-
-              {oznacene.size > 0 && (
-                <>
-                  <span className="text-[11px] text-[#30D158] font-bold">{oznacene.size} označeno</span>
-                  <button
-                    onClick={() => void smazOznacene()}
-                    disabled={mazuHromadne}
-                    className="px-2.5 py-1.5 rounded-lg bg-[#FF453A] text-white text-[11px] font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    {mazuHromadne ? 'Mažu…' : `Smazat označené (${oznacene.size})`}
-                  </button>
-                  <button
-                    onClick={() => setOznacene(() => new Set())}
-                    className="px-2.5 py-1.5 rounded-lg text-neutral-500 hover:text-white text-[11px] cursor-pointer"
-                  >
-                    Zrušit výběr
-                  </button>
-                </>
-              )}
-            </div>
-          )}
+                void nactiStrom();
+                window.dispatchEvent(new CustomEvent('neverlate:soubor-nahran'));
+              }}
+            />
+          </div>
 
           {/* Files List */}
           <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-3 space-y-1.5 max-h-[600px] overflow-y-auto shadow-lg">

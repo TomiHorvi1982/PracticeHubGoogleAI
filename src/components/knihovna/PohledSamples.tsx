@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Play, Pause, Search, Trash2, Music4 } from 'lucide-react';
 import { authService } from '../../services/authService';
 import { audioBus } from '../../services/audioBus';
+import { usePametMnoziny } from '../../hooks/usePamet';
+import { HromadneAkce } from './HromadneAkce';
 
 /**
  * Zvukový pohled na knihovnu.
@@ -40,6 +42,8 @@ export const PohledSamples: React.FC<{ jsemSpravce: boolean }> = ({ jsemSpravce 
   const [razeni, setRazeni] = useState<Razeni>('nazev');
   const [hraje, setHraje] = useState<string | null>(null);
   const [chyba, setChyba] = useState<string | null>(null);
+  /** Označené samply pro hromadné akce; přežije přepnutí sekce. */
+  const [oznacene, setOznacene] = usePametMnoziny('samples_oznacene');
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   /** Blob adresy přehraných samplů — jinak by paměť rostla s každým klikem. */
@@ -184,9 +188,38 @@ export const PohledSamples: React.FC<{ jsemSpravce: boolean }> = ({ jsemSpravce 
         </div>
       )}
 
+      <HromadneAkce
+        oznacene={oznacene}
+        onZmenaVyberu={setOznacene}
+        viditelne={serazene.map((s) => s.id)}
+        jsemSpravce={jsemSpravce}
+        onHotovo={(smazane) => {
+          if (smazane.length) setSamply((p) => p.filter((x) => !smazane.includes(x.id)));
+          // Přesun do jiné kategorie znamená, že sem sampl už nepatří —
+          // seznam se přenačte tím, že se sáhne na hledání.
+          else setHledat((h) => h);
+        }}
+      />
+
       <div className="max-h-[52vh] overflow-y-auto divide-y divide-white/[0.04]">
         {serazene.map((s) => (
           <div key={s.id} className="flex items-center gap-3 py-2 group">
+            {jsemSpravce && (
+              <input
+                type="checkbox"
+                checked={oznacene.has(s.id)}
+                onChange={() =>
+                  setOznacene((p) => {
+                    const n = new Set(p);
+                    if (n.has(s.id)) n.delete(s.id);
+                    else n.add(s.id);
+                    return n;
+                  })
+                }
+                className="accent-[#30D158] cursor-pointer shrink-0"
+                title="Označit pro hromadnou akci"
+              />
+            )}
             <button
               onClick={() => prehraj(s)}
               className="p-2 rounded-lg bg-white/[0.06] hover:bg-[#0A84FF]/20 text-[#0A84FF] cursor-pointer shrink-0"
