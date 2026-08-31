@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { usePamet, usePametMnoziny } from '../hooks/usePamet';
 import { WaveformPrehravac } from './songbook/WaveformPrehravac';
 import { PdfNahled } from './songbook/PdfNahled';
 import { najdiPisenProSoubor, jizPripojeno, prilohaZAssetu } from '../services/priradKPisni';
@@ -42,6 +43,9 @@ import {
   AlignJustify,
   LayoutGrid,
   Pencil,
+  X,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import { Song, SongAttachment } from '../types';
 import { parseAnyFile, fileToDataUrl } from '../utils/fileParsers';
@@ -94,14 +98,20 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    * Výběr ve stromu. `kategorie === null` znamená celou knihovnu,
    * `podkategorie === '__bez__'` hromádku nezařazených.
    */
-  const [kategorieFiltr, setKategorieFiltr] = useState<string | null>(null);
-  const [podkategorieFiltr, setPodkategorieFiltr] = useState<string | null>(null);
+  // Filtry, hledání a otevřený náhled si sekce pamatuje — po návratu se
+  // nemusí hledat znovu to, co tu bylo před přepnutím.
+  const [kategorieFiltr, setKategorieFiltr] = usePamet<string | null>('knihovna_kategorie', null);
+  const [podkategorieFiltr, setPodkategorieFiltr] = usePamet<string | null>('knihovna_podkategorie', null);
   const [uzly, setUzly] = useState<UzelStromu[]>([]);
   /** Soubor, který se právě táhne na složku. */
   const [tazeny, setTazeny] = useState<string | null>(null);
   const [prejmenovavany, setPrejmenovavany] = useState<{ id: string; nazev: string } | null>(null);
   const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = usePamet('knihovna_hledani', '');
+  /** Označené soubory pro hromadné akce. */
+  const [oznacene, setOznacene] = usePametMnoziny('knihovna_oznacene');
+  /** Probíhá hromadné mazání — ať se nedá spustit dvakrát. */
+  const [mazuHromadne, setMazuHromadne] = useState(false);
   const [activeItem, setActiveItem] = useState<LibraryItem | null>(() => libraryItems[0] || null);
 
   /** Hraje se? Ptají se na to naplánované noty, proto ref a ne stav. */
@@ -119,7 +129,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    * sedne do tempa. Proto má vlastní pohled — v seznamu souborů by to byly
    * jen další řádky.
    */
-  const [pohled, setPohled] = useState<'soubory' | 'samples' | 'sbirky'>('soubory');
+  const [pohled, setPohled] = usePamet<'soubory' | 'samples' | 'sbirky'>('knihovna_pohled', 'soubory');
 
   /**
    * Zmenšovat zvuky před nahráním?
@@ -138,7 +148,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [prevod, setPrevod] = useState<{ nazev: string; procent: number } | null>(null);
 
   // View Mode: 'detailed' vs 'compact' (1-line: Name - Artist)
-  const [libraryListViewMode, setLibraryListViewMode] = useState<'detailed' | 'compact'>('detailed');
+  const [libraryListViewMode, setLibraryListViewMode] = usePamet<'detailed' | 'compact'>(
+    'knihovna_zobrazeni', 'detailed'
+  );
 
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -333,6 +345,48 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
    */
   const [chybaOdkazu, setChybaOdkazu] = useState<string | null>(null);
   const [shanimOdkaz, setShanimOdkaz] = useState(false);
+
+  /**
+   * Otevřené zvukové náhledy, od nejstaršího dolů.
+   *
+   * Zvuky se skládají pod sebe, nepřepisují se. Při skládání písně nebo
+   * porovnávání stop je potřeba slyšet dva a tři kusy vedle sebe, a s
+   * jedním okénkem se pořád klikalo tam a zpátky. U ostatních typů to
+   * smysl nedává — dvě otevřené tabulatury pod sebou jsou jen dvakrát
+   * tolik rolování.
+   */
+  const [zvukoveNahledy, setZvukoveNahledy] = useState<LibraryItem[]>([]);
+
+  /** Přidá zvuk do sloupce náhledů; už otevřený se jen posune do popředí. */
+  const otevriZvuk = (item: LibraryItem) => {
+    setZvukoveNahledy((p) => (p.some((x) => x.id === item.id) ? p : [...p, item]));
+  };
+
+  // Každý náhled si musí dotáhnout vlastní obsah — křivka se kreslí
+  // z bajtů, ne z odkazu do knihovny.
+  useEffect(() => {
+    const chybejici = zvukoveNahledy.filter((n) => !n.dataUrl && !n.id.startsWith('song_att_'));
+    if (!chybejici.length) return;
+    let zruseno = false;
+    void (async () => {
+      for (const n of chybejici) {
+        try {
+          const url = await nactiObsahJakoUrl(n.id);
+          if (zruseno) {
+            URL.revokeObjectURL(url);
+            return;
+          }
+          blobRef.current.push(url);
+          setZvukoveNahledy((p) => p.map((x) => (x.id === n.id ? { ...x, dataUrl: url } : x)));
+        } catch {
+          /* co se nenačte, zůstane v seznamu bez křivky */
+        }
+      }
+    })();
+    return () => {
+      zruseno = true;
+    };
+  }, [zvukoveNahledy]);
 
   useEffect(() => {
     setChybaOdkazu(null);
@@ -722,6 +776,51 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     setStatusMessage({ type: 'success', text: 'Soubor byl odstraněn z knihovny.' });
   };
 
+  /**
+   * Smaže označené soubory najednou.
+   *
+   * Po jednom se sedm set vzorků neuklidí. Maže se postupně, ne naráz:
+   * server maže po souborech a stovka souběžných požadavků by ho jen
+   * zahltila. Co selže, se spočítá a řekne — tichý neúspěch u poloviny
+   * dávky by byl horší než chyba.
+   */
+  const smazOznacene = async () => {
+    const ids = [...oznacene];
+    if (!ids.length) return;
+    if (!confirm(`Smazat ${ids.length} označených souborů? Tohle už nevrátíš.`)) return;
+
+    setMazuHromadne(true);
+    setStatusMessage(null);
+    let hotovo = 0;
+    const selhalo: string[] = [];
+
+    for (const id of ids) {
+      try {
+        await assetLibraryService.remove(id);
+        hotovo++;
+      } catch {
+        selhalo.push(id);
+      }
+    }
+
+    setLibraryItems((prev) => prev.filter((i) => !oznacene.has(i.id) || selhalo.includes(i.id)));
+    setCelkemVKnihovne((n) => Math.max(0, n - hotovo));
+    setZvukoveNahledy((p) => p.filter((n) => !oznacene.has(n.id) || selhalo.includes(n.id)));
+    if (activeItem && oznacene.has(activeItem.id) && !selhalo.includes(activeItem.id)) {
+      setActiveItem(null);
+    }
+    setOznacene(() => new Set(selhalo));
+    void nactiStrom();
+    window.dispatchEvent(new CustomEvent('neverlate:soubor-nahran'));
+
+    setStatusMessage(
+      selhalo.length
+        ? { type: 'error', text: `Smazáno ${hotovo}, ${selhalo.length} se nepodařilo — zůstávají označené.` }
+        : { type: 'success', text: `Smazáno ${hotovo} souborů.` }
+    );
+    setMazuHromadne(false);
+  };
+
   const getItemIcon = (type: LibraryItem['type']) => {
     switch (type) {
       case 'guitarpro':
@@ -1048,6 +1147,50 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             </div>
           </div>
 
+          {/* Hromadné akce. Jen pro správce — mazat knihovnu smí jen on. */}
+          {jsemSpravce && filteredItems.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 px-1">
+              <button
+                onClick={() =>
+                  setOznacene((p) =>
+                    filteredItems.every((i) => p.has(i.id))
+                      ? new Set()
+                      : new Set(filteredItems.map((i) => i.id))
+                  )
+                }
+                className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-[11px] font-bold cursor-pointer flex items-center gap-1.5"
+                title="Označit nebo odznačit všechno, co je vidět"
+              >
+                {filteredItems.every((i) => oznacene.has(i.id)) ? (
+                  <CheckSquare className="w-3.5 h-3.5" />
+                ) : (
+                  <Square className="w-3.5 h-3.5" />
+                )}
+                Označit vše ({filteredItems.length})
+              </button>
+
+              {oznacene.size > 0 && (
+                <>
+                  <span className="text-[11px] text-[#30D158] font-bold">{oznacene.size} označeno</span>
+                  <button
+                    onClick={() => void smazOznacene()}
+                    disabled={mazuHromadne}
+                    className="px-2.5 py-1.5 rounded-lg bg-[#FF453A] text-white text-[11px] font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {mazuHromadne ? 'Mažu…' : `Smazat označené (${oznacene.size})`}
+                  </button>
+                  <button
+                    onClick={() => setOznacene(() => new Set())}
+                    className="px-2.5 py-1.5 rounded-lg text-neutral-500 hover:text-white text-[11px] cursor-pointer"
+                  >
+                    Zrušit výběr
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
           {/* Files List */}
           <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-3 space-y-1.5 max-h-[600px] overflow-y-auto shadow-lg">
             {filteredItems.length === 0 ? (
@@ -1062,7 +1205,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   return (
                     <div
                       key={item.id}
-                      onClick={() => setActiveItem(item)}
+                      onClick={() => {
+                        setActiveItem(item);
+                        if (item.type === 'audio') otevriZvuk(item);
+                      }}
                       // Táhnout jde jen soubory z knihovny; přílohy písní
                       // do složek nepatří a server je nezná.
                       draggable={jsemSpravce && !item.id.startsWith('song_att_')}
@@ -1076,6 +1222,23 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                           : 'bg-black/30 border border-white/5 hover:bg-white/5 hover:border-white/10 text-neutral-300'
                       }`}
                     >
+                      {jsemSpravce && (
+                        <input
+                          type="checkbox"
+                          checked={oznacene.has(item.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={() =>
+                            setOznacene((p) => {
+                              const n = new Set(p);
+                              if (n.has(item.id)) n.delete(item.id);
+                              else n.add(item.id);
+                              return n;
+                            })
+                          }
+                          className="accent-[#30D158] cursor-pointer shrink-0"
+                          title="Označit pro hromadnou akci"
+                        />
+                      )}
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <div className="shrink-0 scale-75 opacity-80">
                           {getItemIcon(item.type)}
@@ -1133,13 +1296,33 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 return (
                   <div
                     key={item.id}
-                    onClick={() => setActiveItem(item)}
+                    onClick={() => {
+                      setActiveItem(item);
+                      if (item.type === 'audio') otevriZvuk(item);
+                    }}
                     className={`p-3 rounded-2xl cursor-pointer transition-all flex items-start justify-between gap-2.5 group ${
                       isSelected
                         ? 'bg-white/10 border border-white/20 shadow-sm'
                         : 'bg-black/30 border border-white/5 hover:bg-white/5 hover:border-white/10'
                     }`}
                   >
+                    {jsemSpravce && (
+                      <input
+                        type="checkbox"
+                        checked={oznacene.has(item.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={() =>
+                          setOznacene((p) => {
+                            const n = new Set(p);
+                            if (n.has(item.id)) n.delete(item.id);
+                            else n.add(item.id);
+                            return n;
+                          })
+                        }
+                        className="accent-[#30D158] cursor-pointer shrink-0 mr-1"
+                        title="Označit pro hromadnou akci"
+                      />
+                    )}
                     <div className="flex items-start gap-3 min-w-0">
                       <div className="p-2 bg-white/5 rounded-xl border border-white/5 mt-0.5 shrink-0">
                         {getItemIcon(item.type)}
@@ -1258,9 +1441,50 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 </div>
               )}
 
-              {/* 🔊 ZVUKOVÝ VZOREK — křivka a přehrávání */}
-              {activeItem.type === 'audio' && activeItem.dataUrl && (
-                <WaveformPrehravac url={activeItem.dataUrl} nazev={activeItem.name} />
+              {/* 🔊 ZVUKOVÉ VZORKY — skládají se pod sebe, nepřepisují se */}
+              {zvukoveNahledy.length > 0 && (
+                <div className="space-y-2">
+                  {zvukoveNahledy.length > 1 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+                        {zvukoveNahledy.length} otevřených zvuků
+                      </span>
+                      <button
+                        onClick={() => setZvukoveNahledy([])}
+                        className="text-[10px] text-neutral-500 hover:text-white cursor-pointer ml-auto"
+                      >
+                        zavřít všechny
+                      </button>
+                    </div>
+                  )}
+
+                  {zvukoveNahledy.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`rounded-2xl border p-1 ${
+                        activeItem?.id === n.id
+                          ? 'border-[#0A84FF]/40 bg-[#0A84FF]/[0.06]'
+                          : 'border-white/[0.06]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 px-2 pt-1">
+                        <span className="text-[11px] text-neutral-300 truncate flex-1">{n.name}</span>
+                        <button
+                          onClick={() => setZvukoveNahledy((p) => p.filter((x) => x.id !== n.id))}
+                          className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer shrink-0"
+                          title="Zavřít tenhle náhled"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                      {n.dataUrl ? (
+                        <WaveformPrehravac url={n.dataUrl} nazev={n.name} />
+                      ) : (
+                        <p className="text-[11px] text-neutral-600 px-2 pb-2">Načítám křivku…</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
 
               {/* 🎸 GUITAR PRO VIEWER & ALPHATAB PLAYER */}

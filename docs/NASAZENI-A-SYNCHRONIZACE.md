@@ -18,6 +18,26 @@ Push do `main` na GitHubu automaticky přebuilduje a nasadí aplikaci.
 > Pozor: smazání projektu **nevynuluje dlužnou částku** — tu je potřeba
 > vyřídit přímo s Railway.
 
+### Kdo co smí (od 31. 8. 2026)
+
+Sdílená knihovna je pro členy **ke čtení**. Písně i soubory bez vlastníka
+vidí každý přihlášený, ale přidávat, upravovat a mazat je smí jen správce.
+
+Dřív to tak nebylo: pravidla pouštěla zápis do každého řádku bez
+vlastníka a u souborů navíc do všech vzorků bicích bez ohledu na to, čí
+jsou — sedm set vzorků sbírky tak mohl smazat kterýkoli přihlášený člen.
+
+Výjimka zůstává u **kapelních fotek**: ty si každý přidá sám a smaže
+jen svoje.
+
+**Co to stojí:** vlastní sady bicích si zakládá jen správce. Sady se
+ukládají jako sdílené soubory a členům je zápis do sdílené knihovny
+zavřený. Kdyby to mělo být jinak, musely by se sady ukládat jako
+soukromé — řekněte si a předělá se.
+
+Serveru se pravidla netýkají: běží pod servisním klíčem a oprávnění si
+kontroluje sám.
+
 ### Co na Vercelu nefunguje
 
 Vercel běží bezstavově (serverless), takže **Živá zkušebna a zobrazení
