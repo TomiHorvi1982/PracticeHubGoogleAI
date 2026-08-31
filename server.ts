@@ -11,6 +11,7 @@ import { isR2Configured, signedDownloadUrl, getObjectBytes, uploadObject, delete
 import {
   prepisSoubor, docasnySoubor, jePrepisDostupny, StavPrepisu,
 } from './prepisTextu';
+import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
 
 dotenv.config();
 
@@ -3878,6 +3879,41 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     const hranice = Date.now() - 3600_000;
     for (const [id, u] of prepisy) if (u.kdy < hranice) prepisy.delete(id);
   }
+
+  /**
+   * Umí tenhle server přepsat hlasový příkaz?
+   *
+   * Odpověď je „ne" všude, kde neběží whisper — tedy i na Vercelu, kde
+   * je `server.ts` serverless funkce bez ffmpegu a modelů. Prohlížeč se
+   * podle toho rozhodne, jestli posílat zvuk sem, nebo si poradit sám.
+   */
+  app.get('/api/hlas/moznosti', requireAuth, (_req, res) => {
+    const { ok, chybi } = jeHlasDostupny();
+    res.json({ mistni: ok, chybi, nejdelsiSekund: NEJDELSI_PRIKAZ_S });
+  });
+
+  app.post(
+    '/api/hlas/prepis',
+    requireAuth,
+    // Příkaz je pár vteřin řeči; strop je proti omylu, ne proti útoku.
+    express.raw({ type: '*/*', limit: '8mb' }),
+    async (req, res) => {
+      const { ok, chybi } = jeHlasDostupny();
+      if (!ok) {
+        return res.status(503).json({ error: `Přepis hlasu tu neběží — chybí ${chybi.join(', ')}.` });
+      }
+      const bajty = req.body as Buffer;
+      if (!bajty?.length) return res.status(400).json({ error: 'Nahrávka dorazila prázdná.' });
+
+      try {
+        const pripona = String(req.query.pripona || 'webm');
+        const text = await prepisPrikaz(bajty, pripona);
+        res.json({ text });
+      } catch (e: any) {
+        res.status(500).json({ error: e?.message || 'Přepis selhal.' });
+      }
+    },
+  );
 
   app.get('/api/texty/pripravenost', requireAuth, (_req, res) => {
     const { ok, chybi } = jePrepisDostupny();
