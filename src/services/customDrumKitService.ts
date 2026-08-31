@@ -6,6 +6,15 @@ import { authService } from './authService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { fileUrlService } from './fileUrlService';
 
+/**
+ * Komu se ukládá nově vytvořená sada.
+ *
+ * Správce plní společnou sbírku (bez vlastníka), ostatní si dělají svoje.
+ */
+function vlastnikNoveho(): string | null {
+  return authService.isAdmin() ? null : authService.getCurrentUser()?.id ?? null;
+}
+
 const DB_NAME = 'StrumCustomDrumKitsDB';
 const STORE_NAME = 'custom_kits';
 const LOCAL_STORAGE_BACKUP_KEY = 'strum_custom_drum_kits_v2';
@@ -363,7 +372,14 @@ class CustomDrumKitService {
   private async persistKitToSupabase(kit: CustomDrumKit): Promise<void> {
     const { error: upsertError } = await supabase.from('drum_kits').upsert({
       id: kit.id,
-      owner_id: null,
+      /**
+       * Sada bez vlastníka je kapelní, s vlastníkem je moje.
+       *
+       * Společné sady zakládá správce. Kdo správcem není, dělá si sadu
+       * sobě — dřív se ukládala jako společná a od zavření knihovny by ji
+       * databáze odmítla, takže by sada zůstala jen v prohlížeči.
+       */
+      owner_id: vlastnikNoveho(),
       name: kit.name,
       cz_name: kit.czName || null,
       icon: kit.icon || null,
@@ -427,7 +443,8 @@ class CustomDrumKitService {
 
       const { error: insertError } = await supabase.from('assets').insert({
         id: assetId,
-        owner_id: null,
+        // Vzorky patří ke své sadě, takže se řídí stejným pravidlem.
+        owner_id: vlastnikNoveho(),
         name: entry.sample.name,
         original_filename: entry.sample.name,
         mime_type: mime,

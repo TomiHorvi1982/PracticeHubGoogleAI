@@ -5,7 +5,7 @@ import { KATEGORIE } from '../../services/knihovnaStrom';
 import {
   BARVY, Sbirka, nactiSbirky, nactiTagy, upravSbirku, smazSbirku, hromadneUprav,
 } from '../../services/sbirkyService';
-import { ImportSlozky } from './ImportSlozky';
+
 
 /**
  * Sbírky: co odkud je.
@@ -118,7 +118,13 @@ export const SbirkyPanel: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <ImportSlozky sbirky={sbirky} onHotovo={() => void obnovSeznamy()} />
+      {/* Nahrávat se chodí do Souborů — jedno místo, ne dvě. Sbírky
+          zůstávají na to, co se s dávkou dělá potom. */}
+      <p className="text-[11px] text-neutral-500 bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2">
+        Nahrát složku nebo jednotlivé soubory a rovnou je zařadit do sbírky se dá v záložce{' '}
+        <strong className="text-neutral-300">Soubory</strong> — pod polem hledání, v části „Kam a odkud".
+        Tady se pak dávka třídí, štítkuje a přebarvuje.
+      </p>
 
       {/* Sbírky */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">

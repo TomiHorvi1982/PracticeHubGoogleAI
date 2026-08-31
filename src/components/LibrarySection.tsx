@@ -15,6 +15,8 @@ import { UzelStromu, PODLE_ID, navrhniPodkategorii, nazevKategorie } from '../se
 import { prevedNaMp3, jePrevoditelny, Kvalita } from '../services/prevodNaMp3';
 import { SbirkyPanel } from './knihovna/SbirkyPanel';
 import { HromadneAkce } from './knihovna/HromadneAkce';
+import { NahravaniSouboru } from './knihovna/NahravaniSouboru';
+import { Sbirka, nactiSbirky } from '../services/sbirkyService';
 import {
   FolderArchive,
   FileSpreadsheet,
@@ -106,6 +108,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [kategorieFiltr, setKategorieFiltr] = usePamet<string | null>('knihovna_kategorie', null);
   const [podkategorieFiltr, setPodkategorieFiltr] = usePamet<string | null>('knihovna_podkategorie', null);
   const [uzly, setUzly] = useState<UzelStromu[]>([]);
+  /** Sbírky do nabídky u nahrávání — ať jde dávku rovnou zařadit. */
+  const [sbirky, setSbirky] = useState<Sbirka[]>([]);
+  useEffect(() => { void nactiSbirky().then(setSbirky); }, []);
   /** Soubor, který se právě táhne na složku. */
   const [tazeny, setTazeny] = useState<string | null>(null);
   const [prejmenovavany, setPrejmenovavany] = useState<{ id: string; nazev: string } | null>(null);
@@ -501,7 +506,18 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   });
 
   // Handle uploading files
-  const handleUploadFiles = async (files: FileList | File[]) => {
+  /**
+   * Jediná cesta, kterou se soubory dostávají do knihovny.
+   *
+   * `volby` nesou to, co se dřív dalo zadat jen při importu složky —
+   * sbírku, štítky a vynucenou kategorii. Dvě různé cesty dovnitř
+   * znamenaly, že u jedné šlo zadat původ a u druhé ne, podle toho, kde
+   * zrovna člověk stál.
+   */
+  const handleUploadFiles = async (
+    files: FileList | File[],
+    volby?: { kategorie?: string; sbirka?: string; tagy?: string[] },
+  ) => {
     setIsProcessing(true);
     setStatusMessage(null);
     let addedCount = 0;
@@ -569,6 +585,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         // pultu, smyčka, nebo vokál. Když je složka vybraná, člověk to
         // právě řekl; typ se použije, jen když je otevřená celá knihovna.
         const kategorie =
+          volby?.kategorie ||
           kategorieFiltr ||
           (type === 'guitarpro' ? 'guitar_pro'
             : type === 'pdf' ? 'pdf'
@@ -581,7 +598,17 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         const podslozka = podkategorieFiltr === '__bez__' ? null : podkategorieFiltr;
 
         try {
-          const ulozeny = await assetLibraryService.upload(file, kategorie, assetType, 'global', podslozka);
+          // Správce plní společnou knihovnu, ostatní si nahrávají svoje.
+          const ulozeny = await assetLibraryService.upload(
+            file, kategorie, assetType, jsemSpravce ? 'global' : 'private', podslozka,
+            {
+              sbirka: volby?.sbirka,
+              tagy: volby?.tagy,
+              // Cesta uvnitř vybrané složky. U jednotlivých souborů je
+              // prázdná — prohlížeč ji vyplní jen u výběru celé složky.
+              zdrojovaSlozka: slozkaZeSouboru(file),
+            },
+          );
           newItem.id = ulozeny.id;
 
           // Soubor si najde píseň, ke které patří, a připojí se k ní.
@@ -848,6 +875,17 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     setMazuHromadne(false);
   };
 
+  /** Cesta ke složce, ve které soubor na disku ležel. */
+  const slozkaZeSouboru = (f: File): string | undefined => {
+    const cesta = (f as unknown as { webkitRelativePath?: string }).webkitRelativePath;
+    if (!cesta) return undefined;
+    const casti = cesta.split('/');
+    casti.pop();
+    // První část je vybraná složka sama — ta je názvem sbírky, ne podsložkou.
+    casti.shift();
+    return casti.join('/') || undefined;
+  };
+
   const getItemIcon = (type: LibraryItem['type']) => {
     switch (type) {
       case 'guitarpro':
@@ -927,55 +965,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           ))}
         </div>
 
-        {/* Zmenšování zvuků. Patří k tlačítku pro nahrání, protože
-            rozhoduje o tom, co se zrovna nahraje. */}
-        <label
-          className="flex items-center gap-2 text-[11px] text-neutral-400 cursor-pointer"
-          title="Bezeztrátové zvuky (WAV, AIFF, FLAC) se před nahráním převedou na MP3"
-        >
-          <input
-            type="checkbox"
-            checked={prevadetZvuk}
-            onChange={(e) => {
-              setPrevadetZvuk(e.target.checked);
-              localStorage.setItem('neverlate_prevod_mp3', e.target.checked ? 'ano' : 'ne');
-            }}
-            className="accent-[#0A84FF] cursor-pointer"
-          />
-          <span>Zmenšit zvuk na MP3</span>
-          <select
-            value={kvalitaMp3}
-            disabled={!prevadetZvuk}
-            onChange={(e) => {
-              const k = Number(e.target.value) as Kvalita;
-              setKvalitaMp3(k);
-              localStorage.setItem('neverlate_kvalita_mp3', String(k));
-            }}
-            className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-[11px] cursor-pointer disabled:opacity-40"
-          >
-            <option value={128}>128 kbps</option>
-            <option value={192}>192 kbps</option>
-            <option value={256}>256 kbps</option>
-            <option value={320}>320 kbps</option>
-          </select>
-        </label>
-
-        {/* Quick Upload Button */}
-        <label className="px-4 py-2.5 bg-white text-black hover:bg-neutral-200 font-semibold text-xs rounded-xl cursor-pointer flex items-center gap-2 transition-all shadow-md">
-          <FileUp className="w-4 h-4" />
-          <span>{kategorieFiltr ? `Nahrát do: ${nazevKategorie(kategorieFiltr)}` : 'Nahrát soubory'}</span>
-          <input
-            type="file"
-            multiple
-            accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp,.pdf,.txt,.chopro,.pro,.crd,.tab,.png,.jpg,.jpeg,.webp,.svg,.gif,.mid,.midi,.wav,.mp3,.aif,.aiff,.ogg,.flac,.m4a"
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > 0) {
-                handleUploadFiles(e.target.files);
-              }
-            }}
-            className="hidden"
-          />
-        </label>
         </div>
       </div>
 
@@ -1071,108 +1060,44 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             )}
           </div>
 
-          {/* Drag & Drop Zone */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-              if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                handleUploadFiles(e.dataTransfer.files);
-              }
-            }}
-            className={`border-2 border-dashed p-4 text-center cursor-pointer transition-all relative rounded-2xl ${
-              isDragging
-                ? 'border-[#0A84FF] bg-[#0A84FF]/10'
-                : 'border-white/10 hover:border-[#0A84FF]/50 bg-[#16161A]/40'
-            }`}
+          {/* Jediné místo, kudy soubory do knihovny chodí. */}
+          <NahravaniSouboru
+            otevrenaKategorie={kategorieFiltr}
+            sbirky={sbirky}
+            bezi={isProcessing}
+            prevod={prevod}
+            onNahraj={(soubory, volby) => handleUploadFiles(soubory, volby)}
           >
-            <input
-              type="file"
-              multiple
-              accept=".gp,.gp3,.gp4,.gp5,.gpx,.gtp,.pdf,.txt,.chopro,.pro,.crd,.tab,.png,.jpg,.jpeg,.webp,.svg,.gif,.mid,.midi,.wav,.mp3,.aif,.aiff,.ogg,.flac,.m4a"
-              onChange={(e) => {
-                if (e.target.files && e.target.files.length > 0) {
-                  handleUploadFiles(e.target.files);
-                }
-              }}
-              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-            />
-            {isProcessing ? (
-              <div className="py-2 flex flex-col items-center justify-center gap-1 text-[#0A84FF] text-xs font-semibold">
-                <div className="flex items-center gap-2">
-                  <Disc className="w-4 h-4 animate-spin" />
-                  <span>
-                    {prevod
-                      ? `Zmenšuji „${prevod.nazev}" — ${prevod.procent} %`
-                      : 'Nahrávám a zpracovávám soubory...'}
-                  </span>
-                </div>
-                {prevod && (
-                  <div className="w-40 h-1 bg-white/10 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#0A84FF] transition-[width] duration-200"
-                      style={{ width: `${prevod.procent}%` }}
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-1 text-neutral-400">
-                <div className="flex items-center gap-2">
-                  <FileUp className="w-4 h-4 text-[#0A84FF]" />
-                  <span className="text-xs font-medium">
-                    Přetáhněte sem soubory pro okamžité přidání
-                  </span>
-                </div>
-                {/* Kam to spadne, má být vidět předem. Jinak se na to
-                    přijde až po nahrání — a to už je soubor jinde. */}
-                <span className="text-[10px] text-neutral-500">
-                  {kategorieFiltr
-                    ? `Přijdou do složky ${nazevKategorie(kategorieFiltr)}${
-                        podkategorieFiltr && podkategorieFiltr !== '__bez__'
-                          ? ` / ${podkategorieFiltr}`
-                          : ''
-                      }`
-                    : 'Zařadí se podle typu — otevři složku vlevo, ať jdou rovnou do ní'}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* View Mode Switcher Header */}
-          <div className="flex items-center justify-between px-1 py-1">
-            <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-400">
-              Soubory ({filteredItems.length})
-            </span>
-            <div className="flex items-center bg-black/50 border border-white/10 p-0.5 rounded-xl">
-              <button
-                onClick={() => setLibraryListViewMode('compact')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  libraryListViewMode === 'compact'
-                    ? 'bg-[#0A84FF] text-white shadow-sm font-bold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-                title="1-řádkový kompaktní režim (Název skladby & Kapela)"
+            {/* Zmenšování zvuků patří k nahrávání — rozhoduje o tom,
+                co se zrovna nahraje. */}
+            <label className="flex items-center gap-1.5 text-[11px] text-neutral-400 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={prevadetZvuk}
+                onChange={(e) => {
+                  setPrevadetZvuk(e.target.checked);
+                  localStorage.setItem('neverlate_prevod_mp3', e.target.checked ? 'ano' : 'ne');
+                }}
+                className="accent-[#0A84FF] cursor-pointer"
+              />
+              Zmenšit zvuk na MP3
+              <select
+                value={kvalitaMp3}
+                disabled={!prevadetZvuk}
+                onChange={(e) => {
+                  const v = Number(e.target.value) as Kvalita;
+                  setKvalitaMp3(v);
+                  localStorage.setItem('neverlate_kvalita_mp3', String(v));
+                }}
+                className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-0.5 text-[10px] text-neutral-300 outline-none disabled:opacity-40"
               >
-                <AlignJustify className="w-3 h-3" />
-                <span>Řádky</span>
-              </button>
-              <button
-                onClick={() => setLibraryListViewMode('detailed')}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 transition-all cursor-pointer ${
-                  libraryListViewMode === 'detailed'
-                    ? 'bg-[#0A84FF] text-white shadow-sm font-bold'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-                title="Detailní režim s náhledem detailů"
-              >
-                <LayoutGrid className="w-3 h-3" />
-                <span>Detailní</span>
-              </button>
-            </div>
-          </div>
+                <option value={128}>128</option>
+                <option value={192}>192</option>
+                <option value={256}>256</option>
+                <option value={320}>320</option>
+              </select>
+            </label>
+          </NahravaniSouboru>
 
           {/* Hromadné akce — týž díl jako ve Sbírkách a Samplech. */}
           <div className="px-1">

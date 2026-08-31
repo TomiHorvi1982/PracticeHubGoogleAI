@@ -261,7 +261,13 @@ class SongDatabaseService {
       .insert({
         ...(jeUuid ? { id: song.id } : {}),
         ...update,
-        owner_id: null,
+        /**
+         * Bez vlastníka = do společného zpěvníku, s vlastníkem = moje.
+         *
+         * Společný zpěvník plní správce. Kdo správcem není, zakládá píseň
+         * sobě — jinak by ji databáze odmítla a založení by tiše selhalo.
+         */
+        owner_id: authService.isAdmin() ? null : authService.getCurrentUser()?.id ?? null,
         source_type: 'library',
         status: 'active',
       })

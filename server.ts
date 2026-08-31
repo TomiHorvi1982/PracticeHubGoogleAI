@@ -577,13 +577,23 @@ export async function createApp() {
     }
     const bucket = 'r2';
 
-    // Do společné knihovny přidává jen správce. Sbírka je společná a bez
-    // vlastníka, takže co do ní jednou spadne, musí zase správce najít
-    // a uklidit — a pořádek se dělá líp, když ho dělá jeden člověk.
-    if (!(await isProfileAdmin(req.user!.id))) {
-      return res.status(403).json({ error: 'Přidávat do knihovny může jen správce.' });
+    /**
+     * Do společné knihovny přidává jen správce, svoje věci si přidá každý.
+     *
+     * Sbírka je společná a bez vlastníka: co do ní jednou spadne, musí
+     * zase správce najít a uklidit, a pořádek se dělá líp, když ho dělá
+     * jeden člověk. Vlastní nahrávky a vzorky do vlastní sady bicích ale
+     * nejsou sbírka — patří tomu, kdo je nahrál, a ten si je smaže sám.
+     * Členovi se proto uloží jako jeho, ne do společného.
+     */
+    const jeSpravce = await isProfileAdmin(req.user!.id);
+    const vlastniKategorie = ['my_songs', 'drum_kit_sample'];
+    if (!jeSpravce && !vlastniKategorie.includes(String(category))) {
+      return res.status(403).json({ error: 'Přidávat do společné knihovny může jen správce.' });
     }
-    const wantsGlobal = visibility === 'global';
+    // Bez práv správce se ukládá vždycky jako vlastní, i kdyby si klient
+    // řekl o společné — jinak by stačilo přepsat jeden údaj v požadavku.
+    const wantsGlobal = jeSpravce && visibility === 'global';
 
     const admin = getSupabaseAdmin();
     const assetId = crypto.randomUUID();
