@@ -24,3 +24,29 @@ export type MainTabType =
   | 'tuner'
   | 'library'
   | 'settings';
+
+/**
+ * Jak se sekce jmenují, když je někdo vysloví.
+ *
+ * Klíče jsou to, co člověk řekne; hodnoty vnitřní identifikátory. Leží
+ * to tady u typu, takže sekci, která v aplikaci není, sem TypeScript
+ * nepustí. Názvy odpovídají popiskům v horní navigaci — kdo vidí
+ * „Mixážní pult", řekne „otevři mixážní pult".
+ */
+export const SEKCE_HLASEM: Record<string, MainTabType> = {
+  'knihovna skladeb': 'songbook',
+  'pódium': 'podium',
+  'playlist': 'playlist',
+  'guitar pro': 'alphatab',
+  'virtual instruments': 'instruments',
+  'mixážní pult': 'stemmixer',
+  'ai band': 'aikapela',
+  'practise hub': 'practise',
+  'texty': 'texty',
+  'metronom': 'practice',
+  'ladička': 'tuner',
+  'soubory': 'library',
+  'záložky': 'zalozky',
+  'nastavení': 'settings',
+  'rozcestník': 'vitejte',
+};

@@ -3,7 +3,8 @@ import { LibrarySection } from './components/LibrarySection';
 import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem } from './types';
 import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
-import { MainTabType } from './components/layout/sekce';
+import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
+import { zaregistruj } from './services/hlas/vykonavac';
 import { LoginModal } from './components/LoginModal';
 import { AdminUsersModal } from './components/AdminUsersModal';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -153,6 +154,28 @@ function AppContent() {
     if (playlist.length === 0) return;
     setCurrentTrackIndex((prev) => (prev - 1 + playlist.length) % playlist.length);
   };
+
+  /**
+   * Co z hlasových příkazů obsluhuje obal aplikace.
+   *
+   * Přepínání sekcí a ovládání fronty nejsou nikde jinde k dispozici —
+   * `activeTab` i pořadí ve frontě žijí tady. Katalog hlásí tyhle akce
+   * jako zapojené, dokud aplikace stojí, což je vždycky.
+   */
+  useEffect(() => {
+    const odeber = [
+      zaregistruj('navigace.otevri', ({ sekce }) => {
+        const kam = SEKCE_HLASEM[String(sekce).toLowerCase()];
+        if (kam) setActiveTab(kam);
+      }),
+      zaregistruj('prehravani.spust', () => setIsPlaying(true)),
+      zaregistruj('prehravani.zastav', () => setIsPlaying(false)),
+      zaregistruj('prehravani.dalsi', () => handleNextTrack()),
+      zaregistruj('prehravani.predchozi', () => handlePrevTrack()),
+    ];
+    return () => odeber.forEach((f) => f());
+    // Obsluhy sahají jen na nastavovače stavu, které React drží stálé.
+  }, [playlist.length]);
 
   const handleUpdateSongVideos = (songId: string, videos: YouTubeVideo[]) => {
     const song = songs.find((s) => s.id === songId);

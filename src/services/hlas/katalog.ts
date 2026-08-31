@@ -9,6 +9,8 @@
  * jednoduchý i vícekrokový příkaz jsou jedna a tatáž věc.
  */
 
+import { SEKCE_HLASEM } from '../../components/layout/sekce';
+
 export type TypParametru = 'text' | 'cislo' | 'sekce';
 
 export interface ParametrAkce {
@@ -48,10 +50,14 @@ export interface HlasovyPrikaz {
   vlastni: boolean;
 }
 
-export const SEKCE = [
-  'knihovna skladeb', 'pódium', 'guitar pro', 'mixážní pult', 'ai band',
-  'texty', 'metronom', 'ladička', 'soubory', 'playlist', 'nastavení',
-] as const;
+/**
+ * Sekce, do kterých se dá přepnout hlasem.
+ *
+ * Bere se ze seznamu u navigace, ne z vlastní kopie — dvě kopie se
+ * dřív nebo později rozejdou a katalog by sliboval sekci, která už se
+ * jmenuje jinak.
+ */
+export const SEKCE = Object.keys(SEKCE_HLASEM);
 
 /**
  * Vestavěné akce.
@@ -163,7 +169,7 @@ export function vyhradyKeKroku(krok: Krok): string[] {
       else if (p.od !== undefined && c < p.od) vyhrady.push(`${p.nazev} je pod ${p.od}.`);
       else if (p.do !== undefined && c > p.do) vyhrady.push(`${p.nazev} je nad ${p.do}.`);
     }
-    if (p.typ === 'sekce' && !SEKCE.includes(String(h) as (typeof SEKCE)[number])) {
+    if (p.typ === 'sekce' && !SEKCE.includes(String(h))) {
       vyhrady.push(`Sekce „${h}" neexistuje.`);
     }
   }

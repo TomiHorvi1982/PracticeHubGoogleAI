@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
 import { audioBus, CoHraje } from '../../services/audioBus';
 import { posunDoToniny } from '../../services/akordy';
+import { MikrofonTlacitko } from '../hlas/MikrofonTlacitko';
+import { zaregistruj } from '../../services/hlas/vykonavac';
 import { 
   Play, 
   Pause, 
@@ -49,6 +51,22 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     isMetronomeActive,
     toggleMetronome,
   } = useMusicalContext();
+
+  /**
+   * Metronom obsluhuje horní lišta.
+   *
+   * Hlasový příkaz nemá k hudebnímu kontextu přístup a mít ho nemá —
+   * ví jen jméno akce. Registruje se tady, kde tempo i spínač doopravdy
+   * jsou; dokud tahle lišta stojí, katalog ty akce hlásí jako zapojené.
+   */
+  useEffect(() => {
+    const odeber = [
+      zaregistruj('metronom.tempo', ({ bpm: nove }) => setBpm(Number(nove))),
+      zaregistruj('metronom.zapni', () => { if (!isMetronomeActive) toggleMetronome(); }),
+      zaregistruj('metronom.vypni', () => { if (isMetronomeActive) toggleMetronome(); }),
+    ];
+    return () => odeber.forEach((f) => f());
+  }, [setBpm, isMetronomeActive, toggleMetronome]);
 
   /**
    * Co zrovna hraje.
@@ -231,6 +249,8 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
       {/* RIGHT SECTION: Quick Dock Triggers, Live Band Session & Account */}
       <div className="flex items-center gap-2">
+        {/* Hlasové příkazy — v liště, tedy dostupné ze všech sekcí. */}
+        <MikrofonTlacitko />
         {/* User Profile / Admin Button */}
         {currentUser ? (
           <div className="flex items-center gap-1 pl-2 border-l border-slate-800">
