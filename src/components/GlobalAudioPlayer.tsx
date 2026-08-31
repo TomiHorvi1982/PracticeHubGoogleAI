@@ -3,6 +3,7 @@ import { audioBus } from '../services/audioBus';
 import { nactiYouTubeApi } from '../services/youtubeApi';
 import { PlaylistItem, UserAccount } from '../types';
 import { eventBus } from '../services/eventBus';
+import { fileUrlService } from '../services/fileUrlService';
 import {
   Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Repeat, Shuffle,
   ListMusic, Maximize2, Minimize2, Pin, PinOff, GripHorizontal,
@@ -48,7 +49,44 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
 }) => {
   const currentTrack = playlist[currentTrackIndex] || null;
   const playerRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const iframeContainerId = 'global-youtube-player-iframe';
+
+  /** Hraje se ze souboru v knihovně, ne z YouTube. */
+  const jeSoubor = !!currentTrack && !currentTrack.youtubeId;
+  const [odkazSouboru, setOdkazSouboru] = useState<string | null>(null);
+  const [chybaSouboru, setChybaSouboru] = useState<string | null>(null);
+
+  /**
+   * Jedno ovládání pro oba zdroje zvuku.
+   *
+   * Přehrávač uměl jen YouTube a volal jeho API přímo. Se soubory z
+   * knihovny by se každé takové místo muselo větvit zvlášť — a stačí
+   * zapomenout na jedno, aby tlačítko u jednoho druhu položky tiše
+   * nedělalo nic. Tohle je jediné místo, kde se ten rozdíl řeší.
+   */
+  const motor = () => {
+    if (jeSoubor) {
+      const a = audioRef.current;
+      return {
+        play: () => { void a?.play().catch(() => {}); },
+        pause: () => a?.pause(),
+        seekTo: (s: number) => { if (a) a.currentTime = s; },
+        cas: () => a?.currentTime || 0,
+        delka: () => (Number.isFinite(a?.duration) ? a!.duration : 0),
+        hlasitost: (v: number) => { if (a) a.volume = Math.max(0, Math.min(1, v / 100)); },
+      };
+    }
+    const p = playerRef.current;
+    return {
+      play: () => { try { p?.playVideo?.(); } catch { /* ještě není hotový */ } },
+      pause: () => { try { p?.pauseVideo?.(); } catch { /* ještě není hotový */ } },
+      seekTo: (s: number) => { try { p?.seekTo?.(s, true); } catch { /* ještě není hotový */ } },
+      cas: () => { try { return p?.getCurrentTime?.() || 0; } catch { return 0; } },
+      delka: () => { try { return p?.getDuration?.() || 0; } catch { return 0; } },
+      hlasitost: (v: number) => { try { p?.setVolume?.(v); } catch { /* ještě není hotový */ } },
+    };
+  };
 
   // Registrace u sběrnice: jiný zdroj zvuku tímhle tenhle přehrávač zastaví.
   // Musí se registrovat při připojení, ne až při přehrávání — zastavit ho
@@ -227,37 +265,54 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
     }
   }, [isApiReady, currentTrack?.youtubeId]);
 
+  /**
+   * Podepsaný odkaz na soubor z knihovny.
+   *
+   * Soubory leží v R2 a `<audio>` neumí poslat přihlašovací hlavičku,
+   * takže se odkaz musí nechat podepsat serverem. Podpis platí omezeně,
+   * proto se žádá až ve chvíli, kdy je položka na řadě.
+   */
+  useEffect(() => {
+    if (!jeSoubor) {
+      setOdkazSouboru(null);
+      setChybaSouboru(null);
+      return;
+    }
+    if (!currentTrack?.storageBucket || !currentTrack?.storagePath) {
+      setOdkazSouboru(null);
+      setChybaSouboru('Tahle položka nemá zvukový soubor — přidej ji znovu z knihovny.');
+      return;
+    }
+
+    let zivy = true;
+    setChybaSouboru(null);
+    fileUrlService
+      .getMany([{ bucket: currentTrack.storageBucket, path: currentTrack.storagePath }])
+      .then((mapa) => {
+        if (!zivy) return;
+        const url = mapa.get(`${currentTrack.storageBucket}/${currentTrack.storagePath}`);
+        if (url) setOdkazSouboru(url);
+        else setChybaSouboru('Soubor se nepodařilo otevřít z úložiště.');
+      })
+      .catch((e) => {
+        if (zivy) setChybaSouboru(e?.message || 'Soubor se nepodařilo otevřít.');
+      });
+
+    return () => {
+      zivy = false;
+    };
+  }, [jeSoubor, currentTrack?.assetId, currentTrack?.storagePath]);
+
   // Handle Play/Pause state change & Master Transport Bus Events
   useEffect(() => {
-    if (!playerRef.current || typeof playerRef.current.getPlayerState !== 'function') return;
-
-    try {
-      if (isPlaying) {
-        playerRef.current.playVideo();
-      } else {
-        playerRef.current.pauseVideo();
-      }
-    } catch (e) {}
-  }, [isPlaying]);
+    if (isPlaying) motor().play();
+    else motor().pause();
+  }, [isPlaying, jeSoubor, odkazSouboru]);
 
   useEffect(() => {
-    const unsubPlay = eventBus.on('TRANSPORT_PLAY', () => {
-      if (playerRef.current && typeof playerRef.current.playVideo === 'function') {
-        try { playerRef.current.playVideo(); } catch (e) {}
-      }
-    });
-
-    const unsubPause = eventBus.on('TRANSPORT_PAUSE', () => {
-      if (playerRef.current && typeof playerRef.current.pauseVideo === 'function') {
-        try { playerRef.current.pauseVideo(); } catch (e) {}
-      }
-    });
-
-    const unsubSeek = eventBus.on('TRANSPORT_SEEK', (payload) => {
-      if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
-        try { playerRef.current.seekTo(payload.positionMs / 1000, true); } catch (e) {}
-      }
-    });
+    const unsubPlay = eventBus.on('TRANSPORT_PLAY', () => motor().play());
+    const unsubPause = eventBus.on('TRANSPORT_PAUSE', () => motor().pause());
+    const unsubSeek = eventBus.on('TRANSPORT_SEEK', (payload) => motor().seekTo(payload.positionMs / 1000));
 
     return () => {
       unsubPlay();
@@ -269,14 +324,10 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
   // Track progress timer
   useEffect(() => {
     const interval = setInterval(() => {
-      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
-        try {
-          const curr = playerRef.current.getCurrentTime() || 0;
-          const dur = playerRef.current.getDuration() || 0;
-          setCurrentTime(curr);
-          if (dur > 0) setDuration(dur);
-        } catch (e) {}
-      }
+      const m = motor();
+      setCurrentTime(m.cas());
+      const dur = m.delka();
+      if (dur > 0) setDuration(dur);
     }, 500);
 
     return () => clearInterval(interval);
@@ -286,11 +337,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const seekTo = Number(e.target.value);
     setCurrentTime(seekTo);
-    if (playerRef.current && typeof playerRef.current.seekTo === 'function') {
-      try {
-        playerRef.current.seekTo(seekTo, true);
-      } catch (e) {}
-    }
+    motor().seekTo(seekTo);
   };
 
   // Handle Volume change
@@ -298,29 +345,25 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
     const newVol = Number(e.target.value);
     setVolume(newVol);
     setIsMuted(newVol === 0);
-    if (playerRef.current && typeof playerRef.current.setVolume === 'function') {
-      try {
-        playerRef.current.setVolume(newVol);
-        if (newVol > 0 && playerRef.current.isMuted?.()) {
-          playerRef.current.unMute();
-        }
-      } catch (e) {}
+    motor().hlasitost(newVol);
+    if (newVol > 0) {
+      try { playerRef.current?.unMute?.(); } catch { /* ještě není hotový */ }
+      if (audioRef.current) audioRef.current.muted = false;
     }
   };
 
   // Toggle Mute
   const handleToggleMute = () => {
-    if (!playerRef.current) return;
+    const zticha = !isMuted;
+    setIsMuted(zticha);
+    if (audioRef.current) audioRef.current.muted = zticha;
     try {
-      if (isMuted) {
-        playerRef.current.unMute();
-        setIsMuted(false);
-        playerRef.current.setVolume(volume || 50);
-      } else {
-        playerRef.current.mute();
-        setIsMuted(true);
+      if (zticha) playerRef.current?.mute?.();
+      else {
+        playerRef.current?.unMute?.();
+        playerRef.current?.setVolume?.(volume || 50);
       }
-    } catch (e) {}
+    } catch { /* ještě není hotový */ }
   };
 
   // Format seconds to mm:ss
@@ -373,6 +416,28 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
           <div id={iframeContainerId} className="w-full h-full"></div>
         </div>
       </div>
+
+      {/**
+   * Zvuk ze souboru v knihovně. Leží mimo plovoucí okno videa, protože
+   * to se dá zavřít — a hudba by se zavřením okna zastavila.
+   */}
+      <audio
+        ref={audioRef}
+        src={odkazSouboru || undefined}
+        preload="metadata"
+        onPlay={() => audioBus.claim('global-player', currentTrack.title || '', 'Přehrávač')}
+        onPause={() => audioBus.release('global-player')}
+        onEnded={() => {
+          if (playbackMode === 'loop-one') {
+            motor().seekTo(0);
+            motor().play();
+          } else {
+            onNextTrack();
+          }
+        }}
+        className="hidden"
+      />
+      
 
       {/* 2. AUTO-HIDE BOTTOM REVEAL TRIGGER ZONE (ACTIVE ONLY IN DOCK MODE) */}
       {playerMode === 'dock' && (

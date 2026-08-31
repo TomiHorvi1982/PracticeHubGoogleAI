@@ -6,6 +6,7 @@ import {
   najdiPisenProSoubor, jizPripojeno, prilohaZAssetu, rozeberNazevSouboru,
 } from '../services/priradKPisni';
 import { songDatabaseService } from '../services/songDatabaseService';
+import { playlistService } from '../services/playlistService';
 import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../services/assetLibraryService';
 import { authService } from '../services/authService';
 import { StromKnihovny } from './knihovna/StromKnihovny';
@@ -51,6 +52,7 @@ import {
   X,
   CheckSquare,
   Square,
+  ListPlus,
 } from 'lucide-react';
 import { Song, SongAttachment } from '../types';
 import { parseAnyFile, fileToDataUrl } from '../utils/fileParsers';
@@ -366,6 +368,22 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [zvukoveNahledy, setZvukoveNahledy] = useState<LibraryItem[]>([]);
 
   /** Přidá zvuk do sloupce náhledů; už otevřený se jen posune do popředí. */
+  /**
+   * Zařadí zvukový soubor do sdíleného playlistu.
+   *
+   * Playlist uměl jen YouTube; od chvíle, kdy hraje i soubory, dává
+   * smysl dostat se do něj rovnou odsud — nahrávka z knihovny je přesně
+   * to, co chce člověk na zkoušce pustit.
+   */
+  const doPlaylistu = async (item: LibraryItem) => {
+    try {
+      await playlistService.addAsset(item.id, { artist: item.artist, songId: item.songId });
+      setStatusMessage({ type: 'success', text: `„${item.name}" je v playlistu.` });
+    } catch (e: any) {
+      setStatusMessage({ type: 'error', text: e?.message || 'Do playlistu se to přidat nepodařilo.' });
+    }
+  };
+
   const otevriZvuk = (item: LibraryItem) => {
     setZvukoveNahledy((p) => (p.some((x) => x.id === item.id) ? p : [...p, item]));
   };
@@ -1400,6 +1418,13 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     >
                       <div className="flex items-center gap-2 px-2 pt-1">
                         <span className="text-[11px] text-neutral-300 truncate flex-1">{n.name}</span>
+                        <button
+                          onClick={() => void doPlaylistu(n)}
+                          className="p-1 rounded text-neutral-500 hover:text-[#30D158] cursor-pointer shrink-0"
+                          title="Zařadit do playlistu"
+                        >
+                          <ListPlus className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => setZvukoveNahledy((p) => p.filter((x) => x.id !== n.id))}
                           className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer shrink-0"

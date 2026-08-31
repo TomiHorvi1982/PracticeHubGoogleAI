@@ -22,6 +22,9 @@ interface PlaylistSongRow {
   notes: string | null;
   position: number;
   created_at: string;
+  asset_id: string | null;
+  storage_bucket: string | null;
+  storage_path: string | null;
 }
 
 function rowToItem(row: PlaylistSongRow): PlaylistItem {
@@ -38,6 +41,9 @@ function rowToItem(row: PlaylistSongRow): PlaylistItem {
     notes: row.notes || '',
     songId: row.song_id || undefined,
     order: row.position,
+    assetId: row.asset_id || undefined,
+    storageBucket: row.storage_bucket || undefined,
+    storagePath: row.storage_path || undefined,
   };
 }
 
@@ -147,6 +153,9 @@ class PlaylistService {
         added_by: user?.id || null,
         added_by_name: user?.displayName || 'Člen',
         notes: item.notes || null,
+        asset_id: item.assetId || null,
+        storage_bucket: item.storageBucket || null,
+        storage_path: item.storagePath || null,
         position: this.items.length,
       })
       .select()
@@ -158,6 +167,43 @@ class PlaylistService {
     this.items = [...this.items, newItem];
     this.notify();
     return newItem;
+  }
+
+  /**
+   * Zařadí do fronty zvukový soubor z knihovny.
+   *
+   * Vedle YouTube je tohle druhý zdroj, ze kterého playlist hraje —
+   * vlastní nahrávky, podklady i cokoli dalšího, co v knihovně leží.
+   * Stejný soubor se do fronty nepřidává dvakrát; kdo ho tam chce mít
+   * dvakrát za sebou, přidá si ho ručně, ale omylem to nevznikne.
+   */
+  public async addAsset(
+    assetId: string,
+    doplnky: { title?: string; artist?: string; songId?: string } = {},
+  ): Promise<PlaylistItem> {
+    const uz = this.items.find((i) => i.assetId === assetId);
+    if (uz) return uz;
+
+    // Cestu v úložišti si dohledá služba sama, ať ji volající nemusí
+    // tahat s sebou — knihovna, zpěvník i objevování mají položku
+    // pokaždé v jiném tvaru a jediné, co mají společné, je id.
+    const { data: asset, error } = await supabase
+      .from('assets')
+      .select('id, name, storage_bucket, storage_path')
+      .eq('id', assetId)
+      .maybeSingle();
+    if (error || !asset) {
+      throw new Error('Soubor už v knihovně není, do playlistu ho přidat nejde.');
+    }
+
+    return this.addItem({
+      title: doplnky.title || asset.name.replace(/\.[a-z0-9]+$/i, ''),
+      artist: doplnky.artist,
+      assetId: asset.id,
+      storageBucket: asset.storage_bucket,
+      storagePath: asset.storage_path,
+      songId: doplnky.songId,
+    });
   }
 
   public async removeItem(itemId: string) {

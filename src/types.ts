@@ -263,6 +263,7 @@ export interface AuthSession {
 
 export interface PlaylistItem {
   id: string;
+  /** Prázdné u položek, které nehrají z YouTube. */
   youtubeId: string;
   title: string;
   artist?: string;
@@ -274,6 +275,15 @@ export interface PlaylistItem {
   notes?: string;
   songId?: string; // Optional link to a song in the songbook
   order?: number;
+  /**
+   * Zvukový soubor z knihovny — druhý zdroj vedle YouTube.
+   *
+   * Cesta v úložišti jde s položkou, aby si přehrávač uměl vyžádat
+   * podepsaný odkaz sám a nemusel se kvůli tomu doptávat na asset.
+   */
+  assetId?: string;
+  storageBucket?: string;
+  storagePath?: string;
 }
 
 export interface BandOnlineUser {
