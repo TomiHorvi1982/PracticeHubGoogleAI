@@ -30,6 +30,8 @@ import { tabLibraryService, TabLibraryEntry } from '../services/tabLibraryServic
 import { PrehledSbirky } from './knihovna/PrehledSbirky';
 import { extractUniqueChords } from '../utils/chordUtils';
 import { authService } from '../services/authService';
+import { prilohaZAssetu, jizPripojeno } from '../services/priradKPisni';
+import { songDatabaseService } from '../services/songDatabaseService';
 
 interface FreetarExplorerProps {
   onSongImported: (song: Song) => void;
@@ -258,12 +260,13 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           });
           const d = await r.json().catch(() => ({}));
           if (r.ok) {
+            const kam = d.asset ? await pripojKePisni(d.asset, result) : null;
             setStatusMessage({
               type: 'success',
               text: d.jizByl
                 ? `„${d.asset?.name}" už v knihovně je — nestahuji podruhé.`
-                : `„${d.asset?.name}" je v knihovně (${Math.round((d.velikost || 0) / 1024)} kB). `
-                  + 'Najdeš ho v seznamu souborů vlevo.',
+                : `„${d.asset?.name}" je stažený (${Math.round((d.velikost || 0) / 1024)} kB)`
+                  + (kam ? ` a připojený k „${kam}". Najdeš ho v seznamu vlevo.` : '.'),
             });
             return;
           }
@@ -337,6 +340,62 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
    * Soubor se stáhne přes vlastní server a předá jako datová adresa —
    * přehrávač si ji přečte sám a nemusí se kvůli tomu zakládat skladba.
    */
+  /**
+   * Připojí stažený Guitar Pro soubor ke skladbě ve zpěvníku.
+   *
+   * Do knihovny se soubor uložil už na serveru, jenže seznam v sekci
+   * Guitar Pro čte přílohy skladeb, ne knihovnu — bez tohohle kroku
+   * stažený soubor nikde nevidět není a přehrávač ho nenabídne.
+   * Když píseň ve zpěvníku ještě není, založí se; z UG chodí interpret
+   * i název, takže není co hádat.
+   *
+   * Vrací název skladby, ke které soubor přibyl, nebo null, když se
+   * uložení nepovedlo — stažení tím ale nepadá, soubor v knihovně je.
+   */
+  const pripojKePisni = async (
+    asset: { id: string; name: string; storage_bucket: string; storage_path: string; size_bytes?: number },
+    nalez: FreetarSearchResult,
+  ): Promise<string | null> => {
+    try {
+      const priloha = prilohaZAssetu(asset as any);
+      const nazev = String(nalez.song || '').trim();
+      const interpret = String(nalez.artist || '').trim();
+      const stavajici = (songs || []).find(
+        (s) =>
+          s.title.trim().toLowerCase() === nazev.toLowerCase() &&
+          s.artist.trim().toLowerCase() === interpret.toLowerCase(),
+      );
+
+      if (stavajici) {
+        if (jizPripojeno(stavajici, asset as any)) return `${stavajici.artist} — ${stavajici.title}`;
+        await songDatabaseService.saveSong({
+          ...stavajici,
+          attachments: [...(stavajici.attachments || []), priloha],
+          updatedAt: Date.now(),
+        });
+        return `${stavajici.artist} — ${stavajici.title}`;
+      }
+
+      const nova: Song = {
+        id: `song_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        title: nazev || asset.name.replace(/\.[a-z0-9]+$/i, ''),
+        artist: interpret || 'Ultimate Guitar',
+        key: '',
+        bpm: 120,
+        content: '',
+        chordsUsed: [],
+        attachments: [priloha],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      const ulozena = await songDatabaseService.saveSong(nova);
+      onSongImported(ulozena);
+      return `${ulozena.artist} — ${ulozena.title}`;
+    } catch {
+      return null;
+    }
+  };
+
   const otevriVPrehravaci = async (entry: TabLibraryEntry) => {
     if (!onOtevritVPrehravaci) return;
     setStatusMessage(null);

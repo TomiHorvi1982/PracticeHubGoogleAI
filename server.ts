@@ -2768,9 +2768,24 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
         return res.status(404).json({ error: 'Tahle tabulatura nemá Guitar Pro soubor.' });
       }
 
+      /**
+       * Referer je tu podmínka, ne slušnost. Bez něj UG stažení odmítne
+       * a odpoví přesměrováním zpátky na stránku tabu — přijde HTML,
+       * které vypadá jako chybějící předplatné, i když účet Pro má.
+       */
       const souborRes = await fetch(
         `https://tabs.ultimate-guitar.com/tab/download?id=${binarka}`,
-        { headers: hlavicky, redirect: 'follow' },
+        {
+          headers: {
+            ...hlavicky,
+            Referer: url,
+            'Sec-Fetch-Site': 'same-origin',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-User': '?1',
+          },
+          redirect: 'follow',
+        },
       );
       const typ = souborRes.headers.get('content-type') || '';
       if (typ.includes('text/html')) {
@@ -2790,14 +2805,20 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
         return res.status(502).json({ error: 'Soubor přišel prázdný.' });
       }
 
-      const nazev = `${tab?.artist_name || 'UG'} - ${tab?.song_name || 'tab'}.gp5`
+      // Příponu říká UG v content-disposition — bývá gp3, gp4 i gp5
+      // a alphaTab se podle ní rozhoduje, jak soubor číst.
+      const disp = souborRes.headers.get('content-disposition') || '';
+      const pripona = (/filename="[^"]*\.([a-z0-9]{2,4})"/i.exec(disp)?.[1] || 'gp5').toLowerCase();
+      const nazev = `${tab?.artist_name || 'UG'} - ${tab?.song_name || 'tab'}.${pripona}`
         .replace(/[/\\]/g, '-');
       const otisk = createHash('sha256').update(bajty).digest('hex');
 
       // Co už v knihovně je, se nestahuje podruhé.
+      // Vrací se celý řádek, ne jen jméno: klient z něj skládá přílohu
+      // písně a bez cesty v úložišti by příloha ukazovala do prázdna.
       const { data: uzTam } = await admin
         .from('assets')
-        .select('id, name')
+        .select('*')
         .eq('content_hash', otisk)
         .eq('status', 'active')
         .maybeSingle();
