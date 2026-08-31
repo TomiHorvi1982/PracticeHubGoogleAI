@@ -10,6 +10,13 @@ import type { Session } from '@supabase/supabase-js';
  * Prázdný řetězec tu byl dřív a v odeslaném mailu z toho zbylo „Web:"
  * a nic za tím — pozvaný neměl kam kliknout.
  */
+/**
+ * Adresa, na které appka běží pro toho, kdo se dívá.
+ *
+ * Do pozvánky se nehodí — tam patří veřejná adresa ze serveru, protože
+ * správce může pozvánku vyrábět z localhostu. Slouží jen jako záloha,
+ * kdyby ji server neposlal.
+ */
 function adresaAplikace(): string {
   if (typeof window === 'undefined') return '';
   return window.location.origin;
@@ -348,7 +355,7 @@ class AuthService {
         createdAt: new Date(p.created_at).getTime(),
         expiresAt: new Date(p.created_at).getTime() + 30 * 24 * 3600 * 1000,
         status: 'pending' as const,
-        inviteUrl: adresaAplikace(),
+        inviteUrl: data.inviteUrl || adresaAplikace(),
       }));
   }
 
@@ -366,7 +373,9 @@ class AuthService {
       method: 'POST',
       // Kam má odkaz z mailu vést. Ví to jen prohlížeč — server běží
       // stejně na localhostu i na doméně a sám by to netrefil.
-      body: JSON.stringify({ ...params, redirectTo: adresaAplikace() }),
+      // `redirectTo` se posílá jen z prohlížeče na doméně; server si
+      // veřejnou adresu doplní sám, když ji prohlížeč nezná.
+      body: JSON.stringify({ ...params }),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -387,7 +396,7 @@ class AuthService {
         createdAt: Date.now(),
         expiresAt: Date.now() + 30 * 24 * 3600 * 1000,
         status: 'pending',
-        inviteUrl: adresaAplikace(),
+        inviteUrl: data.inviteUrl || adresaAplikace(),
       },
     };
   }
@@ -404,13 +413,30 @@ class AuthService {
     return profileToUserAccount(data.profile);
   }
 
-  public async resetUserPassword(userId: string): Promise<{ user: UserAccount; newPassword: string }> {
+  /**
+   * Vyrobí čerstvý odkaz na nastavení hesla.
+   *
+   * Heslo se nikde neukládá, takže u čekající pozvánky není co poslat
+   * podruhé — jediná cesta, jak pozvánku zopakovat, je vyrobit nový
+   * odkaz. `newPassword` přijde jen jako záloha, když odkaz nevznikl.
+   */
+  public async resetUserPassword(userId: string): Promise<{
+    user: UserAccount;
+    newPassword: string;
+    odkazNaHeslo: string;
+    inviteUrl: string;
+  }> {
     const res = await this.authorizedFetch(`/api/users/${userId}/reset-password`, { method: 'POST' });
     const data = await res.json();
     if (!res.ok) {
       throw new Error(data.error || 'Nepodařilo se resetovat heslo.');
     }
-    return { user: profileToUserAccount(data.profile), newPassword: data.temporaryPassword };
+    return {
+      user: profileToUserAccount(data.profile),
+      newPassword: data.temporaryPassword || '',
+      odkazNaHeslo: data.odkazNaHeslo || '',
+      inviteUrl: data.inviteUrl || adresaAplikace(),
+    };
   }
 
   public async deleteUser(userId: string): Promise<boolean> {

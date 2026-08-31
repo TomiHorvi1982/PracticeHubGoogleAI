@@ -73,6 +73,8 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
   // Status & Feedback
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  /** Odkazy vyrobené v této relaci, podle id pozvánky — nikde se neukládají. */
+  const [cerstveOdkazy, setCerstveOdkazy] = useState<Record<string, string>>({});
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showQrForInvite, setShowQrForInvite] = useState<UserInvitation | null>(null);
 
@@ -163,12 +165,47 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
   const handleResetPassword = async (user: UserAccount) => {
     try {
-      const { newPassword } = await authService.resetUserPassword(user.id);
+      // Heslo chodí jen tehdy, když odkaz vyrobit nešlo. Kopírovat se
+      // tedy musí to, co skutečně přišlo — jinak se do schránky dostane
+      // prázdno a člověk pošle pozvánku, se kterou se nikam nedostane.
+      const { newPassword, odkazNaHeslo } = await authService.resetUserPassword(user.id);
       await loadData();
-      showNotification('success', `Nové heslo pro ${user.displayName} je: ${newPassword}`);
+      if (odkazNaHeslo) {
+        setCerstveOdkazy((d) => ({ ...d, [user.id]: odkazNaHeslo }));
+        copyToClipboard(odkazNaHeslo, `reset_${user.id}`);
+        showNotification('success', `Odkaz na nastavení hesla pro ${user.displayName} je ve schránce.`);
+        return;
+      }
       copyToClipboard(newPassword, `reset_${user.id}`);
+      showNotification('success', `Nové heslo pro ${user.displayName} je: ${newPassword}`);
     } catch (err: any) {
       showNotification('error', err.message || 'Chyba při resetu hesla.');
+    }
+  };
+
+  /**
+   * Vyrobí pozvánce čerstvý odkaz a vrátí text k odeslání.
+   *
+   * Čekající pozvánka v seznamu žádný odkaz nenese — heslo ani odkaz se
+   * neukládají, takže po znovunačtení stránky není co poslat. Dřív se v
+   * takové pozvánce zkopíroval prázdný řádek s heslem a bez odkazu; teď
+   * se odkaz vyrobí až ve chvíli, kdy ho někdo chce.
+   */
+  const textSCerstvymOdkazem = async (inv: UserInvitation): Promise<string | null> => {
+    const uz = cerstveOdkazy[inv.id];
+    if (uz) return getInviteFormattedText({ ...inv, odkazNaHeslo: uz });
+    try {
+      const { odkazNaHeslo, inviteUrl, newPassword } = await authService.resetUserPassword(inv.id);
+      if (odkazNaHeslo) setCerstveOdkazy((d) => ({ ...d, [inv.id]: odkazNaHeslo }));
+      return getInviteFormattedText({
+        ...inv,
+        odkazNaHeslo,
+        temporaryPassword: newPassword,
+        inviteUrl: inviteUrl || inv.inviteUrl,
+      });
+    } catch (err: any) {
+      showNotification('error', err.message || 'Nepodařilo se vyrobit odkaz pozvánky.');
+      return null;
     }
   };
 
@@ -226,10 +263,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
     return `${uvod}\n\nPřihlašovací údaje:\n• Web: ${invite.inviteUrl}\n• E-mail: ${invite.email}\n• Dočasné heslo: ${invite.temporaryPassword}\n${role}\n\nHeslo si po přihlášení hned změň v profilu. Těšíme se na zkoušce!`;
   };
 
-  const sendEmailInvite = (invite: UserInvitation) => {
+  /** Otevře poštovního klienta s připraveným textem — odeslání zůstává na člověku. */
+  const otevriMail = (invite: UserInvitation, text: string) => {
     const subject = encodeURIComponent(`Pozvánka do kapely — Never Late Studio (${invite.displayName})`);
-    const body = encodeURIComponent(getInviteFormattedText(invite));
-    window.open(`mailto:${invite.email}?subject=${subject}&body=${body}`, '_blank');
+    window.open(`mailto:${invite.email}?subject=${subject}&body=${encodeURIComponent(text)}`, '_blank');
   };
 
   return (
@@ -986,7 +1023,12 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       </button>
 
                       <button
-                        onClick={() => sendEmailInvite(lastCreatedInvite.invitation)}
+                        onClick={() =>
+                          otevriMail(
+                            lastCreatedInvite.invitation,
+                            getInviteFormattedText(lastCreatedInvite.invitation),
+                          )
+                        }
                         className="w-full bg-[#30D158] hover:bg-[#34e260] text-black py-2.5 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                       >
                         <Mail className="w-4 h-4" />
@@ -1050,9 +1092,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       {/* Credentials Display */}
                       <div className="bg-black/40 p-2.5 rounded-xl border border-white/[0.06] space-y-1.5 text-xs">
                         <div className="flex justify-between items-center">
-                          <span className="text-[11px] text-neutral-400">Heslo pozvánky:</span>
-                          <span className="font-mono font-bold text-[#FF9F0A] bg-white/[0.08] px-2 py-0.5 text-xs rounded border border-white/10">
-                            {inv.temporaryPassword}
+                          <span className="text-[11px] text-neutral-400">Odkaz na heslo:</span>
+                          <span className="text-[11px] font-semibold text-neutral-300">
+                            {cerstveOdkazy[inv.id]
+                              ? 'vyrobený — platí jednou'
+                              : 'vyrobí se při kopírování'}
                           </span>
                         </div>
                         <div className="flex justify-between items-center text-[11px] text-neutral-400">
@@ -1064,7 +1108,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       {/* Action buttons */}
                       <div className="flex items-center gap-2 pt-1">
                         <button
-                          onClick={() => copyToClipboard(getInviteFormattedText(inv), `inv_${inv.id}`)}
+                          onClick={async () => {
+                            const text = await textSCerstvymOdkazem(inv);
+                            if (text) copyToClipboard(text, `inv_${inv.id}`);
+                          }}
                           className="flex-1 bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/10 py-1.5 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                         >
                           {copiedKey === `inv_${inv.id}` ? (
@@ -1081,7 +1128,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         </button>
 
                         <button
-                          onClick={() => sendEmailInvite(inv)}
+                          onClick={async () => {
+                            const text = await textSCerstvymOdkazem(inv);
+                            if (text) otevriMail(inv, text);
+                          }}
                           className="bg-[#30D158] hover:bg-[#34e260] text-black px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
                           title="Odeslat e-mailem"
                         >
