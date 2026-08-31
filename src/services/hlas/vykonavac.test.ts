@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { zaregistruj, spustPrikaz, dosadCislo, jeAkceDostupna, dostupneAkce } from './vykonavac';
+import { zaregistruj, spustPrikaz, dosadHodnoty, jeAkceDostupna, dostupneAkce } from './vykonavac';
 import { HlasovyPrikaz } from './katalog';
 
 const prikaz = (kroky: HlasovyPrikaz['kroky']): HlasovyPrikaz => ({
@@ -8,17 +8,24 @@ const prikaz = (kroky: HlasovyPrikaz['kroky']): HlasovyPrikaz => ({
 });
 
 test('číslo z věty se dosadí do číselného parametru', () => {
-  const k = dosadCislo({ akce: 'metronom.tempo', hodnoty: {} }, 150);
+  const k = dosadHodnoty({ akce: 'metronom.tempo', hodnoty: {} }, { cislo: 150 });
   assert.equal(k.hodnoty.bpm, 150);
+});
+
+test('vyslovená sekce se dosadí místo té nastavené', () => {
+  // Bez tohohle otevíral příkaz „otevři sekci" pořád tu z editoru,
+  // ať se řeklo cokoli.
+  const k = dosadHodnoty({ akce: 'navigace.otevri', hodnoty: { sekce: 'pódium' } }, { sekce: 'playlist' });
+  assert.equal(k.hodnoty.sekce, 'playlist');
 });
 
 test('číslo mimo rozsah se nedosadí', () => {
   // Přeslechnuté „sto padesát" jako 15000 nesmí přepsat tempo na nesmysl.
-  assert.deepEqual(dosadCislo({ akce: 'metronom.tempo', hodnoty: { bpm: 120 } }, 15000).hodnoty, { bpm: 120 });
+  assert.deepEqual(dosadHodnoty({ akce: 'metronom.tempo', hodnoty: { bpm: 120 } }, { cislo: 15000 }).hodnoty, { bpm: 120 });
 });
 
 test('akci bez číselného parametru číslo nerozhodí', () => {
-  const k = dosadCislo({ akce: 'prehravani.spust', hodnoty: {} }, 150);
+  const k = dosadHodnoty({ akce: 'prehravani.spust', hodnoty: {} }, { cislo: 150 });
   assert.deepEqual(k.hodnoty, {});
 });
 

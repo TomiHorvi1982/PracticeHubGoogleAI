@@ -16,10 +16,18 @@ import { authService } from '../../services/authService';
  * člověk myslí, že říká.
  */
 
+/**
+ * Nový příkaz začíná bez vybrané akce.
+ *
+ * Dřív tu stála první akce z katalogu, a kdo se výběru nedotkl, uložil
+ * si příkaz, který dělá něco úplně jiného, než čekal — a nedalo se to
+ * poznat jinak než tím, že „nic nereaguje". Prázdná volba přinutí
+ * vybrat.
+ */
 const prazdny = (): { nazev: string; fraze: string[]; kroky: Krok[]; spolecny: boolean } => ({
   nazev: '',
   fraze: [''],
-  kroky: [{ akce: AKCE[0].id, hodnoty: {} }],
+  kroky: [{ akce: '', hodnoty: {} }],
   spolecny: false,
 });
 
@@ -104,6 +112,10 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
 
   const uloz = async () => {
     if (!navrh) return;
+    if (navrh.kroky.some((k) => !k.akce)) {
+      setHlaseni({ text: 'U každého kroku vyber, co se má stát.', dobre: false });
+      return;
+    }
     try {
       await prikazyService.uloz(navrh);
       setNavrh(null);
@@ -308,8 +320,11 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                     <select
                       value={k.akce}
                       onChange={(e) => upravKrok(i, { akce: e.target.value, hodnoty: {} })}
-                      className="flex-1 bg-white/[0.06] border border-white/10 rounded-xl px-2 py-2 text-xs"
+                      className={`flex-1 bg-white/[0.06] border rounded-xl px-2 py-2 text-xs ${
+                        k.akce ? 'border-white/10' : 'border-[#FF9F0A]/50 text-[#FF9F0A]'
+                      }`}
                     >
+                      <option value="">— vyber, co se má stát —</option>
                       {AKCE.map((a) => (
                         <option key={a.id} value={a.id}>{a.nazev}</option>
                       ))}
@@ -351,7 +366,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                 );
               })}
               <button
-                onClick={() => setNavrh({ ...navrh, kroky: [...navrh.kroky, { akce: AKCE[0].id, hodnoty: {} }] })}
+                onClick={() => setNavrh({ ...navrh, kroky: [...navrh.kroky, { akce: '', hodnoty: {} }] })}
                 className="text-[11px] text-neutral-400 hover:text-white cursor-pointer"
               >
                 + další krok

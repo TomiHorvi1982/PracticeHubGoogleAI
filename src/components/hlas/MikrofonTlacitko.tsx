@@ -69,7 +69,7 @@ export const MikrofonTlacitko: React.FC = () => {
         return;
       }
 
-      const vysledek = await spustPrikaz(nalez.prikaz, nalez.cislo);
+      const vysledek = await spustPrikaz(nalez.prikaz, { cislo: nalez.cislo, sekce: nalez.sekce });
       if (vysledek.chyba) {
         setHlaseni({ text: `${nalez.prikaz.nazev}: ${vysledek.chyba}`, dobre: false });
       } else if (!vysledek.provedeno) {

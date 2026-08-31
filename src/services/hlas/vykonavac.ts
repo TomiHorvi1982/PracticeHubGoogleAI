@@ -43,21 +43,44 @@ export interface VysledekPrikazu {
   chyba: string | null;
 }
 
+export interface VyslovenoNavic {
+  cislo?: number | null;
+  sekce?: string | null;
+}
+
 /**
- * Doplní do kroku číslo, které padlo ve větě.
+ * Doplní do kroku, co padlo ve větě.
  *
- * „Nastav tempo sto padesát" je jedna fráze pro libovolné tempo —
- * ukládat zvlášť příkaz pro každou hodnotu by nedávalo smysl. Číslo se
- * proto dosadí do prvního číselného parametru, který krok má.
+ * „Nastav tempo sto padesát" a „otevři soubory" jsou jedna fráze pro
+ * libovolnou hodnotu — ukládat zvlášť příkaz pro každé tempo a každou
+ * sekci by nedávalo smysl. Vyslovená hodnota se proto dosadí do prvního
+ * parametru odpovídajícího druhu.
+ *
+ * Číslo mimo meze akce se zahodí: přeslechnuté tempo je lepší nechat
+ * být než jím přepsat rozumnou hodnotu.
  */
-export function dosadCislo(krok: Krok, cislo: number | null): Krok {
-  if (cislo === null) return krok;
+export function dosadHodnoty(krok: Krok, vysloveno: VyslovenoNavic): Krok {
   const akce = akcePodleId(krok.akce);
-  const parametr = akce?.parametry.find((p) => p.typ === 'cislo');
-  if (!parametr) return krok;
-  if (parametr.od !== undefined && cislo < parametr.od) return krok;
-  if (parametr.do !== undefined && cislo > parametr.do) return krok;
-  return { ...krok, hodnoty: { ...krok.hodnoty, [parametr.klic]: cislo } };
+  if (!akce) return krok;
+  let vysledek = krok;
+
+  const { cislo, sekce } = vysloveno;
+  if (cislo !== null && cislo !== undefined) {
+    const p = akce.parametry.find((x) => x.typ === 'cislo');
+    const vMezich = p
+      && (p.od === undefined || cislo >= p.od)
+      && (p.do === undefined || cislo <= p.do);
+    if (p && vMezich) {
+      vysledek = { ...vysledek, hodnoty: { ...vysledek.hodnoty, [p.klic]: cislo } };
+    }
+  }
+
+  if (sekce) {
+    const p = akce.parametry.find((x) => x.typ === 'sekce');
+    if (p) vysledek = { ...vysledek, hodnoty: { ...vysledek.hodnoty, [p.klic]: sekce } };
+  }
+
+  return vysledek;
 }
 
 /**
@@ -70,12 +93,12 @@ export function dosadCislo(krok: Krok, cislo: number | null): Krok {
  */
 export async function spustPrikaz(
   prikaz: HlasovyPrikaz,
-  cislo: number | null = null,
+  vysloveno: VyslovenoNavic = {},
 ): Promise<VysledekPrikazu> {
   const vysledek: VysledekPrikazu = { provedeno: 0, nezapojene: [], chyba: null };
 
   for (const surovy of prikaz.kroky) {
-    const krok = dosadCislo(surovy, cislo);
+    const krok = dosadHodnoty(surovy, vysloveno);
     const obsluha = obsluhy.get(krok.akce);
     if (!obsluha) {
       vysledek.nezapojene.push(krok.akce);

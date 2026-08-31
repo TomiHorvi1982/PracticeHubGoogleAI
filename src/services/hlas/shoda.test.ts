@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizuj, jeVymysl, cisloZVety, podobnost, najdiPrikaz } from './shoda';
+import { normalizuj, jeVymysl, cisloZVety, podobnost, najdiPrikaz, sekceZVety } from './shoda';
 
 const PRIKAZY = [
   { id: 'a', nazev: 'Spustit', fraze: ['spusť přehrávání', 'hraj'] },
@@ -54,5 +54,34 @@ test('vymyšlená věta nespustí nic, i kdyby slovy sedla', () => {
 test('vybere lepší z více sedících příkazů', () => {
   const n = najdiPrikaz('otevři pódium', PRIKAZY);
   assert.equal(n?.prikaz.id, 'c');
+  assert.equal(n?.jistota, 1);
+});
+
+test('název sekce se z věty vyčte', () => {
+  assert.equal(sekceZVety('otevři playlist'), 'playlist');
+  assert.equal(sekceZVety('Otevři pódium.'), 'pódium');
+  assert.equal(sekceZVety('spusť přehrávání'), null);
+});
+
+test('delší název sekce vyhrává nad kratším', () => {
+  // „knihovna skladeb" nesmí prohrát se samotným slovem, které je v ní.
+  assert.equal(sekceZVety('otevři knihovnu skladeb'), 'knihovna skladeb');
+});
+
+test('vestavěné otevírání sekce sedne i s vysloveným názvem', () => {
+  // Tohle dřív nesedlo vůbec: „otevři" proti „otevři pódium" dalo 0,5.
+  const n = najdiPrikaz('Otevři pódium.', [
+    { id: 'v', nazev: 'Otevřít sekci', fraze: ['otevři'] },
+  ]);
+  assert.equal(n?.prikaz.id, 'v');
+  assert.equal(n?.sekce, 'pódium');
+});
+
+test('vlastní celá fráze vyhraje nad vestavěnou', () => {
+  const n = najdiPrikaz('otevři playlist', [
+    { id: 'vlastni', nazev: 'playlist', fraze: ['otevři playlist'] },
+    { id: 'vestaveny', nazev: 'Otevřít sekci', fraze: ['otevři'] },
+  ]);
+  assert.equal(n?.prikaz.id, 'vlastni');
   assert.equal(n?.jistota, 1);
 });

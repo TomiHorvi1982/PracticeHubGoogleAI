@@ -5,8 +5,9 @@
  * „Tempo 120.", jednou s diakritikou, jednou bez. Porovnává se proto
  * očištěný tvar a bere se nejlepší shoda nad prahem — ne přesná rovnost.
  *
- * Bez závislostí, ať jde ověřit samostatně.
+ * Závisí jen na seznamu sekcí, aby šlo poznat, kterou z nich věta myslí.
  */
+import { SEKCE_HLASEM } from '../../components/layout/sekce';
 
 /** Co whisper napíše, když mu pustíte hluk nebo ticho. */
 const VYMYSLY = [
@@ -109,6 +110,7 @@ export interface Nalez<T extends UlozenyPrikaz> {
   fraze: string;
   jistota: number;
   cislo: number | null;
+  sekce: string | null;
 }
 
 /** Práh, pod kterým se raději neudělá nic. */
@@ -128,6 +130,75 @@ export function bezCisel(text: string): string {
     .join(' ');
 }
 
+/** Názvy sekcí očištěné stejně jako věta, ať se dají porovnat. */
+const SEKCE_OCISTENE = Object.keys(SEKCE_HLASEM).map((s) => ({ nazev: s, klic: normalizuj(s) }));
+
+/**
+ * Mají dvě slova stejný základ?
+ *
+ * Čeština skloňuje: říká se „otevři knihovnu skladeb", ale sekce se
+ * jmenuje „knihovna skladeb", a „otevři ladičku" míří na „ladičku".
+ * Porovnávat se proto nesmí celá slova, jen jejich začátky — konce jsou
+ * přesně to, co se mění. Odřezávají se dvě písmena, což u českých
+ * koncovek stačí a přitom „texty" a „tempo" nesplyne.
+ */
+function stejnyZaklad(a: string, b: string): boolean {
+  if (a === b) return true;
+  if (a.length < 3 || b.length < 3) return false;
+  // Skloňování koncovku vymění nebo krátce přidá; delší rozdíl znamená
+  // jiné slovo. Bez téhle podmínky splynulo „nastav" s „nastavení" a
+  // příkaz na tempo se rozbil o sekci, kterou nikdo nevyslovil.
+  if (Math.abs(a.length - b.length) > 2) return false;
+  const delka = Math.max(3, Math.min(a.length, b.length) - 2);
+  return a.slice(0, delka) === b.slice(0, delka);
+}
+
+/**
+ * Která sekce ve větě padla.
+ *
+ * Bez tohohle uměl příkaz „otevři sekci" otevřít jen tu, která se mu
+ * nastavila v editoru — vyslovený název se nikam nedostal a otevíralo se
+ * pořád totéž. Delší názvy se zkoušejí první, aby „knihovna skladeb"
+ * nevyhrálo jen slovem „knihovna".
+ */
+export function sekceZVety(text: string): string | null {
+  const slova = normalizuj(text).split(' ').filter(Boolean);
+  const podle = [...SEKCE_OCISTENE].sort(
+    (a, b) => b.klic.split(' ').length - a.klic.split(' ').length || b.klic.length - a.klic.length,
+  );
+
+  for (const s of podle) {
+    const hledana = s.klic.split(' ');
+    for (let i = 0; i + hledana.length <= slova.length; i += 1) {
+      if (hledana.every((slovo, j) => stejnyZaklad(slova[i + j], slova[i + j] && slovo))) {
+        return s.nazev;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Věta bez vyslovených parametrů — čísel i názvů sekcí.
+ *
+ * Porovnává se s ní tehdy, když samotná věta na uloženou frázi nesedne:
+ * „otevři pódium" má spustit příkaz uložený jako „otevři", ale to slovo
+ * navíc by shodu srazilo pod práh.
+ */
+export function bezParametru(text: string): string {
+  const sekce = sekceZVety(text);
+  const slova = bezCisel(text).split(' ').filter(Boolean);
+  if (!sekce) return slova.join(' ');
+
+  // Odečítají se slova tak, jak zazněla, ne název sekce v prvním pádě —
+  // ten se od vysloveného tvaru liší právě koncovkou.
+  const hledana = normalizuj(sekce).split(' ');
+  const zbyle = slova.filter(
+    (slovo) => !hledana.some((nazev) => stejnyZaklad(slovo, nazev)),
+  );
+  return zbyle.join(' ');
+}
+
 /**
  * Najde příkaz, který nejlíp sedí na přepis.
  *
@@ -144,9 +215,20 @@ export function najdiPrikaz<T extends UlozenyPrikaz>(
   let nej: Nalez<T> | null = null;
   for (const p of prikazy) {
     for (const f of p.fraze) {
-      const jistota = podobnost(bezCisel(prepis), f);
+      /**
+       * Porovnává se dvakrát: s celou větou i s větou bez parametrů.
+       *
+       * Vlastní příkaz uložený celý („otevři playlist") tak vyhraje na
+       * plnou shodu, kdežto vestavěný („otevři") sedne až po odečtení
+       * názvu sekce. Jedno porovnání by pokaždé odstřihlo jeden z nich.
+       */
+      const jistota = Math.max(podobnost(prepis, f), podobnost(bezParametru(prepis), f));
       if (jistota >= prah && (!nej || jistota > nej.jistota)) {
-        nej = { prikaz: p, fraze: f, jistota, cislo: cisloZVety(prepis) };
+        nej = {
+          prikaz: p, fraze: f, jistota,
+          cislo: cisloZVety(prepis),
+          sekce: sekceZVety(prepis),
+        };
       }
     }
   }
