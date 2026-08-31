@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { ObalkyPisne } from './ObalkyPisne';
 import {
   Play, Lock, Unlock, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
   FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano,
@@ -263,7 +264,9 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   <span />
                 )}
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex items-center gap-2.5">
+                  <ObalkyPisne song={s} />
+                  <div className="min-w-0">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
                       className={`text-[13px] font-semibold truncate ${aktivni ? 'text-[#FF9F0A]' : 'text-white'}`}
@@ -276,6 +279,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   {/* Co už je u písně po ruce. Bez toho se musí každá
                       otevřít, aby se zjistilo, jestli k ní vůbec něco je. */}
                   <ZnackyDostupnosti song={s} />
+                  </div>
                 </div>
 
                 {zapnute.map((k) => (
@@ -372,6 +376,11 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       {(s.attachments?.length || 0) > 0 && (
                         <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
                           {s.attachments!.length}× příloha
+                        </span>
+                      )}
+                      {s.nazevAlba && (
+                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
+                          album: {s.nazevAlba}
                         </span>
                       )}
                     </div>

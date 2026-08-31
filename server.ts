@@ -4411,6 +4411,63 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
   });
 
+  /**
+   * Obal alba a fotka interpreta k jedné písni.
+   *
+   * Hledá se stejným katalogem jako tempo — Deezerem — takže se nepřidává
+   * další služba ani klíč. Vrací se odkazy, ne obrázky: náhled má pár
+   * desítek kilobajtů a v seznamu se jich ukazují desítky, takže je
+   * lepší nechat je na CDN vydavatele než je kopírovat k sobě.
+   */
+  app.get('/api/obalky', requireAuth, async (req, res) => {
+    const interpret = String(req.query.interpret || '').trim();
+    const nazev = String(req.query.nazev || '').trim();
+    if (!interpret && !nazev) return res.status(400).json({ error: 'Chybí interpret i název.' });
+
+    try {
+      const dotaz = [interpret, nazev].filter(Boolean).join(' ');
+      const odpoved = await fetch(
+        `https://api.deezer.com/search?q=${encodeURIComponent(dotaz)}&limit=1`,
+      );
+      if (!odpoved.ok) throw new Error(`Deezer vrátil ${odpoved.status}`);
+      const data: any = await odpoved.json();
+      const stopa = data?.data?.[0];
+      if (!stopa) return res.json({ nalezeno: false });
+
+      /**
+       * Fotka interpreta není ve výsledku hledání, jen jeho id.
+       *
+       * Doptat se je jeden dotaz navíc; když se nepovede, vrátí se aspoň
+       * obal alba — ten je ze dvou obrázků ten důležitější.
+       */
+      let obrazekInterpreta = '';
+      const interpretId = stopa?.artist?.id;
+      if (interpretId) {
+        try {
+          const a = await fetch(`https://api.deezer.com/artist/${interpretId}`);
+          if (a.ok) {
+            const detail: any = await a.json();
+            obrazekInterpreta = String(detail?.picture_medium || '');
+          }
+        } catch {
+          /* bez fotky interpreta se ukáže jen obal */
+        }
+      }
+
+      res.json({
+        nalezeno: true,
+        obalAlba: String(stopa?.album?.cover_medium || ''),
+        nazevAlba: String(stopa?.album?.title || ''),
+        obrazekInterpreta,
+        // Vrací se i to, co Deezer považoval za shodu, ať jde poznat,
+        // když sáhl vedle.
+        podleCeho: `${stopa?.artist?.name || ''} — ${stopa?.title || ''}`,
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Deezer neodpověděl.' });
+    }
+  });
+
   return { app, PORT };
 }
 

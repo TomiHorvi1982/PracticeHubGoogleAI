@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ObjevSkladby } from './songbook/ObjevSkladby';
 import { SeznamSkladeb } from './songbook/SeznamSkladeb';
 import { SetListPanel } from './songbook/SetListPanel';
@@ -25,6 +25,7 @@ import { ChordDetailModal } from './ChordDetailModal';
 import { FileImportModal } from './FileImportModal';
 import { useMusicalContext } from '../context/MusicalContext';
 import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
+import { doplnObalkyVsem, maObalky, PostupDoplnovani } from '../services/obalkyService';
 
 interface SongbookProps {
   customNewSong?: Song | null;
@@ -51,6 +52,9 @@ export const Songbook: React.FC<SongbookProps> = ({
   } = useMusicalContext();
 
   const [songs, setSongs] = useState<Song[]>(() => songDatabaseService.getSongs());
+  /** Průběh hromadného doplňování obalů; null = neběží. */
+  const [obalkyPostup, setObalkyPostup] = useState<PostupDoplnovani | null>(null);
+  const obalkyStop = useRef(false);
 
   useEffect(() => {
     const unsub = songDatabaseService.subscribe((updatedSongs) => {
@@ -533,6 +537,29 @@ export const Songbook: React.FC<SongbookProps> = ({
                 className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
               />
             </div>
+
+            {/* Obaly alb a fotky interpretů.
+                Doplňují se jednou a uloží se k písni; příště se už
+                nehledají. Nabídne se to jen tehdy, když nějaká píseň
+                obrázky nemá — jinak by to bylo tlačítko, které nic
+                neudělá. */}
+            {songs.some((p) => !maObalky(p)) && (
+              <button
+                onClick={async () => {
+                  if (obalkyPostup) { obalkyStop.current = true; return; }
+                  obalkyStop.current = false;
+                  await doplnObalkyVsem(songs, setObalkyPostup, () => obalkyStop.current);
+                  setSongs(songDatabaseService.getSongs());
+                  setObalkyPostup(null);
+                }}
+                className="w-full mt-2 px-3 py-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-[11px] font-semibold text-neutral-300 hover:text-white cursor-pointer truncate"
+                title="Najde obal alba a fotku interpreta a uloží je k písni"
+              >
+                {obalkyPostup
+                  ? `Doplňuju obaly ${obalkyPostup.hotovo}/${obalkyPostup.celkem} — ${obalkyPostup.prave || 'hotovo'} · klikni pro zastavení`
+                  : `Doplnit obaly a fotky (${songs.filter((p) => !maObalky(p)).length} skladeb)`}
+              </button>
+            )}
           </div>
 
             {/* Seznam si nese vlastní zaškrtávátka údajů — samostatný panel

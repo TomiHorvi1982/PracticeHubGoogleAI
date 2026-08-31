@@ -37,6 +37,17 @@ export interface Song {
   moduleConfigs?: any[];
   /** Rozložení plovoucích oken u téhle písně, i s tím, co mají načtené. */
   okna?: any[];
+  /**
+   * Obrázky alba a interpreta.
+   *
+   * Ukládají se jako odkazy na Deezer, ne jako stažené soubory: jde o
+   * náhledy kolem třiceti kilobajtů, které se v seznamu ukazují po
+   * desítkách, a kopírovat cizí obaly do vlastního úložiště nemá důvod,
+   * dokud je vydavatel sám veřejně nabízí.
+   */
+  obalAlba?: string;
+  obrazekInterpreta?: string;
+  nazevAlba?: string;
   createdAt: number;
   updatedAt: number;
   author?: string;
