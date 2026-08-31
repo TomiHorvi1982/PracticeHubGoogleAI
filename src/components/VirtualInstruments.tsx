@@ -19,6 +19,7 @@ import { DrumPad, CustomDrumKit } from '../types';
 import { MidiToolsModal } from './MidiToolsModal';
 import { SamplesStudio } from './SamplesStudio';
 import { AkordovyPrekladac } from './songbook/AkordovyPrekladac';
+import { VyberNastroje } from './instruments/VyberNastroje';
 import {
   Play, Pause, Volume2, Music, Disc, Filter, Zap,
   Layers, VolumeX, RotateCcw, ChevronLeft, ChevronRight, Sliders, Laptop, Radio,
@@ -631,57 +632,16 @@ export const VirtualInstruments: React.FC = () => {
             <span>MIDI Hardware & Zvuky</span>
           </button>
 
-          {/* Tab Switcher */}
-          <div className="flex items-center bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06]">
-            <button
-              onClick={() => setActiveInstTab('piano')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeInstTab === 'piano'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Music className={`w-3.5 h-3.5 ${activeInstTab === 'piano' ? 'text-[#FF9F0A]' : ''}`} />
-              <span>Klavír</span>
-            </button>
-            <button
-              onClick={() => setActiveInstTab('drums')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeInstTab === 'drums'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Disc className={`w-3.5 h-3.5 ${activeInstTab === 'drums' ? 'text-[#FF9F0A]' : ''}`} />
-              {/* Nejsou to jen bicí — leží tu samply všech nástrojů a
-                  skládají se z nich celé skladby. */}
-              <span>Samples</span>
-            </button>
-            <button
-              onClick={() => setActiveInstTab('pady')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeInstTab === 'pady'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Disc className={`w-3.5 h-3.5 ${activeInstTab === 'pady' ? 'text-[#FF9F0A]' : ''}`} />
-              <span>Bicí</span>
-            </button>
-            <button
-              onClick={() => setActiveInstTab('fretboard')}
-              className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeInstTab === 'fretboard'
-                  ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Compass className={`w-3.5 h-3.5 ${activeInstTab === 'fretboard' ? 'text-[#FF9F0A]' : ''}`} />
-              <span>Hmatník</span>
-            </button>
-          </div>
         </div>
       </div>
+
+      {/**
+       * Nástroje jako karty.
+       *
+       * Řádka drobných přepínačů nedávala poznat, co se pod kterým
+       * skrývá, a nebylo v ní místo na to, čím se na nástroj hraje.
+       */}
+      <VyberNastroje vybrany={activeInstTab} onVybrat={setActiveInstTab} />
 
       {/* 🎹 PIANO TAB */}
       {activeInstTab === 'piano' && (
