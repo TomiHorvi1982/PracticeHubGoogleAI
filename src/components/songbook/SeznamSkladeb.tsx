@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ObalkyPisne } from './ObalkyPisne';
 import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
+import { skladby } from '../../services/mnozneCislo';
 import {
   Play, Lock, Unlock, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
   FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano, Download,
@@ -17,6 +18,8 @@ interface Props {
   onZamknout: (s: Song, e?: React.MouseEvent) => void;
   onSmazat: (s: Song, e?: React.MouseEvent) => void;
   onDoPlaylistu: (s: Song, e?: React.MouseEvent) => void;
+  /** Přidá víc skladeb do playlistu naráz. */
+  onDoPlaylistuHromadne?: (skladby: Song[]) => void | Promise<void>;
   /** Otevře doplňování materiálů k písni. */
   onUpravit: (s: Song, e?: React.MouseEvent) => void;
 }
@@ -91,7 +94,7 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
 };
 
 export const SeznamSkladeb: React.FC<Props> = ({
-  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onUpravit,
+  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onDoPlaylistuHromadne, onUpravit,
 }) => {
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
     try {
@@ -148,6 +151,24 @@ export const SeznamSkladeb: React.FC<Props> = ({
     }
   };
 
+  /**
+   * Hromadný výběr.
+   *
+   * Zapíná se zvlášť, aby zaškrtávátka nepřekážela při běžném
+   * procházení — kliknutí na řádek jinak otevírá skladbu a dvě různé
+   * reakce na tentýž pohyb se pletou.
+   */
+  const [vyberRezim, setVyberRezim] = useState(false);
+  /**
+   * Výběr se schválně nepamatuje mezi načteními stránky.
+   *
+   * Filtr si zapamatovat dává smysl, výběr určený k okamžitému
+   * provedení ne: kdo si vybere pět skladeb, odejde a vrátí se, přidá
+   * jich šest, aniž by chtěl. Naměřeno přesně takhle.
+   */
+  const [oznacene, setOznacene] = useState<Set<string>>(new Set());
+  const [pridavaSe, setPridavaSe] = useState(false);
+
   /** U které písně se zrovna stahuje — ať se nedá zmáčknout dvakrát. */
   const [stahujeSe, setStahujeSe] = useState<string | null>(null);
   const [stahovaniHlaska, setStahovaniHlaska] = useState<string | null>(null);
@@ -193,7 +214,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
   // a nakonec tlačítka. Kdyby se šířky psaly natvrdo, každý zapnutý
   // sloupec by se musel dopočítávat ručně.
   const mrizka = {
-    gridTemplateColumns: `28px minmax(0,2.2fr) ${zapnute.map(() => 'minmax(0,1fr)').join(' ')} 148px`,
+    gridTemplateColumns: `${vyberRezim ? '24px ' : ''}28px minmax(0,2.2fr) ${zapnute.map(() => 'minmax(0,1fr)').join(' ')} 148px`,
   };
 
   const sipka = (k: KlicRazeni) =>
@@ -207,6 +228,55 @@ export const SeznamSkladeb: React.FC<Props> = ({
         <p className="text-[11px] text-[#0A84FF] bg-[#0A84FF]/10 border border-[#0A84FF]/25 rounded-xl px-3 py-1.5">
           {stahovaniHlaska}
         </p>
+      )}
+
+      {/* Hromadný výběr.
+          Přidat dvacet skladeb do setlistu po jedné je práce, kterou
+          nikdo dělat nechce — a přesně to se před zkouškou dělá. */}
+      {onDoPlaylistuHromadne && (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <button
+            onClick={() => {
+              setVyberRezim((v) => !v);
+              if (vyberRezim) setOznacene(() => new Set<string>());
+            }}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold border cursor-pointer transition-all ${
+              vyberRezim
+                ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] border-[#FF9F0A]/40'
+                : 'bg-white/[0.04] text-neutral-400 border-white/10 hover:text-white'
+            }`}
+          >
+            {vyberRezim ? 'Zrušit výběr' : 'Vybrat víc skladeb'}
+          </button>
+
+          {vyberRezim && (
+            <>
+              <span className="text-[10px] text-neutral-500">
+                {oznacene.size === 0 ? 'nic nevybráno' : `vybráno ${oznacene.size}`}
+              </span>
+              <button
+                onClick={async () => {
+                  if (!oznacene.size || pridavaSe) return;
+                  setPridavaSe(true);
+                  try {
+                    // Pořadí ze seznamu, ne z toho, jak se klikalo —
+                    // setlist má jít po sobě tak, jak je vidět.
+                    await onDoPlaylistuHromadne(serazene.filter((x) => oznacene.has(x.id)));
+                    setStahovaniHlaska(`Do playlistu přidáno ${skladby(oznacene.size)}.`);
+                    setOznacene(() => new Set<string>());
+                    setVyberRezim(false);
+                  } finally {
+                    setPridavaSe(false);
+                  }
+                }}
+                disabled={!oznacene.size || pridavaSe}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/30 cursor-pointer disabled:opacity-40"
+              >
+                {pridavaSe ? 'přidávám…' : 'Přidat do playlistu'}
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       <div className="flex flex-wrap items-center gap-1.5">
@@ -244,6 +314,21 @@ export const SeznamSkladeb: React.FC<Props> = ({
           className="grid gap-2 px-3 py-1.5 sticky top-0 z-10 bg-[#101014] border-b border-white/[0.08] text-[9px] font-bold uppercase tracking-wider text-neutral-500"
           style={mrizka}
         >
+          {vyberRezim && (
+            <button
+              onClick={() =>
+                setOznacene(() =>
+                  oznacene.size === serazene.length
+                    ? new Set<string>()
+                    : new Set(serazene.map((x) => x.id)),
+                )
+              }
+              className="text-neutral-400 hover:text-white cursor-pointer"
+              title={oznacene.size === serazene.length ? 'Zrušit výběr' : 'Vybrat všechny'}
+            >
+              {oznacene.size === serazene.length && serazene.length > 0 ? '☑' : '☐'}
+            </button>
+          )}
           <span />
           <button
             onClick={() => serad('song')}
@@ -283,6 +368,25 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   aktivni ? '' : 'hover:bg-white/[0.04]'
                 }`}
               >
+                {vyberRezim && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setOznacene((p) => {
+                        const n = new Set(p);
+                        if (n.has(s.id)) n.delete(s.id);
+                        else n.add(s.id);
+                        return n;
+                      });
+                    }}
+                    className={`text-[13px] cursor-pointer ${
+                      oznacene.has(s.id) ? 'text-[#FF9F0A]' : 'text-neutral-600 hover:text-white'
+                    }`}
+                  >
+                    {oznacene.has(s.id) ? '☑' : '☐'}
+                  </button>
+                )}
+
                 {/* Ukázka se nabídne jen tam, kde je co pustit. */}
                 {v ? (
                   <button

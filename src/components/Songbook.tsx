@@ -26,6 +26,7 @@ import { FileImportModal } from './FileImportModal';
 import { useMusicalContext } from '../context/MusicalContext';
 import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 import { doplnObalkyVsem, maObalky, PostupDoplnovani } from '../services/obalkyService';
+import { playlistService } from '../services/playlistService';
 
 interface SongbookProps {
   customNewSong?: Song | null;
@@ -315,6 +316,30 @@ export const Songbook: React.FC<SongbookProps> = ({
     showToast(`Skladba "${lockModalSong.title}" byla odemčena.`);
   };
 
+  /**
+   * Přidá víc skladeb do playlistu naráz.
+   *
+   * Jde po jedné a čeká na každou: playlist si pořadí drží podle toho,
+   * kdy položka dorazila, takže poslat je současně by setlist zamíchalo.
+   *
+   * Skladba bez videa se přidá taky — playlist od té doby hraje i
+   * soubory z knihovny, takže položka bez YouTube není prázdná.
+   */
+  const handleAddManyToPlaylist = async (skladby: Song[]) => {
+    for (const s of skladby) {
+      try {
+        await playlistService.addItem({
+          songId: s.id,
+          title: s.title,
+          artist: s.artist,
+          youtubeId: s.youtubeVideos?.[0]?.id || '',
+        });
+      } catch (e) {
+        console.warn('[zpevnik] Do playlistu se nepodařilo přidat:', s.title, e);
+      }
+    }
+  };
+
   const handleOpenAddToPlaylist = (song: Song, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setPlaylistModalSong(song);
@@ -576,6 +601,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               onZamknout={handleLockClick}
               onSmazat={handleDeleteClick}
               onDoPlaylistu={handleOpenAddToPlaylist}
+              onDoPlaylistuHromadne={handleAddManyToPlaylist}
               onUpravit={(sk, e) => {
                 if (e) e.stopPropagation();
                 setDoplnovana(sk);

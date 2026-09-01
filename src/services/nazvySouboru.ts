@@ -1,4 +1,5 @@
 import { SongAttachment } from '../types';
+import { soubory } from './mnozneCislo';
 
 /**
  * Názvy a počty souborů při stahování.
@@ -20,14 +21,10 @@ const PRIPONY: Record<SongAttachment['type'], string> = {
 /**
  * Skloňování počtu souborů.
  *
- * Čeština má tři tvary, ne dva: jeden soubor, dva soubory, pět souborů.
- * Bez toho z aplikace leze „Staženo 2 souborů", čehož si každý všimne.
+ * Sdílí obecné skloňování, aby čeština nežila v aplikaci na dvou místech
+ * a nerozešla se.
  */
-export function souboru(pocet: number): string {
-  if (pocet === 1) return '1 soubor';
-  if (pocet >= 2 && pocet <= 4) return `${pocet} soubory`;
-  return `${pocet} souborů`;
-}
+export const souboru = (pocet: number) => soubory(pocet);
 
 /**
  * Název, pod kterým se soubor uloží na disk.
