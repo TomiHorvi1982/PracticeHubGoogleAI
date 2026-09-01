@@ -4,6 +4,7 @@ import { audioBus, CoHraje } from '../../services/audioBus';
 import { posunDoToniny } from '../../services/akordy';
 import { MikrofonTlacitko } from '../hlas/MikrofonTlacitko';
 import { zaregistruj } from '../../services/hlas/vykonavac';
+import { toninaZReci } from '../../services/tonina';
 import { 
   Play, 
   Pause, 
@@ -50,6 +51,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
     setTransposeSemitones,
     isMetronomeActive,
     toggleMetronome,
+    setCapo,
   } = useMusicalContext();
 
   /**
@@ -60,13 +62,37 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
    * jsou; dokud tahle lišta stojí, katalog ty akce hlásí jako zapojené.
    */
   useEffect(() => {
+    const vMezich = (t: number) => Math.max(20, Math.min(300, Math.round(t)));
+
     const odeber = [
-      zaregistruj('metronom.tempo', ({ bpm: nove }) => setBpm(Number(nove))),
+      zaregistruj('metronom.tempo', ({ bpm: nove }) => setBpm(vMezich(Number(nove)))),
       zaregistruj('metronom.zapni', () => { if (!isMetronomeActive) toggleMetronome(); }),
       zaregistruj('metronom.vypni', () => { if (isMetronomeActive) toggleMetronome(); }),
+      zaregistruj('metronom.rychleji', ({ o }) => setBpm(vMezich(bpm + Number(o || 5)))),
+      zaregistruj('metronom.pomaleji', ({ o }) => setBpm(vMezich(bpm - Number(o || 5)))),
+
+      /**
+       * Tónina se z řeči překládá zvlášť.
+       *
+       * České názvosloví se u dvou tónů rozchází s anglickým a
+       * nastavit tóninu o půltón vedle je chyba, kterou nikdo nespojí
+       * s hlasovým ovládáním.
+       */
+      zaregistruj('hudba.tonina', ({ tonina }) => {
+        const nova = toninaZReci(String(tonina || ''));
+        if (nova) setKey(nova);
+      }),
+      zaregistruj('hudba.transpozice', ({ pultonu }) => {
+        const p = Number(pultonu);
+        if (Number.isFinite(p)) setTransposeSemitones(Math.max(-12, Math.min(12, Math.round(p))));
+      }),
+      zaregistruj('hudba.kapodastr', ({ prazec }) => {
+        const p = Number(prazec);
+        if (Number.isFinite(p)) setCapo(Math.max(0, Math.min(12, Math.round(p))));
+      }),
     ];
     return () => odeber.forEach((f) => f());
-  }, [setBpm, isMetronomeActive, toggleMetronome]);
+  }, [setBpm, bpm, isMetronomeActive, toggleMetronome, setKey, setTransposeSemitones, setCapo]);
 
   /**
    * Co zrovna hraje.

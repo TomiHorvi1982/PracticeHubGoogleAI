@@ -5,6 +5,7 @@ import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
 import { zaregistruj } from './services/hlas/vykonavac';
+import { najdiPisenProSoubor } from './services/priradKPisni';
 import { LoginModal } from './components/LoginModal';
 import { AdminUsersModal } from './components/AdminUsersModal';
 import { UserProfileModal } from './components/UserProfileModal';
@@ -172,10 +173,46 @@ function AppContent() {
       zaregistruj('prehravani.zastav', () => setIsPlaying(false)),
       zaregistruj('prehravani.dalsi', () => handleNextTrack()),
       zaregistruj('prehravani.predchozi', () => handlePrevTrack()),
+
+      /**
+       * Od začátku se řeší přeskočením na tutéž položku.
+       *
+       * Přehrávač si pozici drží sám a přímý přístup k ní obal aplikace
+       * nemá; nastavit stejný index znovu ji spolehlivě vrátí na nulu.
+       */
+      zaregistruj('prehravani.odzacatku', () => {
+        setCurrentTrackIndex((p) => p);
+        setIsPlaying(true);
+      }),
+
+      zaregistruj('prehravani.rezim', ({ rezim }) => {
+        const r = String(rezim || '').toLowerCase();
+        if (/dokola|smyč|opak/.test(r)) setPlaybackMode('loop-all');
+        else if (/tuhle|jednu|tenhle/.test(r)) setPlaybackMode('loop-one');
+        else if (/náhod|nahod|zamíchej|zamichej/.test(r)) setPlaybackMode('shuffle');
+        else setPlaybackMode('normal');
+      }),
+
+      /**
+       * Skladbu hledá totéž párování jako import souborů.
+       *
+       * Vyslovený název skoro nikdy nesedí na písmeno — „Ambush" proti
+       * „Sepultura — Ambush" — takže přesná shoda by se netrefila skoro
+       * nikdy.
+       */
+      zaregistruj('zpevnik.otevriSkladbu', ({ nazev }) => {
+        const hledany = String(nazev || '').trim();
+        if (!hledany) return;
+        const nalez = najdiPisenProSoubor(`${hledany}.txt`, songs);
+        if (nalez) {
+          setActiveSong(nalez.song);
+          setActiveTab('songbook');
+        }
+      }),
     ];
     return () => odeber.forEach((f) => f());
     // Obsluhy sahají jen na nastavovače stavu, které React drží stálé.
-  }, [playlist.length]);
+  }, [playlist.length, songs, setActiveSong]);
 
   const handleUpdateSongVideos = (songId: string, videos: YouTubeVideo[]) => {
     const song = songs.find((s) => s.id === songId);

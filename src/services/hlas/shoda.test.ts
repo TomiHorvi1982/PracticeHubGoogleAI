@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizuj, jeVymysl, cisloZVety, podobnost, najdiPrikaz, sekceZVety } from './shoda';
+import { normalizuj, jeVymysl, cisloZVety, podobnost, najdiPrikaz, sekceZVety, zbytekVety } from './shoda';
 
 const PRIKAZY = [
   { id: 'a', nazev: 'Spustit', fraze: ['spusť přehrávání', 'hraj'] },
@@ -84,4 +84,25 @@ test('vlastní celá fráze vyhraje nad vestavěnou', () => {
   ]);
   assert.equal(n?.prikaz.id, 'vlastni');
   assert.equal(n?.jistota, 1);
+});
+
+test('z věty jde vytáhnout text za frází', () => {
+  assert.equal(zbytekVety('otevři skladbu Ambush', 'otevři skladbu'), 'Ambush');
+  assert.equal(zbytekVety('Otevři skladbu Roots Bloody Roots.', 'otevři skladbu'), 'Roots Bloody Roots');
+});
+
+test('zbytek si drží původní tvar včetně diakritiky', () => {
+  // Název se pak hledá tak, jak zazněl — ne bez háčků.
+  assert.equal(zbytekVety('otevři skladbu Přítel', 'otevři skladbu'), 'Přítel');
+});
+
+test('když nic nezbylo, vrátí se prázdno', () => {
+  assert.equal(zbytekVety('spusť přehrávání', 'spusť přehrávání'), '');
+});
+
+test('nález nese zbytek věty', () => {
+  const n = najdiPrikaz('otevři skladbu Ambush', [
+    { id: 'x', nazev: 'Otevřít skladbu', fraze: ['otevři skladbu'] },
+  ]);
+  assert.equal(n?.zbytek, 'Ambush');
 });

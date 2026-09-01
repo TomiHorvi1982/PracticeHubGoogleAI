@@ -46,6 +46,8 @@ export interface VysledekPrikazu {
 export interface VyslovenoNavic {
   cislo?: number | null;
   sekce?: string | null;
+  /** Co ve větě zbylo po frázi — název skladby, tónina, režim. */
+  text?: string | null;
 }
 
 /**
@@ -78,6 +80,14 @@ export function dosadHodnoty(krok: Krok, vysloveno: VyslovenoNavic): Krok {
   if (sekce) {
     const p = akce.parametry.find((x) => x.typ === 'sekce');
     if (p) vysledek = { ...vysledek, hodnoty: { ...vysledek.hodnoty, [p.klic]: sekce } };
+  }
+
+  // Text se dosazuje jen tehdy, když ve větě opravdu něco zbylo —
+  // prázdný název skladby by přebil hodnotu nastavenou v editoru.
+  const text = vysloveno.text?.trim();
+  if (text) {
+    const p = akce.parametry.find((x) => x.typ === 'text');
+    if (p) vysledek = { ...vysledek, hodnoty: { ...vysledek.hodnoty, [p.klic]: text } };
   }
 
   return vysledek;

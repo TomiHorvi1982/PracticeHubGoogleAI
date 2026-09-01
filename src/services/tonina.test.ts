@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { tonikaZPredznamenani, tonika } from './tonina';
+import { tonikaZPredznamenani, tonika, toninaZReci } from './tonina';
 
 test('bez předznamenání je C dur a A moll', () => {
   assert.equal(tonikaZPredznamenani(0, false), 'C');
@@ -40,4 +40,32 @@ test('tónika se zbaví moll přípony', () => {
   assert.equal(tonika('Em'), 'E');
   assert.equal(tonika('Bbm'), 'Bb');
   assert.equal(tonika('C'), 'C');
+});
+
+test('české H je anglické B a české B je Bb', () => {
+  // Nejčastější past českého názvosloví.
+  assert.equal(toninaZReci('tónina H'), 'B');
+  assert.equal(toninaZReci('tónina B'), 'A#');
+});
+
+test('běžné tóniny se poznají', () => {
+  assert.equal(toninaZReci('nastav tóninu C'), 'C');
+  assert.equal(toninaZReci('tónina E moll'), 'E');
+  assert.equal(toninaZReci('tónina g'), 'G');
+});
+
+test('křížky a béčka řečené slovem', () => {
+  assert.equal(toninaZReci('tónina cis'), 'C#');
+  assert.equal(toninaZReci('tónina fis moll'), 'F#');
+  assert.equal(toninaZReci('tónina es'), 'D#');
+  assert.equal(toninaZReci('tónina as'), 'G#');
+});
+
+test('křížek zapsaný znakem taky', () => {
+  assert.equal(toninaZReci('tónina F#'), 'F#');
+});
+
+test('věta bez tóniny nic nevrátí', () => {
+  assert.equal(toninaZReci('spusť přehrávání'), null);
+  assert.equal(toninaZReci(''), null);
 });

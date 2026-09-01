@@ -5,6 +5,7 @@ import { prikazyService } from '../../services/hlas/prikazyService';
 import { najdiPrikaz } from '../../services/hlas/shoda';
 import { spustPrikaz } from '../../services/hlas/vykonavac';
 import { HlasovyPrikaz } from '../../services/hlas/katalog';
+import { nactiNastaveni, rekni } from '../../services/hlas/nastaveni';
 
 type Stav = 'klid' | 'poslouchá' | 'přepisuje';
 
@@ -59,23 +60,33 @@ export const MikrofonTlacitko: React.FC = () => {
 
       // Seznam se čte znovu: mezitím si člověk mohl příkaz založit.
       prikazy.current = await prikazyService.nacti();
-      const nalez = najdiPrikaz(text, prikazy.current);
+      // Nastavení se čte při každém příkazu: mění se v jiné sekci a
+      // zapamatovaná kopie by po změně pracovala se starým prahem.
+      const nastaveni = nactiNastaveni();
+      const nalez = najdiPrikaz(text, prikazy.current, nastaveni.prah);
 
       if (!nalez) {
         setHlaseni({
-          text: text.trim() ? `Slyším „${text.trim()}" — na to zatím nic nemám.` : 'Nic jsem neslyšel.',
+          text: !text.trim()
+            ? 'Nic jsem neslyšel.'
+            : nastaveni.ukazovatSlysene
+              ? `Slyším „${text.trim()}" — na to zatím nic nemám.`
+              : 'Tomu nerozumím.',
           dobre: false,
         });
         return;
       }
 
-      const vysledek = await spustPrikaz(nalez.prikaz, { cislo: nalez.cislo, sekce: nalez.sekce });
+      const vysledek = await spustPrikaz(nalez.prikaz, { cislo: nalez.cislo, sekce: nalez.sekce, text: nalez.zbytek });
       if (vysledek.chyba) {
         setHlaseni({ text: `${nalez.prikaz.nazev}: ${vysledek.chyba}`, dobre: false });
       } else if (!vysledek.provedeno) {
         setHlaseni({ text: `„${nalez.prikaz.nazev}" tahle část aplikace zatím neobsluhuje.`, dobre: false });
       } else {
         setHlaseni({ text: nalez.prikaz.nazev, dobre: true });
+        // Na pódiu se člověk na obrazovku nedívá; potvrzení do sluchátek
+        // je jediný způsob, jak ví, že příkaz prošel.
+        if (nastaveni.potvrzovatHlasem) rekni(nalez.prikaz.nazev);
       }
     } catch (e: any) {
       setHlaseni({ text: e?.message || 'Poslech selhal.', dobre: false });

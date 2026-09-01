@@ -5,6 +5,7 @@ import { prikazyService } from '../../services/hlas/prikazyService';
 import { dostupneAkce } from '../../services/hlas/vykonavac';
 import { Moznosti, poslouchej, zjistiMoznosti } from '../../services/hlas/poslech';
 import { authService } from '../../services/authService';
+import { nactiNastaveni, ulozNastaveni, NastaveniHlasu } from '../../services/hlas/nastaveni';
 
 /**
  * Správa hlasového ovládání.
@@ -40,6 +41,13 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
   const [hlaseni, setHlaseni] = useState<{ text: string; dobre: boolean } | null>(null);
   const [popis, setPopis] = useState('');
   const [prekladaSe, setPrekladaSe] = useState(false);
+  const [nastaveni, setNastaveni] = useState<NastaveniHlasu>(() => nactiNastaveni());
+
+  const zmen = (zmena: Partial<NastaveniHlasu>) => {
+    const nove = { ...nastaveni, ...zmena };
+    setNastaveni(nove);
+    ulozNastaveni(nove);
+  };
 
   const nacti = async () => setPrikazy(await prikazyService.nacti());
 
@@ -166,6 +174,65 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           {hlaseni.text}
         </div>
       )}
+
+      {/* Nastavení rozpoznávání.
+          Přísnost se hodí jinak doma a jinak v hlučné zkušebně, takže
+          to nemá být zadrátované číslo. */}
+      <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4 space-y-3">
+        <h3 className="text-sm font-bold text-[#FF9F0A]">Nastavení</h3>
+
+        <div>
+          <div className="flex items-center justify-between text-[11px] mb-1">
+            <span className="text-neutral-300">Přísnost rozpoznávání</span>
+            <span className="font-mono text-[#FF9F0A] tabular-nums">
+              {Math.round(nastaveni.prah * 100)} %
+            </span>
+          </div>
+          <input
+            type="range"
+            min={30}
+            max={95}
+            value={Math.round(nastaveni.prah * 100)}
+            onChange={(e) => zmen({ prah: Number(e.target.value) / 100 })}
+            className="w-full accent-[#FF9F0A] cursor-pointer"
+          />
+          <p className="text-[10px] text-neutral-500 leading-relaxed mt-1">
+            Níž znamená ochotnější rozpoznávání za cenu občasného omylu, výš naopak.
+            Na pódiu bývá lepší nerozumět než udělat něco jiného.
+          </p>
+        </div>
+
+        <label className="flex items-start gap-2 text-[11px] text-neutral-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={nastaveni.potvrzovatHlasem}
+            onChange={(e) => zmen({ potvrzovatHlasem: e.target.checked })}
+            className="mt-0.5"
+          />
+          <span>
+            Potvrzovat nahlas
+            <span className="block text-[10px] text-neutral-500">
+              Appka řekne, co spustila. Na pódiu, kde se na obrazovku nedíváš.
+            </span>
+          </span>
+        </label>
+
+        <label className="flex items-start gap-2 text-[11px] text-neutral-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={nastaveni.ukazovatSlysene}
+            onChange={(e) => zmen({ ukazovatSlysene: e.target.checked })}
+            className="mt-0.5"
+          />
+          <span>
+            Ukazovat, co jsem slyšel
+            <span className="block text-[10px] text-neutral-500">
+              I když příkaz nenajdu. Bez toho není poznat, jestli jsi špatně vyslovil,
+              nebo takový příkaz není.
+            </span>
+          </span>
+        </label>
+      </div>
 
       {/* Katalog — co appka umí a co zatím ne */}
       <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">

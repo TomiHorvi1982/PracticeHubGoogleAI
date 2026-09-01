@@ -77,3 +77,14 @@ test('odregistrování uklidí jen vlastní obsluhu', () => {
   odeberNovou();
   assert.equal(dostupneAkce().includes('metronom.zapni'), false);
 });
+
+test('text z věty se dosadí do textového parametru', () => {
+  const k = dosadHodnoty({ akce: 'zpevnik.otevriSkladbu', hodnoty: {} }, { text: 'Ambush' });
+  assert.equal(k.hodnoty.nazev, 'Ambush');
+});
+
+test('prázdný text nepřebije hodnotu z editoru', () => {
+  // „spusť přehrávání" nezanechá zbytek; uložený název by se tím smazal.
+  const k = dosadHodnoty({ akce: 'zpevnik.otevriSkladbu', hodnoty: { nazev: 'Colony' } }, { text: '  ' });
+  assert.equal(k.hodnoty.nazev, 'Colony');
+});

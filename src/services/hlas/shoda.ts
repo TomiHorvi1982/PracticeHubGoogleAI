@@ -111,6 +111,34 @@ export interface Nalez<T extends UlozenyPrikaz> {
   jistota: number;
   cislo: number | null;
   sekce: string | null;
+  /**
+   * Co ve větě zbylo po odečtení fráze.
+   *
+   * Odsud se berou textové parametry: „otevři skladbu Ambush" nechá
+   * „Ambush". Bez toho by příkaz s názvem musel existovat pro každou
+   * skladbu zvlášť.
+   */
+  zbytek: string;
+}
+
+/**
+ * Slova věty, která nejsou ve frázi.
+ *
+ * Porovnává se očištěně, ale vrací se původní tvar — název skladby má
+ * jít dohledat tak, jak zazněl, ne bez diakritiky.
+ */
+export function zbytekVety(prepis: string, fraze: string): string {
+  const slovaFraze = new Set(normalizuj(fraze).split(' ').filter(Boolean));
+  const puvodni = prepis.trim().split(/\s+/);
+  const ocistena = normalizuj(prepis).split(' ').filter(Boolean);
+
+  const zbyle: string[] = [];
+  for (let i = 0; i < puvodni.length; i += 1) {
+    const klic = ocistena[i];
+    if (klic && slovaFraze.has(klic)) continue;
+    zbyle.push(puvodni[i].replace(/[.,!?]+$/, ''));
+  }
+  return zbyle.join(' ').trim();
 }
 
 /** Práh, pod kterým se raději neudělá nic. */
@@ -228,6 +256,7 @@ export function najdiPrikaz<T extends UlozenyPrikaz>(
           prikaz: p, fraze: f, jistota,
           cislo: cisloZVety(prepis),
           sekce: sekceZVety(prepis),
+          zbytek: zbytekVety(prepis, f),
         };
       }
     }
