@@ -20,6 +20,7 @@ import { MidiToolsModal } from './MidiToolsModal';
 import { SamplesStudio } from './SamplesStudio';
 import { AkordovyPrekladac } from './songbook/AkordovyPrekladac';
 import { VyberNastroje } from './instruments/VyberNastroje';
+import { AkordZKytary } from './hmatnik/AkordZKytary';
 import {
   Play, Pause, Volume2, Music, Disc, Filter, Zap,
   Layers, VolumeX, RotateCcw, ChevronLeft, ChevronRight, Sliders, Laptop, Radio,
@@ -176,7 +177,7 @@ export const VirtualInstruments: React.FC = () => {
   const { toggleDockTool } = useMusicalContext();
   const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'pady' | 'fretboard'>('piano');
   /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
-  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools'>('chord');
+  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools' | 'zKytary'>('chord');
   /** Stupnice nalezená poslechem — předá se hmatníku i filtru kláves. */
   const [navrhZPoslechu, setNavrhZPoslechu] = useState<{ ton: string; stupnice: string; poradi: number } | null>(null);
   /** Tón, který zrovna zní z mikrofonu — svítí na hmatníku. */
@@ -1080,6 +1081,7 @@ export const VirtualInstruments: React.FC = () => {
                 { id: 'chord', label: 'Akordy' },
                 { id: 'scale', label: 'Stupnice' },
                 { id: 'poslech', label: 'Poslech kytary' },
+                { id: 'zKytary', label: 'Kytara → klavír' },
                 { id: 'guitar_tools', label: 'Guitar Tools' },
               ] as const).map((sekce) => (
                 <button
@@ -1097,6 +1099,13 @@ export const VirtualInstruments: React.FC = () => {
             </div>
           </div>
 
+          {/* Akord sebraný z kytary a ukázaný jako hmat na klaviatuře. */}
+          {hmatnikSekce === 'zKytary' && (
+            <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">
+              <AkordZKytary />
+            </div>
+          )}
+
           {hmatnikSekce === 'poslech' && (
             <PoslechKytaryPanel
               onTon={setZnejiciTon}
@@ -1113,7 +1122,7 @@ export const VirtualInstruments: React.FC = () => {
           {/* Při poslechu zůstává hmatník na obrazovce a svítí na něm, co
               se zrovna hraje — kdo se dívá na monitor, vidí, co se mačká.
               Režim je „stupnice", protože poloha tónu dává smysl vůči ní. */}
-          {hmatnikSekce !== 'guitar_tools' && (
+          {hmatnikSekce !== 'guitar_tools' && hmatnikSekce !== 'zKytary' && (
             <ChordScaleExplorer
               compact
               mode={hmatnikSekce === 'poslech' ? 'scale' : hmatnikSekce}
