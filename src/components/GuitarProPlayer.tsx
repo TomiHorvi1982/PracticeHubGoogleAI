@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useMusicalContext } from '../context/MusicalContext';
 import { tonikaZPredznamenani, tonika } from '../services/tonina';
+import { usekZDob, VstupniDoba, Usek } from '../services/gpUsek';
+import { HmatnikUseku } from './practise/HmatnikUseku';
 import * as alphaTab from '@coderline/alphatab';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
 import {
@@ -224,6 +226,14 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   /** Vybraný úsek ve smyčce, v ticích. */
   const [usek, setUsek] = useState<{ od: number; do: number } | null>(null);
   /**
+   * Doby aktivní stopy i se strunami a pražci.
+   *
+   * Drží se ve stavu, ne že by se počítaly při každém vykreslení:
+   * partitura má tisíce not a procházet ji kvůli každému překreslení
+   * hmatníku by bylo znát.
+   */
+  const [dobyStopy, setDobyStopy] = useState<VstupniDoba[]>([]);
+  /**
    * Posun ladění v půltónech.
    *
    * Mění se výška přehrávání, ne zápis — kdo má kytaru o půltón níž,
@@ -274,6 +284,60 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   // Tónina se nástrojům nepodstrkuje sama: kdo cvičí v jiné, nechce ji
   // po každém otevření tabulatury přepsat.
   const { setKey } = useMusicalContext();
+
+  /**
+   * Vytáhne z partitury doby aktivní stopy.
+   *
+   * Struna a pražec jsou v Guitar Pro souboru zapsané u každé noty —
+   * proto se cvičí z něj a ne z not, kde ta informace není.
+   */
+  useEffect(() => {
+    const api = apiRef.current;
+    const stopa = api?.score?.tracks?.find((t: any) => t.index === activeTrackIndex);
+    if (!stopa) { setDobyStopy([]); return; }
+
+    /**
+     * `playbackStart` je pozice uvnitř taktu, ne od začátku skladby.
+     *
+     * Naměřeno: napříč 719 dobami mělo jen šest různých hodnot, protože
+     * se v každém taktu počítá znovu od nuly. Absolutní pozice se proto
+     * skládá ze začátku taktu — tentýž údaj, podle kterého se v mřížce
+     * pozná, který takt zrovna hraje.
+     */
+    const takty = api?.score?.masterBars || [];
+
+    const doby: VstupniDoba[] = [];
+    for (const osnova of stopa.staves || []) {
+      for (const takt of osnova.bars || []) {
+        const zacatekTaktu = takty[takt.index]?.start ?? 0;
+        for (const hlas of takt.voices || []) {
+          for (const doba of hlas.beats || []) {
+            const noty = (doba.notes || [])
+              // Notu bez struny zapsal editor jako notový zápis, ne hmat.
+              .filter((n: any) => n.string > 0)
+              .map((n: any) => ({
+                struna: n.string,
+                prazec: n.fret,
+                midi: n.realValue ?? 0,
+              }));
+            if (noty.length) {
+              doby.push({
+                start: zacatekTaktu + doba.playbackStart,
+                delka: doba.playbackDuration,
+                noty,
+              });
+            }
+          }
+        }
+      }
+    }
+    setDobyStopy(doby);
+  }, [activeTrackIndex, dataUrl, isLoading]);
+
+  /** Vybraný úsek přepočítaný na cvičení. */
+  const usekKeCviceni: Usek | null = usek && dobyStopy.length
+    ? usekZDob(dobyStopy, usek.od, usek.do)
+    : null;
 
   // Handle Play/Pause
   const handlePlayPause = () => {
@@ -1137,6 +1201,21 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/**
+         * Vybraný úsek na hmatníku.
+         *
+         * Ukáže se až s výběrem: bez něj není co cvičit a prázdný krk
+         * by jen zabíral místo nad tabulaturou.
+         */}
+        {usekKeCviceni && usekKeCviceni.noty.length > 0 && (
+          <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+            <div className="text-[10px] uppercase tracking-wider text-neutral-500">
+              Vybraný úsek na hmatníku
+            </div>
+            <HmatnikUseku usek={usekKeCviceni} bpm={songBpm} />
           </div>
         )}
 
