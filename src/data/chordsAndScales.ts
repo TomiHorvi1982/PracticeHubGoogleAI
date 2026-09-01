@@ -107,6 +107,32 @@ export const SCALES_DATABASE: ScaleDefinition[] = [
     intervals: [0, 2, 4, 5, 7, 9, 10],
     description: 'Durová stupnice s malou 7. stupní. Ideální pro dominantní akordy, classic rock a blues.',
   },
+  // Zbylé církevní mody. Bez nich byla řada neúplná — z původních sedmi
+  // tu byly čtyři, takže se nedalo projít modus po modu.
+  {
+    name: 'Phrygian Mode',
+    czName: 'Frygický modus',
+    intervals: [0, 1, 3, 5, 7, 8, 10],
+    description: 'Molová s malou 2. stupní. Španělský a metalový nádech. Vzorec: 1, b2, b3, 4, 5, b6, b7.',
+  },
+  {
+    name: 'Lydian Mode',
+    czName: 'Lydický modus',
+    intervals: [0, 2, 4, 6, 7, 9, 11],
+    description: 'Durová se zvýšenou 4. stupní. Snivý, filmový zvuk. Vzorec: 1, 2, 3, #4, 5, 6, 7.',
+  },
+  {
+    name: 'Locrian Mode',
+    czName: 'Lokrický modus',
+    intervals: [0, 1, 3, 5, 6, 8, 10],
+    description: 'Jediný modus se zmenšenou kvintou. Nestabilní, používá se nad zmenšenými akordy. Vzorec: 1, b2, b3, 4, b5, b6, b7.',
+  },
+  {
+    name: 'Melodic Minor',
+    czName: 'Melodická moll',
+    intervals: [0, 2, 3, 5, 7, 9, 11],
+    description: 'Molová s velkou 6. a 7. stupní. Jazzová stupnice. Vzorec: 1, 2, b3, 4, 5, 6, 7.',
+  },
 ];
 
 export const CHORDS_DATABASE: ChordDefinition[] = [

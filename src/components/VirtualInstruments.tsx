@@ -22,6 +22,7 @@ import { AkordovyPrekladac } from './songbook/AkordovyPrekladac';
 import { VyberNastroje } from './instruments/VyberNastroje';
 import { AkordZKytary } from './hmatnik/AkordZKytary';
 import { KytaraJakoNastroj } from './hmatnik/KytaraJakoNastroj';
+import { CviceniStupnic } from './hmatnik/CviceniStupnic';
 import {
   Play, Pause, Volume2, Music, Disc, Filter, Zap,
   Layers, VolumeX, RotateCcw, ChevronLeft, ChevronRight, Sliders, Laptop, Radio,
@@ -178,7 +179,7 @@ export const VirtualInstruments: React.FC = () => {
   const { toggleDockTool } = useMusicalContext();
   const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'pady' | 'fretboard'>('piano');
   /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
-  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools' | 'zKytary' | 'jakoNastroj'>('chord');
+  const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools' | 'zKytary' | 'jakoNastroj' | 'cviceni'>('chord');
   /** Stupnice nalezená poslechem — předá se hmatníku i filtru kláves. */
   const [navrhZPoslechu, setNavrhZPoslechu] = useState<{ ton: string; stupnice: string; poradi: number } | null>(null);
   /** Tón, který zrovna zní z mikrofonu — svítí na hmatníku. */
@@ -1081,6 +1082,7 @@ export const VirtualInstruments: React.FC = () => {
               {([
                 { id: 'chord', label: 'Akordy' },
                 { id: 'scale', label: 'Stupnice' },
+                { id: 'cviceni', label: 'Cvičení stupnic' },
                 { id: 'poslech', label: 'Poslech kytary' },
                 { id: 'zKytary', label: 'Kytara → klavír' },
                 { id: 'jakoNastroj', label: 'Kytara jako nástroj' },
@@ -1100,6 +1102,13 @@ export const VirtualInstruments: React.FC = () => {
               ))}
             </div>
           </div>
+
+          {/* Vzorce na procvičení stupnic. */}
+          {hmatnikSekce === 'cviceni' && (
+            <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">
+              <CviceniStupnic />
+            </div>
+          )}
 
           {/* Kytara hrající zvoleným nástrojem. */}
           {hmatnikSekce === 'jakoNastroj' && (
@@ -1132,7 +1141,7 @@ export const VirtualInstruments: React.FC = () => {
               se zrovna hraje — kdo se dívá na monitor, vidí, co se mačká.
               Režim je „stupnice", protože poloha tónu dává smysl vůči ní. */}
           {hmatnikSekce !== 'guitar_tools' && hmatnikSekce !== 'zKytary'
-            && hmatnikSekce !== 'jakoNastroj' && (
+            && hmatnikSekce !== 'jakoNastroj' && hmatnikSekce !== 'cviceni' && (
             <ChordScaleExplorer
               compact
               mode={hmatnikSekce === 'poslech' ? 'scale' : hmatnikSekce}
