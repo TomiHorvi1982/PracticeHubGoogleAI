@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Download, AlertCircle, Check, Layers, RefreshCw } from 'lucide-react';
 import { authService } from '../../services/authService';
+import { songDatabaseService } from '../../services/songDatabaseService';
+import { najdiPisenProSoubor, prilohaZAssetu, jizPripojeno } from '../../services/priradKPisni';
 
 /**
  * Import hotových stop ze StemDecku.
@@ -35,6 +37,8 @@ export const StemDeckImport: React.FC<{ onImportovano?: () => void }> = ({ onImp
   const [importuje, setImportuje] = useState<string | null>(null);
   const [hotove, setHotove] = useState<Set<string>>(new Set());
   const [chyba, setChyba] = useState<string | null>(null);
+  /** Ke které písni se která úloha připojila — null znamená, že se nenašla. */
+  const [kamPripojeno, setKamPripojeno] = useState<Record<string, string | null>>({});
 
   const hlavicky = () => {
     const token = authService.getCurrentSession()?.token;
@@ -72,6 +76,40 @@ export const StemDeckImport: React.FC<{ onImportovano?: () => void }> = ({ onImp
 
   useEffect(() => { void zjisti(); }, []);
 
+  /**
+   * Naváže přenesené soubory na píseň ve zpěvníku.
+   *
+   * Páruje se jednou, podle názvu úlohy, a všechny stopy pak jdou k téže
+   * písni. Kdyby se každý soubor hledal zvlášť, „Ambush - bass" a
+   * „Ambush - drums" by se mohly rozejít ke dvěma různým skladbám.
+   *
+   * Když se píseň nenajde, soubory zůstanou v knihovně a řekne se to —
+   * zakládat novou skladbu z názvu úlohy by pro pár stop byla přehnaná
+   * reakce, a špatně pojmenovaná úloha by udělala nepořádek ve zpěvníku.
+   */
+  const pripojKePisni = async (u: Uloha, assety: any[]): Promise<string | null> => {
+    if (!assety.length) return null;
+    try {
+      const nalez = najdiPisenProSoubor(`${u.nazev}.mp3`, songDatabaseService.getSongs());
+      if (!nalez) return null;
+
+      const nove = assety
+        .filter((a) => a && !jizPripojeno(nalez.song, a))
+        .map((a) => prilohaZAssetu(a));
+      if (!nove.length) return `${nalez.song.artist} — ${nalez.song.title}`;
+
+      await songDatabaseService.saveSong({
+        ...nalez.song,
+        attachments: [...(nalez.song.attachments || []), ...nove],
+        updatedAt: Date.now(),
+      });
+      return `${nalez.song.artist} — ${nalez.song.title}`;
+    } catch (e) {
+      console.warn('[stemdeck] Připojení k písni selhalo:', e);
+      return null;
+    }
+  };
+
   const importuj = async (u: Uloha) => {
     if (importuje) return;
     setImportuje(u.id);
@@ -86,6 +124,9 @@ export const StemDeckImport: React.FC<{ onImportovano?: () => void }> = ({ onImp
       if (!r.ok) throw new Error(d?.error || 'Import selhal.');
       setHotove((p) => new Set(p).add(u.id));
       if (d.potize?.length) setChyba(`Část se nepovedla: ${d.potize.join('; ')}`);
+
+      const kam = await pripojKePisni(u, d.assety || []);
+      setKamPripojeno((p) => ({ ...p, [u.id]: kam }));
       onImportovano?.();
     } catch (e: any) {
       setChyba(e?.message || 'Import selhal.');
@@ -159,6 +200,15 @@ export const StemDeckImport: React.FC<{ onImportovano?: () => void }> = ({ onImp
                       .filter(Boolean)
                       .join(' · ')}
                   </div>
+                  {u.id in kamPripojeno && (
+                    <div className="text-[10px] truncate">
+                      {kamPripojeno[u.id]
+                        ? <span className="text-[#30D158]">připojeno k „{kamPripojeno[u.id]}"</span>
+                        : <span className="text-amber-500/80">
+                            píseň ve zpěvníku se nenašla — soubory jsou v knihovně
+                          </span>}
+                    </div>
+                  )}
                 </div>
                 <button
                   onClick={() => void importuj(u)}
