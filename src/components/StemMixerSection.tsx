@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
+import { StemDeckImport } from './stems/StemDeckImport';
 import { authorizedFetch } from '../services/assetLibraryService';
 import { DawVerticalFader } from './DawVerticalFader';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
@@ -146,6 +147,12 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 text-slate-100">
+      {/* Stopy hotové jinde.
+          Separace u sebe na stroji je řádově rychlejší než přes vzdálený
+          worker; sem se přenese jen výsledek. Panel se sám schová, když
+          StemDeck neběží — na nasazené verzi to nikdy nebude. */}
+      <StemDeckImport />
+
       {/* HEADER TITLE BANNER */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/30 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">

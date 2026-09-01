@@ -4647,6 +4647,138 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
   });
 
+  /**
+   * Napojení na StemDeck.
+   *
+   * StemDeck je samostatná aplikace, kterou si člověk spouští sám a sám
+   * rozhoduje, co jí dá zpracovat. Tahle appka si od ní bere hotový
+   * výsledek — stopy a mix — a zakládá z toho materiály u písně. Je to
+   * import z cizího nástroje, ne ovládání toho nástroje.
+   *
+   * Běží na stejném stroji jako tenhle server, takže to funguje jen
+   * tam, kde si appku pustíš u sebe. Na Vercelu žádný localhost není.
+   */
+  const STEMDECK = process.env.STEMDECK_URL || 'http://127.0.0.1:8000';
+
+  app.get('/api/stemdeck/stav', requireAuth, async (_req, res) => {
+    try {
+      const odpoved = await fetch(`${STEMDECK}/api/jobs`, { signal: AbortSignal.timeout(2500) });
+      res.json({ bezi: odpoved.ok, adresa: STEMDECK });
+    } catch {
+      res.json({ bezi: false, adresa: STEMDECK });
+    }
+  });
+
+  /** Hotové úlohy ze StemDecku — z čeho se dá vybírat při importu. */
+  app.get('/api/stemdeck/ulohy', requireAuth, async (_req, res) => {
+    try {
+      const odpoved = await fetch(`${STEMDECK}/api/jobs`, { signal: AbortSignal.timeout(8000) });
+      if (!odpoved.ok) throw new Error(`StemDeck vrátil ${odpoved.status}`);
+      const data: any = await odpoved.json();
+      const ulohy: any[] = Array.isArray(data) ? data : data?.jobs || [];
+
+      res.json({
+        ulohy: ulohy
+          .filter((u) => String(u.status || '').toLowerCase() === 'done'
+            || String(u.status || '').toLowerCase() === 'completed')
+          .map((u) => ({
+            id: String(u.id || ''),
+            nazev: String(u.title || u.id || ''),
+            delka: Number(u.duration_sec) || 0,
+            bpm: Number(u.bpm) || 0,
+            tonina: [u.key, u.scale].filter(Boolean).join(' ') || '',
+            stopy: (u.stems || []).map((st: any) => String(st.name || st)).filter(Boolean),
+            zdroj: String(u.source_url || ''),
+          })),
+      });
+    } catch (e: any) {
+      res.status(502).json({
+        error: e?.message?.includes('timeout') || e?.name === 'TimeoutError'
+          ? 'StemDeck neodpovídá — běží u tebe?'
+          : e?.message || 'StemDeck neodpověděl.',
+      });
+    }
+  });
+
+  /**
+   * Přenese stopy i mix ze StemDecku k písni.
+   *
+   * Zakládá se to jako přílohy, takže se to chová stejně jako cokoli
+   * jiného v knihovně — dá se to stáhnout, pustit i namíchat. Mix jde
+   * první: bez něj jsou stopy k ničemu, protože není proti čemu je
+   * porovnávat.
+   */
+  app.post('/api/stemdeck/import', requireAuth, async (req, res) => {
+    const jobId = String(req.body?.jobId || '').trim();
+    const nazev = String(req.body?.nazev || '').trim();
+    const interpret = String(req.body?.interpret || '').trim();
+    const stopy: string[] = Array.isArray(req.body?.stopy) ? req.body.stopy : [];
+    if (!jobId) return res.status(400).json({ error: 'Chybí úloha.' });
+
+    const admin = getSupabaseAdmin();
+    const zalozene: any[] = [];
+    const potize: string[] = [];
+
+    const uloz = async (odkaz: string, jmeno: string, druh: string) => {
+      const odpoved = await fetch(odkaz, { signal: AbortSignal.timeout(120_000) });
+      if (!odpoved.ok) throw new Error(`${jmeno}: StemDeck vrátil ${odpoved.status}`);
+      const bajty = Buffer.from(await odpoved.arrayBuffer());
+      if (bajty.length < 1000) throw new Error(`${jmeno}: soubor přišel prázdný`);
+
+      const otisk = createHash('sha256').update(bajty).digest('hex');
+      const { data: uzTam } = await admin
+        .from('assets').select('*').eq('content_hash', otisk).eq('status', 'active').maybeSingle();
+      if (uzTam) return uzTam;
+
+      const assetId = crypto.randomUUID();
+      const cesta = `assets/global/stems/${assetId}-${slugifyFilename(jmeno)}`;
+      await uploadObject(cesta, bajty, 'audio/mpeg');
+
+      const { data: novy, error: chyba } = await admin.from('assets').insert({
+        id: assetId,
+        owner_id: null,
+        name: jmeno,
+        original_filename: jmeno,
+        mime_type: 'audio/mpeg',
+        size_bytes: bajty.length,
+        storage_bucket: 'r2',
+        storage_path: cesta,
+        asset_type: druh === 'mix' ? 'recording' : 'stem',
+        category: druh === 'mix' ? 'my_songs' : 'stem_mix',
+        status: 'active',
+        content_hash: otisk,
+        metadata: { zdroj: 'stemdeck', jobId, druh },
+      }).select().single();
+      if (chyba) throw new Error(`${jmeno}: ${chyba.message}`);
+      return novy;
+    };
+
+    const zaklad = `${interpret ? `${interpret} - ` : ''}${nazev || jobId}`.replace(/[/\\]/g, '-');
+
+    try {
+      zalozene.push(await uloz(`${STEMDECK}/api/jobs/${jobId}/mixdown.mp3`, `${zaklad}.mp3`, 'mix'));
+    } catch (e: any) {
+      potize.push(String(e?.message || e));
+    }
+
+    for (const st of stopy) {
+      try {
+        zalozene.push(await uloz(
+          `${STEMDECK}/api/jobs/${jobId}/stems/${encodeURIComponent(st)}.mp3`,
+          `${zaklad} - ${st}.mp3`,
+          st,
+        ));
+      } catch (e: any) {
+        potize.push(String(e?.message || e));
+      }
+    }
+
+    if (!zalozene.length) {
+      return res.status(502).json({ error: potize.join('; ') || 'Ze StemDecku nedorazilo nic.' });
+    }
+    res.json({ assety: zalozene, potize });
+  });
+
   return { app, PORT };
 }
 
