@@ -4468,6 +4468,185 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
   });
 
+  /**
+   * Hledání v Internet Archive.
+   *
+   * Legální zdroj nahrávek, které jde opravdu stáhnout: archiv sám
+   * odkazy ke stažení nabízí. Hlavní je sbírka `etree` — Live Music
+   * Archive, koncertní nahrávky kapel, které nahrávání a nekomerční
+   * šíření samy povolily. Přes 300 tisíc položek.
+   *
+   * Vrací se i uvedená licence. Ne každá položka ji má vyplněnou, a kde
+   * chybí, má to člověk vidět, ne se to dozvědět až od právníka.
+   */
+  app.get('/api/archive/hledat', requireAuth, async (req, res) => {
+    const dotaz = String(req.query.q || '').trim();
+    if (!dotaz) return res.json({ polozky: [] });
+
+    const parametry = new URLSearchParams();
+    /**
+     * Typ položky vyřazuje zastřešující stránky kapel.
+     *
+     * Bez toho vylezou nahoru sbírky jako „Blues Traveler" — mají
+     * nejvíc stažení, ale žádný zvukový soubor, takže se otevřou
+     * prázdné. Hledá se koncert, ne rozcestník.
+     *
+     * Přijímají se dva typy, protože si v tom archiv sám neodpovídá:
+     * u položky hlásí `mediatype: audio`, ale ve vyhledávacím indexu
+     * má 294 tisíc nahrávek `etree` a jen čtyři `audio`. Kdyby se
+     * poslouchalo jen to, co říkají metadata, zbyly by z celé sbírky
+     * čtyři koncerty.
+     */
+    parametry.set('q', `collection:etree AND (mediatype:etree OR mediatype:audio) AND (${dotaz})`);
+    for (const pole of ['identifier', 'title', 'creator', 'year', 'date', 'licenseurl', 'downloads']) {
+      parametry.append('fl[]', pole);
+    }
+    parametry.set('rows', '20');
+    parametry.set('output', 'json');
+    parametry.set('sort[]', 'downloads desc');
+
+    try {
+      const odpoved = await fetch(`https://archive.org/advancedsearch.php?${parametry}`, {
+        headers: { 'User-Agent': 'NeverLateStudio/1.0' },
+      });
+      if (!odpoved.ok) throw new Error(`Archive.org vrátil ${odpoved.status}`);
+      const data: any = await odpoved.json();
+      const docs: any[] = data?.response?.docs || [];
+
+      res.json({
+        celkem: Number(data?.response?.numFound) || 0,
+        polozky: docs.map((d) => ({
+          id: String(d.identifier || ''),
+          nazev: String(d.title || ''),
+          interpret: Array.isArray(d.creator) ? String(d.creator[0]) : String(d.creator || ''),
+          rok: String(d.year || String(d.date || '').slice(0, 4) || ''),
+          licence: String(d.licenseurl || ''),
+          stazeni: Number(d.downloads) || 0,
+        })),
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Archive.org neodpověděl.' });
+    }
+  });
+
+  /** Skladby uvnitř jedné nahrávky, i s odkazem ke stažení. */
+  app.get('/api/archive/polozka', requireAuth, async (req, res) => {
+    const id = String(req.query.id || '').trim();
+    if (!/^[\w.\-]{2,120}$/.test(id)) return res.status(400).json({ error: 'Neplatný identifikátor.' });
+
+    try {
+      const odpoved = await fetch(`https://archive.org/metadata/${encodeURIComponent(id)}`, {
+        headers: { 'User-Agent': 'NeverLateStudio/1.0' },
+      });
+      if (!odpoved.ok) throw new Error(`Archive.org vrátil ${odpoved.status}`);
+      const d: any = await odpoved.json();
+      if (!d?.metadata) return res.status(404).json({ error: 'Taková nahrávka v archivu není.' });
+
+      /**
+       * Bere se MP3, ne FLAC.
+       *
+       * Na zkoušku je to jedno a rozdíl je desetinásobný — koncert ve
+       * FLACu má přes gigabajt a stahovat ho přes vlastní server nemá
+       * smysl.
+       */
+      const stopy = (d.files || [])
+        .filter((f: any) => String(f.format || '').includes('MP3'))
+        .map((f: any) => ({
+          soubor: String(f.name || ''),
+          nazev: String(f.title || f.name || '').replace(/\.mp3$/i, ''),
+          poradi: Number(f.track) || 0,
+          delka: String(f.length || ''),
+          velikost: Number(f.size) || 0,
+        }))
+        .sort((a: any, b: any) => a.poradi - b.poradi);
+
+      res.json({
+        nahravka: {
+          id,
+          nazev: String(d.metadata.title || ''),
+          interpret: Array.isArray(d.metadata.creator) ? String(d.metadata.creator[0]) : String(d.metadata.creator || ''),
+          datum: String(d.metadata.date || ''),
+          licence: String(d.metadata.licenseurl || ''),
+        },
+        stopy,
+      });
+    } catch (e: any) {
+      res.status(502).json({ error: e?.message || 'Archive.org neodpověděl.' });
+    }
+  });
+
+  /**
+   * Stáhne jednu skladbu z archivu do knihovny.
+   *
+   * Tohle je ten legální způsob, jak dostat nahrávku do aplikace:
+   * archiv soubory ke stažení sám nabízí a jde o materiál, u kterého
+   * kapela šíření povolila. Ukládá se k nám, aby fungoval i bez
+   * internetu — u zkušebny bez signálu je to celý smysl.
+   */
+  app.post('/api/archive/stahni', requireAuth, async (req, res) => {
+    const id = String(req.body?.id || '').trim();
+    const soubor = String(req.body?.soubor || '').trim();
+    const nazev = String(req.body?.nazev || '').trim();
+    const interpret = String(req.body?.interpret || '').trim();
+    if (!/^[\w.\-]{2,120}$/.test(id) || !soubor) {
+      return res.status(400).json({ error: 'Chybí nahrávka nebo soubor.' });
+    }
+
+    const admin = getSupabaseAdmin();
+    try {
+      const odkaz = `https://archive.org/download/${encodeURIComponent(id)}/${soubor.split('/').map(encodeURIComponent).join('/')}`;
+      const odpoved = await fetch(odkaz, { headers: { 'User-Agent': 'NeverLateStudio/1.0' }, redirect: 'follow' });
+      if (!odpoved.ok) throw new Error(`Archiv vrátil ${odpoved.status}`);
+
+      const bajty = Buffer.from(await odpoved.arrayBuffer());
+      if (bajty.length < 1000) throw new Error('Soubor přišel prázdný.');
+
+      const jmeno = `${interpret ? `${interpret} - ` : ''}${nazev || soubor.split('/').pop()}`
+        .replace(/[/\\]/g, '-')
+        .replace(/\.mp3$/i, '') + '.mp3';
+      const otisk = createHash('sha256').update(bajty).digest('hex');
+
+      const { data: uzTam } = await admin
+        .from('assets')
+        .select('*')
+        .eq('content_hash', otisk)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (uzTam) return res.json({ jizByl: true, asset: uzTam });
+
+      const assetId = crypto.randomUUID();
+      const cesta = `assets/global/recordings/${assetId}-${slugifyFilename(jmeno)}`;
+      await uploadObject(cesta, bajty, 'audio/mpeg');
+
+      const { data: novy, error: chyba } = await admin
+        .from('assets')
+        .insert({
+          id: assetId,
+          owner_id: null,
+          name: jmeno,
+          original_filename: jmeno,
+          mime_type: 'audio/mpeg',
+          size_bytes: bajty.length,
+          storage_bucket: 'r2',
+          storage_path: cesta,
+          asset_type: 'recording',
+          category: 'my_songs',
+          status: 'active',
+          content_hash: otisk,
+          // Odkud to je, zůstává u souboru — aby šlo kdykoli dohledat,
+          // odkud se to vzalo a za jakých podmínek.
+          metadata: { zdroj: 'archive.org', archiveId: id, archiveSoubor: soubor, odkaz },
+        })
+        .select()
+        .single();
+      if (chyba) return res.status(500).json({ error: chyba.message });
+
+      res.json({ asset: novy, velikost: bajty.length });
+    } catch (e: any) {
+      res.status(502).json({ error: `Stažení selhalo: ${e?.message || e}` });
+    }
+  });
+
   return { app, PORT };
 }
 
