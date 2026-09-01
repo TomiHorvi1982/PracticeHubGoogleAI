@@ -3783,7 +3783,28 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
   });
 
   // Start new YouTube AI Stem Separation process
-  app.post('/api/stems/process', requireAuth, async (req, res) => {
+  /**
+   * Separace na serveru je vypnutá.
+   *
+   * Vzdálený worker na ni potřeboval desítky minut, kdežto StemDeck na
+   * Apple Silicon počítá přes GPU a je hotový v jednotkách. Nechat obě
+   * cesty otevřené by znamenalo, že se ta pomalá občas spustí omylem a
+   * nikdo nepozná proč to trvá.
+   *
+   * Odpovídá se 410, ne 404: ta cesta existovala a je záměrně zavřená,
+   * což je pro toho, kdo ji volá, jiná informace než překlep v adrese.
+   */
+  app.post('/api/stems/process', requireAuth, async (_req, res) => {
+    return res.status(410).json({
+      error: 'Separace na serveru je vypnutá — trvala desítky minut. '
+        + 'Pusť si StemDeck u sebe (běží přes GPU) a hotové stopy přenes '
+        + 'v Mixážním pultu; přiřadí se ke skladbě samy.',
+      mistoToho: 'stemdeck',
+    });
+  });
+
+  /** Původní serverová cesta, ponechaná mimo provoz pro případ návratu. */
+  app.post('/api/stems/process-vypnuto', requireAuth, async (req, res) => {
     const { youtubeUrl, title, artist } = req.body;
     if (!youtubeUrl) {
       return res.status(400).json({ error: 'Chybí YouTube adresa (URL).' });

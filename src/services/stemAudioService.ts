@@ -214,9 +214,14 @@ class StemAudioService {
     this.selectSong(dokument, true);
   }
 
-  /** Kicks off server-side stem generation for a YouTube URL (see
-   * server.ts `/api/stems/process`) and selects the new (still-processing)
-   * song so the UI can show its progress. */
+  /**
+   * Serverová separace je vypnutá — endpoint odpovídá 410.
+   *
+   * Vzdálený worker na ni potřeboval desítky minut. Stopy se teď dělají
+   * lokálně ve StemDecku a přenesou se v Mixážním pultu; tahle metoda
+   * zbyla proto, aby volající dostal srozumitelné vysvětlení místo
+   * tichého selhání, a smaže se, až na ni nikdo nebude sahat.
+   */
   public async processYoutubeUrl(youtubeUrl: string, title?: string, artist?: string): Promise<StemSongDocument> {
     const res = await authorizedFetch('/api/stems/process', {
       method: 'POST',
