@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { ObalkyPisne } from './ObalkyPisne';
+import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
 import {
   Play, Lock, Unlock, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
-  FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano,
+  FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano, Download,
 } from 'lucide-react';
 import { Song } from '../../types';
 import { KlicRazeni, SLOUPCE, seradPodle, odhadniJazyk } from '../../services/songSort';
@@ -147,6 +148,36 @@ export const SeznamSkladeb: React.FC<Props> = ({
     }
   };
 
+  /** U které písně se zrovna stahuje — ať se nedá zmáčknout dvakrát. */
+  const [stahujeSe, setStahujeSe] = useState<string | null>(null);
+  const [stahovaniHlaska, setStahovaniHlaska] = useState<string | null>(null);
+
+  /**
+   * Stáhne přílohy jedné písně do počítače.
+   *
+   * Nabízí se jen tam, kde nějaká příloha je — u prázdné písně by to
+   * bylo tlačítko, co nic neudělá.
+   */
+  const stahni = async (song: (typeof songs)[number], e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (stahujeSe) return;
+    setStahujeSe(song.id);
+    setStahovaniHlaska(null);
+    try {
+      const v = await stahniPrilohyPisne(song);
+      setStahovaniHlaska(
+        v.chyby.length
+          ? `Staženo ${v.stazeno}, nepovedlo se: ${v.chyby.join('; ')}`
+          : `Staženo ${souboru(v.stazeno)} — ${song.title}.`,
+      );
+    } catch (err: any) {
+      setStahovaniHlaska(err?.message || 'Stažení selhalo.');
+    } finally {
+      setStahujeSe(null);
+      setTimeout(() => setStahovaniHlaska(null), 6000);
+    }
+  };
+
   const rozbal = (id: string) => {
     setRozbalene((p) => {
       const n = new Set(p);
@@ -170,6 +201,14 @@ export const SeznamSkladeb: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col gap-2 min-h-0">
+      {/* Jak stahování dopadlo. Prohlížeč o uloženém souboru sám nic
+          neřekne, takže bez tohohle by kliknutí vypadalo bez odezvy. */}
+      {stahovaniHlaska && (
+        <p className="text-[11px] text-[#0A84FF] bg-[#0A84FF]/10 border border-[#0A84FF]/25 rounded-xl px-3 py-1.5">
+          {stahovaniHlaska}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-1.5">
         {/* Zaškrtávátka sloupců. Zapnutý údaj dostane vlastní sloupec
             a rovnou podle sebe seznam seřadí. */}
@@ -315,6 +354,16 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
+                  {(s.attachments?.length || 0) > 0 && (
+                    <button
+                      onClick={(e) => void stahni(s, e)}
+                      disabled={stahujeSe === s.id}
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#0A84FF] cursor-pointer transition-all disabled:opacity-40"
+                      title={`Stáhnout do počítače (${souboru(s.attachments!.length)})`}
+                    >
+                      <Download className={`w-3.5 h-3.5 ${stahujeSe === s.id ? 'animate-pulse' : ''}`} />
+                    </button>
+                  )}
                   <button
                     onClick={(e) => onDoPlaylistu(s, e)}
                     className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#FF9F0A] cursor-pointer transition-all"
