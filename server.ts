@@ -14,6 +14,11 @@ import {
 import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
 import { postavZadani, zpracujOdpoved, vysvetliChybu } from './hlasPreklad';
 import { textZPdf } from './pdfText';
+import fs from 'node:fs';
+import os from 'node:os';
+import {
+  jeZvuk, seskupDoSkladeb, bezpecnaCesta, rozsahZHlavicky, MistniSoubor,
+} from './server/mistniStopy';
 
 dotenv.config();
 
@@ -3795,6 +3800,128 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * Odpovídá se 410, ne 404: ta cesta existovala a je záměrně zavřená,
    * což je pro toho, kdo ji volá, jiná informace než překlep v adrese.
    */
+  /**
+   * Kde na disku leží stopy ze separátoru.
+   *
+   * Neural Mix Pro (i Demucs) exportuje do složky; tahle adresa se dá
+   * přenastavit v `.env`, protože každý separátor si sype jinam.
+   */
+  const SLOZKA_STOP = process.env.STOPY_SLOZKA || path.join(os.homedir(), 'Music', 'Stems');
+
+  /**
+   * Na Vercelu žádný disk uživatele není — běží to jinde než u něj.
+   * Vrací se to jako `dostupne: false`, ne jako chyba: pult má i tak
+   * fungovat, jen bez místních souborů.
+   */
+  const mistniDiskJde = () => !process.env.VERCEL;
+
+  /**
+   * Projde složku se stopami.
+   *
+   * Kouká do kořene a o patro níž. Hlouběji schválně ne: složka bývá
+   * sdílená s jinými nástroji, které si tam drží vlastní knihovny
+   * vzorků, a ty do mixážního pultu nepatří. Skryté složky (`.samples`
+   * a spol.) se přeskakují ze stejného důvodu.
+   */
+  function projdiStopy(koren: string): MistniSoubor[] {
+    const nalezene: MistniSoubor[] = [];
+    let vrchni: fs.Dirent[];
+    try {
+      vrchni = fs.readdirSync(koren, { withFileTypes: true });
+    } catch {
+      return nalezene;
+    }
+    for (const p of vrchni) {
+      if (p.name.startsWith('.')) continue;
+      if (p.isFile() && jeZvuk(p.name)) {
+        try {
+          const st = fs.statSync(path.join(koren, p.name));
+          nalezene.push({ jmeno: p.name, cesta: p.name, velikost: st.size });
+        } catch { /* soubor zmizel mezi výpisem a dotazem */ }
+      } else if (p.isDirectory()) {
+        let uvnitr: fs.Dirent[];
+        try {
+          uvnitr = fs.readdirSync(path.join(koren, p.name), { withFileTypes: true });
+        } catch { continue; }
+        for (const q of uvnitr) {
+          if (q.name.startsWith('.') || !q.isFile() || !jeZvuk(q.name)) continue;
+          try {
+            const st = fs.statSync(path.join(koren, p.name, q.name));
+            nalezene.push({ jmeno: q.name, cesta: `${p.name}/${q.name}`, velikost: st.size });
+          } catch { /* totéž */ }
+        }
+      }
+    }
+    return nalezene;
+  }
+
+  app.get('/api/stopy/mistni', requireAuth, async (_req, res) => {
+    if (!mistniDiskJde()) {
+      return res.json({
+        dostupne: false,
+        slozka: SLOZKA_STOP,
+        skladby: [],
+        duvod: 'Aplikace běží na serveru, kde tvůj disk není. Místní stopy '
+          + 'se načtou, když ji spustíš u sebe (`npm run dev`).',
+      });
+    }
+    if (!fs.existsSync(SLOZKA_STOP)) {
+      return res.json({
+        dostupne: false,
+        slozka: SLOZKA_STOP,
+        skladby: [],
+        duvod: `Složka ${SLOZKA_STOP} zatím neexistuje. Založ ji, nebo si `
+          + 'nastav jinou přes STOPY_SLOZKA v .env.',
+      });
+    }
+    return res.json({
+      dostupne: true,
+      slozka: SLOZKA_STOP,
+      skladby: seskupDoSkladeb(projdiStopy(SLOZKA_STOP)),
+    });
+  });
+
+  /**
+   * Pošle jednu stopu do prohlížeče.
+   *
+   * Umí i částečný dotaz (Range): wav ze separátoru má klidně padesát
+   * megabajtů a bez toho by posun v mixu čekal na celý soubor.
+   */
+  app.get('/api/stopy/mistni/soubor', requireAuth, async (req, res) => {
+    if (!mistniDiskJde()) return res.status(404).json({ error: 'Místní disk tu není.' });
+    const rel = String(req.query.cesta || '');
+    const cil = bezpecnaCesta(SLOZKA_STOP, rel);
+    // Mimo složku se stopami se nesahá, ani kdyby cesta vypadala nevinně.
+    if (!cil || !jeZvuk(cil)) return res.status(400).json({ error: 'Neplatná cesta.' });
+
+    let st: fs.Stats;
+    try { st = fs.statSync(cil); } catch { return res.status(404).json({ error: 'Soubor tam není.' }); }
+    if (!st.isFile()) return res.status(400).json({ error: 'Neplatná cesta.' });
+
+    const typy: Record<string, string> = {
+      '.wav': 'audio/wav', '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4',
+      '.aac': 'audio/aac', '.flac': 'audio/flac', '.ogg': 'audio/ogg',
+      '.aiff': 'audio/aiff', '.aif': 'audio/aiff',
+    };
+    const typ = typy[path.extname(cil).toLowerCase()] || 'application/octet-stream';
+    res.setHeader('Content-Type', typ);
+    res.setHeader('Accept-Ranges', 'bytes');
+
+    const rozsah = rozsahZHlavicky(req.headers.range, st.size);
+    if (rozsah === 'mimo') {
+      res.setHeader('Content-Range', `bytes */${st.size}`);
+      return res.status(416).end();
+    }
+    if (rozsah) {
+      res.status(206);
+      res.setHeader('Content-Range', `bytes ${rozsah.od}-${rozsah.do}/${st.size}`);
+      res.setHeader('Content-Length', String(rozsah.do - rozsah.od + 1));
+      return fs.createReadStream(cil, { start: rozsah.od, end: rozsah.do }).pipe(res);
+    }
+    res.setHeader('Content-Length', String(st.size));
+    return fs.createReadStream(cil).pipe(res);
+  });
+
   app.post('/api/stems/process', requireAuth, async (_req, res) => {
     return res.status(410).json({
       error: 'Separace na serveru je vypnutá — trvala desítky minut. '

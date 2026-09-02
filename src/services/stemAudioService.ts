@@ -180,14 +180,14 @@ class StemAudioService {
    * engine nemusí vědět, že stopy nepocházejí ze separace.
    */
   public pouzijVlastniStopy(
-    prirazeni: { role: string; nazev: string; assetId: string; popisRole?: string }[]
+    prirazeni: { role: string; nazev: string; assetId?: string; url?: string; popisRole?: string }[]
   ): void {
     if (prirazeni.length === 0) {
       this.selectSong(null);
       return;
     }
     const dokument: StemSongDocument = {
-      id: `vlastni-${prirazeni.map((p) => p.assetId).join('-').slice(0, 60)}`,
+      id: `vlastni-${prirazeni.map((p) => p.assetId || p.url || p.role).join('-').slice(0, 60)}`,
       youtubeUrl: '',
       youtubeId: '',
       title: 'Vlastní mix',
@@ -204,7 +204,10 @@ class StemAudioService {
         // a udělá z ní blob. Podepsaný odkaz přímo do úložiště by
         // prohlížeč zablokoval jako cizí původ.
         storagePath: '',
-        downloadUrl: `/api/assets/${p.assetId}/content`,
+        // Soubor ležící na disku má vlastní adresu; z knihovny se skládá
+        // z id přílohy. Obojí jde přes náš server, takže engine z toho
+        // udělá blob se stejným přihlášením.
+        downloadUrl: p.url || `/api/assets/${p.assetId}/content`,
         format: 'wav' as const,
         bitrateKbps: 0,
       })),
@@ -212,28 +215,6 @@ class StemAudioService {
       updatedAt: Date.now(),
     };
     this.selectSong(dokument, true);
-  }
-
-  /**
-   * Serverová separace je vypnutá — endpoint odpovídá 410.
-   *
-   * Vzdálený worker na ni potřeboval desítky minut. Stopy se teď dělají
-   * lokálně ve StemDecku a přenesou se v Mixážním pultu; tahle metoda
-   * zbyla proto, aby volající dostal srozumitelné vysvětlení místo
-   * tichého selhání, a smaže se, až na ni nikdo nebude sahat.
-   */
-  public async processYoutubeUrl(youtubeUrl: string, title?: string, artist?: string): Promise<StemSongDocument> {
-    const res = await authorizedFetch('/api/stems/process', {
-      method: 'POST',
-      body: JSON.stringify({ youtubeUrl, title, artist }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.song) {
-      throw new Error(data.error || 'Nepodařilo se zahájit separaci.');
-    }
-    await this.fetchSongs();
-    this.selectSong(data.song, true);
-    return data.song;
   }
 
   /** Deletes a stem set (and its audio) server-side, then refreshes the

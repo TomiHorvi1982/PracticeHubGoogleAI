@@ -7,18 +7,14 @@ import {
   Volume2, 
   VolumeX, 
   Music, 
-  Disc, 
-  Youtube, 
+  Disc,  
   Sparkles, 
   Radio, 
-  Layers, 
-  Zap, 
+  Layers,  
   CheckCircle2, 
   Clock, 
   AlertCircle,
-  HelpCircle,
   Download,
-  Activity,
   Cpu,
   Wand2,
   Check
@@ -31,6 +27,20 @@ import { DawVerticalFader } from './DawVerticalFader';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
 
 /** Fadery pultu. Zůstávají pořád stejné, jen se na ně věší soubory. */
+/** Jedna stopa, jak ji našel server ve složce se separovaným zvukem. */
+interface MistniStopa { role: string | null; jmeno: string; cesta: string; velikost: number }
+interface MistniSkladba { nazev: string; stopy: MistniStopa[] }
+interface MistniOdpoved {
+  dostupne: boolean;
+  slozka: string;
+  duvod?: string;
+  skladby: MistniSkladba[];
+}
+
+/** Adresa, ze které si engine stáhne soubor ležící na disku. */
+const odkazNaMistni = (cesta: string) =>
+  `/api/stopy/mistni/soubor?cesta=${encodeURIComponent(cesta)}`;
+
 const ROLE_FADERU: { id: string; popis: string }[] = [
   { id: 'vocals', popis: 'Zpěv' },
   { id: 'guitar', popis: 'Kytara' },
@@ -62,19 +72,20 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [audioState, setAudioState] = useState<StemAudioState>(stemAudioService.getState());
   const [loading, setLoading] = useState<boolean>(false);
 
-  // New Processing Form
-  const [youtubeUrl, setYoutubeUrl] = useState<string>('');
   /** Na který fader se právě přiřazuje a co na nich visí. */
   const [cilovyFader, setCilovyFader] = useState<string>('vocals');
   /** Ukládání poskládaného mixu jako další skladby. */
   const [nazevMixu, setNazevMixu] = useState('');
   const [uklada, setUklada] = useState(false);
   const [hlaska, setHlaska] = useState<string | null>(null);
-  const [vlastniStopy, setVlastniStopy] = useState<{ role: string; nazev: string; assetId: string }[]>([]);
-  const [customTitle, setCustomTitle] = useState<string>('');
-  const [customArtist, setCustomArtist] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  /** Na faderu může viset soubor z knihovny (assetId) i z disku (url). */
+  const [vlastniStopy, setVlastniStopy] = useState<
+    { role: string; nazev: string; assetId?: string; url?: string }[]
+  >([]);
+  /** Odkud se právě vybírá: z databáze, nebo ze složky na disku. */
+  const [zdroj, setZdroj] = useState<'knihovna' | 'disk'>('knihovna');
+  const [mistni, setMistni] = useState<MistniOdpoved>({ dostupne: false, slozka: '', skladby: [] });
+  const [mistniNacita, setMistniNacita] = useState(false);
 
   useEffect(() => {
     const unsub = stemAudioService.subscribe((state) => {
@@ -89,6 +100,52 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
   const { songs, selectedSong, isPlaying, currentTime, duration, audioReady, loadingAudio, globalPitch, channels, meterLevels } = audioState;
 
+  /**
+   * Načte, co leží ve složce se stopami.
+   *
+   * Neural Mix Pro tam sype průběžně, takže se to dá vyvolat znovu
+   * tlačítkem — jinak by nová sada byla vidět až po obnovení stránky.
+   */
+  const nactiMistni = React.useCallback(async () => {
+    setMistniNacita(true);
+    try {
+      const r = await authorizedFetch('/api/stopy/mistni');
+      setMistni(await r.json());
+    } catch {
+      setMistni({ dostupne: false, slozka: '', skladby: [], duvod: 'Složku se nepodařilo přečíst.' });
+    } finally {
+      setMistniNacita(false);
+    }
+  }, []);
+
+  useEffect(() => { nactiMistni(); }, [nactiMistni]);
+
+  /** Pověsí stopu na fader; na jednom faderu je vždycky jen jedna. */
+  const povesNaFader = (role: string, polozka: { nazev: string; assetId?: string; url?: string }) => {
+    const nove = [...vlastniStopy.filter((v) => v.role !== role), { role, ...polozka }];
+    setVlastniStopy(nove);
+    stemAudioService.pouzijVlastniStopy(nove);
+    return nove;
+  };
+
+  /**
+   * Naveze celou sadu ze složky naráz.
+   *
+   * Separátor vyplivne čtyři soubory a věšet je po jednom je čtyřikrát
+   * ta samá práce; role se pozná z názvu, takže sedí samy.
+   */
+  const nactiSadu = (sk: MistniSkladba) => {
+    const nove = [...vlastniStopy];
+    for (const t of sk.stopy) {
+      if (!t.role) continue;
+      const polozka = { role: t.role, nazev: t.jmeno, url: odkazNaMistni(t.cesta) };
+      const i = nove.findIndex((v) => v.role === t.role);
+      if (i >= 0) nove[i] = polozka; else nove.push(polozka);
+    }
+    setVlastniStopy(nove);
+    stemAudioService.pouzijVlastniStopy(nove);
+  };
+
   // Poll processing songs progress
   useEffect(() => {
     const hasProcessing = songs.some((s) => s.status === 'processing');
@@ -101,38 +158,13 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     return () => clearInterval(interval);
   }, [songs]);
 
-  const handleStartProcess = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!youtubeUrl.trim()) {
-      setSubmitError('Zadejte prosím platný odkaz na YouTube video.');
-      return;
-    }
-
-    setSubmitError(null);
-    setIsSubmitting(true);
-
-    try {
-      await stemAudioService.processYoutubeUrl(
-        youtubeUrl.trim(),
-        customTitle.trim() || undefined,
-        customArtist.trim() || undefined
-      );
-      setYoutubeUrl('');
-      setCustomTitle('');
-      setCustomArtist('');
-    } catch (err: any) {
-      setSubmitError(err.message || 'Chyba při odesílání požadavku.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleDeleteStemSet = async (song: StemSongDocument) => {
     if (!window.confirm(`Opravdu odstranit "${song.title}"? Smažou se i případné nahrané stopy.`)) return;
     try {
       await stemAudioService.deleteStemSet(song.id);
     } catch (err: any) {
-      setSubmitError(err.message || 'Nepodařilo se odstranit sadu stop.');
+      setHlaska(err.message || 'Nepodařilo se odstranit sadu stop.');
     }
   };
 
@@ -161,265 +193,19 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
         <div className="relative z-10 max-w-3xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" /> AI Demucs 6-Stem Audio Separace &amp; DAW Svislý Mixážní Pult
+            <Sparkles className="w-3.5 h-3.5" /> Mixážní pult se svislými fadery
           </div>
           <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-            AI Stem Studio &amp; DAW Mixážní Pult
+            Mixážní pult
           </h1>
           <p className="text-slate-300 text-sm leading-relaxed">
-            Stáhněte libovolnou písničku z YouTube, oddělte samostatné stopy (<strong className="text-amber-400">Zpěv, Kytara, Baskytara, Bicí, Synth</strong>) a namixujte si vlastní cvičební doprovod se <strong className="text-amber-400">svislými fadery v Logic DAW stylu, VU metry gainu</strong> a kytarovým <strong className="text-amber-400">Mid/Side procesorem</strong>.
+            Fadery stojí pořád — <strong className="text-amber-400">Zpěv, Kytara, Sólo, Basa, Bicí, Metronom, Ostatní</strong> — a ke každému si vybereš soubor: z knihovny, nebo ze složky, kam ti separátor odkládá stopy. K tomu VU metry gainu a kytarový <strong className="text-amber-400">Mid/Side procesor</strong>.
           </p>
         </div>
       </div>
 
-      {/* ACTIVE SEPARATION PIPELINE STATUS BANNER (shown whenever a song is being processed) */}
-      {(activeProcessingSong || isSubmitting) && (
-        <div className="bg-gradient-to-br from-slate-900 via-amber-950/20 to-slate-900 border-2 border-amber-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-5">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 shadow-inner">
-                <RotateCcw className="w-6 h-6 animate-spin" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider animate-pulse flex items-center gap-1.5">
-                    <Activity className="w-3.5 h-3.5" /> AI Separace Probíhá
-                  </span>
-                  <span className="text-xs font-mono font-bold text-amber-300">
-                    {activeProcessingSong?.progressPercentage || 15}%
-                  </span>
-                </div>
-                <h3 className="text-base sm:text-lg font-bold text-white mt-1">
-                  {activeProcessingSong?.title || customTitle || 'Zpracování YouTube skladby'}
-                </h3>
-                <p className="text-xs text-slate-400">
-                  {activeProcessingSong?.artist || customArtist || 'Neuronová extrakce vícestopého audia'}
-                </p>
-              </div>
-            </div>
-
-            {/* Audio Wave Bars Animation */}
-            <div className="hidden sm:flex items-center gap-1 bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-slate-800">
-              <span className="text-[11px] font-mono text-slate-400 mr-2 flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-amber-400" /> Demucs Neural Engine
-              </span>
-              <div className="flex items-end gap-1 h-5">
-                <div className="w-1 bg-amber-500 rounded-full animate-[bounce_0.8s_infinite_100ms] h-3" />
-                <div className="w-1 bg-amber-400 rounded-full animate-[bounce_0.8s_infinite_200ms] h-5" />
-                <div className="w-1 bg-amber-500 rounded-full animate-[bounce_0.8s_infinite_300ms] h-2" />
-                <div className="w-1 bg-amber-300 rounded-full animate-[bounce_0.8s_infinite_150ms] h-4" />
-                <div className="w-1 bg-amber-500 rounded-full animate-[bounce_0.8s_infinite_250ms] h-5" />
-              </div>
-            </div>
-          </div>
-
-          {/* Master Progress Bar */}
-          <div className="space-y-2 mb-5">
-            <div className="w-full bg-slate-950 h-3 rounded-full overflow-hidden p-0.5 border border-slate-800 shadow-inner">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-300 transition-all duration-700 shadow-lg shadow-amber-500/30"
-                style={{ width: `${activeProcessingSong?.progressPercentage || 15}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Step-by-Step Separation Stages */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Step 1 */}
-            {(() => {
-              const pct = activeProcessingSong?.progressPercentage || 15;
-              const isDone = pct > 30;
-              const isCurrent = pct <= 30;
-              return (
-                <div
-                  className={`p-3 rounded-2xl border transition-all ${
-                    isDone
-                      ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
-                      : isCurrent
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-950/40 border-slate-800/60 text-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold">1. Extrakce &amp; Normalizace</span>
-                    {isDone ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    ) : isCurrent ? (
-                      <RotateCcw className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                    ) : (
-                      <Clock className="w-3.5 h-3.5 text-slate-600" />
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    Stahování YouTube audio streamu &amp; analýza spektra
-                  </p>
-                </div>
-              );
-            })()}
-
-            {/* Step 2 */}
-            {(() => {
-              const pct = activeProcessingSong?.progressPercentage || 15;
-              const isDone = pct >= 80;
-              const isCurrent = pct > 30 && pct < 80;
-              return (
-                <div
-                  className={`p-3 rounded-2xl border transition-all ${
-                    isDone
-                      ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
-                      : isCurrent
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-950/40 border-slate-800/60 text-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold">2. AI Demucs Separace</span>
-                    {isDone ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    ) : isCurrent ? (
-                      <RotateCcw className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                    ) : (
-                      <Clock className="w-3.5 h-3.5 text-slate-600" />
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    Rozdělení na 5 stop: Zpěv, Kytara, Bas, Bicí, Synth
-                  </p>
-                </div>
-              );
-            })()}
-
-            {/* Step 3 */}
-            {(() => {
-              const pct = activeProcessingSong?.progressPercentage || 15;
-              const isDone = pct >= 100;
-              const isCurrent = pct >= 80 && pct < 100;
-              return (
-                <div
-                  className={`p-3 rounded-2xl border transition-all ${
-                    isDone
-                      ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-400'
-                      : isCurrent
-                      ? 'bg-amber-500/10 border-amber-500/40 text-amber-300 shadow-lg shadow-amber-500/10'
-                      : 'bg-slate-950/40 border-slate-800/60 text-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold">3. DAW Sestavení</span>
-                    {isDone ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                    ) : isCurrent ? (
-                      <RotateCcw className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                    ) : (
-                      <Clock className="w-3.5 h-3.5 text-slate-600" />
-                    )}
-                  </div>
-                  <p className="text-[10px] text-slate-400">
-                    Příprava faderů, směrování a automatické spuštění
-                  </p>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-
-      {/* YOUTUBE INPUT FORM & SONG SELECTOR GRID */}
+      {/* PŘIŘAZENÍ STOP NA FADERY */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Submit YouTube URL Box */}
-        <div className="lg:col-span-1 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
-          <h3 className="text-base font-bold flex items-center gap-2 text-white">
-            <Youtube className="w-5 h-5 text-red-500" />
-            Separovat Písničku z YouTube
-          </h3>
-
-          <form onSubmit={handleStartProcess} className="space-y-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1">
-                YouTube URL
-              </label>
-              <input
-                type="text"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..."
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
-                  Název písně
-                </label>
-                <input
-                  type="text"
-                  value={customTitle}
-                  onChange={(e) => setCustomTitle(e.target.value)}
-                  placeholder="Volitelné..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-1">
-                  Interpret
-                </label>
-                <input
-                  type="text"
-                  value={customArtist}
-                  onChange={(e) => setCustomArtist(e.target.value)}
-                  placeholder="Volitelné..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
-                />
-              </div>
-            </div>
-
-            {submitError && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{submitError}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting || !youtubeUrl.trim()}
-              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {isSubmitting ? (
-                <>
-                  <RotateCcw className="w-4 h-4 animate-spin" />
-                  <span>Zahajuji separaci...</span>
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4" />
-                  <span>Spustit AI Separaci Stop</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="pt-2 border-t border-slate-800 text-[11px] text-slate-400 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
-              <HelpCircle className="w-3.5 h-3.5" /> Automatická Pipeline:
-            </div>
-            <p className="leading-normal">
-              1. Stáhnutí zvuku z YouTube <br />
-              2. Separace stop přes <code>Demucs AI</code> <br />
-              3. Generování vícestopého DAW projektu <br />
-              4. Propojení se zpěvníkem a svislými fadery
-            </p>
-            {/* Separaci nedělá appka, ale worker — a ten musí běžet.
-                Bez téhle věty úloha jen tiše čeká ve frontě a vypadá to,
-                že se nic neděje. */}
-            <p className="leading-normal mt-2 pt-2 border-t border-slate-800">
-              Separaci provádí worker, který si úlohy vyzvedává sám. Na tomhle Macu ho spustíte
-              příkazem <code>./worker/run-local.sh</code> — úlohy počkají ve frontě, dokud neběží.
-            </p>
-          </div>
-        </div>
-
         {/* Vlastní stopy: fadery zůstávají, jen se na ně věší soubory
             z knihovny. Hotových rozdělených sad je pár, kdežto jednotlivých
             stop leží v databázi spousta a nešlo z nich mix poskládat. */}
@@ -449,6 +235,87 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             ))}
           </div>
 
+          {/* Odkud brát soubory. Knihovna je sdílená s kapelou, disk je
+              jen tenhle počítač — separátor tam sype rychleji, než by se
+              stihlo cokoli nahrát nahoru. */}
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+            {([['knihovna', 'Z knihovny'], ['disk', 'Ze složky na disku']] as const).map(([id, popis]) => (
+              <button
+                key={id}
+                onClick={() => setZdroj(id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                  zdroj === id ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                }`}
+              >
+                {popis}
+              </button>
+            ))}
+            {zdroj === 'disk' && (
+              <button
+                onClick={nactiMistni}
+                disabled={mistniNacita}
+                className="ml-auto px-3 py-1.5 rounded-xl text-xs bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer disabled:opacity-50"
+              >
+                {mistniNacita ? 'Hledám…' : 'Načíst znovu'}
+              </button>
+            )}
+          </div>
+
+          {zdroj === 'disk' && (
+            <div className="space-y-2">
+              <div className="text-[11px] text-slate-500 font-mono truncate">{mistni.slozka}</div>
+
+              {!mistni.dostupne ? (
+                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
+                  {mistni.duvod || 'Složku se stopami se nepodařilo přečíst.'}
+                </div>
+              ) : mistni.skladby.length === 0 ? (
+                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
+                  Ve složce zatím žádné zvukové soubory nejsou.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {mistni.skladby.map((sk) => (
+                    <div key={sk.nazev} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-white truncate flex-1">
+                          {sk.nazev || '(bez názvu)'}
+                        </span>
+                        <span className="text-[10px] text-slate-500 shrink-0">
+                          {sk.stopy.length} {sk.stopy.length === 1 ? 'stopa' : sk.stopy.length < 5 ? 'stopy' : 'stop'}
+                        </span>
+                        {sk.stopy.some((t) => t.role) && (
+                          <button
+                            onClick={() => nactiSadu(sk)}
+                            className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold cursor-pointer shrink-0"
+                          >
+                            Načíst na fadery
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {sk.stopy.map((t) => (
+                          <button
+                            key={t.cesta}
+                            onClick={() => povesNaFader(t.role || cilovyFader, { nazev: t.jmeno, url: odkazNaMistni(t.cesta) })}
+                            title={`${t.jmeno} — pověsit na ${
+                              ROLE_FADERU.find((r) => r.id === (t.role || cilovyFader))?.popis || t.role
+                            }`}
+                            className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-[10px] text-slate-300 cursor-pointer"
+                          >
+                            {ROLE_FADERU.find((r) => r.id === t.role)?.popis || '?'}
+                            <span className="text-slate-500 ml-1">{Math.round(t.velikost / 1048576)} MB</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {zdroj === 'knihovna' && (
           <VyberZKnihovny
             kategorie="stem_mix,backing_tracks,recordings,samples"
             cil={`na ${ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis || cilovyFader}`}
@@ -475,6 +342,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               if (volny) setCilovyFader(volny.id);
             }}
           />
+          )}
 
           {vlastniStopy.length > 0 && (
             <div className="border-t border-slate-800 pt-3 space-y-2">
@@ -557,7 +425,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             {loading ? (
               <div className="p-8 text-center text-slate-400 text-xs">Načítání skladeb...</div>
             ) : songs.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 text-xs">Žádné dostupné skladby. Vložte YouTube odkaz výše.</div>
+              <div className="p-8 text-center text-slate-500 text-xs">Zatím tu žádná hotová sada není — pověs si stopy na fadery níž.</div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-1">
                 {songs.map((s) => {
@@ -741,7 +609,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       )}
 
       {/* WEB AUDIO API MIXER CONSOLE WITH SVILE FADERY */}
-      {selectedSong && selectedSong.status === 'completed' && (
+      {(
         <div className="bg-[#121217] border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
           {/* MASTER TRANSPORT BAR */}
           <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-6 gap-4">
@@ -766,9 +634,9 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
               <div>
                 <h2 className="text-xl font-bold flex items-center gap-2">
-                  {selectedSong.title}
+                  {selectedSong?.title || 'Mixážní pult'}
                 </h2>
-                <p className="text-xs text-slate-400">{selectedSong.artist} — Logic DAW Style Multi-Track Studio</p>
+                <p className="text-xs text-slate-400">{selectedSong?.artist || 'Vyber soubory na fadery níž'}</p>
               </div>
             </div>
 
@@ -813,10 +681,18 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             </div>
           </div>
 
-          {/* SVISLE DAW FADERY GRID */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {selectedSong.stems.map((stem) => {
-              const ch = channels[stem.id] || {
+          {/* SVISLE DAW FADERY GRID
+
+              Tahy stojí pořád, i když je pult prázdný. Dřív se objevily
+              až s načtenou skladbou, takže než se něco vybralo, nebylo
+              z pultu poznat, kolik tahů vlastně má a co kam patří.
+              Pod každým je vidět, co na něm visí — a kliknutím se z něj
+              stane cíl pro další vybraný soubor. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
+            {ROLE_FADERU.map((role) => {
+              const stem = selectedSong?.stems.find((x) => x.id === role.id);
+              const naNem = vlastniStopy.find((v) => v.role === role.id);
+              const ch = channels[role.id] || {
                 volume: 0,
                 pan: 0,
                 isMuted: false,
@@ -825,23 +701,36 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 isMono: false,
                 stereoWidth: 1.0,
               };
-
-              const meter = meterLevels[stem.id] || 0;
-              const theme = stemColors[stem.id] || stemColors['other'];
+              const theme = stemColors[role.id] || stemColors['other'];
 
               return (
-                <DawVerticalFader
-                  key={stem.id}
-                  stemId={stem.id}
-                  name={stem.name}
-                  channel={ch}
-                  meterLevel={meter}
-                  isPlaying={isPlaying}
-                  isLoading={loadingAudio || !audioReady}
-                  onUpdate={(updates) => stemAudioService.updateChannel(stem.id, updates)}
-                  colorTheme={theme}
-                  compact={false}
-                />
+                <div key={role.id} className="space-y-1.5">
+                  <DawVerticalFader
+                    stemId={role.id}
+                    name={role.popis}
+                    channel={ch}
+                    meterLevel={meterLevels[role.id] || 0}
+                    isPlaying={isPlaying}
+                    // Prázdný fader se netváří, že se načítá — čekal by věčně.
+                    isLoading={!!stem && (loadingAudio || !audioReady)}
+                    onUpdate={(updates) => stemAudioService.updateChannel(role.id, updates)}
+                    colorTheme={theme}
+                    compact={false}
+                  />
+                  <button
+                    onClick={() => setCilovyFader(role.id)}
+                    title={naNem?.nazev || stem?.name || 'Vyber sem soubor'}
+                    className={`w-full px-2 py-1 rounded-lg text-[10px] truncate cursor-pointer transition-all border ${
+                      cilovyFader === role.id
+                        ? 'bg-amber-500/20 border-amber-500/60 text-amber-300'
+                        : naNem || stem
+                        ? 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                        : 'bg-slate-950/50 border-dashed border-slate-800 text-slate-600 hover:border-slate-700'
+                    }`}
+                  >
+                    {naNem?.nazev || stem?.name || 'prázdný'}
+                  </button>
+                </div>
               );
             })}
           </div>

@@ -1,0 +1,162 @@
+/**
+ * Čtení stop, které vyexportoval separátor na disku.
+ *
+ * Neural Mix Pro rozseparuje skladbu za pár vteřin a odloží stopy do
+ * složky. Tenhle modul z té složky udělá seznam skladeb, aby si je
+ * mixážní pult mohl pověsit na fadery, aniž by musely projít databází.
+ *
+ * Rozhodovací část je schválně bez `fs`: hádání role z názvu je to
+ * jediné, co se tu může splést, a testovat to proti opravdovému disku
+ * by znamenalo pokládat tam soubory.
+ */
+
+import path from 'node:path';
+
+/** Přípony, které umí přehrát prohlížeč (wav kvůli exportu z Neural Mixu). */
+export const ZVUKOVE_PRIPONY = ['.wav', '.mp3', '.m4a', '.aac', '.flac', '.ogg', '.aiff', '.aif'];
+
+/**
+ * Jak se jmenují stopy u jednotlivých separátorů.
+ *
+ * Neural Mix Pro dělí na acappella / drums / bass / harmonic, Demucs
+ * na vocals / drums / bass / other. Obojí míří na stejné fadery, tak
+ * se sem vejdou vedle sebe i s českými názvy pro ručně pojmenované.
+ */
+const ROLE_PODLE_SLOV: { role: string; slova: string[] }[] = [
+  { role: 'vocals', slova: ['acappella', 'acapella', 'vocals', 'vocal', 'voc', 'zpev', 'zpěv'] },
+  { role: 'drums', slova: ['drums', 'drum', 'beats', 'beat', 'bicí', 'bici'] },
+  { role: 'bass', slova: ['bass', 'basa', 'bas'] },
+  { role: 'lead', slova: ['lead', 'solo', 'sólo'] },
+  { role: 'guitar', slova: ['guitar', 'gtr', 'kytara'] },
+  { role: 'metronome', slova: ['metronome', 'metronom', 'click', 'klik'] },
+  { role: 'other', slova: ['harmonic', 'harmonics', 'melody', 'instruments', 'instrumental', 'other', 'synth', 'ostatni', 'ostatní'] },
+];
+
+/** Bez diakritiky a malými písmeny, ať „sólo" najde i „solo". */
+function zjednodus(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/** Odřízne příponu. */
+function bezPripony(jmeno: string): string {
+  const i = jmeno.lastIndexOf('.');
+  return i > 0 ? jmeno.slice(0, i) : jmeno;
+}
+
+/**
+ * Která stopa to je, podle konce názvu souboru.
+ *
+ * Čte se od konce: separátory věší svůj štítek za název skladby, a
+ * kdyby se hledalo kdekoli v názvu, tak by se „Bass Communion — Drums"
+ * chytlo na první slovo místo na to skutečné za pomlčkou.
+ */
+export function rolePodleNazvu(jmeno: string): string | null {
+  const zaklad = zjednodus(bezPripony(jmeno));
+  // Poslední úsek za pomlčkou, podtržítkem nebo mezerou.
+  const useky = zaklad.split(/[-_ ]+/).filter(Boolean);
+  for (let i = useky.length - 1; i >= 0 && i >= useky.length - 2; i--) {
+    for (const { role, slova } of ROLE_PODLE_SLOV) {
+      if (slova.includes(useky[i])) return role;
+    }
+  }
+  return null;
+}
+
+/**
+ * Název skladby bez štítku stopy.
+ *
+ * Prázdný název je platný výsledek: v exportu se najde i soubor jako
+ * „-harmonic.wav", kde separátor název neuložil. Volající si ho pak
+ * pojmenuje sám, místo aby ho zahodil.
+ */
+export function nazevBezRole(jmeno: string): string {
+  const zaklad = bezPripony(jmeno);
+  const role = rolePodleNazvu(jmeno);
+  if (!role) return zaklad.trim();
+  const useky = zaklad.split(/[-_ ]+/).filter(Boolean);
+  // Uřízne se právě tolik úseků z konce, kolik jich patří ke štítku.
+  let konec = useky.length;
+  for (let i = useky.length - 1; i >= 0 && i >= useky.length - 2; i--) {
+    if (rolePodleNazvu(useky[i]) === role) { konec = i; break; }
+  }
+  return useky.slice(0, konec).join(' ').trim();
+}
+
+export interface MistniSoubor { jmeno: string; cesta: string; velikost: number }
+export interface MistniSkladba {
+  nazev: string;
+  stopy: { role: string | null; jmeno: string; cesta: string; velikost: number }[];
+}
+
+/**
+ * Poskládá soubory do skladeb.
+ *
+ * Podsložka je skladba sama o sobě; soubory ležící volně se spojují
+ * podle názvu před štítkem stopy. Obojí naráz proto, že separátor umí
+ * sypat všechno do jedné složky i zakládat podsložky, a uživatel si
+ * mezi tím může kdykoli přepnout.
+ */
+export function seskupDoSkladeb(soubory: MistniSoubor[]): MistniSkladba[] {
+  const podle = new Map<string, MistniSkladba>();
+  for (const s of soubory) {
+    // Podsložka vyhrává nad názvem souboru: když si ji uživatel založil,
+    // řekl tím, co k sobě patří, líp než jakékoli hádání z názvu.
+    const lomitko = s.cesta.lastIndexOf('/');
+    const podslozka = lomitko > 0 ? s.cesta.slice(0, lomitko) : '';
+    const zNazvu = nazevBezRole(s.jmeno);
+    const nazev = podslozka || zNazvu || '(bez názvu)';
+    let sk = podle.get(nazev);
+    if (!sk) { sk = { nazev, stopy: [] }; podle.set(nazev, sk); }
+    sk.stopy.push({ role: rolePodleNazvu(s.jmeno), jmeno: s.jmeno, cesta: s.cesta, velikost: s.velikost });
+  }
+  return [...podle.values()].sort((a, b) => a.nazev.localeCompare(b.nazev, 'cs'));
+}
+
+/** Je to zvuk, o který stojíme? */
+export function jeZvuk(jmeno: string): boolean {
+  const i = jmeno.lastIndexOf('.');
+  return i > 0 && ZVUKOVE_PRIPONY.includes(jmeno.slice(i).toLowerCase());
+}
+
+/**
+ * Nepustí ven ze složky se stopami.
+ *
+ * Cesta chodí z prohlížeče, takže „../../.ssh/id_rsa" je otázka času.
+ * Vrací se `null`, cokoli míří jinam než dovnitř kořene.
+ */
+export function bezpecnaCesta(koren: string, relativni: string): string | null {
+  if (!relativni || relativni.includes('\0')) return null;
+  const cil = path.resolve(koren, relativni);
+  const k = path.resolve(koren);
+  if (cil !== k && !cil.startsWith(k + path.sep)) return null;
+  return cil;
+}
+
+/**
+ * Rozebere hlavičku `Range` na meze.
+ *
+ * Wav ze separátoru má klidně čtyřicet megabajtů a prohlížeč si při
+ * posunu v mixu říká o kus zprostředka. Vrací `null`, když hlavička
+ * chybí nebo jí nerozumíme (pošle se celý soubor), a `'mimo'`, když
+ * ukazuje za konec — na to se odpovídá 416, ne oříznutím, jinak by
+ * přehrávač dostal jiná data, než o která si řekl.
+ */
+export function rozsahZHlavicky(
+  hlavicka: string | undefined,
+  velikost: number,
+): { od: number; do: number } | 'mimo' | null {
+  if (!hlavicka) return null;
+  const m = /^bytes=(\d*)-(\d*)$/.exec(hlavicka.trim());
+  if (!m || (!m[1] && !m[2])) return null;
+  // „bytes=-500" znamená posledních 500 bajtů, ne prvních 500.
+  if (!m[1]) {
+    const kolik = parseInt(m[2], 10);
+    if (!Number.isFinite(kolik) || kolik <= 0) return 'mimo';
+    return { od: Math.max(0, velikost - kolik), do: velikost - 1 };
+  }
+  const od = parseInt(m[1], 10);
+  const do_ = m[2] ? parseInt(m[2], 10) : velikost - 1;
+  if (!Number.isFinite(od) || !Number.isFinite(do_)) return null;
+  if (od >= velikost || od > do_) return 'mimo';
+  return { od, do: Math.min(do_, velikost - 1) };
+}
