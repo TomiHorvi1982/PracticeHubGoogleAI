@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { spocitejVrcholy } from './vlnovka';
 import { StemSongDocument, SongStem } from '../types';
 import { generateSynchronizedStems } from './stemAudioGenerator';
 import { authService } from './authService';
@@ -53,6 +54,14 @@ class StemAudioService {
   /** Blob adresy stažených stop, aby šly po výměně skladby uvolnit. */
   private blobAdresy: string[] = [];
   private players: Record<string, Tone.Player> = {};
+  /**
+   * Spočítané obálky pro vlnovku.
+   *
+   * Projít deset milionů vzorků je znát, a při každém překreslení by se
+   * to dělalo znovu. Klíč nese i šířku a délku bufferu, takže po změně
+   * velikosti okna nebo po výměně stopy se počítá znovu, jinak ne.
+   */
+  private vrcholyCache = new Map<string, Float32Array>();
   private pitchShifters: Record<string, Tone.PitchShift> = {};
   private panners: Record<string, Tone.Panner> = {};
   private gains: Record<string, Tone.Gain> = {};
@@ -272,6 +281,7 @@ class StemAudioService {
       Object.values(this.meters).forEach((p) => p.dispose());
 
       this.players = {};
+      this.vrcholyCache.clear();
       this.pitchShifters = {};
       this.panners = {};
       this.gains = {};
@@ -512,6 +522,27 @@ class StemAudioService {
     // Reset visual meters
     Object.keys(this.meterLevels).forEach((k) => (this.meterLevels[k] = 0));
     this.notify();
+  }
+
+  /**
+   * Obálka jedné stopy pro vlnovku, nebo `null`, dokud se nedonačte.
+   *
+   * Bere se první kanál. Pro pohled na průběh je to totéž co součet
+   * obou a je to o polovinu míň práce.
+   */
+  public vrcholyStopy(stemId: string, sloupcu: number): Float32Array | null {
+    const buffer = this.players[stemId]?.buffer;
+    if (!buffer?.loaded) return null;
+    const zvuk = buffer.get() as AudioBuffer | undefined;
+    if (!zvuk || sloupcu <= 0) return null;
+
+    const klic = `${stemId}:${sloupcu}:${zvuk.length}`;
+    const ulozene = this.vrcholyCache.get(klic);
+    if (ulozene) return ulozene;
+
+    const v = spocitejVrcholy(zvuk.getChannelData(0), sloupcu);
+    this.vrcholyCache.set(klic, v);
+    return v;
   }
 
   public seek(seconds: number) {
