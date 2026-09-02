@@ -1,8 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus, LayoutGrid } from 'lucide-react';
 import { Song } from '../../types';
-import { Okno, TypOkna, POPIS_OKEN, noveOkno, vRamci } from './plovouciOkna';
+import {
+  Okno, TypOkna, POPIS_OKEN, noveOkno, vRamci, vychoziOkna, srovnejDoRadku,
+} from './plovouciOkna';
 import { podiumProfil } from '../../services/podiumProfil';
+import { dataModulu } from './moduleRegistry';
 import { PlovouciOkno } from './PlovouciOkno';
 
 interface Props {
@@ -27,7 +30,10 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
 
   // Přepnutí písně načte její vlastní plochu.
   useEffect(() => {
-    setOkna(nactiOkna(song));
+    // Šířka se čte až tady: při prvním výpočtu ve `useState` plocha ještě
+    // není v dokumentu, takže by se automatická okna zalomila podle
+    // odhadu místo podle skutečnosti.
+    setOkna(nactiOkna(song, plochaRef.current?.clientWidth || 1200));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [song.id]);
 
@@ -41,7 +47,9 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
    */
   useEffect(() => {
     const zProfilu = (e: Event) => {
-      if ((e as CustomEvent).detail?.zProfilu) setOkna(nactiOkna(song));
+      if ((e as CustomEvent).detail?.zProfilu) {
+        setOkna(nactiOkna(song, plochaRef.current?.clientWidth || 1200));
+      }
     };
     window.addEventListener('neverlate:podium-zmena', zProfilu);
     return () => window.removeEventListener('neverlate:podium-zmena', zProfilu);
@@ -116,7 +124,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
         {okna.length > 0 && (
           <>
             <button
-              onClick={() => uloz(srovnej(okna, plochaRef.current?.getBoundingClientRect().width || 1200))}
+              onClick={() => uloz(srovnejDoRadku(okna, plochaRef.current?.getBoundingClientRect().width || 1200))}
               className="px-3 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-[11px] font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
               title="Srovnat okna vedle sebe"
             >
@@ -172,7 +180,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
  * všem naráz zmizelo, co si nastavili, než se rozložení stěhovalo
  * k profilům.
  */
-function nactiOkna(song: Song): Okno[] {
+function nactiOkna(song: Song, sirkaPlochy = 1200): Okno[] {
   const moje = podiumProfil.oknaPisne(song.id);
   if (moje) return moje;
 
@@ -185,24 +193,10 @@ function nactiOkna(song: Song): Okno[] {
   } catch {
     /* poškozený záznam se chová jako žádný */
   }
-  return [];
+
+  // Nikdy tu nic nebylo: otevře se, k čemu jsou u písně materiály.
+  // Dřív zůstala plocha holá a všechno se muselo naklikat znovu —
+  // na zkoušce zrovna ve chvíli, kdy se má hrát.
+  return vychoziOkna((typ) => dataModulu(song, typ).jsouData, sirkaPlochy);
 }
 
-/** Srovná okna do řádků vedle sebe, aby se po nepořádku dala plocha uklidit. */
-function srovnej(okna: Okno[], sirkaPlochy: number): Okno[] {
-  const mezera = 12;
-  let x = mezera;
-  let y = mezera;
-  let vyskaRadku = 0;
-  return okna.map((o) => {
-    if (x + o.sirka > sirkaPlochy - mezera && x > mezera) {
-      x = mezera;
-      y += vyskaRadku + mezera;
-      vyskaRadku = 0;
-    }
-    const umistene = { ...o, x, y };
-    x += o.sirka + mezera;
-    vyskaRadku = Math.max(vyskaRadku, o.sbalene ? 32 : o.vyska);
-    return umistene;
-  });
-}

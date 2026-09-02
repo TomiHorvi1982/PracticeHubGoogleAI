@@ -90,3 +90,62 @@ export function vRamci(o: Okno, sirkaPlochy: number, vyskaPlochy: number): Okno 
     y: Math.max(0, Math.min(o.y, vyskaPlochy - 40)),
   };
 }
+
+/**
+ * Okna, která se otevřou sama, a v jakém pořadí.
+ *
+ * Pořadí je pořadí hraní: z čeho se hraje (tabulatura), co se u toho
+ * zpívá (text), podle čeho se to učí (video) a co k tomu zní (stopy).
+ */
+export const AUTO_OKNA: TypOkna[] = ['tabs', 'text_chords', 'youtube', 'stems_mixer'];
+
+/**
+ * Srovná okna do řádků vedle sebe.
+ *
+ * Automaticky otevřená okna by jinak ležela schodovitě přes sebe jako ta
+ * ručně přidávaná — a tam to smysl dává, protože je přidáváš po jednom
+ * a chceš vidět, které je nové. Tady se otevřou naráz a mají být vidět
+ * všechna.
+ */
+export function srovnejDoRadku(okna: Okno[], sirkaPlochy: number): Okno[] {
+  const mezera = 12;
+  let x = mezera;
+  let y = mezera;
+  let vyskaRadku = 0;
+  return okna.map((o) => {
+    if (x + o.sirka > sirkaPlochy - mezera && x > mezera) {
+      x = mezera;
+      y += vyskaRadku + mezera;
+      vyskaRadku = 0;
+    }
+    const umistene = { ...o, x, y };
+    x += o.sirka + mezera;
+    vyskaRadku = Math.max(vyskaRadku, o.sbalene ? 32 : o.vyska);
+    return umistene;
+  });
+}
+
+/**
+ * Co otevřít u písně, u které si člověk ještě nic nenastavil.
+ *
+ * Dřív zůstala plocha prázdná a materiály se musely naklikat u každé
+ * písně znovu — na zkoušce zrovna ve chvíli, kdy se má hrát. Otevře se
+ * to, k čemu opravdu něco je; rozhoduje o tom registr modulů, tedy
+ * totéž místo, ze kterého si obsah bere samotné okno. Kdyby to
+ * rozhodovalo něco vlastního, otevřelo by se okno, které pak nic
+ * nenajde.
+ *
+ * Neukládá se. Zápis do profilu dělá až vlastní zásah, takže fajfka
+ * „nastaveno" dál znamená „tohle jsem si nastavil sám".
+ */
+export function vychoziOkna(
+  maData: (typ: TypOkna) => boolean,
+  sirkaPlochy = 1200,
+): Okno[] {
+  const okna: Okno[] = [];
+  for (const typ of AUTO_OKNA) {
+    if (!maData(typ)) continue;
+    okna.push(noveOkno(typ, okna));
+  }
+  return srovnejDoRadku(okna, sirkaPlochy);
+}
