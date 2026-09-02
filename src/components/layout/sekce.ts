@@ -11,6 +11,7 @@ export type MainTabType =
   | 'podium'
   | 'playlist'
   | 'alphatab'
+  | 'alphatabhriste'
   | 'instruments'
   | 'youtube'
   | 'mediacenter'
@@ -38,6 +39,7 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'pódium': 'podium',
   'playlist': 'playlist',
   'guitar pro': 'alphatab',
+  'alphatab': 'alphatabhriste',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
   // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.

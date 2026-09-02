@@ -19,6 +19,7 @@ import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { AiKapelaSection } from './components/AiKapelaSection';
+import { AlphaTabPlayground } from './components/AlphaTabPlayground';
 import { ZalozkySection } from './components/ZalozkySection';
 import { PractiseHubSection } from './components/PractiseHubSection';
 import { TextySection } from './components/TextySection';
@@ -355,6 +356,7 @@ function AppContent() {
       {activeTab === 'zalozky' && <ZalozkySection />}
 
       {/* AI BAND */}
+      {activeTab === 'alphatabhriste' && <AlphaTabPlayground />}
       {activeTab === 'aikapela' && <AiKapelaSection />}
 
       {/* GUITAR PRO / ALPHATAB SECTION */}

@@ -6,6 +6,7 @@ import { HmatnikUseku } from './practise/HmatnikUseku';
 import * as alphaTab from '@coderline/alphatab';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
 import { NASTROJE_GM, RODINY_NASTROJU } from '../data/nastrojeGm';
+import { FONT_DIRECTORY, FALLBACK_SOUNDFONT } from '../services/alphaTabNastaveni';
 import {
   Play,
   Pause,
@@ -48,14 +49,6 @@ interface GuitarProPlayerProps {
   kompaktni?: boolean;
 }
 
-/**
- * Verze se drží té nainstalované schválně. S `@latest` by si přehrávač
- * tahal notové písmo z jiného vydání, než na které je zbytek zkompilovaný,
- * a rozbila by ho cizí aktualizace.
- */
-const ALPHATAB_VERSION = '1.8.4';
-const FONT_DIRECTORY = `https://cdn.jsdelivr.net/npm/@coderline/alphatab@${ALPHATAB_VERSION}/dist/font/`;
-const FALLBACK_SOUNDFONT = `https://cdn.jsdelivr.net/npm/@coderline/alphatab@${ALPHATAB_VERSION}/dist/soundfont/sonivox.sf3`;
 
 /**
  * Tabulatura může přijít dvěma cestami: jako base64 z právě nahraného
