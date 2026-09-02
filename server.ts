@@ -15,6 +15,9 @@ import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
 import { postavZadani, zpracujOdpoved, vysvetliChybu } from './hlasPreklad';
 import { textZPdf } from './pdfText';
 import {
+  kategorieVyberu, strankovani, vzorHledani, ZVUKOVE_MIME,
+} from './server/vyberSamplu';
+import {
   postavDotaz as postavDotazTipu,
   zpracujOdpoved as zpracujTipy,
   platnaDekada, DEKADY, Oblast,
@@ -1648,23 +1651,6 @@ export async function createApp() {
    * odsud; bez toho by se dalo řadit jen podle abecedy, což u samplu
    * neříká nic.
    */
-  const NASTROJ_KATEGORIE: Record<string, string[]> = {
-    /**
-     * Bicí ve skládačce znamená smyčky, ne jednotlivé rány.
-     *
-     * Dřív se vracelo obojí a jednorázových vzorků je třikrát víc, takže
-     * zaplnily seznam a smyčky se v něm ztratily. Kopák sám o sobě navíc
-     * není, z čeho by se dala poskládat část skladby — od toho jsou pady
-     * v sekci Bicí, které si o `drum_kit_sample` říkají samy.
-     */
-    bicí: ['drum_loop'],
-    basa: ['bass_sample'],
-    kytara: ['guitar_sample'],
-    vokal: ['vocal_sample'],
-    // Stopy pro mixážní pult. Nejsou to samply na hraní, ale hledá se
-    // v nich stejně — podle tempa, tóniny a názvu — tak sdílejí i endpoint.
-    stopy: ['stem_mix'],
-  };
 
   /**
    * Konec údaje v názvu souboru.
@@ -1702,23 +1688,29 @@ export async function createApp() {
 
   app.get('/api/samples', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
-    const nastroj = String(req.query.nastroj || 'bicí');
     const hledat = String(req.query.search || '').trim();
-    const kategorie = NASTROJ_KATEGORIE[nastroj] || NASTROJ_KATEGORIE['bicí'];
+    // `null` znamená bez omezení kategorií — tudy se jde na celou knihovnu.
+    const kategorie = kategorieVyberu(
+      req.query.nastroj as string | undefined,
+      req.query.kategorie as string | undefined,
+    );
+    const strana = strankovani(req.query.od, req.query.limit);
 
     let q = admin
       .from('assets')
-      .select('id, name, size_bytes, metadata, category')
+      // Skutečný počet, ne délka vrácené stránky: dřív se vracelo
+      // `samply.length`, takže při stropu 400 to o velikosti knihovny lhalo.
+      .select('id, name, size_bytes, metadata, category', { count: 'exact' })
       .eq('status', 'active')
-      .in('category', kategorie)
-      .limit(400);
+      // Bez tohohle by se mezi vzorky připletlo šestnáct tisíc MIDI souborů.
+      .in('mime_type', ZVUKOVE_MIME)
+      .order('name')
+      .range(strana.od, strana.do);
 
-    if (hledat) {
-      const vzor = `%${hledat.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
-      q = q.ilike('name', vzor);
-    }
+    if (kategorie) q = q.in('category', kategorie);
+    if (hledat) q = q.ilike('name', vzorHledani(hledat));
 
-    const { data, error } = await q;
+    const { data, error, count } = await q;
     if (error) return res.status(500).json({ error: error.message });
 
     /**
@@ -1750,7 +1742,12 @@ export async function createApp() {
       };
     });
 
-    res.json({ samply, celkem: samply.length });
+    res.json({
+      samply,
+      celkem: count ?? samply.length,
+      od: strana.od,
+      limit: strana.limit,
+    });
   });
 
   app.get('/api/drum-loops', requireAuth, async (req, res) => {

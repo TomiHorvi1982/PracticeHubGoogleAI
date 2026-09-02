@@ -8,14 +8,36 @@ import { drumLoopService } from '../services/drumLoopService';
 import { useMusicalContext } from '../context/MusicalContext';
 
 type Nastroj = 'bicí' | 'basa' | 'kytara' | 'vokal';
+
+/**
+ * Odkud brát zvuky.
+ *
+ * Dřív tu byly jen čtyři nástroje a tři z nich vedly na prázdné
+ * kategorie — sekce tak zpřístupňovala 116 z 2 115 souborů. Vzorky
+ * bicích (nejpočetnější) a stopy z mixu se sem nedostaly vůbec, tak
+ * mají vlastní položky, a „Vše" otevírá celou knihovnu.
+ */
+type Zdroj = {
+  id: string;
+  popis: string;
+  ikona: string;
+  nastroj?: string;
+  kategorie?: string;
+};
 type Razeni = 'tempo' | 'tonina' | 'takt' | 'nazev';
 
-const NASTROJE: { id: Nastroj; popis: string; ikona: string }[] = [
-  { id: 'bicí', popis: 'Bicí', ikona: '🥁' },
-  { id: 'basa', popis: 'Basa', ikona: '🎸' },
-  { id: 'kytara', popis: 'Kytara', ikona: '🎸' },
-  { id: 'vokal', popis: 'Vokály', ikona: '🎤' },
+const NASTROJE: Zdroj[] = [
+  { id: 'vse', popis: 'Vše', ikona: '🎛️', kategorie: 'vse' },
+  { id: 'drum_loop', popis: 'Smyčky bicích', ikona: '🥁', nastroj: 'bicí' },
+  { id: 'drum_kit_sample', popis: 'Vzorky bicích', ikona: '🪘', kategorie: 'drum_kit_sample' },
+  { id: 'stem_mix', popis: 'Stopy z mixu', ikona: '🎚️', kategorie: 'stem_mix' },
+  { id: 'basa', popis: 'Basa', ikona: '🎸', nastroj: 'basa' },
+  { id: 'kytara', popis: 'Kytara', ikona: '🎼', nastroj: 'kytara' },
+  { id: 'vokal', popis: 'Vokály', ikona: '🎤', nastroj: 'vokal' },
 ];
+
+/** Kolik se dotáhne najednou. Zbytek přibývá tlačítkem. */
+const NA_STRANU = 200;
 
 const RAZENI: { id: Razeni; popis: string }[] = [
   { id: 'tempo', popis: 'Tempo' },
@@ -70,7 +92,10 @@ const Vlnovka: React.FC<{ id: string; postup: number }> = ({ id, postup }) => {
  * sampl nehledá; hledá se „něco kolem 120 v Am".
  */
 export const SamplesStudio: React.FC = () => {
-  const [nastroj, setNastroj] = useState<Nastroj>('bicí');
+  const [nastroj, setNastroj] = useState<string>('vse');
+  /** Kolik už je natažené — další stránka se přičítá, ne nahrazuje. */
+  const [od, setOd] = useState(0);
+  const [celkem, setCelkem] = useState(0);
   const [samply, setSamply] = useState<Sampl[]>([]);
   const [nacitam, setNacitam] = useState(true);
   const [chyba, setChyba] = useState<string | null>(null);
@@ -95,21 +120,30 @@ export const SamplesStudio: React.FC = () => {
     setChyba(null);
     try {
       const token = authService.getCurrentSession()?.token;
-      const q = new URLSearchParams({ nastroj });
+      const zdroj = NASTROJE.find((z) => z.id === nastroj) || NASTROJE[0];
+      const q = new URLSearchParams({ od: String(od), limit: String(NA_STRANU) });
+      if (zdroj.kategorie) q.set('kategorie', zdroj.kategorie);
+      if (zdroj.nastroj) q.set('nastroj', zdroj.nastroj);
       if (hledat.trim()) q.set('search', hledat.trim());
       const res = await fetch(`/api/samples?${q}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error(res.status === 401 ? 'Nejsi přihlášený.' : `Server vrátil ${res.status}.`);
       const d = await res.json();
-      setSamply(d.samply || []);
+      setCelkem(Number(d.celkem) || 0);
+      // Další stránka se přidává za dosavadní; nový zdroj nebo hledání
+      // začínají od nuly, takže tam se seznam přepíše.
+      setSamply((p) => (od === 0 ? (d.samply || []) : [...p, ...(d.samply || [])]));
     } catch (e: any) {
       setChyba(e?.message || 'Samply se nepodařilo načíst.');
       setSamply([]);
     } finally {
       setNacitam(false);
     }
-  }, [nastroj, hledat]);
+  }, [nastroj, hledat, od]);
+
+  // Jiný zdroj nebo jiné hledání znamená jinou sadu — začíná se od nuly.
+  useEffect(() => { setOd(0); }, [nastroj, hledat]);
 
   useEffect(() => {
     const t = setTimeout(() => void nacti(), 250);
@@ -439,6 +473,26 @@ export const SamplesStudio: React.FC = () => {
               </div>
             );
           })}
+
+          {/* Kolik z čeho je vidět a čím doplnit zbytek.
+              Bez počtu není poznat, jestli je knihovna prohledaná celá,
+              nebo jen useknutá na první stránce. */}
+          {celkem > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
+              <span className="text-[10px] text-neutral-500 tabular-nums">
+                zobrazeno {serazene.length} z {celkem}
+              </span>
+              {serazene.length < celkem && (
+                <button
+                  onClick={() => setOd(samply.length)}
+                  disabled={nacitam}
+                  className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-neutral-300 cursor-pointer disabled:opacity-40"
+                >
+                  {nacitam ? 'Načítám…' : `Načíst dalších ${Math.min(NA_STRANU, celkem - serazene.length)}`}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
