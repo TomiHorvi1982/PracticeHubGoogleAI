@@ -5,6 +5,7 @@ import { usekZDob, VstupniDoba, Usek } from '../services/gpUsek';
 import { HmatnikUseku } from './practise/HmatnikUseku';
 import * as alphaTab from '@coderline/alphatab';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
+import { NASTROJE_GM, RODINY_NASTROJU } from '../data/nastrojeGm';
 import {
   Play,
   Pause,
@@ -100,23 +101,6 @@ async function fetchScoreBytes(source: string): Promise<Uint8Array> {
  * proto, aby se stopa dala odlišit nebo si ji člověk zkusil jinak
  * znějící, ne aby procházel seznam varhan.
  */
-const NASTROJE_GM: { program: number; nazev: string }[] = [
-  { program: 24, nazev: 'Nylonová kytara' },
-  { program: 25, nazev: 'Akustická kytara' },
-  { program: 26, nazev: 'Jazzová kytara' },
-  { program: 27, nazev: 'Čistá elektrická' },
-  { program: 29, nazev: 'Muted elektrická' },
-  { program: 30, nazev: 'Overdrive' },
-  { program: 31, nazev: 'Distortion' },
-  { program: 33, nazev: 'Prstová basa' },
-  { program: 34, nazev: 'Trsátková basa' },
-  { program: 35, nazev: 'Bezpražcová basa' },
-  { program: 0, nazev: 'Klavír' },
-  { program: 16, nazev: 'Varhany' },
-  { program: 48, nazev: 'Smyčce' },
-  { program: 56, nazev: 'Trubka' },
-  { program: 65, nazev: 'Saxofon' },
-];
 
 const ListaPozice: React.FC<{
   cas: number;
@@ -1106,8 +1090,14 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                           ze souboru ({nastroje[track.index] ?? track.playbackInfo?.program ?? 0})
                         </option>
                       )}
-                      {NASTROJE_GM.map((n) => (
-                        <option key={n.program} value={n.program}>{n.nazev}</option>
+                      {/* Po rodinách: mezi sto dvaceti osmi položkami
+                          v jednom sloupci se hledat nedá. */}
+                      {RODINY_NASTROJU.map((r) => (
+                        <optgroup key={r.nazev} label={r.nazev}>
+                          {r.nastroje.map((n) => (
+                            <option key={n.program} value={n.program}>{n.nazev}</option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                   </div>
