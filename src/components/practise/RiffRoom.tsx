@@ -5,6 +5,7 @@ import { prehravacCviceni, StavCviceni } from '../../services/prehravacCviceni';
 import { VyberZKnihovny } from '../songbook/VyberZKnihovny';
 import { LibraryAsset } from '../../services/assetLibraryService';
 import { odhadniTempoZUseku } from '../../services/detekceUderu';
+import { TextovyTabPanel } from './TextovyTabPanel';
 
 /**
  * Místnost na pilování riffů a sól.
@@ -219,6 +220,13 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
   return (
     <div className="space-y-4">
+      {/* Cvičení z vloženého textového tabu.
+          Nahoře, protože sem se chodí s tabem v schránce — hledat to
+          pod uloženými riffy by znamenalo rolovat přes celou stránku. */}
+      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4">
+        <TextovyTabPanel />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Uložené */}
         <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
