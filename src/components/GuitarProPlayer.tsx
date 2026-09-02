@@ -38,6 +38,14 @@ interface GuitarProPlayerProps {
   filename: string;
   artist?: string;
   bpm?: number;
+  /**
+   * Na Pódiu jde o to vidět tabulaturu, ne nastavení.
+   *
+   * Mixér stop, kostičky taktů a cvičební úsek se proto schovají pod
+   * přepínač — zabíraly víc místa než samotný tab. Nemizí, jen nejsou
+   * první, na co se kouká.
+   */
+  kompaktni?: boolean;
 }
 
 /**
@@ -180,6 +188,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   filename,
   artist,
   bpm: initialBpm,
+  kompaktni,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<alphaTab.AlphaTabApi | null>(null);
@@ -253,6 +262,8 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
    * přehrávač posouvá přes hranice taktů.
    */
   const [taktyStop, setTaktyStop] = useState<Record<number, boolean[]>>({});
+  /** Rozbalené nastavení pod tabulaturou. V kompaktním režimu zavřené. */
+  const [extraOtevrene, setExtraOtevrene] = useState(!kompaktni);
   const [pocetTaktu, setPocetTaktu] = useState(0);
   /** Začátky taktů v tikách — podle nich se pozná, ve kterém taktu jsme. */
   const zacatkyTaktu = useRef<number[]>([]);
@@ -1007,8 +1018,19 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
           </div>
         </div>
 
+        {/* Přepínač nastavení. Sedí přesně tam, kde se schovaný obsah
+            objeví, aby bylo poznat, co se rozbaluje. */}
+        {kompaktni && tracks.length > 0 && (
+          <button
+            onClick={() => setExtraOtevrene((o) => !o)}
+            className="self-start px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-neutral-300 cursor-pointer transition-all"
+          >
+            {extraOtevrene ? 'Skrýt nastavení' : `Nastavení stop a taktů (${tracks.length} stop)`}
+          </button>
+        )}
+
         {/* Track Mixer / Multi-Track Selector Bar */}
-        {tracks.length > 0 && (
+        {extraOtevrene && tracks.length > 0 && (
           <div className="bg-black/30 border border-white/5 p-3 rounded-2xl space-y-2 text-xs">
             <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
               <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -1131,7 +1153,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
          * a refrén s celou kapelou, aniž by se kvůli tomu skladba dělila.
          * Číslo taktu je v kostičce, takže je vidět, co se zrovna vypíná.
          */}
-        {pocetTaktu > 0 && tracks.length > 0 && (
+        {extraOtevrene && pocetTaktu > 0 && tracks.length > 0 && (
           <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] uppercase tracking-wider text-neutral-500">
@@ -1200,7 +1222,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
          * Ukáže se až s výběrem: bez něj není co cvičit a prázdný krk
          * by jen zabíral místo nad tabulaturou.
          */}
-        {usekKeCviceni && usekKeCviceni.noty.length > 0 && (
+        {extraOtevrene && usekKeCviceni && usekKeCviceni.noty.length > 0 && (
           <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
             <div className="text-[10px] uppercase tracking-wider text-neutral-500">
               Vybraný úsek na hmatníku

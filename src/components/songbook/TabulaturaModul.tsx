@@ -143,6 +143,9 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
             filename={priloha.name}
             artist={song.artist}
             bpm={song.bpm}
+            // Na Pódiu jde o tabulaturu, ne o nastavení: mixér stop,
+            // kostičky taktů a cvičební úsek se schovají pod přepínač.
+            kompaktni
           />
         )}
       </div>

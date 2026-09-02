@@ -6,6 +6,7 @@ import { Song } from '../../types';
 import { audioSynth } from '../../services/audioSynth';
 import { audioBus } from '../../services/audioBus';
 import { podiumProfil } from '../../services/podiumProfil';
+import { ObalkyPisne } from './ObalkyPisne';
 
 interface Playlist {
   id: string;
@@ -208,14 +209,19 @@ export const Podium: React.FC<Props> = ({
   );
 
   /**
-   * Set list pod sebou, v pořadí, ve kterém se hraje.
+   * Set list ve třech sloupcích, v pořadí, ve kterém se hraje.
    *
    * Dřív to byly štítky zabalené do řádků vedle sebe, takže se pořadí
-   * dalo přečíst jen očima skákajícíma přes konce řádků — a to je při
-   * hraní přesně to, na co není čas. Pod sebou se to čte odshora dolů.
+   * dalo přečíst jen očima skákajícíma přes konce řádků. Pod sebou se
+   * čte odshora dolů, ale jeden sloupec u sedmatřiceti písní odsunul
+   * plochu s okny mimo obrazovku — tři sloupce se čtou stejně a zaberou
+   * třetinu výšky.
+   *
+   * Obal je vepředu, protože z něj poznáš skladbu dřív, než stihneš
+   * přečíst název.
    */
   const seznam = (
-    <div className="flex flex-col gap-1">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
       {vPlaylistu.length === 0 ? (
         <p className="text-[11px] text-neutral-600">
           Set list je prázdný. Přidej skladby ikonou v seznamu vpravo.
@@ -226,7 +232,7 @@ export const Podium: React.FC<Props> = ({
           return (
             <div
               key={s.id}
-              className={`flex items-center rounded-xl border transition-all ${
+              className={`flex items-center rounded-xl border transition-all min-w-0 ${
                 je
                   ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
                   : 'bg-black/30 border-white/[0.08] hover:border-white/25'
@@ -234,38 +240,35 @@ export const Podium: React.FC<Props> = ({
             >
               <button
                 onClick={() => onVybrat(s)}
-                className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] flex-1 min-w-0 cursor-pointer text-left"
+                className="flex items-center gap-2 px-2 py-1.5 flex-1 min-w-0 cursor-pointer text-left"
                 title={
                   nastavene.has(s.id)
                     ? 'Okna k téhle písni už máš nastavená'
                     : 'K téhle písni sis ještě nic nenastavil'
                 }
               >
-                <span className="text-[9px] font-mono text-neutral-600 tabular-nums w-5 shrink-0">
-                  {i + 1}.
+                <span className="text-[9px] font-mono text-neutral-600 tabular-nums w-4 shrink-0 text-right">
+                  {i + 1}
                 </span>
-                <span className={`truncate flex-1 ${je ? 'text-white font-bold' : 'text-neutral-300'}`}>
-                  {s.title}
+                <ObalkyPisne song={s} />
+                <span className="min-w-0 flex-1">
+                  <span className={`block truncate text-[11px] ${je ? 'text-white font-bold' : 'text-neutral-300'}`}>
+                    {s.title}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-[9px] text-neutral-500">
+                    <span className="truncate">{s.artist}</span>
+                    {s.bpm ? <span className="font-mono tabular-nums shrink-0">{s.bpm}</span> : null}
+                    {/* Fajfka říká, že u téhle písně už je naklikáno, co
+                        chceš vidět — před zkouškou je vidět, co ještě chybí. */}
+                    {nastavene.has(s.id) && <Check className="w-2.5 h-2.5 text-[#30D158] shrink-0" />}
+                  </span>
                 </span>
-                {s.artist && (
-                  <span className="text-[10px] text-neutral-500 truncate max-w-[140px] shrink-0">
-                    {s.artist}
-                  </span>
-                )}
-                {s.bpm ? (
-                  <span className="text-[9px] font-mono text-neutral-500 tabular-nums shrink-0">
-                    {s.bpm}
-                  </span>
-                ) : null}
-                {/* Fajfka říká, že u téhle písně už je naklikáno, co chceš
-                    vidět — před zkouškou je vidět, co ještě chybí. */}
-                {nastavene.has(s.id) && <Check className="w-3 h-3 text-[#30D158] shrink-0" />}
               </button>
 
               {onOdebratZeSetu && playlist && (
                 <button
                   onClick={() => onOdebratZeSetu(playlist.id, s)}
-                  className="p-1.5 mr-1 rounded-lg text-neutral-600 hover:text-[#FF453A] hover:bg-[#FF453A]/10 cursor-pointer shrink-0 transition-all"
+                  className="p-1.5 rounded-lg text-neutral-600 hover:text-[#FF453A] hover:bg-[#FF453A]/10 cursor-pointer shrink-0 transition-all"
                   title={`Odebrat „${s.title}" ze setu`}
                   aria-label={`Odebrat ${s.title} ze setu`}
                 >
