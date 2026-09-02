@@ -755,6 +755,50 @@ class SoundSynthesizer {
     }
   }
 
+  /**
+   * Kytarový aparát zapojený mezi vzorky a hlavní výstup.
+   *
+   * Týká se jen elektrických kytar. Klavír, bicí ani metronom přes
+   * zkreslení neprocházejí — proto se rozhoduje podle banky a ne
+   * jedním přepínačem na celém výstupu.
+   */
+  private aparatVstup: AudioNode | null = null;
+
+  /** Banky, které jdou přes aparát. Akustiky a nylonky ne. */
+  private static readonly BANKY_ELEKTRIK = new Set([
+    'electric_guitar_clean',
+    'electric_guitar_muted',
+    'electric_guitar_jazz',
+    'overdriven_guitar',
+    'distortion_guitar',
+  ]);
+
+  public nastavAparat(vstup: AudioNode | null): void {
+    this.aparatVstup = vstup;
+  }
+
+  /** Zvukový kontext pro toho, kdo si chce postavit vlastní řetěz. */
+  public getKontext(): AudioContext | null {
+    return this.ctx;
+  }
+
+  /**
+   * Uzel, do kterého ústí všechno ostatní.
+   *
+   * Aparát se zapojuje před něj, ne rovnou na výstup zvukové karty —
+   * jinak by minul hlavní hlasitost i kompresor a byl by hlasitější než
+   * zbytek aplikace.
+   */
+  public getHlavniVstup(): AudioNode | null {
+    return this.masterGain;
+  }
+
+  /** Kam se má nota připojit — přes aparát, nebo rovnou na výstup. */
+  private vystupPro(sfName: string): AudioNode | null {
+    if (this.aparatVstup && SoundSynthesizer.BANKY_ELEKTRIK.has(sfName)) return this.aparatVstup;
+    return this.masterGain;
+  }
+
   public playSampledNote(
     sfName: string,
     noteName: string,
@@ -821,7 +865,8 @@ class SoundSynthesizer {
     source.connect(filter);
     filter.connect(gainNode);
     gainNode.connect(panner);
-    if (this.masterGain) panner.connect(this.masterGain);
+    const cil = this.vystupPro(sfName);
+    if (cil) panner.connect(cil);
 
     source.start(now);
     source.stop(now + duration + 0.1);
@@ -953,7 +998,8 @@ class SoundSynthesizer {
         source.connect(filter);
         filter.connect(gainNode);
         gainNode.connect(panner);
-        if (this.masterGain) panner.connect(this.masterGain);
+        const cil = this.vystupPro(sfName);
+        if (cil) panner.connect(cil);
 
         source.start(now);
 

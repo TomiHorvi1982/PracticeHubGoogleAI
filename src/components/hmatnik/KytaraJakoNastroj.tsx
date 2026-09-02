@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, Loader2, AlertCircle, Headphones } from 'lucide-react';
 import { vstupHrace, UderHrace } from '../../services/vstupHrace';
 import { audioSynth, INSTRUMENT_PROFILES, InstrumentProfile } from '../../services/audioSynth';
+import { AparatOvladani } from './AparatOvladani';
 
 /**
  * Kytara znějící jiným nástrojem.
@@ -120,6 +121,8 @@ export const KytaraJakoNastroj: React.FC = () => {
           {Math.round(hlasitost * 100)} %
         </span>
       </div>
+
+      <AparatOvladani />
 
       {/* Zpětná vazba přes reproduktory je tady horší než jinde: nástroj
           hraje tóny, které mikrofon zase uslyší a zahraje znovu. */}
