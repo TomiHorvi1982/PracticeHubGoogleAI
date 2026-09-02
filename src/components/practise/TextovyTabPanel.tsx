@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { FileText, AlertCircle, Eraser } from 'lucide-react';
+import { FileText, AlertCircle, Eraser, FileUp, Loader2 } from 'lucide-react';
 import { tabNaDoby, STANDARDNI_LADENI } from '../../services/textovyTab';
 import { usekZDob, TIKU_NA_CTVRTKU } from '../../services/gpUsek';
 import { HmatnikUseku } from './HmatnikUseku';
+import { authService } from '../../services/authService';
 
 /**
  * Cvičení z textové (ASCII) tabulatury.
@@ -31,6 +32,41 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
   const [text, setText] = useState('');
   const [delka, setDelka] = useState(DELKY[1].tiku);
   const [ladeni, setLadeni] = useState(0);
+  const [ctuPdf, setCtuPdf] = useState(false);
+  const [zPdf, setZPdf] = useState<{ zpusob: 'text' | 'ocr'; stran: number } | null>(null);
+  const [chybaPdf, setChybaPdf] = useState<string | null>(null);
+
+  /**
+   * Načte tabulaturu z PDF jako návrh.
+   *
+   * Text se vloží do pole, kde se dá opravit — a ne rovnou přehraje.
+   * Ani dobré přečtení nemusí sloupce udržet a u skenu se rozpoznávání
+   * plete tiše, takže poslední slovo musí mít člověk, ne nástroj.
+   */
+  const nactiPdf = async (soubor: File) => {
+    setCtuPdf(true);
+    setChybaPdf(null);
+    setZPdf(null);
+    try {
+      const token = authService.getCurrentSession()?.token;
+      const r = await fetch('/api/pdf/text', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/pdf',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: await soubor.arrayBuffer(),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.error || 'PDF se nepodařilo přečíst.');
+      setText(d.text || '');
+      setZPdf({ zpusob: d.zpusob, stran: d.stran });
+    } catch (e: any) {
+      setChybaPdf(e?.message || 'PDF se nepodařilo přečíst.');
+    } finally {
+      setCtuPdf(false);
+    }
+  };
 
   const usek = useMemo(() => {
     if (!text.trim()) return null;
@@ -69,6 +105,24 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
           </select>
         </label>
 
+        <label className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold border flex items-center gap-1.5 cursor-pointer ${
+          ctuPdf ? 'opacity-50' : 'bg-white/[0.06] border-white/10 text-neutral-300 hover:text-white'
+        }`}>
+          {ctuPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
+          Načíst z PDF
+          <input
+            type="file"
+            accept="application/pdf,.pdf"
+            className="hidden"
+            disabled={ctuPdf}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void nactiPdf(f);
+              e.target.value = '';
+            }}
+          />
+        </label>
+
         {text && (
           <button
             onClick={() => setText('')}
@@ -94,6 +148,25 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         Textový tab neobsahuje rytmus — jen to, co a kde se hraje. Tóny se proto rozestaví
         rovnoměrně podle zvolené noty. Přesné délky má jen Guitar Pro.
       </p>
+
+      {chybaPdf && (
+        <p className="text-[11px] text-[#FF453A] flex items-start gap-1.5">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {chybaPdf}
+        </p>
+      )}
+
+      {/* Jak se k textu došlo. Z rozpoznaného skenu je potřeba být
+          podezřívavější než z textové vrstvy. */}
+      {zPdf && (
+        <p className={`text-[11px] flex items-start gap-1.5 leading-relaxed ${
+          zPdf.zpusob === 'ocr' ? 'text-amber-500/90' : 'text-[#30D158]'
+        }`}>
+          <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          {zPdf.zpusob === 'text'
+            ? `Přečteno z textové vrstvy PDF (${zPdf.stran} str.). Projdi to — sloupce se při převodu občas rozjedou.`
+            : `PDF nemá text, šlo to přes rozpoznávání znaků (${zPdf.stran} str.). U tabulatury se to plete: čísla i pomlčky si projdi řádek po řádku, než začneš cvičit.`}
+        </p>
+      )}
 
       {text.trim() && !usek && (
         <p className="text-[11px] text-[#FF453A]">

@@ -13,6 +13,7 @@ import {
 } from './prepisTextu';
 import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
 import { postavZadani, zpracujOdpoved, vysvetliChybu } from './hlasPreklad';
+import { textZPdf } from './pdfText';
 
 dotenv.config();
 
@@ -4799,6 +4800,35 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
     res.json({ assety: zalozene, potize });
   });
+
+  /**
+   * Text z PDF tabulatury.
+   *
+   * Vrací se návrh k opravě, ne hotová věc: i dobré přečtení textové
+   * vrstvy může sloupce rozhodit a rozpoznávání znaků se u tabulatury
+   * plete tiše. Proto se posílá i způsob, jakým se k textu došlo —
+   * aplikace podle toho řekne, jak moc tomu věřit.
+   */
+  app.post(
+    '/api/pdf/text',
+    requireAuth,
+    express.raw({ type: '*/*', limit: '40mb' }),
+    async (req, res) => {
+      const bajty = req.body as Buffer;
+      if (!bajty?.length) return res.status(400).json({ error: 'Soubor dorazil prázdný.' });
+      // Každé PDF začíná touhle značkou; jinak nemá smysl spouštět nástroje.
+      if (bajty.subarray(0, 5).toString('latin1') !== '%PDF-') {
+        return res.status(400).json({ error: 'Tohle není PDF.' });
+      }
+
+      try {
+        const v = await textZPdf(new Uint8Array(bajty));
+        res.json(v);
+      } catch (e: any) {
+        res.status(422).json({ error: e?.message || 'PDF se nepodařilo přečíst.' });
+      }
+    },
+  );
 
   return { app, PORT };
 }
