@@ -84,13 +84,29 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
       {co.map(({ co: k, popis }) => {
         const { I, barva } = IKONY[k];
         return (
-          <span
-            key={k}
-            title={popis}
-            className="w-4 h-4 rounded flex items-center justify-center shrink-0"
-            style={{ background: `${barva}22` }}
-          >
-            <I className="w-2.5 h-2.5" style={{ color: barva }} />
+          /**
+           * Popisek naskočí hned, ne až po vteřině jako nativní bublina.
+           *
+           * Ikonek je pod názvem až sedm a liší se drobnostmi; než se
+           * nativní bublina rozmyslí, člověk už myš odtáhne a nedozví
+           * se nic. `aria-label` zůstává pro čtečky obrazovky.
+           */
+          <span key={k} className="relative group/znacka shrink-0">
+            <span
+              aria-label={popis}
+              className="w-4 h-4 rounded flex items-center justify-center"
+              style={{ background: `${barva}22` }}
+            >
+              <I className="w-2.5 h-2.5" style={{ color: barva }} />
+            </span>
+            <span
+              className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1
+                         hidden group-hover/znacka:block whitespace-nowrap rounded-md
+                         bg-[#0B0B0E] border border-white/15 px-1.5 py-0.5 text-[10px]
+                         font-medium text-white shadow-lg z-20"
+            >
+              {popis}
+            </span>
           </span>
         );
       })}

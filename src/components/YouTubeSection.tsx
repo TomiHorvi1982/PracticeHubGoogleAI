@@ -16,6 +16,35 @@ interface YouTubeSectionProps {
   onAddSong?: (song: Song) => void;
 }
 
+/**
+ * Doporučené kapely do hledání.
+ *
+ * Devadesátková kytarová muzika, u které je největší šance, že ji tady
+ * někdo bude chtít hrát. Domácí a světové zvlášť — hledá se jinak a
+ * pomíchané v jedné řadě by se v tom nedalo vyznat.
+ *
+ * Kliknutí jen předvyplní pole; co se hledá, si člověk dopíše sám.
+ */
+const DOPORUCENE: { nazev: string; kapely: string[] }[] = [
+  {
+    nazev: 'Česko',
+    kapely: [
+      'Kabát', 'Lucie', 'Tři sestry', 'Arakain', 'Citron', 'Visací zámek',
+      'Alkehol', 'Buty', 'Žlutý pes', 'Katapult', 'Doga', 'Krucipüsk',
+      'Škwor', 'Divokej Bill', 'Wanastowi Vjecy',
+    ],
+  },
+  {
+    nazev: 'Svět',
+    kapely: [
+      'Metallica', 'Nirvana', 'Pearl Jam', 'Soundgarden', 'Alice in Chains',
+      'Pantera', 'Sepultura', 'Rage Against the Machine', 'Faith No More',
+      'Red Hot Chili Peppers', 'Tool', 'Korn', 'Deftones', 'Machine Head',
+      'Megadeth', 'Slayer', 'Guns N\' Roses', 'Type O Negative',
+    ],
+  },
+];
+
 export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
   activeSong,
   songs,
@@ -325,24 +354,28 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               </button>
             </form>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs">
-              <span className="text-neutral-400 font-medium shrink-0 mr-1">Rychlé tipy:</span>
-              {[
-                'Metallica Nothing Else Matters guitar tutorial',
-                'Ed Sheeran Perfect backing track',
-                'Olympic Slzy tvý mámy kytara',
-                'Linkin Park Numb acoustic cover'
-              ].map((tip) => (
-                <button
-                  key={tip}
-                  type="button"
-                  onClick={() => {
-                    setYoutubeQuery(tip);
-                  }}
-                  className="px-3 py-1 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer"
-                >
-                  {tip}
-                </button>
+            {/* Doporučeno.
+                Devadesátková kytarovka, kterou tady nejspíš někdo chce
+                hrát — rozdělená na domácí a světovou, protože se hledá
+                jinak. Kliknutí jen předvyplní hledání, zbytek dopíšeš
+                sám: „live", „tutorial", „backing track". */}
+            <div className="space-y-1.5 py-1 text-xs">
+              {DOPORUCENE.map((skupina) => (
+                <div key={skupina.nazev} className="flex items-center gap-1.5 overflow-x-auto">
+                  <span className="text-neutral-400 font-medium shrink-0 mr-1 w-16">
+                    {skupina.nazev}
+                  </span>
+                  {skupina.kapely.map((kapela) => (
+                    <button
+                      key={kapela}
+                      type="button"
+                      onClick={() => setYoutubeQuery(kapela)}
+                      className="px-3 py-1 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer"
+                    >
+                      {kapela}
+                    </button>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
