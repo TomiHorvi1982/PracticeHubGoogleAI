@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Search, Loader2, Download, AlertCircle, Check, Archive, ChevronLeft } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, Loader2, Download, AlertCircle, Check, Archive, ChevronLeft, Play, Pause } from 'lucide-react';
 import { authService } from '../../services/authService';
 
 /**
@@ -43,6 +43,58 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
   const [nacitam, setNacitam] = useState(false);
   const [stahuje, setStahuje] = useState<string | null>(null);
   const [stazene, setStazene] = useState<Set<string>>(new Set());
+  const [hraje, setHraje] = useState<string | null>(null);
+  const [nacitaSe, setNacitaSe] = useState<string | null>(null);
+
+  /**
+   * Jeden přehrávač pro celý panel.
+   *
+   * Kdyby si každá stopa držela vlastní, hrály by přes sebe — a poslech
+   * je tu na to, aby si člověk vybral, ne aby si pustil kapelu naráz.
+   */
+  const zvuk = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => () => { zvuk.current?.pause(); }, []);
+
+  /**
+   * Adresa souboru v archivu.
+   *
+   * Archiv odpovídá přesměrováním na konkrétní server a umí částečné
+   * stahování, takže jde i převíjet, ne jen přehrát od začátku.
+   * Prohlížeč si obojí obstará sám.
+   */
+  const odkazNaStopu = (id: string, soubor: string) =>
+    `https://archive.org/download/${encodeURIComponent(id)}/${soubor.split('/').map(encodeURIComponent).join('/')}`;
+
+  const prehraj = (stopa: Stopa) => {
+    if (!otevrena) return;
+    if (hraje === stopa.soubor) {
+      zvuk.current?.pause();
+      setHraje(null);
+      return;
+    }
+
+    if (!zvuk.current) zvuk.current = new Audio();
+    const a = zvuk.current;
+    a.pause();
+    a.src = odkazNaStopu(otevrena.nahravka.id, stopa.soubor);
+    a.onended = () => setHraje(null);
+    a.onerror = () => {
+      setChyba(`„${stopa.nazev}" se nepodařilo přehrát.`);
+      setNacitaSe(null);
+      setHraje(null);
+    };
+    // Než se rozehraje, chvíli to trvá. Bez téhle značky vypadá kliknutí
+    // bez odezvy a člověk mačká znovu.
+    a.oncanplay = () => setNacitaSe(null);
+    setNacitaSe(stopa.soubor);
+    setChyba(null);
+    void a.play()
+      .then(() => setHraje(stopa.soubor))
+      .catch((e) => {
+        setChyba(e?.message || 'Přehrání selhalo.');
+        setNacitaSe(null);
+      });
+  };
 
   const hlavicky = () => {
     const token = authService.getCurrentSession()?.token;
@@ -178,11 +230,27 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
             </div>
           </div>
 
+          <p className="text-[10px] text-neutral-600">
+            Poslechem se nic nestahuje — zvuk jde rovnou z archivu. Do knihovny se uloží až
+            tlačítkem vpravo.
+          </p>
+
           <div className="space-y-0.5 max-h-[42vh] overflow-y-auto pr-1">
             {otevrena.stopy.map((s) => (
               <div key={s.soubor} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.04]">
                 <span className="text-[10px] text-neutral-600 tabular-nums w-6 shrink-0">{s.poradi || '·'}.</span>
-                <span className="text-[12px] text-white truncate flex-1">{s.nazev}</span>
+                <button
+                  onClick={() => prehraj(s)}
+                  className="p-1 rounded text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                  title={hraje === s.soubor ? 'Zastavit' : 'Poslechnout bez stahování'}
+                >
+                  {nacitaSe === s.soubor ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    : hraje === s.soubor ? <Pause className="w-3.5 h-3.5 fill-current" />
+                    : <Play className="w-3.5 h-3.5 fill-current" />}
+                </button>
+                <span className={`text-[12px] truncate flex-1 ${
+                  hraje === s.soubor ? 'text-[#30D158] font-semibold' : 'text-white'
+                }`}>{s.nazev}</span>
                 <span className="text-[10px] text-neutral-600 tabular-nums shrink-0">{mb(s.velikost)}</span>
                 <button
                   onClick={() => void stahni(s)}
