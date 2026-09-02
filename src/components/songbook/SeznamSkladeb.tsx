@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ObalkyPisne } from './ObalkyPisne';
 import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
 import { skladby } from '../../services/mnozneCislo';
@@ -20,6 +20,11 @@ interface Props {
   onDoPlaylistu: (s: Song, e?: React.MouseEvent) => void;
   /** Přidá víc skladeb do playlistu naráz. */
   onDoPlaylistuHromadne?: (skladby: Song[]) => void | Promise<void>;
+  /** Sety na pódium, do kterých jde hromadně zařadit. */
+  sety?: { id: string; nazev: string }[];
+  onDoSetuHromadne?: (skladby: Song[], setId: string) => void | Promise<number | void>;
+  /** Smaže víc skladeb naráz. Vrací, kolik jich zmizelo. */
+  onSmazatHromadne?: (skladby: Song[]) => void | Promise<number | void>;
   /** Otevře doplňování materiálů k písni. */
   onUpravit: (s: Song, e?: React.MouseEvent) => void;
 }
@@ -94,7 +99,8 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
 };
 
 export const SeznamSkladeb: React.FC<Props> = ({
-  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onDoPlaylistuHromadne, onUpravit,
+  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onDoPlaylistuHromadne,
+  sety = [], onDoSetuHromadne, onSmazatHromadne, onUpravit,
 }) => {
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
     try {
@@ -168,6 +174,22 @@ export const SeznamSkladeb: React.FC<Props> = ({
    */
   const [oznacene, setOznacene] = useState<Set<string>>(new Set());
   const [pridavaSe, setPridavaSe] = useState(false);
+  const [cilovySet, setCilovySet] = useState('');
+  /** Mazání se potvrzuje druhým kliknutím — hromadné je nevratné. */
+  const [potvrditMazani, setPotvrditMazani] = useState(false);
+
+  /**
+   * Rozmyšlená otázka se sama zavře.
+   *
+   * Nechat „Opravdu smazat?" viset donekonečna znamená, že se k němu dá
+   * po chvíli vrátit a odkliknout ho bez rozmyslu. Ztráta zaostření na
+   * to nestačí — tlačítko ho po programovém kliknutí nemusí mít vůbec.
+   */
+  useEffect(() => {
+    if (!potvrditMazani) return;
+    const t = setTimeout(() => setPotvrditMazani(false), 4000);
+    return () => clearTimeout(t);
+  }, [potvrditMazani]);
 
   /** U které písně se zrovna stahuje — ať se nedá zmáčknout dvakrát. */
   const [stahujeSe, setStahujeSe] = useState<string | null>(null);
@@ -198,6 +220,9 @@ export const SeznamSkladeb: React.FC<Props> = ({
       setTimeout(() => setStahovaniHlaska(null), 6000);
     }
   };
+
+  /** Vybrané skladby v pořadí, v jakém jsou vidět. */
+  const vybraneSkladby = () => serazene.filter((x) => oznacene.has(x.id));
 
   const rozbal = (id: string) => {
     setRozbalene((p) => {
@@ -261,7 +286,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   try {
                     // Pořadí ze seznamu, ne z toho, jak se klikalo —
                     // setlist má jít po sobě tak, jak je vidět.
-                    await onDoPlaylistuHromadne(serazene.filter((x) => oznacene.has(x.id)));
+                    await onDoPlaylistuHromadne(vybraneSkladby());
                     setStahovaniHlaska(`Do playlistu přidáno ${skladby(oznacene.size)}.`);
                     setOznacene(() => new Set<string>());
                     setVyberRezim(false);
@@ -274,6 +299,80 @@ export const SeznamSkladeb: React.FC<Props> = ({
               >
                 {pridavaSe ? 'přidávám…' : 'Přidat do playlistu'}
               </button>
+
+              {/* Do setu na pódium. Bez vybraného setu by tlačítko
+                  nemělo kam přidávat, tak se nabídne až s ním. */}
+              {onDoSetuHromadne && sety.length > 0 && (
+                <>
+                  <select
+                    value={cilovySet}
+                    onChange={(e) => setCilovySet(e.target.value)}
+                    className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-[10px] text-white outline-none cursor-pointer"
+                  >
+                    <option value="">— set na pódium —</option>
+                    {sety.map((x) => <option key={x.id} value={x.id}>{x.nazev}</option>)}
+                  </select>
+                  <button
+                    onClick={async () => {
+                      if (!oznacene.size || !cilovySet || pridavaSe) return;
+                      setPridavaSe(true);
+                      try {
+                        const kolik = await onDoSetuHromadne(vybraneSkladby(), cilovySet);
+                        const jmeno = sety.find((x) => x.id === cilovySet)?.nazev || 'setu';
+                        // Hlásí se, kolik doopravdy přibylo: co v setu
+                        // už bylo, se nepřidává podruhé.
+                        setStahovaniHlaska(
+                          typeof kolik === 'number' && kolik < oznacene.size
+                            ? `Do „${jmeno}" přidáno ${skladby(kolik)}, zbytek už tam byl.`
+                            : `Do „${jmeno}" přidáno ${skladby(oznacene.size)}.`,
+                        );
+                        setOznacene(() => new Set<string>());
+                        setVyberRezim(false);
+                      } finally {
+                        setPridavaSe(false);
+                      }
+                    }}
+                    disabled={!oznacene.size || !cilovySet || pridavaSe}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#FF9F0A]/15 text-[#FF9F0A] border border-[#FF9F0A]/30 cursor-pointer disabled:opacity-40"
+                  >
+                    Do setu
+                  </button>
+                </>
+              )}
+
+              {/* Mazání na dvě kliknutí. Smazat dvacet skladeb omylem
+                  je nevratné, takže první kliknutí jen zeptá. */}
+              {onSmazatHromadne && (
+                <button
+                  onClick={async () => {
+                    if (!oznacene.size || pridavaSe) return;
+                    if (!potvrditMazani) { setPotvrditMazani(true); return; }
+                    setPridavaSe(true);
+                    try {
+                      const kolik = await onSmazatHromadne(vybraneSkladby());
+                      setStahovaniHlaska(
+                        typeof kolik === 'number' && kolik < oznacene.size
+                          ? `Smazáno ${skladby(kolik)}; zamčené zůstaly.`
+                          : `Smazáno ${skladby(oznacene.size)}.`,
+                      );
+                      setOznacene(() => new Set<string>());
+                      setVyberRezim(false);
+                    } finally {
+                      setPridavaSe(false);
+                      setPotvrditMazani(false);
+                    }
+                  }}
+                  onBlur={() => setPotvrditMazani(false)}
+                  disabled={!oznacene.size || pridavaSe}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border cursor-pointer disabled:opacity-40 ${
+                    potvrditMazani
+                      ? 'bg-[#FF453A] text-white border-[#FF453A]'
+                      : 'bg-[#FF453A]/15 text-[#FF453A] border-[#FF453A]/30'
+                  }`}
+                >
+                  {potvrditMazani ? `Opravdu smazat ${oznacene.size}?` : 'Smazat'}
+                </button>
+              )}
             </>
           )}
         </div>

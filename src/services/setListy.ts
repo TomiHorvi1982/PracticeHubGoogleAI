@@ -157,6 +157,40 @@ export const setListy = {
     oznam();
   },
 
+  /**
+   * Doplní do setu víc skladeb naráz.
+   *
+   * Na rozdíl od `prepni` jen přidává: přepínač by u hromadného výběru
+   * ty už zařazené zase odebral, což nikdo nechce — smysl je „ať jsou
+   * v setu všechny tyhle", ne „obrať u každé stav".
+   *
+   * Vrací, kolik jich doopravdy přibylo.
+   */
+  async pridejVice(setId: string, songIds: string[]): Promise<number> {
+    const set = seznamy.find((s) => s.id === setId);
+    if (!set) return 0;
+
+    const chybejici = songIds.filter((id) => !set.songIds.includes(id));
+    if (!chybejici.length) return 0;
+
+    const radky = chybejici.map((songId, i) => ({
+      playlist_id: setId,
+      song_id: songId,
+      position: set.songIds.length + i,
+    }));
+
+    const { error } = await supabase.from('playlist_songs').insert(radky);
+    if (error) {
+      console.warn('[setListy] Skladby se nepodařilo přidat:', error.message);
+      return 0;
+    }
+
+    seznamy = seznamy.map((s) =>
+      (s.id === setId ? { ...s, songIds: [...s.songIds, ...chybejici] } : s));
+    oznam();
+    return chybejici.length;
+  },
+
   async odeber(setId: string, songId: string): Promise<void> {
     const { error } = await supabase
       .from('playlist_songs')

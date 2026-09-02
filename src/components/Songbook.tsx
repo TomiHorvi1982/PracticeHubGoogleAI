@@ -340,6 +340,37 @@ export const Songbook: React.FC<SongbookProps> = ({
     }
   };
 
+  /**
+   * Zařadí vybrané skladby do setu na pódium.
+   *
+   * Přidává jen ty, které v setu ještě nejsou — přepnutí by ty zařazené
+   * zase odebralo, což u hromadného výběru nikdo nechce.
+   */
+  const handleAddManyToSet = async (skladby: Song[], setId: string): Promise<number> =>
+    setListy.pridejVice(setId, skladby.map((s) => s.id));
+
+  /**
+   * Smaže vybrané skladby.
+   *
+   * Zamčené se přeskočí: mají heslo právě proto, aby nezmizely mimochodem,
+   * a hromadné mazání je přesně ta situace, na kterou ten zámek je.
+   * Volající pozná podle vráceného počtu, že se nesmazalo všechno.
+   */
+  const handleDeleteMany = async (skladby: Song[]): Promise<number> => {
+    let smazano = 0;
+    for (const s of skladby) {
+      if (s.isLocked) continue;
+      try {
+        await songDatabaseService.deleteSong(s.id);
+        smazano += 1;
+      } catch (e) {
+        console.warn('[zpevnik] Skladbu se nepodařilo smazat:', s.title, e);
+      }
+    }
+    setSongs(songDatabaseService.getSongs());
+    return smazano;
+  };
+
   const handleOpenAddToPlaylist = (song: Song, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setPlaylistModalSong(song);
@@ -602,6 +633,9 @@ export const Songbook: React.FC<SongbookProps> = ({
               onSmazat={handleDeleteClick}
               onDoPlaylistu={handleOpenAddToPlaylist}
               onDoPlaylistuHromadne={handleAddManyToPlaylist}
+              sety={playlists.map((p) => ({ id: p.id, nazev: p.name }))}
+              onDoSetuHromadne={handleAddManyToSet}
+              onSmazatHromadne={handleDeleteMany}
               onUpravit={(sk, e) => {
                 if (e) e.stopPropagation();
                 setDoplnovana(sk);
