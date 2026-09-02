@@ -16,7 +16,7 @@ import { songDatabaseService } from '../services/songDatabaseService';
 import {
   Search, Plus, BookOpen, Music, Check,
   X, FileUp, ChevronRight, Globe,
-  Trash2, List, Edit3, Lock, Unlock,
+  Trash2, List, Edit3,
   ShieldAlert, Eye, EyeOff, Sliders,
   AlignJustify, LayoutGrid
 } from 'lucide-react';
@@ -24,7 +24,7 @@ import { OnlineSearchModal } from './OnlineSearchModal';
 import { ChordDetailModal } from './ChordDetailModal';
 import { FileImportModal } from './FileImportModal';
 import { useMusicalContext } from '../context/MusicalContext';
-import { LockPasswordModal, AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
+import { AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 import { doplnObalkyVsem, maObalky, PostupDoplnovani } from '../services/obalkyService';
 import { playlistService } from '../services/playlistService';
 
@@ -166,10 +166,7 @@ export const Songbook: React.FC<SongbookProps> = ({
   // Success / Toast Messages
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
-  // Modals state for Lock & AddToPlaylist & Delete
-  const [lockModalSong, setLockModalSong] = useState<Song | null>(null);
-  const [lockModalMode, setLockModalMode] = useState<'lock' | 'unlock' | 'delete' | 'edit'>('lock');
-  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  // Modals state for AddToPlaylist & Delete
 
   const [deleteModalSong, setDeleteModalSong] = useState<Song | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -238,24 +235,10 @@ export const Songbook: React.FC<SongbookProps> = ({
     setSongs((prev) => prev.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
   };
 
-  // Lock / Delete Actions
-  const handleLockClick = (song: Song, e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setLockModalSong(song);
-    setLockModalMode(song.isLocked ? 'unlock' : 'lock');
-    setIsLockModalOpen(true);
-  };
-
   const handleDeleteClick = (song: Song, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (song.isLocked) {
-      setLockModalSong(song);
-      setLockModalMode('delete');
-      setIsLockModalOpen(true);
-    } else {
-      setDeleteModalSong(song);
-      setIsDeleteModalOpen(true);
-    }
+    setDeleteModalSong(song);
+    setIsDeleteModalOpen(true);
   };
 
   const performDeleteSong = (songId: string) => {
@@ -291,29 +274,6 @@ export const Songbook: React.FC<SongbookProps> = ({
     }
 
     showToast(`Skladba "${deletedTitle}" byla úspěšně smazána.`);
-  };
-
-  const handleLockConfirmed = (password: string) => {
-    if (!lockModalSong) return;
-    const updated: Song = {
-      ...lockModalSong,
-      isLocked: true,
-      lockPassword: password,
-      updatedAt: Date.now(),
-    };
-    handleUpdateSong(updated);
-    showToast(`Skladba "${lockModalSong.title}" byla uzamčena adminem.`);
-  };
-
-  const handleUnlockConfirmed = () => {
-    if (!lockModalSong) return;
-    const updated: Song = {
-      ...lockModalSong,
-      isLocked: false,
-      updatedAt: Date.now(),
-    };
-    handleUpdateSong(updated);
-    showToast(`Skladba "${lockModalSong.title}" byla odemčena.`);
   };
 
   /**
@@ -352,14 +312,12 @@ export const Songbook: React.FC<SongbookProps> = ({
   /**
    * Smaže vybrané skladby.
    *
-   * Zamčené se přeskočí: mají heslo právě proto, aby nezmizely mimochodem,
-   * a hromadné mazání je přesně ta situace, na kterou ten zámek je.
-   * Volající pozná podle vráceného počtu, že se nesmazalo všechno.
+   * Vrací, kolik jich opravdu zmizelo — když databáze některou odmítne,
+   * volající to pozná podle nižšího počtu a řekne to nahlas.
    */
   const handleDeleteMany = async (skladby: Song[]): Promise<number> => {
     let smazano = 0;
     for (const s of skladby) {
-      if (s.isLocked) continue;
       try {
         await songDatabaseService.deleteSong(s.id);
         smazano += 1;
@@ -629,7 +587,6 @@ export const Songbook: React.FC<SongbookProps> = ({
                 zaznamenejOtevreni(s.id);
                 setTransposeSemitones(0);
               }}
-              onZamknout={handleLockClick}
               onSmazat={handleDeleteClick}
               onDoPlaylistu={handleOpenAddToPlaylist}
               onDoPlaylistuHromadne={handleAddManyToPlaylist}
@@ -786,22 +743,6 @@ export const Songbook: React.FC<SongbookProps> = ({
       <ChordDetailModal
         chordName={selectedModalChord}
         onClose={() => setSelectedModalChord(null)}
-      />
-
-      {/* Admin Lock / Password Modal */}
-      <LockPasswordModal
-        isOpen={isLockModalOpen}
-        song={lockModalSong}
-        mode={lockModalMode}
-        onClose={() => setIsLockModalOpen(false)}
-        onSuccess={() => {
-          if (lockModalSong && lockModalMode === 'delete') {
-            performDeleteSong(lockModalSong.id);
-          } else if (lockModalSong && lockModalMode === 'unlock') {
-            handleUnlockConfirmed();
-          }
-        }}
-        onLockConfirmed={handleLockConfirmed}
       />
 
       {/* Add To Playlist Modal */}

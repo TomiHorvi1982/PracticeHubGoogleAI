@@ -3,7 +3,7 @@ import { ObalkyPisne } from './ObalkyPisne';
 import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
 import { skladby } from '../../services/mnozneCislo';
 import {
-  Play, Lock, Unlock, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
+  Play, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
   FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano, Download,
 } from 'lucide-react';
 import { Song } from '../../types';
@@ -15,7 +15,6 @@ interface Props {
   songs: Song[];
   aktivniId?: string;
   onVybrat: (s: Song) => void;
-  onZamknout: (s: Song, e?: React.MouseEvent) => void;
   onSmazat: (s: Song, e?: React.MouseEvent) => void;
   onDoPlaylistu: (s: Song, e?: React.MouseEvent) => void;
   /** Přidá víc skladeb do playlistu naráz. */
@@ -115,7 +114,7 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
 };
 
 export const SeznamSkladeb: React.FC<Props> = ({
-  songs, aktivniId, onVybrat, onZamknout, onSmazat, onDoPlaylistu, onDoPlaylistuHromadne,
+  songs, aktivniId, onVybrat, onSmazat, onDoPlaylistu, onDoPlaylistuHromadne,
   sety = [], onDoSetuHromadne, onSmazatHromadne, onUpravit,
 }) => {
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
@@ -368,7 +367,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       const kolik = await onSmazatHromadne(vybraneSkladby());
                       setStahovaniHlaska(
                         typeof kolik === 'number' && kolik < oznacene.size
-                          ? `Smazáno ${skladby(kolik)}; zamčené zůstaly.`
+                          ? `Smazáno ${skladby(kolik)}; zbytek se nepodařilo smazat.`
                           : `Smazáno ${skladby(oznacene.size)}.`,
                       );
                       setOznacene(() => new Set<string>());
@@ -531,7 +530,6 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     >
                       {s.title}
                     </span>
-                    {s.isLocked && <Lock className="w-3 h-3 text-[#FF9F0A] shrink-0" />}
                   </div>
 
                   {/* Co už je u písně po ruce. Bez toho se musí každá
@@ -589,13 +587,6 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     title="Přidat do playlistu"
                   >
                     <ListPlus className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={(e) => onZamknout(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer transition-all"
-                    title={s.isLocked ? 'Odemknout' : 'Zamknout'}
-                  >
-                    {s.isLocked ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                   </button>
                   <button
                     onClick={(e) => onSmazat(s, e)}

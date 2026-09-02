@@ -27,8 +27,6 @@ export interface Song {
   notes?: string;
   attachments?: SongAttachment[];
   youtubeVideos?: YouTubeVideo[];
-  isLocked?: boolean;
-  lockPassword?: string;
   links?: SongLink[];
   images?: { id: string; name: string; dataUrl: string; caption?: string }[];
   tabs?: { id: string; title: string; content?: string; dataUrl?: string }[];

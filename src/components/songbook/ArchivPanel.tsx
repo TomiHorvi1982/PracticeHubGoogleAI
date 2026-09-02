@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Search, Loader2, Download, AlertCircle, Check, Archive, ChevronLeft, Play, Pause } from 'lucide-react';
+import { Search, Loader2, Download, AlertCircle, Check, Archive, ChevronLeft, Play, Pause, RotateCcw, RotateCw } from 'lucide-react';
 import { authService } from '../../services/authService';
 
 /**
@@ -33,6 +33,12 @@ interface Stopa {
 
 const mb = (b: number) => `${Math.round((b / 1048576) * 10) / 10} MB`;
 
+/** Čas jako mm:ss. Koncertní stopy mívají i přes dvacet minut. */
+const cas = (v: number) => {
+  if (!Number.isFinite(v) || v < 0) return '0:00';
+  return `${Math.floor(v / 60)}:${String(Math.floor(v % 60)).padStart(2, '0')}`;
+};
+
 export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno }) => {
   const [dotaz, setDotaz] = useState('');
   const [nalezene, setNalezene] = useState<Nahravka[]>([]);
@@ -45,6 +51,9 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
   const [stazene, setStazene] = useState<Set<string>>(new Set());
   const [hraje, setHraje] = useState<string | null>(null);
   const [nacitaSe, setNacitaSe] = useState<string | null>(null);
+  /** Kde v přehrávané stopě jsme, ve vteřinách. */
+  const [kde, setKde] = useState(0);
+  const [delka, setDelka] = useState(0);
 
   /**
    * Jeden přehrávač pro celý panel.
@@ -65,6 +74,20 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
   const odkazNaStopu = (id: string, soubor: string) =>
     `https://archive.org/download/${encodeURIComponent(id)}/${soubor.split('/').map(encodeURIComponent).join('/')}`;
 
+  /**
+   * Skok o kus dopředu nebo dozadu.
+   *
+   * Koncertní nahrávka má i dvacet minut a proklikat ji po deseti
+   * vteřinách je nejrychlejší způsob, jak zjistit, jestli stojí za
+   * stažení. Meze se ořezávají, aby skok na konci nevyhodil chybu.
+   */
+  const skoc = (o: number) => {
+    const a = zvuk.current;
+    if (!a || !Number.isFinite(a.duration)) return;
+    a.currentTime = Math.max(0, Math.min(a.duration - 0.2, a.currentTime + o));
+    setKde(a.currentTime);
+  };
+
   const prehraj = (stopa: Stopa) => {
     if (!otevrena) return;
     if (hraje === stopa.soubor) {
@@ -72,12 +95,16 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
       setHraje(null);
       return;
     }
+    setKde(0);
+    setDelka(0);
 
     if (!zvuk.current) zvuk.current = new Audio();
     const a = zvuk.current;
     a.pause();
     a.src = odkazNaStopu(otevrena.nahravka.id, stopa.soubor);
-    a.onended = () => setHraje(null);
+    a.onended = () => { setHraje(null); setKde(0); };
+    a.ontimeupdate = () => setKde(a.currentTime);
+    a.onloadedmetadata = () => setDelka(Number.isFinite(a.duration) ? a.duration : 0);
     a.onerror = () => {
       setChyba(`„${stopa.nazev}" se nepodařilo přehrát.`);
       setNacitaSe(null);
@@ -237,7 +264,8 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
 
           <div className="space-y-0.5 max-h-[42vh] overflow-y-auto pr-1">
             {otevrena.stopy.map((s) => (
-              <div key={s.soubor} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.04]">
+              <div key={s.soubor} className={`rounded-lg ${hraje === s.soubor ? 'bg-white/[0.05]' : 'hover:bg-white/[0.04]'}`}>
+                <div className="flex items-center gap-2 px-2 py-1.5">
                 <span className="text-[10px] text-neutral-600 tabular-nums w-6 shrink-0">{s.poradi || '·'}.</span>
                 <button
                   onClick={() => prehraj(s)}
@@ -262,6 +290,50 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                     : stazene.has(s.soubor) ? <Check className="w-3 h-3" />
                     : <Download className="w-3 h-3" />}
                 </button>
+                </div>
+
+                {/* Ovládání jen u té stopy, která zrovna hraje.
+                    U všech naráz by to byl les posuvníků, ze kterého
+                    není poznat, který k čemu patří. */}
+                {hraje === s.soubor && (
+                  <div className="flex items-center gap-2 px-2 pb-1.5">
+                    <button
+                      onClick={() => skoc(-10)}
+                      className="p-1 rounded text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                      title="O 10 vteřin zpět"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => skoc(10)}
+                      className="p-1 rounded text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                      title="O 10 vteřin vpřed"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                    </button>
+
+                    <span className="text-[10px] text-neutral-500 tabular-nums shrink-0 w-9">
+                      {cas(kde)}
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max(1, delka)}
+                      step={0.5}
+                      value={Math.min(kde, delka || 1)}
+                      onChange={(e) => {
+                        const a = zvuk.current;
+                        if (!a) return;
+                        a.currentTime = Number(e.target.value);
+                        setKde(a.currentTime);
+                      }}
+                      className="flex-1 accent-[#30D158] cursor-pointer"
+                    />
+                    <span className="text-[10px] text-neutral-500 tabular-nums shrink-0 w-9">
+                      {cas(delka)}
+                    </span>
+                  </div>
+                )}
               </div>
             ))}
           </div>
