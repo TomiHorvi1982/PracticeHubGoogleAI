@@ -7,6 +7,7 @@ import { dataModulu } from './songbook/moduleRegistry';
 import { nactiPrilohuJakoUrl } from '../services/assetLibraryService';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
 import { FONT_DIRECTORY, FALLBACK_SOUNDFONT } from '../services/alphaTabNastaveni';
+import { cas as formatCas } from '../services/vlnovka';
 
 /**
  * Holá plocha alphaTabu s nastavením po ruce.
@@ -51,6 +52,11 @@ export const AlphaTabPlayground: React.FC = () => {
   const [rychlost, setRychlost] = useState(1);
   const [smycka, setSmycka] = useState(false);
   const [metronom, setMetronom] = useState(false);
+  /** Kam se posouvá plocha při hraní. Musí to být ten prvek, který roluje. */
+  const posuvnaPlocha = useRef<HTMLDivElement>(null);
+  const [samoPosouvat, setSamoPosouvat] = useState(true);
+  const [kde, setKde] = useState(0);
+  const [delka, setDelka] = useState(0);
 
   useEffect(() => {
     setPisne(songDatabaseService.getSongs());
@@ -79,6 +85,15 @@ export const AlphaTabPlayground: React.FC = () => {
     nastaveni.display.layoutMode = rozvrzeni;
     nastaveni.display.staveProfile = osnova;
     nastaveni.display.scale = zvetseni;
+    // Kurzor a posouvání jsou vlastnosti knihovny, jen se musí zapnout.
+    // Bez `scrollElement` nemá alphaTab čím rolovat a takt si musíš hledat
+    // sám; bez kurzoru není poznat, kde se zrovna hraje.
+    nastaveni.player.enableCursor = true;
+    nastaveni.player.enableAnimatedBeatCursor = true;
+    if (posuvnaPlocha.current) nastaveni.player.scrollElement = posuvnaPlocha.current;
+    nastaveni.player.scrollMode = alphaTab.ScrollMode.Continuous;
+    // Kousek nad kurzorem, ať se hraný takt nelepí na horní hranu.
+    nastaveni.player.scrollOffsetY = -40;
 
     const a = new alphaTab.AlphaTabApi(plocha.current, nastaveni);
     api.current = a;
@@ -106,6 +121,10 @@ export const AlphaTabPlayground: React.FC = () => {
     });
     a.renderFinished.on(() => { vykresleno = true; nasad(); });
     a.playerStateChanged.on((e) => setHraje(e.state === alphaTab.synth.PlayerState.Playing));
+    a.playerPositionChanged.on((e) => {
+      setKde(e.currentTime / 1000);
+      setDelka(e.endTime / 1000);
+    });
     a.error.on((e: any) => {
       setChyba(e?.message || 'alphaTab soubor nepřečetl.');
       setNacita(false);
@@ -132,6 +151,14 @@ export const AlphaTabPlayground: React.FC = () => {
   useEffect(() => { if (api.current) api.current.playbackSpeed = rychlost; }, [rychlost]);
   useEffect(() => { if (api.current) api.current.isLooping = smycka; }, [smycka]);
   useEffect(() => { if (api.current) api.current.metronomeVolume = metronom ? 1 : 0; }, [metronom]);
+  useEffect(() => {
+    const a = api.current;
+    if (!a) return;
+    a.settings.player.scrollMode = samoPosouvat
+      ? alphaTab.ScrollMode.Continuous
+      : alphaTab.ScrollMode.Off;
+    a.updateSettings();
+  }, [samoPosouvat]);
 
   useEffect(() => () => {
     api.current?.destroy();
@@ -263,6 +290,30 @@ export const AlphaTabPlayground: React.FC = () => {
             <Square className="w-3.5 h-3.5 fill-current" />
           </button>
 
+          {/* Poloha ve skladbě. Klikni kamkoli a hraje se odtamtud. */}
+          <div className="flex items-center gap-2 flex-1 min-w-[220px]">
+            <span className="text-[11px] font-mono text-neutral-400 tabular-nums shrink-0">
+              {formatCas(kde)}
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={Math.max(1, delka)}
+              step={0.1}
+              value={Math.min(kde, delka || 1)}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setKde(v);
+                if (api.current) api.current.timePosition = v * 1000;
+              }}
+              disabled={!delka}
+              className="flex-1 accent-[#FF9F0A] cursor-pointer disabled:opacity-40"
+            />
+            <span className="text-[11px] font-mono text-neutral-600 tabular-nums shrink-0">
+              {formatCas(delka)}
+            </span>
+          </div>
+
           <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-xl p-0.5">
             {RYCHLOSTI.map((r) => (
               <button
@@ -284,6 +335,15 @@ export const AlphaTabPlayground: React.FC = () => {
             }`}
           >
             <Repeat className="w-3.5 h-3.5" /> Smyčka
+          </button>
+          <button
+            onClick={() => setSamoPosouvat((p) => !p)}
+            title="Plocha se při hraní posouvá za kurzorem"
+            className={`px-3 h-9 rounded-xl text-[11px] font-bold cursor-pointer ${
+              samoPosouvat ? 'bg-[#FF9F0A] text-black' : 'bg-white/5 text-neutral-300 hover:bg-white/10'
+            }`}
+          >
+            Posouvat
           </button>
           <button
             onClick={() => setMetronom((m) => !m)}
@@ -340,7 +400,11 @@ export const AlphaTabPlayground: React.FC = () => {
       </div>
 
       {/* Plocha. Bílá schválně: notová sazba je černá na bílé, jako na papíře. */}
-      <div className="bg-white rounded-3xl overflow-auto border border-white/10" style={{ minHeight: 420 }}>
+      <div
+        ref={posuvnaPlocha}
+        className="bg-white rounded-3xl overflow-auto border border-white/10"
+        style={{ minHeight: 420, maxHeight: '70vh' }}
+      >
         <div ref={plocha} />
       </div>
     </div>
