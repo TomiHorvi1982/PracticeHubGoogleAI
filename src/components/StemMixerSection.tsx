@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Music2,
+  Repeat,
+  Square,
   Sliders, 
   Play, 
   Pause, 
@@ -26,6 +28,7 @@ import { StemDeckImport } from './stems/StemDeckImport';
 import { authorizedFetch } from '../services/assetLibraryService';
 import { StopaVodorovne, SIRKA_OVLADANI } from './mixer/StopaVodorovne';
 import { popiskyOsy, cas as casOsy } from '../services/vlnovka';
+import { RYCHLOSTI } from '../services/prehravani';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { idZAdresy } from '../services/youtubeApi';
@@ -138,7 +141,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     return () => unsub();
   }, []);
 
-  const { songs, selectedSong, isPlaying, currentTime, duration, audioReady, loadingAudio, globalPitch, channels, meterLevels } = audioState;
+  const { songs, selectedSong, isPlaying, currentTime, duration, audioReady, loadingAudio, globalPitch, dokola, rychlost, channels, meterLevels } = audioState;
 
   /**
    * Načte, co leží ve složce se stopami.
@@ -906,74 +909,13 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
       {(
         <div className="bg-[#121217] border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
-          {/* MASTER TRANSPORT BAR */}
-          <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-6 gap-4">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => stemAudioService.togglePlay()}
-                disabled={!audioReady || loadingAudio}
-                className={`w-12 h-12 rounded-2xl font-bold text-sm transition-all cursor-pointer flex items-center justify-center shadow-lg ${
-                  isPlaying
-                    ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/20'
-                    : 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
-                } disabled:opacity-40`}
-              >
-                {loadingAudio ? (
-                  <RotateCcw className="w-5 h-5 animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="w-6 h-6 fill-current" />
-                ) : (
-                  <Play className="w-6 h-6 fill-current ml-0.5" />
-                )}
-              </button>
-
-              <div>
-                <h2 className="text-xl font-bold flex items-center gap-2">
-                  {selectedSong?.title || 'Mixážní pult'}
-                </h2>
-                <p className="text-xs text-slate-400">{selectedSong?.artist || 'Vyber soubory na fadery níž'}</p>
-              </div>
-            </div>
-
-            {/* Time Progress Seek Bar */}
-            <div className="flex-1 max-w-md space-y-1.5 mx-auto">
-              <div className="flex justify-between text-xs font-mono text-slate-400">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max={duration || 180}
-                step="0.5"
-                value={currentTime}
-                onChange={(e) => stemAudioService.seek(parseFloat(e.target.value))}
-                className="w-full accent-amber-500 h-2 bg-slate-950 rounded-lg cursor-pointer border border-slate-800"
-              />
-            </div>
-
-            {/* Global Pitch Transposition */}
-            <div className="flex items-center gap-3 bg-slate-950 px-4 py-2 rounded-2xl border border-slate-800 text-xs">
-              <Music className="w-4 h-4 text-emerald-400" />
-              <span className="font-semibold text-slate-300">Master Transpozice:</span>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => stemAudioService.setGlobalPitch(Math.max(-12, globalPitch - 1))}
-                  className="w-6 h-6 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold text-xs"
-                >
-                  -
-                </button>
-                <span className="w-8 text-center font-mono font-bold text-amber-400">
-                  {globalPitch > 0 ? `+${globalPitch}` : globalPitch} st
-                </span>
-                <button
-                  onClick={() => stemAudioService.setGlobalPitch(Math.min(12, globalPitch + 1))}
-                  className="w-6 h-6 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold text-xs"
-                >
-                  +
-                </button>
-              </div>
-            </div>
+          {/* Kdo hraje. Ovládání je až pod stopami — patří k tomu,
+              co řídí, a při klikání do vlnovky je ruka blíž. */}
+          <div className="flex items-baseline gap-3 flex-wrap">
+            <h2 className="text-xl font-bold">{selectedSong?.title || 'Mixážní pult'}</h2>
+            <p className="text-xs text-slate-400 truncate">
+              {selectedSong?.artist || 'Vyber soubory na fadery níž'}
+            </p>
           </div>
 
           {/* VODOROVNÉ STOPY S VLNOVKOU
@@ -1028,6 +970,88 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 />
               );
             })}
+          </div>
+
+          {/* TRANSPORT */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => stemAudioService.togglePlay()}
+              disabled={!audioReady || loadingAudio}
+              className={`w-11 h-11 rounded-2xl transition-all cursor-pointer flex items-center justify-center shadow-lg shrink-0 ${
+                isPlaying
+                  ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+              } disabled:opacity-40`}
+              title={isPlaying ? 'Pauza' : 'Přehrát'}
+            >
+              {loadingAudio ? (
+                <RotateCcw className="w-5 h-5 animate-spin" />
+              ) : isPlaying ? (
+                <Pause className="w-5 h-5 fill-current" />
+              ) : (
+                <Play className="w-5 h-5 fill-current ml-0.5" />
+              )}
+            </button>
+
+            <button
+              onClick={() => { stemAudioService.stop(); stemAudioService.seek(0); }}
+              disabled={!audioReady}
+              className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              title="Zastavit a na začátek"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+            </button>
+
+            <span className="font-mono text-sm text-slate-300 tabular-nums shrink-0">
+              {formatTime(currentTime)}
+              <span className="text-slate-600"> / {formatTime(duration)}</span>
+            </span>
+
+            <button
+              onClick={() => stemAudioService.setDokola(!dokola)}
+              className={`px-3 h-9 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                dokola ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+              title="Přehrávat pořád dokola"
+            >
+              <Repeat className="w-3.5 h-3.5" /> Smyčka
+            </button>
+
+            {/* Tempo. Zvuk se dopočítaně posune zpátky, takže pomalejší
+                cvičení hraje pořád ve své tónině. */}
+            <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1 shrink-0">
+              {RYCHLOSTI.map((rr) => (
+                <button
+                  key={rr}
+                  onClick={() => stemAudioService.setRychlost(rr)}
+                  className={`px-2 py-1 rounded-lg text-[11px] font-mono cursor-pointer ${
+                    rychlost === rr ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {rr}×
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 bg-slate-950 px-3 h-9 rounded-xl border border-slate-800 text-xs shrink-0">
+              <Music className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-slate-400">Transpozice</span>
+              <button
+                onClick={() => stemAudioService.setGlobalPitch(Math.max(-12, globalPitch - 1))}
+                className="w-6 h-6 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold cursor-pointer"
+              >
+                −
+              </button>
+              <span className="w-9 text-center font-mono font-bold text-amber-400 tabular-nums">
+                {globalPitch > 0 ? `+${globalPitch}` : globalPitch} st
+              </span>
+              <button
+                onClick={() => stemAudioService.setGlobalPitch(Math.min(12, globalPitch + 1))}
+                className="w-6 h-6 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold cursor-pointer"
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
       )}

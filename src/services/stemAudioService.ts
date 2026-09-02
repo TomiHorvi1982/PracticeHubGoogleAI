@@ -1,5 +1,6 @@
 import * as Tone from 'tone';
 import { spocitejVrcholy } from './vlnovka';
+import { dalsiCas, kompenzacePitche } from './prehravani';
 import { StemSongDocument, SongStem } from '../types';
 import { generateSynchronizedStems } from './stemAudioGenerator';
 import { authService } from './authService';
@@ -35,6 +36,10 @@ export interface StemAudioState {
   audioReady: boolean;
   loadingAudio: boolean;
   globalPitch: number;
+  /** Přehrávat pořád dokola. */
+  dokola: boolean;
+  /** Násobek tempa; 1 je původní. */
+  rychlost: number;
   channels: Record<string, ChannelState>;
   meterLevels: Record<string, number>; // 0 to 1 for visual VU/peak meters
 }
@@ -48,6 +53,8 @@ class StemAudioService {
   private audioReady: boolean = false;
   private loadingAudio: boolean = false;
   private globalPitch: number = 0;
+  private dokola: boolean = false;
+  private rychlost: number = 1;
   private channels: Record<string, ChannelState> = {};
   private meterLevels: Record<string, number> = {};
 
@@ -109,6 +116,8 @@ class StemAudioService {
       audioReady: this.audioReady,
       loadingAudio: this.loadingAudio,
       globalPitch: this.globalPitch,
+      dokola: this.dokola,
+      rychlost: this.rychlost,
       channels: { ...this.channels },
       meterLevels: { ...this.meterLevels },
     };
@@ -318,7 +327,10 @@ class StemAudioService {
 
         const player = new Tone.Player({
           url: adresa,
-          loop: true,
+          // Smyčka se řídí tlačítkem, ne natvrdo. Dokud tu bylo `true`,
+          // hrálo se pořád dokola a zastavit to šlo jen ručně.
+          loop: this.dokola,
+          playbackRate: this.rychlost,
           autostart: false,
           onload: () => {
             loadedCount++;
@@ -448,7 +460,8 @@ class StemAudioService {
         this.panners[stemId].pan.value = ch.pan;
       }
       if (this.pitchShifters[stemId]) {
-        this.pitchShifters[stemId].pitch = ch.pitchSemi + this.globalPitch;
+        this.pitchShifters[stemId].pitch =
+        ch.pitchSemi + this.globalPitch + kompenzacePitche(this.rychlost);
       }
 
       if (stemId === 'guitar' && this.guitarMsNodes.sideGain) {
@@ -567,14 +580,56 @@ class StemAudioService {
 
   private startTimeTracking() {
     if (this.timeInterval) clearInterval(this.timeInterval);
-    const startTimestamp = Date.now() - this.currentTime * 1000;
+    // Odkud a od kdy se počítá. Při změně rychlosti se to nastaví znovu,
+    // jinak by se přepočetl i úsek, který se odehrál původním tempem.
+    const odKdy = Date.now();
+    const odCasu = this.currentTime;
     this.timeInterval = setInterval(() => {
-      if (this.isPlaying) {
-        const elapsed = (Date.now() - startTimestamp) / 1000;
-        this.currentTime = elapsed % (this.duration || 60);
-        this.notify();
-      }
+      if (!this.isPlaying) return;
+      const uplynulo = odCasu + ((Date.now() - odKdy) / 1000) * this.rychlost;
+      const { cas, konec } = dalsiCas(uplynulo, this.duration || 60, this.dokola);
+      this.currentTime = cas;
+      if (konec) this.dohralo();
+      else this.notify();
     }, 200);
+  }
+
+  /**
+   * Skladba dojela na konec.
+   *
+   * Počitadlo zůstane stát na konci. Dřív se počítalo přes zbytek po
+   * dělení, takže po dojetí skočilo na začátek a běželo dál, i když už
+   * bylo ticho — a u vlastního mixu, kde se délka dopočítává z bufferů,
+   * to ukazovalo i víc, než jak je skladba dlouhá.
+   */
+  private dohralo() {
+    const konec = this.duration || 60;
+    this.stop();
+    this.currentTime = konec;
+    this.notify();
+  }
+
+  /** Přehrávat pořád dokola. Smyčku si drží samy přehrávače. */
+  public setDokola(zapnuto: boolean) {
+    this.dokola = zapnuto;
+    Object.values(this.players).forEach((p) => { p.loop = zapnuto; });
+    this.notify();
+  }
+
+  /**
+   * Změní tempo, aniž by se skladba rozladila.
+   *
+   * Pomalejší vzorek zní hloub, takže se o stejně půltónů posune zpátky
+   * — bez toho by cvičení na 0,75× hrálo o pět půltónů níž, než jak se
+   * skladba hraje.
+   */
+  public setRychlost(r: number) {
+    if (!(r > 0)) return;
+    this.rychlost = r;
+    Object.values(this.players).forEach((p) => { p.playbackRate = r; });
+    this.applyChannelParams();
+    if (this.isPlaying) this.startTimeTracking();
+    this.notify();
   }
 
   private stopTimeTracking() {
