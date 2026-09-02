@@ -2,6 +2,7 @@ import { spustDoplneni } from '../services/enrichmentClient';
 import React, { useState, useEffect } from 'react';
 import { Song, YouTubeVideo } from '../types';
 import { searchYouTubeDirect, searchYouTubeForSong } from '../services/onlineSongSearch';
+import { TipyKapel } from './youtube/TipyKapel';
 import {
   Video, Play, Volume2, Plus, RefreshCw, Trash2, ExternalLink,
   Search, Check, Music, Youtube, Sparkles, AlertCircle, Link as LinkIcon,
@@ -25,25 +26,6 @@ interface YouTubeSectionProps {
  *
  * Kliknutí jen předvyplní pole; co se hledá, si člověk dopíše sám.
  */
-const DOPORUCENE: { nazev: string; kapely: string[] }[] = [
-  {
-    nazev: 'Česko',
-    kapely: [
-      'Kabát', 'Lucie', 'Tři sestry', 'Arakain', 'Citron', 'Visací zámek',
-      'Alkehol', 'Buty', 'Žlutý pes', 'Katapult', 'Doga', 'Krucipüsk',
-      'Škwor', 'Divokej Bill', 'Wanastowi Vjecy',
-    ],
-  },
-  {
-    nazev: 'Svět',
-    kapely: [
-      'Metallica', 'Nirvana', 'Pearl Jam', 'Soundgarden', 'Alice in Chains',
-      'Pantera', 'Sepultura', 'Rage Against the Machine', 'Faith No More',
-      'Red Hot Chili Peppers', 'Tool', 'Korn', 'Deftones', 'Machine Head',
-      'Megadeth', 'Slayer', 'Guns N\' Roses', 'Type O Negative',
-    ],
-  },
-];
 
 export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
   activeSong,
@@ -355,29 +337,11 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             </form>
 
             {/* Doporučeno.
-                Devadesátková kytarovka, kterou tady nejspíš někdo chce
-                hrát — rozdělená na domácí a světovou, protože se hledá
-                jinak. Kliknutí jen předvyplní hledání, zbytek dopíšeš
+                Jména se berou z MusicBrainzu podle země a roku vzniku;
+                ručně vypsaný seznam měl patnáct kapel na dekádu a hned
+                zestárl. Kliknutí jen předvyplní hledání, zbytek dopíšeš
                 sám: „live", „tutorial", „backing track". */}
-            <div className="space-y-1.5 py-1 text-xs">
-              {DOPORUCENE.map((skupina) => (
-                <div key={skupina.nazev} className="flex items-center gap-1.5 overflow-x-auto">
-                  <span className="text-neutral-400 font-medium shrink-0 mr-1 w-16">
-                    {skupina.nazev}
-                  </span>
-                  {skupina.kapely.map((kapela) => (
-                    <button
-                      key={kapela}
-                      type="button"
-                      onClick={() => setYoutubeQuery(kapela)}
-                      className="px-3 py-1 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer"
-                    >
-                      {kapela}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
+            <TipyKapel onVybrat={setYoutubeQuery} />
           </div>
         )}
 

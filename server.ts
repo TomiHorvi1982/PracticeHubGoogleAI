@@ -14,6 +14,11 @@ import {
 import { jeHlasDostupny, prepisPrikaz, NEJDELSI_PRIKAZ_S } from './hlasPrepis';
 import { postavZadani, zpracujOdpoved, vysvetliChybu } from './hlasPreklad';
 import { textZPdf } from './pdfText';
+import {
+  postavDotaz as postavDotazTipu,
+  zpracujOdpoved as zpracujTipy,
+  platnaDekada, DEKADY, Oblast,
+} from './server/tipyKapel';
 import fs from 'node:fs';
 import os from 'node:os';
 import {
@@ -4435,6 +4440,69 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * poctivou hlavičku `User-Agent` a nejvýš jeden dotaz za vteřinu;
    * obojí se tu dodržuje, jinak nás odstřihnou.
    */
+  /**
+   * Zapamatované stránky tipů.
+   *
+   * Jedna stránka je jeden dotaz do MusicBrainzu a obsah se nemění ze
+   * dne na den, takže projít pruh tipů tam a zpátky nemá znamenat
+   * desítky dotazů ven.
+   */
+  const tipyPamet = new Map<string, { tipy: unknown[]; celkem: number }>();
+  /**
+   * Fronta dotazů do MusicBrainzu.
+   *
+   * Limit je jeden dotaz za vteřinu. Porovnávat čas posledního volání
+   * nestačilo: dvě řady tipů se ptají naráz, obě si přečetly stejnou
+   * hodnotu, obě počkaly stejně dlouho a vystřelily současně — druhá
+   * dostala 503. Řetěz slibů je pustí opravdu po jednom.
+   */
+  let tipyFronta: Promise<unknown> = Promise.resolve();
+
+  function vePorade<T>(prace: () => Promise<T>): Promise<T> {
+    const vysledek = tipyFronta.then(prace, prace);
+    // Odstup se drží i po chybě, jinak by se fronta po prvním 503 rozjela.
+    const pauza = () => new Promise((r) => setTimeout(r, 1100));
+    tipyFronta = vysledek.then(pauza, pauza);
+    return vysledek;
+  }
+
+  app.get('/api/tipy', requireAuth, async (req, res) => {
+    const oblast = String(req.query.oblast || '') as Oblast;
+    if (oblast !== 'cesko' && oblast !== 'svet') {
+      return res.status(400).json({ error: 'Neznámá oblast.' });
+    }
+    const dekada = platnaDekada(req.query.dekada);
+    if (dekada === null) {
+      return res.status(400).json({ error: `Dekáda musí být jedna z ${DEKADY.join(', ')}.` });
+    }
+    const od = Math.max(0, Math.min(900, Number(req.query.od) || 0));
+    const kolik = Math.max(1, Math.min(100, Number(req.query.kolik) || 25));
+
+    const klic = `${oblast}:${dekada}:${od}:${kolik}`;
+    const zapamatovane = tipyPamet.get(klic);
+    if (zapamatovane) return res.json({ ...zapamatovane, dekada, oblast });
+
+    try {
+      const adresa = 'https://musicbrainz.org/ws/2/artist'
+        + `?query=${encodeURIComponent(postavDotazTipu(oblast, dekada))}`
+        + `&fmt=json&limit=${kolik}&offset=${od}`;
+      const odpoved = await vePorade(() => fetch(adresa, {
+        headers: { 'User-Agent': 'NeverLateStudio/1.0 ( hortom82@gmail.com )' },
+        signal: AbortSignal.timeout(12_000),
+      }));
+      if (!odpoved.ok) throw new Error(`MusicBrainz vrátil ${odpoved.status}`);
+      const vysledek = zpracujTipy(await odpoved.json());
+      tipyPamet.set(klic, vysledek);
+      return res.json({ ...vysledek, dekada, oblast });
+    } catch (e: any) {
+      return res.status(502).json({
+        error: e?.name === 'TimeoutError'
+          ? 'MusicBrainz neodpověděl včas.'
+          : e?.message || 'Tipy se nepodařilo načíst.',
+      });
+    }
+  });
+
   app.get('/api/album/musicbrainz', requireAuth, async (req, res) => {
     const interpret = String(req.query.interpret || '').trim();
     const album = String(req.query.album || '').trim();
