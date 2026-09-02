@@ -20,6 +20,7 @@ import { PracticeAssistant } from './components/PracticeAssistant';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { AiKapelaSection } from './components/AiKapelaSection';
 import { AlphaTabPlayground } from './components/AlphaTabPlayground';
+import { LiveGuitarAmp } from './components/LiveGuitarAmp';
 import { ZalozkySection } from './components/ZalozkySection';
 import { PractiseHubSection } from './components/PractiseHubSection';
 import { TextySection } from './components/TextySection';
@@ -357,6 +358,7 @@ function AppContent() {
 
       {/* AI BAND */}
       {activeTab === 'alphatabhriste' && <AlphaTabPlayground />}
+      {activeTab === 'liveamp' && <LiveGuitarAmp />}
       {activeTab === 'aikapela' && <AiKapelaSection />}
 
       {/* GUITAR PRO / ALPHATAB SECTION */}

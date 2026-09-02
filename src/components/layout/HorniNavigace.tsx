@@ -38,6 +38,7 @@ const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: st
   // zůstávají na místě. Vrátí se odkomentováním tohohle řádku a aliasu
   // v `sekce.ts`.
   // { id: 'aikapela', label: 'AI Band', icon: Users },
+  { id: 'liveamp', label: 'Live Guitar Amp', icon: Mic },
   { id: 'practise', label: 'Practise Hub', icon: GraduationCap },
   { id: 'texty', label: 'Texty', icon: FileText },
   { id: 'practice', label: 'Metronom', icon: Clock },
