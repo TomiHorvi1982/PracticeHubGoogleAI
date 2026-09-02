@@ -146,6 +146,11 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
             // Na Pódiu jde o tabulaturu, ne o nastavení: mixér stop,
             // kostičky taktů a cvičební úsek se schovají pod přepínač.
             kompaktni
+            // Odkud vzít soubor znovu, až se úsek otevře v Solo Practise.
+            prilohaId={priloha.id}
+            storageBucket={priloha.storageBucket}
+            storagePath={priloha.storagePath}
+            nazevSkladby={song.title}
           />
         )}
       </div>

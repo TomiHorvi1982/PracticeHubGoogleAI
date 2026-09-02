@@ -7,6 +7,7 @@ import * as alphaTab from '@coderline/alphatab';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
 import { NASTROJE_GM, RODINY_NASTROJU } from '../data/nastrojeGm';
 import { FONT_DIRECTORY, FALLBACK_SOUNDFONT } from '../services/alphaTabNastaveni';
+import { taktyZTiku, rozsahTiku, ulozUsek } from '../services/usekDoCviceni';
 import {
   Play,
   Pause,
@@ -47,6 +48,17 @@ interface GuitarProPlayerProps {
    * první, na co se kouká.
    */
   kompaktni?: boolean;
+  /**
+   * Odkud se dá soubor vzít znovu.
+   *
+   * Bez toho se vybraný úsek nedá poslat do cvičení: blob adresa, na
+   * které přehrávač hraje, po přechodu do jiné sekce zanikne, takže
+   * Solo Room potřebuje trvalý odkaz do úložiště.
+   */
+  prilohaId?: string;
+  storageBucket?: string;
+  storagePath?: string;
+  nazevSkladby?: string;
 }
 
 
@@ -182,6 +194,10 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   artist,
   bpm: initialBpm,
   kompaktni,
+  prilohaId,
+  storageBucket,
+  storagePath,
+  nazevSkladby,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<alphaTab.AlphaTabApi | null>(null);
@@ -257,6 +273,8 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   const [taktyStop, setTaktyStop] = useState<Record<number, boolean[]>>({});
   /** Rozbalené nastavení pod tabulaturou. V kompaktním režimu zavřené. */
   const [extraOtevrene, setExtraOtevrene] = useState(!kompaktni);
+  /** Krátké potvrzení po odeslání úseku do cvičení. */
+  const [poslano, setPoslano] = useState(false);
   const [pocetTaktu, setPocetTaktu] = useState(0);
   /** Začátky taktů v tikách — podle nich se pozná, ve kterém taktu jsme. */
   const zacatkyTaktu = useRef<number[]>([]);
@@ -323,6 +341,37 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   }, [activeTrackIndex, dataUrl, isLoading]);
 
   /** Vybraný úsek přepočítaný na cvičení. */
+  /**
+   * Odloží vybrané takty pro Solo Room.
+   *
+   * Výběr se nejdřív rozšíří na celé takty: tažení po liště padne
+   * kamkoli a smyčka, která se vrací na půl doby, se nedá chytit.
+   */
+  const posliDoCviceni = () => {
+    if (!usek || !prilohaId) return;
+    const zacatky = zacatkyTaktu.current;
+    const takty = taktyZTiku(zacatky, usek.od, usek.do);
+    if (!takty) return;
+    const tiky = rozsahTiku(zacatky, takty.odTaktu, takty.doTaktu, totalTicks || undefined);
+    if (!tiky) return;
+
+    ulozUsek({
+      prilohaId,
+      prilohaNazev: filename,
+      storageBucket,
+      storagePath,
+      odTaktu: takty.odTaktu,
+      doTaktu: takty.doTaktu,
+      odTiku: tiky.odTiku,
+      doTiku: tiky.doTiku,
+      nazevSkladby: nazevSkladby || filename,
+      bpm: songBpm,
+      ulozeno: Date.now(),
+    });
+    setPoslano(true);
+    window.setTimeout(() => setPoslano(false), 2500);
+  };
+
   const usekKeCviceni: Usek | null = usek && dobyStopy.length
     ? usekZDob(dobyStopy, usek.od, usek.do)
     : null;
@@ -902,6 +951,24 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                 úsek {formatTime((usek.od / (totalTicks || 1)) * totalTime)}–
                 {formatTime((usek.do / (totalTicks || 1)) * totalTime)}
                 <X className="w-3 h-3" />
+              </button>
+            )}
+
+            {/* Přenos úseku do cvičení sóla.
+                Ukazuje se jen tam, kde víme, odkud soubor znovu vzít —
+                jinak by v Solo Room nebylo co přehrát. */}
+            {usek && prilohaId && (
+              <button
+                onClick={posliDoCviceni}
+                className={`px-2.5 py-1.5 text-xs font-semibold rounded-xl border cursor-pointer flex items-center gap-1.5 transition-all ${
+                  poslano
+                    ? 'border-[#30D158]/40 bg-[#30D158]/15 text-[#30D158]'
+                    : 'border-[#BF5AF2]/40 bg-[#BF5AF2]/10 text-[#BF5AF2] hover:bg-[#BF5AF2]/20'
+                }`}
+                title="Přenést vybrané takty do Solo Practise a cvičit na ně sólo"
+              >
+                <Guitar className="w-3.5 h-3.5" />
+                {poslano ? 'v Solo Practise' : 'do Solo Practise'}
               </button>
             )}
 

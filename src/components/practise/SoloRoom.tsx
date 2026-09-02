@@ -7,6 +7,7 @@ import { FaderKanalu } from '../mixer/FaderKanalu';
 import { KytaraFader } from '../mixer/KytaraFader';
 import { RiffRoom } from './RiffRoom';
 import { PorovnaniRiffu } from './PorovnaniRiffu';
+import { UsekZTabulatury } from './UsekZTabulatury';
 
 /**
  * Sólová místnost.
@@ -61,6 +62,10 @@ export const SoloRoom: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      {/* Úsek přenesený z tabulatury. Nahoře schválně: když si ho člověk
+          poslal, přišel sem právě kvůli němu. */}
+      <UsekZTabulatury />
+
       {/* Sólo se učí po částech a každá se ověřuje proti stopě — jinak
           se člověk naučí něco, co jen znělo podobně. */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4">
