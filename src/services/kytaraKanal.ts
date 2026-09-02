@@ -58,6 +58,9 @@ class KytaraKanal {
   private zpozdeni: DelayNode | null = null;
   private vpravo: GainNode | null = null;
   private analyzer: AnalyserNode | null = null;
+  private insertOd: GainNode | null = null;
+  private insertDo: GainNode | null = null;
+  private insert: AudioNode | null = null;
   private data: Float32Array | null = null;
   private smycka = 0;
 
@@ -104,6 +107,12 @@ class KytaraKanal {
 
     this.zdroj = ctx.createMediaStreamSource(this.proud);
     this.uzelGain = ctx.createGain();
+    // Stálé místo pro efekt mezi vstupním zesílením a panoramatem.
+    // Dva pevné uzly proto, aby se aparát dal zapojit i vypojit za běhu
+    // bez přepojování celého řetězu — jinak by se při každé změně
+    // muselo sahat na zdroj i na pan a signál by cvakal.
+    this.insertOd = ctx.createGain();
+    this.insertDo = ctx.createGain();
     this.uzelPan = ctx.createStereoPanner();
     this.uzelHlasitost = ctx.createGain();
     this.zpozdeni = ctx.createDelay(0.05);
@@ -114,8 +123,11 @@ class KytaraKanal {
 
     // Suchá větev jde rovnou, zpožděná se přimíchává podle šířky.
     this.zdroj.connect(this.uzelGain);
-    this.uzelGain.connect(this.uzelPan);
-    this.uzelGain.connect(this.zpozdeni);
+    this.uzelGain.connect(this.insertOd);
+    // Bez efektu se místo prostě přemostí.
+    this.insertOd.connect(this.insertDo);
+    this.insertDo.connect(this.uzelPan);
+    this.insertDo.connect(this.zpozdeni);
     this.zpozdeni.connect(this.vpravo);
     this.vpravo.connect(this.uzelPan);
     this.uzelPan.connect(this.uzelHlasitost);
@@ -124,6 +136,33 @@ class KytaraKanal {
     this.pouzijHodnoty();
     this.oznam({ bezi: true, chyba: null });
     this.mer();
+  }
+
+  /**
+   * Zapojí efekt do řetězu, nebo ho vyndá.
+   *
+   * Vlastní uzel si volající drží sám — kanál ho jen zapojí a při
+   * zastavení pustí. `null` vrátí přemostění, takže signál jde dál
+   * beze změny.
+   */
+  public nastavInsert(uzel: AudioNode | null): void {
+    if (!this.insertOd || !this.insertDo) {
+      this.insert = uzel;
+      return;
+    }
+    try { this.insertOd.disconnect(); } catch { /* nebyl připojený */ }
+    if (uzel) {
+      this.insertOd.connect(uzel);
+      uzel.connect(this.insertDo);
+    } else {
+      this.insertOd.connect(this.insertDo);
+    }
+    this.insert = uzel;
+  }
+
+  /** Kontext kanálu — efekt se musí postavit nad tímtéž. */
+  public get kontext(): AudioContext | null {
+    return this.ctx;
   }
 
   public stop(): void {
@@ -135,6 +174,11 @@ class KytaraKanal {
     void this.ctx?.close();
     this.ctx = null;
     this.analyzer = null;
+    // Se zavřeným kontextem jsou uzly mrtvé; kdyby zůstaly, `nastavInsert`
+    // by po zastavení připojoval efekt do prázdna.
+    this.insertOd = null;
+    this.insertDo = null;
+    this.insert = null;
     this.oznam({ bezi: false, uroven: 0, spicka: 0, preburacene: false });
   }
 

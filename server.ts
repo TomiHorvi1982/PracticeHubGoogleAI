@@ -27,6 +27,9 @@ import os from 'node:os';
 import {
   seskupDoSkladeb, bezpecnaCesta, rozsahZHlavicky, projdiStopy, jeZvuk,
 } from './server/mistniStopy';
+import {
+  jeModel, nazevModelu, udajeModelu, MistniAparat,
+} from './server/mistniAparaty';
 
 dotenv.config();
 
@@ -3816,6 +3819,83 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * fungovat, jen bez místních souborů.
    */
   const mistniDiskJde = () => !process.env.VERCEL;
+
+  /**
+   * Kde leží modely aparátů.
+   *
+   * Neural Amp Modeler i Soundshed je ukládají do vlastní složky; tahle
+   * je výchozí u obou. Přenastavit jde přes `APARATY_SLOZKA`.
+   */
+  const SLOZKA_APARATU = process.env.APARATY_SLOZKA
+    || path.join(os.homedir(), 'Music', 'Stems', '.amp_nams');
+
+  app.get('/api/aparaty/mistni', requireAuth, async (_req, res) => {
+    if (!mistniDiskJde()) {
+      return res.json({
+        dostupne: false,
+        slozka: SLOZKA_APARATU,
+        aparaty: [],
+        duvod: 'Aplikace běží na serveru, kde tvůj disk není. Modely se načtou, '
+          + 'když ji spustíš u sebe.',
+      });
+    }
+    if (!fs.existsSync(SLOZKA_APARATU)) {
+      return res.json({
+        dostupne: false,
+        slozka: SLOZKA_APARATU,
+        aparaty: [],
+        duvod: `Složka ${SLOZKA_APARATU} neexistuje. Založ ji, nebo si nastav `
+          + 'jinou přes APARATY_SLOZKA v .env.',
+      });
+    }
+
+    const aparaty: MistniAparat[] = [];
+    try {
+      for (const jmeno of fs.readdirSync(SLOZKA_APARATU)) {
+        if (!jeModel(jmeno)) continue;
+        const cesta = path.join(SLOZKA_APARATU, jmeno);
+        try {
+          const st = fs.statSync(cesta);
+          if (!st.isFile()) continue;
+          // Čte se celý soubor. Nabízelo se vzít jen prvních pár
+          // kilobajtů kvůli vahám, jenže uříznutý JSON se nerozparsuje
+          // a údaje by zůstaly prázdné u všech modelů. Čtvrt megabajtu
+          // z místního disku u hrstky souborů nestojí za tu vadu.
+          aparaty.push({
+            nazev: nazevModelu(jmeno),
+            soubor: jmeno,
+            velikost: st.size,
+            ...udajeModelu(fs.readFileSync(cesta, 'utf8')),
+          });
+        } catch { /* nečitelný soubor se přeskočí */ }
+      }
+    } catch (e: any) {
+      return res.status(500).json({ error: e?.message || 'Složku se nepodařilo přečíst.' });
+    }
+
+    aparaty.sort((a, b) => a.nazev.localeCompare(b.nazev, 'cs'));
+    return res.json({ dostupne: true, slozka: SLOZKA_APARATU, aparaty });
+  });
+
+  /**
+   * Obsah jednoho modelu.
+   *
+   * Posílá se celý JSON — `loadModel()` v prohlížeči ho chce jako text.
+   */
+  app.get('/api/aparaty/mistni/soubor', requireAuth, async (req, res) => {
+    if (!mistniDiskJde()) return res.status(404).json({ error: 'Místní disk tu není.' });
+    const jmeno = String(req.query.soubor || '');
+    const cil = bezpecnaCesta(SLOZKA_APARATU, jmeno);
+    // Ze složky s aparáty se ven nesahá, ani kdyby cesta vypadala nevinně.
+    if (!cil || !jeModel(cil)) return res.status(400).json({ error: 'Neplatný model.' });
+    try {
+      const obsah = fs.readFileSync(cil, 'utf8');
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      return res.send(obsah);
+    } catch {
+      return res.status(404).json({ error: 'Model tam není.' });
+    }
+  });
 
   app.get('/api/stopy/mistni', requireAuth, async (_req, res) => {
     if (!mistniDiskJde()) {

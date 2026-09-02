@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Guitar, Headphones, AlertTriangle, RefreshCw, Check } from 'lucide-react';
 import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
 import { KytaraFader } from './mixer/KytaraFader';
+import { kytaraKanal, StavKanalu } from '../services/kytaraKanal';
+import { namAparat, StavAparatu } from '../services/namAparat';
+import { authorizedFetch } from '../services/assetLibraryService';
 
 /**
  * Živý kytarový aparát.
@@ -22,11 +25,71 @@ import { KytaraFader } from './mixer/KytaraFader';
 /** Podle čeho se pozná virtuální zařízení pro přelévání zvuku. */
 const PRELEVACI = /blackhole|loopback|soundflower|virtual|aggregate|multi-output|jack/i;
 
+interface Aparat {
+  nazev: string;
+  soubor: string;
+  velikost: number;
+  architektura?: string;
+  vzorkovaciFrekvence?: number;
+  autor?: string;
+}
+
 export const LiveGuitarAmp: React.FC = () => {
   const [karta, setKarta] = useState<StavKarty>(zvukovaKarta.getStav());
+  const [kanal, setKanal] = useState<StavKanalu>(kytaraKanal.getStav());
+  const [aparat, setAparat] = useState<StavAparatu>(namAparat.getStav());
+  const [aparaty, setAparaty] = useState<Aparat[]>([]);
+  const [duvodAparatu, setDuvodAparatu] = useState<string | null>(null);
 
   useEffect(() => zvukovaKarta.subscribe(setKarta), []);
+  useEffect(() => kytaraKanal.subscribe(setKanal), []);
+  useEffect(() => namAparat.subscribe(setAparat), []);
   useEffect(() => { void zvukovaKarta.nactiZarizeni(); }, []);
+
+  /** Modely na disku. */
+  useEffect(() => {
+    (async () => {
+      try {
+        const d = await (await authorizedFetch('/api/aparaty/mistni')).json();
+        setAparaty(d.aparaty || []);
+        setDuvodAparatu(d.dostupne ? null : (d.duvod || 'Modely se nepodařilo načíst.'));
+      } catch {
+        setDuvodAparatu('Modely se nepodařilo načíst.');
+      }
+    })();
+  }, []);
+
+  /**
+   * Aparát se staví, až když vstup běží.
+   *
+   * Motor se váže na zvukový kontext a ten vzniká se spuštěním kanálu.
+   * Postavit ho dřív by znamenalo stavět nad kontextem, který se vzápětí
+   * zavře.
+   */
+  useEffect(() => {
+    if (!kanal.bezi) { void namAparat.odpoj(); return; }
+    const ctx = kytaraKanal.kontext;
+    if (!ctx) return;
+    let zruseno = false;
+    (async () => {
+      const uzel = await namAparat.pripoj(ctx);
+      if (!zruseno && uzel) kytaraKanal.nastavInsert(uzel);
+    })();
+    return () => { zruseno = true; };
+  }, [kanal.bezi]);
+
+  /** Načte vybraný model do běžícího aparátu. */
+  const vyberModel = async (a: Aparat) => {
+    try {
+      const r = await authorizedFetch(
+        `/api/aparaty/mistni/soubor?soubor=${encodeURIComponent(a.soubor)}`,
+      );
+      if (!r.ok) throw new Error(`Server vrátil ${r.status}`);
+      await namAparat.nactiModel(await r.text(), a.soubor);
+    } catch {
+      /* chybu ohlásí sama služba */
+    }
+  };
 
   const prelevaci = karta.vstupy.filter((z) => PRELEVACI.test(z.nazev));
   const vybranyVstup = karta.vstupy.find((z) => z.id === karta.vstup);
@@ -133,6 +196,96 @@ export const LiveGuitarAmp: React.FC = () => {
           Odposlech zapínej jen do sluchátek — z reproduktorů se signál vrátí do
           vstupu a rozezvučí se zpětná vazba.
         </p>
+      </div>
+
+      {/* APARÁT
+          Model je nasnímaný skutečný zesilovač a hraje na zvukovém
+          vlákně. Zapojuje se do kanálu na místo pro efekt, takže je
+          v cestě i do odposlechu a do nahrávky. */}
+      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-5 space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Guitar className="w-4 h-4 text-[#BF5AF2] shrink-0" />
+          <h2 className="text-sm font-bold text-white">Aparát</h2>
+          <span className="text-[11px] text-neutral-500 flex-1 min-w-[200px]">
+            Modely Neural Amp Modeler z tvé složky — hrají rovnou tady, bez další aplikace.
+          </span>
+          {aparat.model && (
+            <button
+              onClick={() => void namAparat.vyndejModel()}
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-neutral-300 cursor-pointer shrink-0"
+            >
+              Vypnout aparát
+            </button>
+          )}
+        </div>
+
+        {!kanal.bezi && (
+          <p className="text-[11px] text-neutral-500 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
+            Aparát se zapne, až spustíš vstup níž — teprve tehdy vzniká zvukový řetěz,
+            do kterého se dá zapojit.
+          </p>
+        )}
+
+        {duvodAparatu && (
+          <p className="text-[11px] text-neutral-400 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
+            {duvodAparatu}
+          </p>
+        )}
+
+        {aparat.chyba && (
+          <p className="text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+            {aparat.chyba}
+          </p>
+        )}
+
+        {/* Model trénovaný na jinou frekvenci nezní jako předloha —
+            je posunutý. Není to chyba, ale slyšet to je. */}
+        {aparat.neshodaFrekvence && (
+          <p className="text-[11px] text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-center gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+            Model je natrénovaný na {aparat.neshodaFrekvence} Hz, zvuk běží na jiné
+            frekvenci — bude znít posunutě.
+          </p>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {aparaty.map((a) => {
+            const zapnuty = aparat.model === a.soubor;
+            return (
+              <button
+                key={a.soubor}
+                onClick={() => void vyberModel(a)}
+                disabled={!kanal.bezi || aparat.nacita}
+                className={`text-left px-3 py-2 rounded-xl border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
+                  zapnuty
+                    ? 'bg-[#BF5AF2]/15 border-[#BF5AF2]/60'
+                    : 'bg-black/30 border-white/[0.08] hover:border-white/25'
+                }`}
+              >
+                <span className={`block text-[11px] truncate ${zapnuty ? 'text-white font-bold' : 'text-neutral-300'}`}>
+                  {a.nazev}
+                </span>
+                <span className="block text-[9px] text-neutral-500 truncate">
+                  {[
+                    a.architektura,
+                    a.vzorkovaciFrekvence ? `${Math.round(a.vzorkovaciFrekvence / 1000)} kHz` : null,
+                    a.autor,
+                  ].filter(Boolean).join(' · ')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {aparat.nacita && (
+          <p className="text-[11px] text-neutral-400">Načítám model…</p>
+        )}
+        {aparat.model && !aparat.nacita && (
+          <p className="text-[11px] text-[#30D158] flex items-center gap-1.5">
+            <Check className="w-3.5 h-3.5 shrink-0" />
+            Hraješ přes „{aparaty.find((x) => x.soubor === aparat.model)?.nazev || aparat.model}"
+          </p>
+        )}
       </div>
 
       {/* Měřák, ovládání a nahrávání — týž kanál, jaký appka používá jinde. */}

@@ -26,6 +26,7 @@
     "firebase": "^12.17.1",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "neural-amp-modeler-wasm": "^2.0.1",
     "pdfjs-dist": "^6.2.108",
     "pitchfinder": "^2.3.4",
     "qrcode.react": "^4.2.0",
@@ -48,5 +49,11 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
+  },
+  "overrides": {
+    "neural-amp-modeler-wasm": {
+      "react": "$react",
+      "react-dom": "$react-dom"
+    }
   }
 }
