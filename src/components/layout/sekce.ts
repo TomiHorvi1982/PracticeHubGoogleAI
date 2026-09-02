@@ -40,7 +40,8 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'guitar pro': 'alphatab',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
-  'ai band': 'aikapela',
+  // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.
+  // 'ai band': 'aikapela',
   'practise hub': 'practise',
   'texty': 'texty',
   'metronom': 'practice',

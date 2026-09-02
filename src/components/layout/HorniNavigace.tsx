@@ -33,7 +33,10 @@ const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: st
   { id: 'alphatab', label: 'Guitar Pro', icon: FileCode },
   { id: 'instruments', label: 'Virtual Instruments', icon: Piano },
   { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
-  { id: 'aikapela', label: 'AI Band', icon: Users },
+  // AI Band je odložený, ne smazaný: komponenta, služba i trasa v App
+  // zůstávají na místě. Vrátí se odkomentováním tohohle řádku a aliasu
+  // v `sekce.ts`.
+  // { id: 'aikapela', label: 'AI Band', icon: Users },
   { id: 'practise', label: 'Practise Hub', icon: GraduationCap },
   { id: 'texty', label: 'Texty', icon: FileText },
   { id: 'practice', label: 'Metronom', icon: Clock },
