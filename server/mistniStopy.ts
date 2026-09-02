@@ -11,6 +11,7 @@
  */
 
 import path from 'node:path';
+import fs from 'node:fs';
 
 /** Přípony, které umí přehrát prohlížeč (wav kvůli exportu z Neural Mixu). */
 export const ZVUKOVE_PRIPONY = ['.wav', '.mp3', '.m4a', '.aac', '.flac', '.ogg', '.aiff', '.aif'];
@@ -159,4 +160,44 @@ export function rozsahZHlavicky(
   if (!Number.isFinite(od) || !Number.isFinite(do_)) return null;
   if (od >= velikost || od > do_) return 'mimo';
   return { od, do: Math.min(do_, velikost - 1) };
+}
+
+/**
+ * Projde složku se stopami.
+ *
+ * Kouká do kořene a o patro níž. Hlouběji schválně ne: složka bývá
+ * sdílená s jinými nástroji, které si tam drží vlastní knihovny
+ * vzorků, a ty do mixážního pultu nepatří. Skryté složky (`.samples`
+ * a spol.) se přeskakují ze stejného důvodu.
+ */
+export function projdiStopy(koren: string): MistniSoubor[] {
+  const nalezene: MistniSoubor[] = [];
+  let vrchni: fs.Dirent[];
+  try {
+    vrchni = fs.readdirSync(koren, { withFileTypes: true });
+  } catch {
+    return nalezene;
+  }
+  for (const p of vrchni) {
+    if (p.name.startsWith('.')) continue;
+    if (p.isFile() && jeZvuk(p.name)) {
+      try {
+        const st = fs.statSync(path.join(koren, p.name));
+        nalezene.push({ jmeno: p.name, cesta: p.name, velikost: st.size });
+      } catch { /* soubor zmizel mezi výpisem a dotazem */ }
+    } else if (p.isDirectory()) {
+      let uvnitr: fs.Dirent[];
+      try {
+        uvnitr = fs.readdirSync(path.join(koren, p.name), { withFileTypes: true });
+      } catch { continue; }
+      for (const q of uvnitr) {
+        if (q.name.startsWith('.') || !q.isFile() || !jeZvuk(q.name)) continue;
+        try {
+          const st = fs.statSync(path.join(koren, p.name, q.name));
+          nalezene.push({ jmeno: q.name, cesta: `${p.name}/${q.name}`, velikost: st.size });
+        } catch { /* totéž */ }
+      }
+    }
+  }
+  return nalezene;
 }

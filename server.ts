@@ -17,7 +17,7 @@ import { textZPdf } from './pdfText';
 import fs from 'node:fs';
 import os from 'node:os';
 import {
-  jeZvuk, seskupDoSkladeb, bezpecnaCesta, rozsahZHlavicky, MistniSoubor,
+  seskupDoSkladeb, bezpecnaCesta, rozsahZHlavicky, projdiStopy, jeZvuk,
 } from './server/mistniStopy';
 
 dotenv.config();
@@ -3814,46 +3814,6 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * fungovat, jen bez místních souborů.
    */
   const mistniDiskJde = () => !process.env.VERCEL;
-
-  /**
-   * Projde složku se stopami.
-   *
-   * Kouká do kořene a o patro níž. Hlouběji schválně ne: složka bývá
-   * sdílená s jinými nástroji, které si tam drží vlastní knihovny
-   * vzorků, a ty do mixážního pultu nepatří. Skryté složky (`.samples`
-   * a spol.) se přeskakují ze stejného důvodu.
-   */
-  function projdiStopy(koren: string): MistniSoubor[] {
-    const nalezene: MistniSoubor[] = [];
-    let vrchni: fs.Dirent[];
-    try {
-      vrchni = fs.readdirSync(koren, { withFileTypes: true });
-    } catch {
-      return nalezene;
-    }
-    for (const p of vrchni) {
-      if (p.name.startsWith('.')) continue;
-      if (p.isFile() && jeZvuk(p.name)) {
-        try {
-          const st = fs.statSync(path.join(koren, p.name));
-          nalezene.push({ jmeno: p.name, cesta: p.name, velikost: st.size });
-        } catch { /* soubor zmizel mezi výpisem a dotazem */ }
-      } else if (p.isDirectory()) {
-        let uvnitr: fs.Dirent[];
-        try {
-          uvnitr = fs.readdirSync(path.join(koren, p.name), { withFileTypes: true });
-        } catch { continue; }
-        for (const q of uvnitr) {
-          if (q.name.startsWith('.') || !q.isFile() || !jeZvuk(q.name)) continue;
-          try {
-            const st = fs.statSync(path.join(koren, p.name, q.name));
-            nalezene.push({ jmeno: q.name, cesta: `${p.name}/${q.name}`, velikost: st.size });
-          } catch { /* totéž */ }
-        }
-      }
-    }
-    return nalezene;
-  }
 
   app.get('/api/stopy/mistni', requireAuth, async (_req, res) => {
     if (!mistniDiskJde()) {

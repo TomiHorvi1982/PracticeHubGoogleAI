@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
+  Music2,
   Sliders, 
   Play, 
   Pause, 
@@ -25,6 +26,10 @@ import { StemDeckImport } from './stems/StemDeckImport';
 import { authorizedFetch } from '../services/assetLibraryService';
 import { DawVerticalFader } from './DawVerticalFader';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
+import { songDatabaseService } from '../services/songDatabaseService';
+import { idZAdresy } from '../services/youtubeApi';
+import { otisky, stabilniNove, OtiskSady } from '../services/sledovaniSlozky';
+import { Song } from '../types';
 
 /** Fadery pultu. Zůstávají pořád stejné, jen se na ně věší soubory. */
 /** Jedna stopa, jak ji našel server ve složce se separovaným zvukem. */
@@ -86,6 +91,15 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [zdroj, setZdroj] = useState<'knihovna' | 'disk'>('knihovna');
   const [mistni, setMistni] = useState<MistniOdpoved>({ dostupne: false, slozka: '', skladby: [] });
   const [mistniNacita, setMistniNacita] = useState(false);
+  /** Sady, které ve složce přibyly, zatímco byl pult otevřený. */
+  const [noveSady, setNoveSady] = useState<string[]>([]);
+  const otiskyMinule = useRef<Map<string, OtiskSady>>(new Map());
+  const jizVidene = useRef<Set<string>>(new Set());
+  /** Náhled videa: co hraješ, ať máš při mixu před očima. */
+  const [pisne, setPisne] = useState<Song[]>([]);
+  const [videoId, setVideoId] = useState<string | null>(null);
+  const [odkazVidea, setOdkazVidea] = useState('');
+  const [chybaVidea, setChybaVidea] = useState<string | null>(null);
 
   useEffect(() => {
     const unsub = stemAudioService.subscribe((state) => {
@@ -106,19 +120,69 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
    * Neural Mix Pro tam sype průběžně, takže se to dá vyvolat znovu
    * tlačítkem — jinak by nová sada byla vidět až po obnovení stránky.
    */
-  const nactiMistni = React.useCallback(async () => {
-    setMistniNacita(true);
+  const nactiMistni = React.useCallback(async (rezim: 'prvni' | 'rucne' | 'tise' = 'rucne') => {
+    // Při hlídání na pozadí se s tlačítkem nehýbe — blikalo by co pár vteřin.
+    if (rezim !== 'tise') setMistniNacita(true);
     try {
       const r = await authorizedFetch('/api/stopy/mistni');
-      setMistni(await r.json());
+      const d: MistniOdpoved = await r.json();
+      setMistni(d);
+
+      const ted = otisky(d.skladby || []);
+      if (rezim === 'prvni') {
+        // Co tam leželo, než jsi pult otevřel, není nové.
+        for (const n of ted.keys()) jizVidene.current.add(n);
+      } else {
+        const pribylo = stabilniNove(otiskyMinule.current, ted, jizVidene.current);
+        if (pribylo.length) {
+          for (const n of pribylo) jizVidene.current.add(n);
+          setNoveSady((p) => [...new Set([...p, ...pribylo])]);
+        }
+      }
+      otiskyMinule.current = ted;
     } catch {
       setMistni({ dostupne: false, slozka: '', skladby: [], duvod: 'Složku se nepodařilo přečíst.' });
     } finally {
-      setMistniNacita(false);
+      if (rezim !== 'tise') setMistniNacita(false);
     }
   }, []);
 
-  useEffect(() => { nactiMistni(); }, [nactiMistni]);
+  useEffect(() => { nactiMistni('prvni'); }, [nactiMistni]);
+
+  /**
+   * Hlídá složku, dokud je pult otevřený.
+   *
+   * Separace trvá pár vteřin a klikat po ní na „Načíst znovu" je přesně
+   * ta drobnost, na kterou se zapomene. Ptáme se po šesti vteřinách;
+   * je to výpis jedné složky, ne nic drahého. Když disk k dispozici
+   * není (třeba na serveru), nehlídá se vůbec.
+   */
+  useEffect(() => {
+    if (!mistni.dostupne) return;
+    const t = setInterval(() => nactiMistni('tise'), 6000);
+    return () => clearInterval(t);
+  }, [mistni.dostupne, nactiMistni]);
+
+  /**
+   * Vytáhne z vloženého textu identifikátor videa.
+   *
+   * Bere celou adresu i holé jedenáctiznakové id — ze schránky chodí
+   * obojí podle toho, odkud se kopírovalo.
+   */
+  const zobrazOdkaz = () => {
+    const t = odkazVidea.trim();
+    const id = idZAdresy(t) || (/^[\w-]{11}$/.test(t) ? t : null);
+    if (!id) { setChybaVidea('V tom odkazu žádné video není.'); return; }
+    setVideoId(id);
+    setOdkazVidea('');
+    setChybaVidea(null);
+  };
+
+  /** Zpěvník kvůli náhledu videa — bere se z něj, co má odkaz na YouTube. */
+  useEffect(() => {
+    setPisne(songDatabaseService.getSongs());
+    return songDatabaseService.subscribe((s) => setPisne(s));
+  }, []);
 
   /** Pověsí stopu na fader; na jednom faderu je vždycky jen jedna. */
   const povesNaFader = (role: string, polozka: { nazev: string; assetId?: string; url?: string }) => {
@@ -252,7 +316,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             ))}
             {zdroj === 'disk' && (
               <button
-                onClick={nactiMistni}
+                onClick={() => nactiMistni('rucne')}
                 disabled={mistniNacita}
                 className="ml-auto px-3 py-1.5 rounded-xl text-xs bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer disabled:opacity-50"
               >
@@ -609,6 +673,111 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       )}
 
       {/* WEB AUDIO API MIXER CONSOLE WITH SVILE FADERY */}
+      {/* Co přibylo ve složce, zatímco byl pult otevřený.
+          Sada se ohlásí až kolo po tom, co se objeví — separátor
+          u čtyřicetimegabajtového wavu chvíli píše a načíst ho
+          v půlce by dalo useknutou stopu. */}
+      {noveSady.length > 0 && (
+        <div className="bg-emerald-500/10 border border-emerald-500/40 rounded-2xl p-4 flex flex-wrap items-center gap-2">
+          <Layers className="w-5 h-5 text-emerald-400 shrink-0" />
+          <span className="text-sm text-emerald-300 mr-1">
+            {noveSady.length === 1 ? 'Ve složce přibyla sada:' : 'Ve složce přibyly sady:'}
+          </span>
+          {noveSady.map((n) => {
+            const sk = mistni.skladby.find((x) => x.nazev === n);
+            return (
+              <button
+                key={n}
+                disabled={!sk}
+                onClick={() => {
+                  if (sk) nactiSadu(sk);
+                  setNoveSady((p) => p.filter((x) => x !== n));
+                  setZdroj('disk');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 max-w-[18rem] truncate"
+                title={`Načíst „${n}" na fadery`}
+              >
+                {n || '(bez názvu)'} → na fadery
+              </button>
+            );
+          })}
+          <button
+            onClick={() => setNoveSady([])}
+            className="ml-auto p-1 rounded text-emerald-400/60 hover:text-emerald-300 cursor-pointer"
+            title="Skrýt"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* NÁHLED VIDEA
+          Při cvičení je půlka informace v tom, co ruce dělají. Zvuk si
+          řídíš v přehrávači YouTube — hraje vedle stop, ne místo nich. */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
+          <h3 className="text-base font-bold text-white">Náhled videa</h3>
+          <span className="text-xs text-slate-400">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
+          {videoId && (
+            <button
+              onClick={() => setVideoId(null)}
+              className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] cursor-pointer"
+            >
+              Zavřít video
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={videoId ?? ''}
+            onChange={(e) => setVideoId(e.target.value || null)}
+            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
+          >
+            <option value="">— skladba ze zpěvníku —</option>
+            {pisne
+              .filter((p) => (p.youtubeVideos?.length ?? 0) > 0)
+              .map((p) => (
+                <optgroup key={p.id} label={`${p.artist ? p.artist + ' — ' : ''}${p.title}`}>
+                  {p.youtubeVideos!.map((v) => (
+                    <option key={v.id} value={v.id}>{v.title || v.type}</option>
+                  ))}
+                </optgroup>
+              ))}
+          </select>
+
+          <input
+            value={odkazVidea}
+            onChange={(e) => setOdkazVidea(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
+            placeholder="…nebo vlož odkaz na YouTube"
+            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
+          />
+          <button
+            onClick={zobrazOdkaz}
+            disabled={!odkazVidea.trim()}
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer disabled:opacity-40"
+          >
+            Zobrazit
+          </button>
+        </div>
+
+        {chybaVidea && <div className="text-[11px] text-rose-400">{chybaVidea}</div>}
+
+        {videoId && (
+          <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title="Náhled videa"
+              allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        )}
+      </div>
+
       {(
         <div className="bg-[#121217] border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
           {/* MASTER TRANSPORT BAR */}

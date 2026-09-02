@@ -122,3 +122,60 @@ test('nesmysl v hlavičce znamená celý soubor', () => {
   assert.equal(rozsahZHlavicky('bytes=abc', 1000), null);
   assert.equal(rozsahZHlavicky('bytes=-', 1000), null);
 });
+
+// --- procházení opravdové složky ---
+import fsx from 'node:fs';
+import osx from 'node:os';
+import pathx from 'node:path';
+import { projdiStopy } from './mistniStopy.js';
+
+function postavStrom(): string {
+  const koren = fsx.mkdtempSync(pathx.join(osx.tmpdir(), 'stopy-'));
+  // Sada ležící volně v kořeni.
+  for (const n of ['Amen-bass.wav', 'Amen-drums.wav']) fsx.writeFileSync(pathx.join(koren, n), 'xx');
+  // Sada ve vlastní podsložce.
+  fsx.mkdirSync(pathx.join(koren, 'Roots'));
+  for (const n of ['a-bass.wav', 'a-acappella.wav']) fsx.writeFileSync(pathx.join(koren, 'Roots', n), 'xxx');
+  // Věci jiné aplikace, které do pultu nepatří.
+  fsx.writeFileSync(pathx.join(koren, 'library.json'), '{}');
+  fsx.writeFileSync(pathx.join(koren, 'guitar_automator.db'), 'x');
+  fsx.mkdirSync(pathx.join(koren, '.samples'));
+  fsx.writeFileSync(pathx.join(koren, '.samples', 'kick.wav'), 'x');
+  fsx.writeFileSync(pathx.join(koren, '.skryty.wav'), 'x');
+  return koren;
+}
+
+test('projde kořen i podsložku a ignoruje cizí soubory', () => {
+  const koren = postavStrom();
+  try {
+    const n = projdiStopy(koren);
+    const cesty = n.map((x) => x.cesta).sort();
+    assert.deepEqual(cesty, [
+      'Amen-bass.wav', 'Amen-drums.wav', 'Roots/a-acappella.wav', 'Roots/a-bass.wav',
+    ]);
+    // Velikosti se opravdu čtou z disku, ne odhadují.
+    assert.equal(n.find((x) => x.cesta === 'Amen-bass.wav')!.velikost, 2);
+    assert.equal(n.find((x) => x.cesta === 'Roots/a-bass.wav')!.velikost, 3);
+  } finally {
+    fsx.rmSync(koren, { recursive: true, force: true });
+  }
+});
+
+test('podsložka se seskupí jako jedna skladba', () => {
+  const koren = postavStrom();
+  try {
+    const sk = seskupDoSkladeb(projdiStopy(koren));
+    const roots = sk.find((x) => x.nazev === 'Roots');
+    assert.ok(roots, 'podsložka Roots chybí');
+    assert.equal(roots!.stopy.length, 2);
+    assert.deepEqual(roots!.stopy.map((t) => t.role).sort(), ['bass', 'vocals']);
+    const amen = sk.find((x) => x.nazev === 'Amen');
+    assert.equal(amen!.stopy.length, 2);
+  } finally {
+    fsx.rmSync(koren, { recursive: true, force: true });
+  }
+});
+
+test('neexistující složka nespadne, jen nic nevrátí', () => {
+  assert.deepEqual(projdiStopy('/tohle/tam/opravdu/neni'), []);
+});
