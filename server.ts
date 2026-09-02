@@ -4790,21 +4790,69 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
         ulohy: ulohy
           .filter((u) => String(u.status || '').toLowerCase() === 'done'
             || String(u.status || '').toLowerCase() === 'completed')
+          // StemDeck posílá `job_id` a `duration`, ne `id`/`duration_sec`.
+          // Dokud se to četlo špatně, měla každá úloha prázdné id a import
+          // neměl co stáhnout.
           .map((u) => ({
-            id: String(u.id || ''),
-            nazev: String(u.title || u.id || ''),
-            delka: Number(u.duration_sec) || 0,
+            id: String(u.job_id || u.id || ''),
+            nazev: String(u.title || u.job_id || ''),
+            delka: Number(u.duration ?? u.duration_sec) || 0,
             bpm: Number(u.bpm) || 0,
-            tonina: [u.key, u.scale].filter(Boolean).join(' ') || '',
+            // `key` je rovnou „C min"; `scale` k tomu přidává „Natural Minor".
+            tonina: String(u.key || ''),
+            stupnice: String(u.scale || ''),
+            obrazek: String(u.thumbnail || ''),
             stopy: (u.stems || []).map((st: any) => String(st.name || st)).filter(Boolean),
             zdroj: String(u.source_url || ''),
-          })),
+          }))
+          .filter((u: any) => u.id),
       });
     } catch (e: any) {
       res.status(502).json({
         error: e?.message?.includes('timeout') || e?.name === 'TimeoutError'
           ? 'StemDeck neodpovídá — běží u tebe?'
           : e?.message || 'StemDeck neodpověděl.',
+      });
+    }
+  });
+
+  /**
+   * Pustí stopu ze StemDecku, aniž by se něco přenášelo do knihovny.
+   *
+   * Na pověšení na fader stačí soubor přehrát; nahrávat kvůli tomu
+   * čtyřiadvacet megabajtů do úložiště by bylo čekání navíc za nic.
+   * Jede se přes náš server, protože StemDeck běží na jiném portu
+   * a prohlížeč by to bral jako cizí původ.
+   *
+   * Bere se mp3 (~4 MB), ne wav (~33 MB) — v mixu je to slyšet stejně.
+   */
+  app.get('/api/stemdeck/stopa', requireAuth, async (req, res) => {
+    const jobId = String(req.query.jobId || '').trim();
+    const stopa = String(req.query.stopa || '').trim();
+    // Obojí jde rovnou do adresy, takže se pouští dál jen holé názvy.
+    if (!/^[A-Za-z0-9_-]{1,64}$/.test(jobId) || !/^[A-Za-z0-9_-]{1,32}$/.test(stopa)) {
+      return res.status(400).json({ error: 'Neplatná úloha nebo stopa.' });
+    }
+    try {
+      const hlavicky: Record<string, string> = {};
+      // Posun v mixu si říká o kus zprostředka; StemDeck to umí (206).
+      if (req.headers.range) hlavicky.Range = String(req.headers.range);
+      const o = await fetch(`${STEMDECK}/api/jobs/${jobId}/stems/${stopa}.mp3`, {
+        headers: hlavicky,
+        signal: AbortSignal.timeout(60_000),
+      });
+      if (o.status !== 200 && o.status !== 206) {
+        return res.status(502).json({ error: `StemDeck vrátil ${o.status}.` });
+      }
+      res.status(o.status);
+      for (const h of ['content-type', 'content-length', 'content-range', 'accept-ranges']) {
+        const v = o.headers.get(h);
+        if (v) res.setHeader(h, v);
+      }
+      return res.end(Buffer.from(await o.arrayBuffer()));
+    } catch (e: any) {
+      return res.status(502).json({
+        error: e?.name === 'TimeoutError' ? 'StemDeck neodpověděl včas.' : 'StemDeck neodpověděl — běží u tebe?',
       });
     }
   });
@@ -4865,7 +4913,9 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     const zaklad = `${interpret ? `${interpret} - ` : ''}${nazev || jobId}`.replace(/[/\\]/g, '-');
 
     try {
-      zalozene.push(await uloz(`${STEMDECK}/api/jobs/${jobId}/mixdown.mp3`, `${zaklad}.mp3`, 'mix'));
+      // `mixdown.mp3` je exportér vlastního mixu a chce `stems` a `gains`;
+      // hotový mix leží vedle stop pod `mix`.
+      zalozene.push(await uloz(`${STEMDECK}/api/jobs/${jobId}/stems/mix.mp3`, `${zaklad}.mp3`, 'mix'));
     } catch (e: any) {
       potize.push(String(e?.message || e));
     }
