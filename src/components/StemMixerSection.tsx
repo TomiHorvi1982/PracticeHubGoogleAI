@@ -9,14 +9,10 @@ import {
   RotateCcw, 
   Volume2, 
   VolumeX, 
-  Music, 
-  Disc,  
+  Music,   
   Sparkles, 
   Radio, 
-  Layers,  
-  CheckCircle2, 
-  Clock, 
-  AlertCircle,
+  Layers,    
   Download,
   Cpu,
   Wand2,
@@ -112,7 +108,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     { role: string; nazev: string; assetId?: string; url?: string }[]
   >([]);
   /** Odkud se právě vybírá: z databáze, nebo ze složky na disku. */
-  const [zdroj, setZdroj] = useState<'stemdeck' | 'knihovna' | 'disk'>('stemdeck');
+  const [zdroj, setZdroj] = useState<'stemdeck' | 'knihovna' | 'disk' | 'sady'>('stemdeck');
   const [mistni, setMistni] = useState<MistniOdpoved>({ dostupne: false, slozka: '', skladby: [] });
   const [mistniNacita, setMistniNacita] = useState(false);
   /** Sady, které ve složce přibyly, zatímco byl pult otevřený. */
@@ -353,11 +349,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       </div>
 
       {/* PŘIŘAZENÍ STOP NA FADERY */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="space-y-6">
         {/* Vlastní stopy: fadery zůstávají, jen se na ně věší soubory
             z knihovny. Hotových rozdělených sad je pár, kdežto jednotlivých
             stop leží v databázi spousta a nešlo z nich mix poskládat. */}
-        <div className="lg:col-span-3 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
+        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
           <div className="flex flex-wrap items-center gap-2">
             <Layers className="w-5 h-5 text-amber-400 shrink-0" />
             <h3 className="text-base font-bold text-white">Stopy na fadery</h3>
@@ -391,6 +387,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               ['stemdeck', 'Ze StemDecku'],
               ['knihovna', 'Z knihovny'],
               ['disk', 'Ze složky na disku'],
+              ['sady', 'Uložené sady'],
             ] as const).map(([id, popis]) => (
               <button
                 key={id}
@@ -412,6 +409,55 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               </button>
             )}
           </div>
+
+          {zdroj === 'sady' && (
+            <div className="space-y-2">
+              {loading ? (
+                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
+                  Načítám…
+                </div>
+              ) : songs.length === 0 ? (
+                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
+                  Zatím tu žádná uložená sada není. Pověs si stopy na fadery a ulož je níž jako skladbu.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {songs.map((sada) => (
+                    <div
+                      key={sada.id}
+                      className={`p-3 rounded-xl border flex items-center gap-3 ${
+                        selectedSong?.id === sada.id
+                          ? 'bg-amber-500/10 border-amber-500/50'
+                          : 'bg-slate-950/60 border-slate-800'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-white truncate">{sada.title}</div>
+                        <div className="text-[10px] text-slate-400 truncate">
+                          {[sada.artist, `${sada.stems.length} stop`,
+                            sada.status !== 'completed' ? sada.status : null]
+                            .filter(Boolean).join(' · ')}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => stemAudioService.selectSong(sada)}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold cursor-pointer shrink-0"
+                      >
+                        Načíst na fadery
+                      </button>
+                      <button
+                        onClick={() => handleDeleteStemSet(sada)}
+                        title="Smazat sadu"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 cursor-pointer shrink-0"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {zdroj === 'stemdeck' && (
             <div className="space-y-2">
@@ -600,153 +646,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   </button>
                 </div>
               ))}
-            </div>
-          )}
-        </div>
-
-        {/* Songs Library & Active Selection */}
-        <div className="lg:col-span-2 bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-base font-bold flex items-center gap-2 text-white">
-                <Disc className="w-5 h-5 text-amber-400" />
-                Dostupné Skladby se Stopy
-              </h3>
-              <span className="text-xs text-slate-400 font-mono">{songs.length} skladeb</span>
-            </div>
-
-            {loading ? (
-              <div className="p-8 text-center text-slate-400 text-xs">Načítání skladeb...</div>
-            ) : songs.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 text-xs">Zatím tu žádná hotová sada není — pověs si stopy na fadery níž.</div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-56 overflow-y-auto pr-1">
-                {songs.map((s) => {
-                  const isSelected = selectedSong?.id === s.id;
-                  const isProcessing = s.status === 'processing';
-                  const isFailed = s.status === 'failed';
-
-                  return (
-                    <button
-                      key={s.id}
-                      onClick={() => stemAudioService.selectSong(s)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-2 ${
-                        isSelected
-                          ? 'bg-amber-500/15 border-amber-500/60 shadow-lg'
-                          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="font-bold text-xs text-white truncate">{s.title}</div>
-                          <div className="text-[11px] text-slate-400 truncate">{s.artist}</div>
-                        </div>
-
-                        {s.status === 'completed' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center gap-1 shrink-0">
-                            <CheckCircle2 className="w-3 h-3" /> Připraveno
-                          </span>
-                        )}
-
-                        {isProcessing && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 font-semibold flex items-center gap-1 animate-pulse shrink-0">
-                            <Clock className="w-3 h-3" /> {s.progressPercentage}%
-                          </span>
-                        )}
-
-                        {isFailed && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-semibold flex items-center gap-1 shrink-0">
-                            <AlertCircle className="w-3 h-3" /> Selhalo
-                          </span>
-                        )}
-                      </div>
-
-                      {isFailed && (
-                        <div className="space-y-1.5">
-                          <p className="text-[10px] text-rose-300/80 leading-snug line-clamp-3">
-                            {s.errorMessage || 'Separace selhala.'}
-                          </p>
-                          <span
-                            role="button"
-                            tabIndex={0}
-                            onClick={(e) => { e.stopPropagation(); handleDeleteStemSet(s); }}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); handleDeleteStemSet(s); } }}
-                            className="inline-flex items-center gap-1 text-[10px] font-semibold text-rose-400 hover:text-rose-300 cursor-pointer"
-                          >
-                            Odstranit
-                          </span>
-                        </div>
-                      )}
-
-                      {isProcessing && (
-                        <div className="space-y-1">
-                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                            <div
-                              className="bg-amber-500 h-full transition-all duration-500"
-                              style={{ width: `${s.progressPercentage}%` }}
-                            />
-                          </div>
-                          <div className="flex justify-between text-[9px] text-slate-400">
-                            <span>Separace stop</span>
-                            <span>{s.progressPercentage}%</span>
-                          </div>
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          {/* Active Song Summary Bar */}
-          {selectedSong && (
-            <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs bg-slate-950/40 p-3 rounded-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold shrink-0">
-                  <Music className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="font-bold text-sm text-white">{selectedSong.title}</div>
-                  <div className="text-slate-400 text-xs">{selectedSong.artist} • {selectedSong.stems.length} Stop</div>
-                </div>
-              </div>
-
-              {selectedSong.status === 'completed' ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 font-mono flex items-center gap-1.5">
-                    {loadingAudio ? (
-                      <>
-                        <RotateCcw className="w-3 h-3 animate-spin text-amber-400" />
-                        <span className="text-amber-400">Načítání bufferů...</span>
-                      </>
-                    ) : audioReady ? (
-                      <>
-                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-emerald-400">Mixér Připraven</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="w-2 h-2 rounded-full bg-slate-500" />
-                        <span>Příprava</span>
-                      </>
-                    )}
-                  </span>
-                </div>
-              ) : selectedSong.status === 'failed' ? (
-                <div className="text-right text-[11px] text-rose-400 max-w-xs">
-                  <div className="font-semibold flex items-center justify-end gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> Separace selhala
-                  </div>
-                  <div className="text-rose-300/70 text-[10px] mt-0.5 leading-snug">
-                    {selectedSong.errorMessage || 'Důvod se nepodařilo zjistit.'}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-right font-mono text-amber-400 text-[11px] animate-pulse">
-                  Právě probíhá separace ({selectedSong.progressPercentage}%)
-                </div>
-              )}
             </div>
           )}
         </div>
