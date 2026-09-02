@@ -24,6 +24,8 @@ const OBLASTI = [
   { id: 'svet', popis: 'Svět' },
 ] as const;
 
+export type IdOblasti = (typeof OBLASTI)[number]['id'];
+
 const DEKADY = [
   { rok: 1990, popis: '90. léta' },
   { rok: 2000, popis: '2000+' },
@@ -45,7 +47,18 @@ const NA_STRANU = 25;
  * Naráz by to byl jeden pomalý dotaz na dekádu a většinu z něj by nikdo
  * neviděl.
  */
-export const TipyKapel: React.FC<{ onVybrat: (jmeno: string) => void }> = ({ onVybrat }) => {
+export const TipyKapel: React.FC<{
+  onVybrat: (jmeno: string) => void;
+  /**
+   * Které řady ukázat. V Guitar Pru dává smysl jen svět: tabulatury
+   * k českým kapelám na Freetaru ani Ultimate Guitaru skoro nejsou,
+   * takže by řada tipů vedla na prázdné výsledky.
+   */
+  oblasti?: readonly IdOblasti[];
+}> = ({ onVybrat, oblasti }) => {
+  const zobrazene = oblasti
+    ? OBLASTI.filter((o) => oblasti.includes(o.id))
+    : OBLASTI;
   const [dekada, setDekada] = useState(1990);
   /**
    * Jestli už je koho se ptát.
@@ -99,7 +112,9 @@ export const TipyKapel: React.FC<{ onVybrat: (jmeno: string) => void }> = ({ onV
 
   useEffect(() => {
     if (!prihlasen) return;
-    for (const o of OBLASTI) nacti(o.id, dekada, 0);
+    for (const o of zobrazene) nacti(o.id, dekada, 0);
+    // `zobrazene` se odvozuje z `oblasti`, které se v běhu nemění.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dekada, prihlasen, nacti]);
 
   return (
@@ -122,12 +137,14 @@ export const TipyKapel: React.FC<{ onVybrat: (jmeno: string) => void }> = ({ onV
         ))}
       </div>
 
-      {OBLASTI.map((o) => {
+      {zobrazene.map((o) => {
         const s = stavy[klic(o.id)] || PRAZDNY;
         const jeVic = s.tipy.length < s.celkem;
         return (
           <div key={o.id} className="flex items-center gap-1.5">
-            <span className="text-neutral-400 font-medium shrink-0 w-12">{o.popis}</span>
+            {zobrazene.length > 1 && (
+              <span className="text-neutral-400 font-medium shrink-0 w-12">{o.popis}</span>
+            )}
             <div
               onScroll={(e) => {
                 const el = e.currentTarget;

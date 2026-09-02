@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { TipyKapel } from './youtube/TipyKapel';
 import {
   Globe,
   Search,
@@ -125,8 +126,6 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
 
   // Quick initial popular searches
-  const popularSearches = ['Oasis', 'Pink Floyd', 'Metallica', 'Nirvana', 'The Beatles', 'Ed Sheeran', 'Radiohead', 'Jan Nedved'];
-
   // Run native search against /api/freetar-search
   const handleExecuteSearch = async (term: string) => {
     if (!term.trim()) return;
@@ -738,22 +737,16 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               Otevřenou tabulaturu rovnou uložit do zpěvníku i s akordy
             </label>
 
-            {/* Quick Popular Search Tags */}
-            <div className="flex flex-wrap items-center gap-1.5 text-xs">
-              <span className="text-neutral-400 font-medium mr-1.5">Rychlý výběr:</span>
-              {popularSearches.map((tag) => (
-                <button
-                  key={tag}
-                  onClick={() => {
-                    setSearchQuery(tag);
-                    handleExecuteSearch(tag);
-                  }}
-                  className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-[#FF9F0A]/50 text-neutral-300 hover:text-[#FF9F0A] rounded-xl font-medium transition-all cursor-pointer"
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
+            {/* Tipy na kapely místo pevného seznamu osmi jmen.
+                Jen světové: tabulatury k českým kapelám tu skoro nejsou,
+                takže by česká řada vedla na prázdné výsledky. */}
+            <TipyKapel
+              oblasti={['svet']}
+              onVybrat={(jmeno) => {
+                setSearchQuery(jmeno);
+                handleExecuteSearch(jmeno);
+              }}
+            />
           </div>
 
           {/* Type Filter & Results Count */}
