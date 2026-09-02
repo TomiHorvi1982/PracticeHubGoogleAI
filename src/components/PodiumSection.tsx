@@ -70,6 +70,11 @@ export const PodiumSection: React.FC = () => {
           const set = sety[0];
           if (set) void setListy.prepni(set.id, sk.id);
         }}
+        onOdebratZeSetu={(setId, sk) => {
+          // Bez potvrzení: vyhodit píseň ze setu je vratné jedním
+          // kliknutím v knihovně a při hraní není na dialogy čas.
+          void setListy.odeber(setId, sk.id);
+        }}
       />
 
       <ChordDetailModal chordName={akordDetail} onClose={() => setAkordDetail(null)} />

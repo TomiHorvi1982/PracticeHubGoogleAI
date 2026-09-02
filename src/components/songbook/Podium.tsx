@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, ListMusic, Check, Music2,
+  Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, ListMusic, Check, Music2, X,
 } from 'lucide-react';
 import { Song } from '../../types';
 import { audioSynth } from '../../services/audioSynth';
@@ -22,6 +22,8 @@ interface Props {
   plocha: React.ReactNode;
   /** Zařadí otevřenou píseň do setu, když v něm ještě není. */
   onPridatDoSetu?: (s: Song) => void;
+  /** Vyhodí píseň ze setu. Set si vybírá Pódium samo, tak ho posílá s sebou. */
+  onOdebratZeSetu?: (setId: string, s: Song) => void;
 }
 
 /** Kolik taktů se napočítá, než se začne hrát. */
@@ -40,7 +42,7 @@ const DOB_V_TAKTU = 4;
  * na zkoušce nikdo nekouká na obrazovku, ale čeká na čtyři klepnutí.
  */
 export const Podium: React.FC<Props> = ({
-  songs, playlists, aktivni, onVybrat, plocha, onPridatDoSetu,
+  songs, playlists, aktivni, onVybrat, plocha, onPridatDoSetu, onOdebratZeSetu,
 }) => {
   // Naposledy zvolený playlist, jinak první, ve kterém něco je — prázdný
   // set list na Pódiu vypadá, jako by se nic neuložilo.
@@ -205,39 +207,72 @@ export const Podium: React.FC<Props> = ({
     </div>
   );
 
+  /**
+   * Set list pod sebou, v pořadí, ve kterém se hraje.
+   *
+   * Dřív to byly štítky zabalené do řádků vedle sebe, takže se pořadí
+   * dalo přečíst jen očima skákajícíma přes konce řádků — a to je při
+   * hraní přesně to, na co není čas. Pod sebou se to čte odshora dolů.
+   */
   const seznam = (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-col gap-1">
       {vPlaylistu.length === 0 ? (
         <p className="text-[11px] text-neutral-600">
-          Playlist je prázdný. Přidej skladby ikonou v seznamu vpravo.
+          Set list je prázdný. Přidej skladby ikonou v seznamu vpravo.
         </p>
       ) : (
         vPlaylistu.map((s, i) => {
           const je = aktivni?.id === s.id;
           return (
-            <button
+            <div
               key={s.id}
-              onClick={() => onVybrat(s)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-[11px] border transition-all cursor-pointer ${
+              className={`flex items-center rounded-xl border transition-all ${
                 je
-                  ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-white font-bold'
-                  : 'bg-black/30 border-white/[0.08] text-neutral-300 hover:border-white/25'
+                  ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                  : 'bg-black/30 border-white/[0.08] hover:border-white/25'
               }`}
-              title={
-                nastavene.has(s.id)
-                  ? 'Okna k téhle písni už máš nastavená'
-                  : 'K téhle písni sis ještě nic nenastavil'
-              }
             >
-              <span className="text-[9px] font-mono text-neutral-600 tabular-nums">{i + 1}.</span>
-              <span className="truncate max-w-[170px]">{s.title}</span>
-              {s.bpm ? (
-                <span className="text-[9px] font-mono text-neutral-500 tabular-nums">{s.bpm}</span>
-              ) : null}
-              {/* Fajfka říká, že u téhle písně už je naklikáno, co chceš
-                  vidět — před zkouškou je vidět, co ještě chybí. */}
-              {nastavene.has(s.id) && <Check className="w-3 h-3 text-[#30D158] shrink-0" />}
-            </button>
+              <button
+                onClick={() => onVybrat(s)}
+                className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] flex-1 min-w-0 cursor-pointer text-left"
+                title={
+                  nastavene.has(s.id)
+                    ? 'Okna k téhle písni už máš nastavená'
+                    : 'K téhle písni sis ještě nic nenastavil'
+                }
+              >
+                <span className="text-[9px] font-mono text-neutral-600 tabular-nums w-5 shrink-0">
+                  {i + 1}.
+                </span>
+                <span className={`truncate flex-1 ${je ? 'text-white font-bold' : 'text-neutral-300'}`}>
+                  {s.title}
+                </span>
+                {s.artist && (
+                  <span className="text-[10px] text-neutral-500 truncate max-w-[140px] shrink-0">
+                    {s.artist}
+                  </span>
+                )}
+                {s.bpm ? (
+                  <span className="text-[9px] font-mono text-neutral-500 tabular-nums shrink-0">
+                    {s.bpm}
+                  </span>
+                ) : null}
+                {/* Fajfka říká, že u téhle písně už je naklikáno, co chceš
+                    vidět — před zkouškou je vidět, co ještě chybí. */}
+                {nastavene.has(s.id) && <Check className="w-3 h-3 text-[#30D158] shrink-0" />}
+              </button>
+
+              {onOdebratZeSetu && playlist && (
+                <button
+                  onClick={() => onOdebratZeSetu(playlist.id, s)}
+                  className="p-1.5 mr-1 rounded-lg text-neutral-600 hover:text-[#FF453A] hover:bg-[#FF453A]/10 cursor-pointer shrink-0 transition-all"
+                  title={`Odebrat „${s.title}" ze setu`}
+                  aria-label={`Odebrat ${s.title} ze setu`}
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
           );
         })
       )}
