@@ -164,3 +164,24 @@ test('skutečné zpoždění se pořád najde', () => {
   assert.ok(z.cesta.some(([i, j]) => i !== j), 'cesta se měla posunout');
   assert.ok(z.cena < 0.3, `cena ${z.cena} má zůstat nízká`);
 });
+
+test('ticho proti tichu sedí, ticho proti tónu ne', () => {
+  /**
+   * Naměřeno na skutečné stopě: porovnání nahrávky se sebou samou
+   * vycházelo na 82 % místo sta, protože začínala tichem a kosinus
+   * dvou nulových vektorů dává naprostý rozpor.
+   */
+  const ticho = new Float32Array(TRID);
+  assert.equal(vzdalenostChroma(ticho, ticho), 0);
+  assert.equal(vzdalenostChroma(ticho, chromaTridy(4)), 1);
+  assert.equal(vzdalenostChroma(chromaTridy(4), ticho), 1);
+});
+
+test('nahrávka se sebou samou dá plnou shodu i s tichem na začátku', () => {
+  const s = [
+    new Float32Array(TRID), new Float32Array(TRID),
+    chromaTridy(0), chromaTridy(4), chromaTridy(7),
+  ];
+  const h = ohodnot(zarovnej(s, s), 0.05);
+  assert.ok(h.tony > 0.99, `shoda ${h.tony} měla být plná`);
+});

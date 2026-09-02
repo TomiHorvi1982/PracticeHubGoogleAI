@@ -54,8 +54,32 @@ export function chromaZeSpektra(
   return chroma;
 }
 
-/** Vzdálenost dvou chroma vektorů: 0 shodné, 1 nic společného. */
+/** Pod touhle energií je snímek ticho, ne tón. */
+const TICHO = 1e-6;
+
+function jeTicho(v: ArrayLike<number>): boolean {
+  for (let i = 0; i < TRID; i += 1) if (v[i] > TICHO) return false;
+  return true;
+}
+
+/**
+ * Vzdálenost dvou chroma vektorů: 0 shodné, 1 nic společného.
+ *
+ * Ticho se musí ošetřit zvlášť. Chroma ticha je samá nula a kosinus dvou
+ * nulových vektorů vyjde jako naprostý rozpor — dva shodné okamžiky
+ * ticha by se počítaly jako úplně jiná hra. Naměřeno na skutečné stopě:
+ * porovnání nahrávky se sebou samou dávalo 82 % místo sta, protože
+ * začínala tichem.
+ *
+ * Ticho proti tichu tedy sedí, ticho proti tónu ne — pauza na špatném
+ * místě je pořád chyba.
+ */
 export function vzdalenostChroma(a: ArrayLike<number>, b: ArrayLike<number>): number {
+  const tichoA = jeTicho(a);
+  const tichoB = jeTicho(b);
+  if (tichoA && tichoB) return 0;
+  if (tichoA || tichoB) return 1;
+
   let skalarni = 0;
   for (let i = 0; i < TRID; i += 1) skalarni += a[i] * b[i];
   // Oba jsou jednotkové, takže skalární součin je kosinus úhlu.
