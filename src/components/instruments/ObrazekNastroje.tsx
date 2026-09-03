@@ -51,26 +51,6 @@ export const ObrazekBici: React.FC<Props> = ({ className }) => (
   </svg>
 );
 
-export const ObrazekPady: React.FC<Props> = ({ className }) => (
-  <svg viewBox="0 0 96 64" className={className} fill="none" aria-hidden="true">
-    <rect x="8" y="6" width="80" height="52" rx="6" fill="currentColor" opacity="0.1" />
-    {[0, 1, 2, 3].map((r) =>
-      [0, 1, 2, 3].map((c) => (
-        <rect
-          key={`${r}-${c}`}
-          x={14 + c * 18}
-          y={12 + r * 11.5}
-          width={14}
-          height={8.5}
-          rx={2}
-          fill="currentColor"
-          opacity={(r + c) % 3 === 0 ? 0.85 : 0.35}
-        />
-      )),
-    )}
-  </svg>
-);
-
 export const ObrazekHmatnik: React.FC<Props> = ({ className }) => (
   <svg viewBox="0 0 96 64" className={className} fill="none" aria-hidden="true">
     <rect x="4" y="16" width="88" height="32" rx="3" fill="currentColor" opacity="0.14" />

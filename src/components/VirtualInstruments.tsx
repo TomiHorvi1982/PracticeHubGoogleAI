@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
-import { PadyBicich } from './PadyBicich';
 import { PoslechKytaryPanel } from './hmatnik/PoslechKytaryPanel';
 import { BASE_PIANO_LAYOUT } from '../data/pcKlavesnice';
 import { midiPlayerService, MidiSongState, profileForProgram } from '../services/midiPlayerService';
@@ -177,7 +176,7 @@ export const VirtualInstruments: React.FC = () => {
   // nástrojů. Odsud se jen otevře — duplikovat ho podruhé by znamenalo dvě
   // místa, která se musí držet v souladu.
   const { toggleDockTool } = useMusicalContext();
-  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'pady' | 'fretboard'>('piano');
+  const [activeInstTab, setActiveInstTab] = useState<'piano' | 'drums' | 'fretboard'>('piano');
   /** Podsekce hmatníku. Guitar Tools sem přešly z vlastní záložky nahoře. */
   const [hmatnikSekce, setHmatnikSekce] = useState<'chord' | 'scale' | 'poslech' | 'guitar_tools' | 'zKytary' | 'jakoNastroj' | 'cviceni'>('chord');
   /** Stupnice nalezená poslechem — předá se hmatníku i filtru kláves. */
@@ -1061,7 +1060,6 @@ export const VirtualInstruments: React.FC = () => {
 
       {/* 🥁 DRUMS TAB */}
       {activeInstTab === 'drums' && <SamplesStudio />}
-      {activeInstTab === 'pady' && <PadyBicich />}
 
       {/* 🎸 HMATNÍK — samostatná stránka s podsekcemi */}
       {activeInstTab === 'fretboard' && (

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { midiService, MidiDevice } from '../../services/midiService';
 import { usePamet } from '../../hooks/usePamet';
-import { ObrazekKlavir, ObrazekBici, ObrazekPady, ObrazekHmatnik } from './ObrazekNastroje';
+import { ObrazekKlavir, ObrazekBici, ObrazekHmatnik } from './ObrazekNastroje';
 
-export type Nastroj = 'piano' | 'drums' | 'pady' | 'fretboard';
+export type Nastroj = 'piano' | 'drums' | 'fretboard';
 
 /**
  * Volba nástroje.
@@ -25,7 +25,6 @@ const NASTROJE: {
   barva: string;
 }[] = [
   { id: 'piano', nazev: 'Klavír', popis: 'Klaviatura, akordy a stupnice', Obrazek: ObrazekKlavir, barva: '#FF9F0A' },
-  { id: 'pady', nazev: 'Bicí', popis: 'Pady, sady a smyčky', Obrazek: ObrazekPady, barva: '#FF453A' },
   { id: 'drums', nazev: 'Samples', popis: 'Skládačka ze samplů', Obrazek: ObrazekBici, barva: '#30D158' },
   { id: 'fretboard', nazev: 'Hmatník', popis: 'Akordy, stupnice a poslech kytary', Obrazek: ObrazekHmatnik, barva: '#BF5AF2' },
 ];
