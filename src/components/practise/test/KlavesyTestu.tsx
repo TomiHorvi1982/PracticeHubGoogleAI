@@ -48,7 +48,7 @@ export const KlavesyTestu: React.FC<{
             <div key={`${k.root}${k.relOctave}${i}`} className="relative flex-1 min-w-[26px]">
               <button
                 onClick={() => onKlik?.(ton)}
-                className={`w-full h-24 rounded-b-md border text-[9px] font-bold flex flex-col justify-end items-center pb-1 cursor-pointer transition-colors ${
+                className={`w-full h-24 rounded-b-md border text-stitek font-bold flex flex-col justify-end items-center pb-1 cursor-pointer transition-colors ${
                   stav === 'chyba' ? 'bg-[#FF453A] border-[#FF453A] text-white'
                     : stav === 'trefeny' ? 'bg-[#30D158] border-[#30D158] text-black'
                     : stav === 'cil' ? 'bg-[#30D158]/25 border-[#30D158] text-[#30D158]'
@@ -66,7 +66,7 @@ export const KlavesyTestu: React.FC<{
                     e.stopPropagation();
                     onKlik?.(`${cerna.root}${oktava + cerna.relOctave}`);
                   }}
-                  className={`absolute top-0 -right-[7px] w-[14px] h-14 rounded-b-sm z-10 text-[8px] font-bold text-center cursor-pointer border ${
+                  className={`absolute top-0 -right-[7px] w-[14px] h-14 rounded-b-sm z-10 text-stitek font-bold text-center cursor-pointer border ${
                     stavCerne === 'chyba' ? 'bg-[#FF453A] border-[#FF453A] text-white'
                       : stavCerne === 'trefeny' ? 'bg-[#30D158] border-[#30D158] text-black'
                       : stavCerne === 'cil' ? 'bg-[#0d5a25] border-[#30D158] text-[#30D158]'

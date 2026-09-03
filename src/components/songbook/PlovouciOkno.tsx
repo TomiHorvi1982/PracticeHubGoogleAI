@@ -85,7 +85,7 @@ export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavr
         className="h-8 px-2.5 flex items-center gap-2 bg-black/40 border-b border-white/[0.08] cursor-grab active:cursor-grabbing select-none shrink-0"
       >
         <span className="text-sm leading-none">{popis.ikona}</span>
-        <span className="text-[11px] font-bold text-white truncate flex-1">{popis.nazev}</span>
+        <span className="text-drobne font-bold text-white truncate flex-1">{popis.nazev}</span>
         <button
           onClick={(e) => {
             e.stopPropagation();

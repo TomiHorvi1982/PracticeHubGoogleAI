@@ -46,7 +46,7 @@ export const PractiseHubSection: React.FC = () => {
             <GraduationCap className="w-6 h-6" />
           </div>
           <div>
-            <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+            <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Practise Hub
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
@@ -76,7 +76,7 @@ export const PractiseHubSection: React.FC = () => {
                     {m.nazev}
                   </span>
                 </div>
-                <p className="text-[10px] text-neutral-500 leading-snug">{m.popis}</p>
+                <p className="text-stitek text-neutral-500 leading-snug">{m.popis}</p>
               </button>
             );
           })}

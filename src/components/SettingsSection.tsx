@@ -133,7 +133,7 @@ export const SettingsSection: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+          <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
             Nastavení
           </span>
         </div>
@@ -149,7 +149,7 @@ export const SettingsSection: React.FC = () => {
         <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-[#30D158]" /> Úložiště
         </h3>
-        <p className="text-[11px] text-neutral-400 mt-1">
+        <p className="text-drobne text-neutral-400 mt-1">
           Kolik místa co zabírá, najdete v sekci <strong className="text-neutral-200">Soubory</strong> —
           spolu se složkami knihovny a mazáním.
         </p>
@@ -162,7 +162,7 @@ export const SettingsSection: React.FC = () => {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <Laptop className="w-4 h-4 text-[#0A84FF]" /> MIDI hardware a mapování zvuků
             </h3>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-drobne text-neutral-400">
               Připojené klávesy, kanály a přiřazení zvuků kapele.
             </p>
           </div>
@@ -184,7 +184,7 @@ export const SettingsSection: React.FC = () => {
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Mic className="w-4 h-4 text-[#30D158]" /> Zvuková karta
           </h3>
-          <p className="text-[11px] text-neutral-400">
+          <p className="text-drobne text-neutral-400">
             Odkud se poslouchá kytara a kam se hraje. Týká se poslechu v Hmatníku a ladičky.
           </p>
         </div>
@@ -192,16 +192,16 @@ export const SettingsSection: React.FC = () => {
         {!karta.nazvyZname && (
           <button
             onClick={() => void zvukovaKarta.povolitANacist()}
-            className="px-3 py-1.5 rounded-xl bg-[#30D158]/15 border border-[#30D158]/40 text-[#30D158] text-[11px] font-bold cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-[#30D158]/15 border border-[#30D158]/40 text-[#30D158] text-drobne font-bold cursor-pointer"
           >
             Zobrazit názvy zařízení (povolí mikrofon)
           </button>
         )}
-        {karta.chyba && <div className="text-[11px] text-[#FF453A]">{karta.chyba}</div>}
+        {karta.chyba && <div className="text-drobne text-[#FF453A]">{karta.chyba}</div>}
 
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="space-y-1 block">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Vstup (mikrofon / linka)</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Vstup (mikrofon / linka)</span>
             <select
               value={karta.vstup || ''}
               onChange={(e) => zvukovaKarta.nastavVstup(e.target.value || null)}
@@ -215,7 +215,7 @@ export const SettingsSection: React.FC = () => {
           </label>
 
           <label className="space-y-1 block">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Výstup (sluchátka / karta)</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Výstup (sluchátka / karta)</span>
             <select
               value={karta.vystup || ''}
               onChange={(e) => zvukovaKarta.nastavVystup(e.target.value || null)}
@@ -229,7 +229,7 @@ export const SettingsSection: React.FC = () => {
           </label>
         </div>
 
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-drobne text-neutral-500">
           Volba výstupu funguje jen v prohlížečích, které to umí — kde ne, hraje se do
           systémového výstupu. Při hraní z reproduktorů slyší mikrofon i vlastní výstup;
           do sluchátek je to čisté.
@@ -245,7 +245,7 @@ export const SettingsSection: React.FC = () => {
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Mic className="w-4 h-4 text-[#FF9F0A]" /> Hlasové ovládání
           </h3>
-          <p className="text-[11px] text-neutral-400">
+          <p className="text-drobne text-neutral-400">
             Mikrofon je v horní liště, takže mluvit jde odkudkoli. Tady se nastavuje, na co appka slyší.
           </p>
         </div>
@@ -262,13 +262,13 @@ export const SettingsSection: React.FC = () => {
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-[#FF9F0A]" /> Ultimate Guitar Pro
             </h3>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-drobne text-neutral-400">
               Když máš u nich předplatné, stahují se Guitar Pro soubory rovnou do knihovny.
               Jen pro správce.
             </p>
           </div>
 
-          <div className="text-[11px] text-neutral-400 bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
+          <div className="text-drobne text-neutral-400 bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
             <p className="text-neutral-300 font-semibold">Kde cookie vzít — jeden řádek, ne skládačka</p>
             <p>1. Přihlas se na <strong className="text-neutral-300">ultimate-guitar.com</strong> ve svém prohlížeči.</p>
             <p>2. Otevři vývojářské nástroje: <strong className="text-neutral-300">⌥⌘I</strong> (Chrome) nebo ⌥⌘C (Safari).</p>
@@ -313,11 +313,11 @@ export const SettingsSection: React.FC = () => {
                 Zapomenout
               </button>
             )}
-            <span className={`text-[11px] ${ugUlozeno ? 'text-[#30D158]' : 'text-neutral-500'}`}>
+            <span className={`text-drobne ${ugUlozeno ? 'text-[#30D158]' : 'text-neutral-500'}`}>
               {ugUlozeno ? 'přihlášení uloženo' : 'nepřihlášeno'}
             </span>
           </div>
-          {ugHlaska && <p className="text-[11px] text-neutral-300">{ugHlaska}</p>}
+          {ugHlaska && <p className="text-drobne text-neutral-300">{ugHlaska}</p>}
         </div>
       )}
 

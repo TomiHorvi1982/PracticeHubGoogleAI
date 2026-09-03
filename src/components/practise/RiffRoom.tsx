@@ -233,7 +233,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Music4 className="w-4 h-4 text-[#FF9F0A]" />
             {typ === 'riff' ? 'Moje riffy' : 'Moje sóla'}
-            <span className="text-[11px] text-neutral-500">({seznam.length})</span>
+            <span className="text-drobne text-neutral-500">({seznam.length})</span>
           </h3>
 
           <div className="space-y-1 max-h-[40vh] overflow-y-auto">
@@ -246,7 +246,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 }`}
               >
                 <div className="text-xs font-semibold text-white truncate">{c.nazev}</div>
-                <div className="text-[10px] text-neutral-500">
+                <div className="text-stitek text-neutral-500">
                   {c.opakovani}× procvičeno
                   {c.bpm ? ` · ${c.bpm} BPM` : ''}
                   {c.posledniRychlost !== 1 ? ` · naposled ${Math.round(c.posledniRychlost * 100)} %` : ''}
@@ -254,7 +254,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
               </button>
             ))}
             {seznam.length === 0 && (
-              <p className="text-[11px] text-neutral-500 py-3">
+              <p className="text-drobne text-neutral-500 py-3">
                 Zatím nic. Vyber zvuk z knihovny a ulož si první.
               </p>
             )}
@@ -262,7 +262,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
           <button
             onClick={() => setVybiram((v) => !v)}
-            className="w-full text-[11px] font-bold px-3 py-2 rounded-xl bg-white/[0.06] text-neutral-200 hover:text-white cursor-pointer"
+            className="w-full text-drobne font-bold px-3 py-2 rounded-xl bg-white/[0.06] text-neutral-200 hover:text-white cursor-pointer"
           >
             {vybiram ? 'Zavřít knihovnu' : '+ Zvuk z knihovny'}
           </button>
@@ -290,8 +290,8 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
           )}
 
           <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
-            {stav.chyba && <p className="text-[11px] text-[#FF453A]">{stav.chyba}</p>}
-            {stav.nacita && <p className="text-[11px] text-neutral-400">Načítám zvuk…</p>}
+            {stav.chyba && <p className="text-drobne text-[#FF453A]">{stav.chyba}</p>}
+            {stav.nacita && <p className="text-drobne text-neutral-400">Načítám zvuk…</p>}
 
             {/* Vlna */}
             <canvas
@@ -323,7 +323,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                     className="w-28 accent-[#0A84FF] cursor-pointer"
                     title="Přiblížení vlny"
                   />
-                  <span className="text-[11px] font-mono text-[#0A84FF] tabular-nums w-10">
+                  <span className="text-drobne font-mono text-[#0A84FF] tabular-nums w-10">
                     {zoom.toFixed(0)}×
                   </span>
                 </div>
@@ -333,21 +333,21 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => ukazCas(stav.od)}
-                    className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
+                    className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
                     title="Ukázat začátek smyčky"
                   >
                     ⟵ začátek
                   </button>
                   <button
                     onClick={() => ukazCas(stav.do)}
-                    className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
+                    className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
                     title="Ukázat konec smyčky"
                   >
                     konec ⟶
                   </button>
                 </div>
 
-                <p className="text-[10px] text-neutral-500">
+                <p className="text-stitek text-neutral-500">
                   Výřez {oknoOd.toFixed(2)}–{oknoDo.toFixed(2)} s · smyčka{' '}
                   {stav.od.toFixed(2)}–{stav.do.toFixed(2)} s ({(stav.do - stav.od).toFixed(2)} s)
                   {stav.kol > 0 && ` · ${stav.kol}. kolo`}
@@ -395,7 +395,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 {stav.posun !== 0 && (
                   <button
                     onClick={() => prehravacCviceni.nastavPosun(0)}
-                    className="text-[10px] text-neutral-500 hover:text-white cursor-pointer"
+                    className="text-stitek text-neutral-500 hover:text-white cursor-pointer"
                     title="Zpět na původní ladění"
                   >
                     ↺
@@ -405,7 +405,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
               <button
                 onClick={() => prehravacCviceni.prepniDrzeniLadeni()}
-                className={`px-2.5 py-1.5 text-[11px] font-semibold rounded-xl border cursor-pointer ${
+                className={`px-2.5 py-1.5 text-drobne font-semibold rounded-xl border cursor-pointer ${
                   stav.drzetLadeni
                     ? 'bg-[#BF5AF2]/15 border-[#BF5AF2]/50 text-[#BF5AF2]'
                     : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
@@ -417,16 +417,16 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
               <div className="flex items-center gap-2">
                 <Repeat className="w-3.5 h-3.5 text-neutral-500" />
-                <span className="text-[11px] text-neutral-400">zrychlovat o</span>
+                <span className="text-drobne text-neutral-400">zrychlovat o</span>
                 <input
                   type="number" min={0} max={20} value={stav.pridavat}
                   onChange={(e) => prehravacCviceni.nastavPridavani(Number(e.target.value))}
                   className="w-14 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-center"
                 />
-                <span className="text-[11px] text-neutral-400">% za kolo</span>
+                <span className="text-drobne text-neutral-400">% za kolo</span>
               </div>
 
-              <label className="flex items-center gap-1.5 text-[11px] text-neutral-300 cursor-pointer">
+              <label className="flex items-center gap-1.5 text-drobne text-neutral-300 cursor-pointer">
                 <input
                   type="checkbox" checked={stav.klik}
                   onChange={() => prehravacCviceni.prepniKlik()}
@@ -441,7 +441,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                   if (zvuk) setTempo(odhadniTempoZUseku(zvuk, stav.od, stav.do));
                 }}
                 disabled={stav.delka === 0}
-                className="px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 text-[11px] font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
                 title="Spočítá tempo z vybraného úseku"
               >
                 <Timer className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
               onChange={(e) => setTabText(e.target.value)}
               placeholder={"Tabulatura nebo akordy — uvidíš je při hraní.\ne|---------------|\nB|---------------|"}
               rows={8}
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-[11px] font-mono leading-relaxed resize-y focus:outline-none focus:border-[#FF9F0A]"
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-drobne font-mono leading-relaxed resize-y focus:outline-none focus:border-[#FF9F0A]"
             />
           </div>
         </div>

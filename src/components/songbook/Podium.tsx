@@ -167,7 +167,7 @@ export const Podium: React.FC<Props> = ({
   const udaj = (popis: string, hodnota: string | number | undefined) =>
     hodnota ? (
       <div className="flex items-baseline gap-1.5">
-        <span className="text-[9px] uppercase tracking-wider text-neutral-500">{popis}</span>
+        <span className="text-stitek uppercase tracking-wider text-neutral-500">{popis}</span>
         <span className="text-sm font-bold text-white tabular-nums">{hodnota}</span>
       </div>
     ) : null;
@@ -240,7 +240,7 @@ export const Podium: React.FC<Props> = ({
   const seznam = (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
       {vPlaylistu.length === 0 ? (
-        <p className="text-[11px] text-neutral-600">
+        <p className="text-drobne text-neutral-600">
           Set list je prázdný. Přidej skladby ikonou v seznamu vpravo.
         </p>
       ) : (
@@ -264,15 +264,15 @@ export const Podium: React.FC<Props> = ({
                     : 'K téhle písni sis ještě nic nenastavil'
                 }
               >
-                <span className="text-[9px] font-mono text-neutral-600 tabular-nums w-4 shrink-0 text-right">
+                <span className="text-stitek font-mono text-neutral-600 tabular-nums w-4 shrink-0 text-right">
                   {i + 1}
                 </span>
                 <ObalkyPisne song={s} />
                 <span className="min-w-0 flex-1">
-                  <span className={`block truncate text-[11px] ${je ? 'text-white font-bold' : 'text-neutral-300'}`}>
+                  <span className={`block truncate text-drobne ${je ? 'text-white font-bold' : 'text-neutral-300'}`}>
                     {s.title}
                   </span>
-                  <span className="flex items-center gap-1.5 text-[9px] text-neutral-500">
+                  <span className="flex items-center gap-1.5 text-stitek text-neutral-500">
                     <span className="truncate">{s.artist}</span>
                     {s.bpm ? <span className="font-mono tabular-nums shrink-0">{s.bpm}</span> : null}
                     {/* Fajfka říká, že u téhle písně už je naklikáno, co
@@ -314,7 +314,7 @@ export const Podium: React.FC<Props> = ({
           <select
             value={playlistId}
             onChange={(e) => vyberPlaylist(e.target.value)}
-            className="bg-black/50 border border-white/10 text-white text-[11px] font-semibold rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer"
+            className="bg-black/50 border border-white/10 text-white text-drobne font-semibold rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer"
           >
             {playlists.map((p) => (
               <option key={p.id} value={p.id}>
@@ -346,7 +346,7 @@ export const Podium: React.FC<Props> = ({
       <div className="fixed inset-0 z-[100] bg-[#0E0E12] text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <span className="bg-[#FF9F0A] text-black font-extrabold text-[10px] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+            <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
               Pódiový režim
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5 truncate">
@@ -359,7 +359,7 @@ export const Podium: React.FC<Props> = ({
           <div className="flex flex-col items-center gap-2">
             {ovladani(true)}
             {odpocet !== null && (
-              <span className="text-[10px] uppercase tracking-widest text-[#FF9F0A]">
+              <span className="text-stitek uppercase tracking-widest text-[#FF9F0A]">
                 Nádech — {Math.ceil((odpocet + 1) / DOB_V_TAKTU)}. takt
               </span>
             )}
@@ -399,12 +399,12 @@ export const Podium: React.FC<Props> = ({
 
           {mimoSet && onPridatDoSetu && (
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/12 border border-[#FF9F0A]/30 px-2 py-0.5 rounded-lg">
+              <span className="text-stitek font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/12 border border-[#FF9F0A]/30 px-2 py-0.5 rounded-lg">
                 Není v setu
               </span>
               <button
                 onClick={() => aktivni && onPridatDoSetu(aktivni)}
-                className="px-2 py-1 rounded-lg text-[10px] font-bold bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
+                className="px-2 py-1 rounded-lg text-stitek font-bold bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
               >
                 Přidat
               </button>

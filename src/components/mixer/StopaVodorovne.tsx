@@ -116,7 +116,7 @@ export const StopaVodorovne: React.FC<Props> = ({
           <button
             onClick={onVybrat}
             title={naNem || 'Vyber sem soubor'}
-            className={`text-[11px] font-bold truncate cursor-pointer text-left flex-1 min-w-0 ${
+            className={`text-drobne font-bold truncate cursor-pointer text-left flex-1 min-w-0 ${
               jeCil ? 'text-amber-400' : obsazeno ? 'text-white' : 'text-slate-500'
             }`}
           >
@@ -154,12 +154,12 @@ export const StopaVodorovne: React.FC<Props> = ({
             style={{ accentColor: barva }}
             title="Hlasitost"
           />
-          <span className="text-[10px] font-mono text-slate-400 w-12 text-right tabular-nums shrink-0">
+          <span className="text-stitek font-mono text-slate-400 w-12 text-right tabular-nums shrink-0">
             {channel.volume <= -60 ? '−∞' : `${channel.volume > 0 ? '+' : ''}${channel.volume.toFixed(1)}`} dB
           </span>
         </div>
 
-        <div className="text-[9px] text-slate-600 truncate">{naNem || 'prázdný'}</div>
+        <div className="text-stitek text-slate-600 truncate">{naNem || 'prázdný'}</div>
       </div>
 
       {/* PRŮBĚH V ČASE */}

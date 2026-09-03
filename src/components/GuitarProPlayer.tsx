@@ -789,7 +789,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
                 Guitar Pro Tablatura &amp; Přehrávač
                 {isMaximized && (
-                  <span className="bg-[#30D158] text-black px-2 py-0.5 text-[9px] font-bold uppercase rounded-md">
+                  <span className="bg-[#30D158] text-black px-2 py-0.5 text-stitek font-bold uppercase rounded-md">
                     Maximalizováno
                   </span>
                 )}
@@ -809,7 +809,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                         setKey(tonika(tonina.nazev));
                         setToninaPredana(true);
                       }}
-                      className="ml-1.5 text-[10px] font-bold text-[#BF5AF2] hover:text-white underline underline-offset-2 cursor-pointer"
+                      className="ml-1.5 text-stitek font-bold text-[#BF5AF2] hover:text-white underline underline-offset-2 cursor-pointer"
                       title="Nastavit podle toho virtuální nástroje a hmatník"
                     >
                       {toninaPredana ? 'nastaveno' : 'nastavit nástroje'}
@@ -896,7 +896,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
             tohle neumí — proto vlastní pruh.
           */}
           <div className="flex-1 min-w-[200px] flex items-center gap-2 px-2">
-            <span className="text-[11px] text-neutral-400 font-semibold uppercase whitespace-nowrap">
+            <span className="text-drobne text-neutral-400 font-semibold uppercase whitespace-nowrap">
               Pozice:
             </span>
             <ListaPozice
@@ -912,7 +912,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
           {/* Speed / Tempo Controls */}
           <div className="flex items-center gap-1">
             <Gauge className="w-3.5 h-3.5 text-[#FF9F0A] mr-1" />
-            <span className="text-[11px] text-neutral-400 uppercase mr-1">Rychlost:</span>
+            <span className="text-drobne text-neutral-400 uppercase mr-1">Rychlost:</span>
             {[0.5, 0.75, 1.0, 1.25, 1.5].map((speed) => (
               <button
                 key={speed}
@@ -986,7 +986,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                 −
               </button>
               <span
-                className={`text-[11px] font-bold tabular-nums w-9 text-center ${
+                className={`text-drobne font-bold tabular-nums w-9 text-center ${
                   posunLadeni ? 'text-[#BF5AF2]' : 'text-neutral-500'
                 }`}
                 title="Posun ladění v půltónech; zápis se nemění"
@@ -1003,7 +1003,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               {posunLadeni !== 0 && (
                 <button
                   onClick={() => zmenLadeni(0)}
-                  className="px-1.5 py-1 text-[10px] text-neutral-500 hover:text-white cursor-pointer"
+                  className="px-1.5 py-1 text-stitek text-neutral-500 hover:text-white cursor-pointer"
                   title="Zpět na původní ladění"
                 >
                   ↺
@@ -1083,7 +1083,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         {kompaktni && tracks.length > 0 && (
           <button
             onClick={() => setExtraOtevrene((o) => !o)}
-            className="self-start px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-neutral-300 cursor-pointer transition-all"
+            className="self-start px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-drobne text-neutral-300 cursor-pointer transition-all"
           >
             {extraOtevrene ? 'Skrýt nastavení' : `Nastavení stop a taktů (${tracks.length} stop)`}
           </button>
@@ -1097,7 +1097,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                 <Sliders className="w-3.5 h-3.5 text-[#FF9F0A]" />
                 Stopy a míchání nástrojů ({tracks.length}):
               </span>
-              <span className="text-[11px] text-neutral-400">
+              <span className="text-drobne text-neutral-400">
                 Klikněte na stopu pro zobrazení
               </span>
             </div>
@@ -1127,7 +1127,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                     <div className="flex items-center gap-1 ml-1">
                       <button
                         onClick={() => handleToggleMuteTrack(track)}
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded uppercase cursor-pointer transition-all ${
+                        className={`px-1.5 py-0.5 text-stitek font-bold rounded uppercase cursor-pointer transition-all ${
                           isMuted ? 'bg-[#FF453A] text-white' : 'bg-white/10 text-neutral-400 hover:text-white'
                         }`}
                         title="Mute (Ztišit)"
@@ -1136,7 +1136,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                       </button>
                       <button
                         onClick={() => handleToggleSoloTrack(track)}
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded uppercase cursor-pointer transition-all ${
+                        className={`px-1.5 py-0.5 text-stitek font-bold rounded uppercase cursor-pointer transition-all ${
                           isSolo ? 'bg-[#30D158] text-black' : 'bg-white/10 text-neutral-400 hover:text-white'
                         }`}
                         title="Solo (Sólo)"
@@ -1164,7 +1164,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                     <select
                       value={nastroje[track.index] ?? track.playbackInfo?.program ?? 0}
                       onChange={(e) => zmenNastroj(track, Number(e.target.value))}
-                      className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-[10px] text-neutral-200 outline-none focus:border-[#FF9F0A] max-w-[130px] cursor-pointer"
+                      className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-1 text-stitek text-neutral-200 outline-none focus:border-[#FF9F0A] max-w-[130px] cursor-pointer"
                       title="Zvuk stopy"
                     >
                       {!NASTROJE_GM.some((n) => n.program === (nastroje[track.index] ?? track.playbackInfo?.program)) && (
@@ -1189,7 +1189,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
             {/* Hlasitost celku */}
             <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/[0.06]">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500">Celková hlasitost</span>
+              <span className="text-stitek uppercase tracking-wider text-neutral-500">Celková hlasitost</span>
               <input
                 type="range"
                 min={0}
@@ -1216,7 +1216,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         {extraOtevrene && pocetTaktu > 0 && tracks.length > 0 && (
           <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+              <span className="text-stitek uppercase tracking-wider text-neutral-500">
                 Takty ({pocetTaktu}) — odškrtni, co hrát nemá
               </span>
               <button
@@ -1225,7 +1225,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                     Object.fromEntries(tracks.map((t) => [t.index, new Array(pocetTaktu).fill(true)])),
                   )
                 }
-                className="text-[10px] font-semibold text-neutral-400 hover:text-white cursor-pointer"
+                className="text-stitek font-semibold text-neutral-400 hover:text-white cursor-pointer"
               >
                 všechno zpět
               </button>
@@ -1237,7 +1237,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                 return (
                   <div key={track.index} className="flex items-center gap-2">
                     <span
-                      className="text-[10px] text-neutral-400 truncate w-24 shrink-0"
+                      className="text-stitek text-neutral-400 truncate w-24 shrink-0"
                       title={track.name}
                     >
                       {track.name || `Stopa ${track.index + 1}`}
@@ -1258,7 +1258,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                               })
                             }
                             title={`Takt ${takt + 1} — ${hraje ? 'hraje' : 'mlčí'}`}
-                            className={`w-6 h-6 shrink-0 rounded text-[9px] font-bold tabular-nums border transition-colors cursor-pointer ${
+                            className={`w-6 h-6 shrink-0 rounded text-stitek font-bold tabular-nums border transition-colors cursor-pointer ${
                               hraje
                                 ? 'bg-[#FF9F0A]/25 border-[#FF9F0A]/50 text-[#FF9F0A] hover:bg-[#FF9F0A]/40'
                                 : 'bg-white/[0.04] border-white/10 text-neutral-600 hover:bg-white/10'
@@ -1284,7 +1284,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
          */}
         {extraOtevrene && usekKeCviceni && usekKeCviceni.noty.length > 0 && (
           <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-wider text-neutral-500">
+            <div className="text-stitek uppercase tracking-wider text-neutral-500">
               Vybraný úsek na hmatníku
             </div>
             <HmatnikUseku usek={usekKeCviceni} bpm={songBpm} />

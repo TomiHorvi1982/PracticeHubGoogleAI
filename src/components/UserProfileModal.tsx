@@ -101,11 +101,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <div className="space-y-1 flex-1">
               <div className="flex items-center gap-2">
                 <span className="text-white font-bold text-base">{user.displayName}</span>
-                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${roleMeta.badgeBg}`}>
+                <span className={`text-drobne font-semibold px-2 py-0.5 rounded-md ${roleMeta.badgeBg}`}>
                   {roleMeta.label}
                 </span>
                 {isSuperAdmin && (
-                  <span className="text-[10px] bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30 font-bold px-1.5 py-0.5 rounded-md uppercase">
+                  <span className="text-stitek bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30 font-bold px-1.5 py-0.5 rounded-md uppercase">
                     Superadmin
                   </span>
                 )}

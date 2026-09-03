@@ -104,7 +104,7 @@ export const HromadneAkce: React.FC<{
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => onZmenaVyberu((p) => (viditelne.every((id) => p.has(id)) ? new Set() : new Set(viditelne)))}
-          className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-[11px] font-bold cursor-pointer flex items-center gap-1.5"
+          className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-drobne font-bold cursor-pointer flex items-center gap-1.5"
           title="Označit nebo odznačit všechno, co je vidět"
         >
           {vseOznaceno ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
@@ -113,12 +113,12 @@ export const HromadneAkce: React.FC<{
 
         {ids.length > 0 && (
           <>
-            <span className="text-[11px] text-[#30D158] font-bold">{ids.length} označeno</span>
+            <span className="text-drobne text-[#30D158] font-bold">{ids.length} označeno</span>
 
             <select
               value={kam}
               onChange={(e) => setKam(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[11px] text-white outline-none cursor-pointer"
+              className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-drobne text-white outline-none cursor-pointer"
             >
               <option value="">Přesunout do…</option>
               {KATEGORIE.map((k) => (
@@ -128,7 +128,7 @@ export const HromadneAkce: React.FC<{
             <button
               onClick={() => void presun()}
               disabled={!kam || pracuju}
-              className="px-2.5 py-1.5 rounded-lg bg-[#0A84FF] text-white text-[11px] font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg bg-[#0A84FF] text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
             >
               <FolderInput className="w-3.5 h-3.5" /> Přesunout
             </button>
@@ -137,12 +137,12 @@ export const HromadneAkce: React.FC<{
               value={novyTag}
               onChange={(e) => setNovyTag(e.target.value)}
               placeholder="štítek"
-              className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[11px] text-white outline-none w-24"
+              className="bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-drobne text-white outline-none w-24"
             />
             <button
               onClick={() => void oznackuj()}
               disabled={!novyTag.trim() || pracuju}
-              className="px-2.5 py-1.5 rounded-lg bg-[#BF5AF2] text-white text-[11px] font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg bg-[#BF5AF2] text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
             >
               <Tag className="w-3.5 h-3.5" /> Štítek
             </button>
@@ -150,7 +150,7 @@ export const HromadneAkce: React.FC<{
             <button
               onClick={() => void smaz()}
               disabled={pracuju}
-              className="px-2.5 py-1.5 rounded-lg bg-[#FF453A] text-white text-[11px] font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg bg-[#FF453A] text-white text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
             >
               {pracuju ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
               Smazat ({ids.length})
@@ -158,7 +158,7 @@ export const HromadneAkce: React.FC<{
 
             <button
               onClick={() => onZmenaVyberu(() => new Set())}
-              className="px-2.5 py-1.5 rounded-lg text-neutral-500 hover:text-white text-[11px] cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg text-neutral-500 hover:text-white text-drobne cursor-pointer"
             >
               Zrušit výběr
             </button>
@@ -167,7 +167,7 @@ export const HromadneAkce: React.FC<{
       </div>
 
       {hlaska && (
-        <p className={`text-[11px] ${hlaska.chyba ? 'text-[#FF453A]' : 'text-[#30D158]'}`}>{hlaska.text}</p>
+        <p className={`text-drobne ${hlaska.chyba ? 'text-[#FF453A]' : 'text-[#30D158]'}`}>{hlaska.text}</p>
       )}
     </div>
   );

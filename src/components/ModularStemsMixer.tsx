@@ -124,12 +124,12 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                 {selectedSong ? selectedSong.title : 'Vyberte stopovou skladbu'}
               </span>
               {selectedSong && (
-                <span className="text-[10px] px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md font-semibold">
+                <span className="text-stitek px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md font-semibold">
                   6-Stem
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-neutral-400">
+            <p className="text-stitek text-neutral-400">
               {selectedSong ? `${selectedSong.artist} • ${selectedSong.stems.length} stop` : 'Propojeno se Stem Studiem'}
             </p>
           </div>
@@ -161,7 +161,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
         {onUpdateSong && song && (
           <button
             onClick={() => setPridavam((v) => !v)}
-            className="px-2.5 py-1.5 rounded-xl text-[10px] font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all shrink-0"
+            className="px-2.5 py-1.5 rounded-xl text-stitek font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all shrink-0"
           >
             <Layers className="w-3 h-3" />
             {pridavam ? 'Zavřít knihovnu' : 'Stopy z knihovny'}
@@ -170,7 +170,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 
         {/* Time Progress Seek Bar */}
         <div className="flex-1 max-w-xs space-y-1 mx-2">
-          <div className="flex justify-between text-[10px] font-mono text-neutral-400">
+          <div className="flex justify-between text-stitek font-mono text-neutral-400">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -188,19 +188,19 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
         {/* Global Pitch Transpose */}
         <div className="flex items-center gap-1.5 bg-neutral-900/80 px-2.5 py-1 rounded-xl border border-white/10 text-xs">
           <Music className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-[11px] text-neutral-400">Transpozice:</span>
+          <span className="text-drobne text-neutral-400">Transpozice:</span>
           <button
             onClick={() => stemAudioService.setGlobalPitch(Math.max(-12, globalPitch - 1))}
-            className="w-5 h-5 bg-white/10 hover:bg-white/20 rounded text-white font-bold text-[10px]"
+            className="w-5 h-5 bg-white/10 hover:bg-white/20 rounded text-white font-bold text-stitek"
           >
             -
           </button>
-          <span className="w-7 text-center font-mono font-bold text-amber-400 text-[11px]">
+          <span className="w-7 text-center font-mono font-bold text-amber-400 text-drobne">
             {globalPitch > 0 ? `+${globalPitch}` : globalPitch} st
           </span>
           <button
             onClick={() => stemAudioService.setGlobalPitch(Math.min(12, globalPitch + 1))}
-            className="w-5 h-5 bg-white/10 hover:bg-white/20 rounded text-white font-bold text-[10px]"
+            className="w-5 h-5 bg-white/10 hover:bg-white/20 rounded text-white font-bold text-stitek"
           >
             +
           </button>
@@ -210,12 +210,12 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
       {pridavam && song && onUpdateSong && (
         <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[9px] uppercase tracking-wider text-neutral-500">Přiřadit na fader</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Přiřadit na fader</span>
             {ROLE_FADERU.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setCilovyFader(r.id)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                className={`px-2 py-1 rounded-lg text-stitek font-bold cursor-pointer transition-all ${
                   cilovyFader === r.id
                     ? 'bg-[#FF9F0A] text-black'
                     : 'bg-white/[0.05] text-neutral-400 hover:text-white'
@@ -254,10 +254,10 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 
           {vlastni.length > 0 && (
             <div className="border-t border-white/[0.06] pt-2 space-y-1">
-              <div className="text-[9px] uppercase tracking-wider text-neutral-500">Na faderech</div>
+              <div className="text-stitek uppercase tracking-wider text-neutral-500">Na faderech</div>
               {vlastni.map((v) => (
-                <div key={v.role} className="flex items-center gap-2 text-[11px] text-neutral-300">
-                  <span className="text-[9px] font-bold text-[#FF9F0A] w-14 shrink-0 uppercase">
+                <div key={v.role} className="flex items-center gap-2 text-drobne text-neutral-300">
+                  <span className="text-stitek font-bold text-[#FF9F0A] w-14 shrink-0 uppercase">
                     {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
                   </span>
                   <span className="truncate flex-1">{v.nazev}</span>

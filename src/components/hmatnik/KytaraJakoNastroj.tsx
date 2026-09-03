@@ -108,7 +108,7 @@ export const KytaraJakoNastroj: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-[10px] uppercase tracking-widest text-neutral-500">Hlasitost</span>
+        <span className="text-stitek uppercase tracking-widest text-neutral-500">Hlasitost</span>
         <input
           type="range"
           min={0}
@@ -126,31 +126,31 @@ export const KytaraJakoNastroj: React.FC = () => {
 
       {/* Zpětná vazba přes reproduktory je tady horší než jinde: nástroj
           hraje tóny, které mikrofon zase uslyší a zahraje znovu. */}
-      <p className="text-[11px] text-amber-500/80 flex items-start gap-1.5 leading-relaxed">
+      <p className="text-drobne text-amber-500/80 flex items-start gap-1.5 leading-relaxed">
         <Headphones className="w-3.5 h-3.5 shrink-0 mt-0.5" />
         Pusť si to do sluchátek. Z reproduktorů mikrofon uslyší i zvolený nástroj a bude ho
         hrát znovu dokola.
       </p>
 
       {chyba && (
-        <p className="text-[11px] text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}
 
       {hraje && (
         <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
-          <div className="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5">
+          <div className="text-stitek uppercase tracking-widest text-neutral-500 mb-1.5">
             Co slyším
           </div>
           {posledni.length === 0 ? (
-            <p className="text-[11px] text-neutral-600">Zatím ticho — zahraj tón.</p>
+            <p className="text-drobne text-neutral-600">Zatím ticho — zahraj tón.</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {posledni.map((t, i) => (
                 <span
                   key={`${t}-${i}`}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-bold tabular-nums ${
+                  className={`px-2 py-1 rounded-lg text-drobne font-bold tabular-nums ${
                     i === 0 ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.06] text-neutral-400'
                   }`}
                 >

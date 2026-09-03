@@ -122,7 +122,7 @@ export const MikrofonTlacitko: React.FC = () => {
 
       {(hlaseni || stav === 'poslouchá') && (
         <div
-          className={`absolute top-11 right-0 z-50 px-3 py-2 rounded-xl text-[11px] font-medium whitespace-nowrap max-w-[280px] truncate border shadow-lg ${
+          className={`absolute top-11 right-0 z-50 px-3 py-2 rounded-xl text-drobne font-medium whitespace-nowrap max-w-[280px] truncate border shadow-lg ${
             stav === 'poslouchá'
               ? 'bg-[#FF453A]/15 border-[#FF453A]/40 text-[#FF9F0A]'
               : hlaseni?.dobre

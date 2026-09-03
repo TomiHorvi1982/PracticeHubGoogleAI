@@ -60,12 +60,12 @@ export const AparatOvladani: React.FC = () => {
   return (
     <div className="bg-black/40 border border-white/10 rounded-2xl p-3 space-y-2.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
+        <span className="text-stitek uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
           <Zap className="w-3.5 h-3.5 text-[#FF9F0A]" /> Aparát
         </span>
         <button
           onClick={prepni}
-          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border cursor-pointer ${
+          className={`px-2.5 py-1 rounded-lg text-stitek font-bold border cursor-pointer ${
             zapnuty
               ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]/50 text-[#FF9F0A]'
               : 'bg-white/[0.06] border-white/10 text-neutral-400'
@@ -75,7 +75,7 @@ export const AparatOvladani: React.FC = () => {
         </button>
       </div>
 
-      <p className="text-[10px] text-neutral-500 leading-relaxed">
+      <p className="text-stitek text-neutral-500 leading-relaxed">
         Zkresluje se tady, ne ve vzorku — proto pouštěj čistý zvuk kytary a nechej aparát
         pracovat. Klavíru a bicích se to netýká.
       </p>
@@ -83,7 +83,7 @@ export const AparatOvladani: React.FC = () => {
       <div className={zapnuty ? 'space-y-1.5' : 'space-y-1.5 opacity-40 pointer-events-none'}>
         {REGULATORY.map((r) => (
           <div key={r.klic} className="flex items-center gap-2" title={r.popis}>
-            <span className="text-[10px] text-neutral-400 w-16 shrink-0">{r.nazev}</span>
+            <span className="text-stitek text-neutral-400 w-16 shrink-0">{r.nazev}</span>
             <input
               type="range"
               min={0}
@@ -92,7 +92,7 @@ export const AparatOvladani: React.FC = () => {
               onChange={(e) => zmen(r.klic, Number(e.target.value) / 100)}
               className="flex-1 accent-[#FF9F0A] cursor-pointer"
             />
-            <span className="text-[10px] font-mono text-[#FF9F0A] tabular-nums w-8">
+            <span className="text-stitek font-mono text-[#FF9F0A] tabular-nums w-8">
               {Math.round(n[r.klic] * 100)}
             </span>
           </div>

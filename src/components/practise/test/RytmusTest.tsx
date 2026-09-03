@@ -79,11 +79,11 @@ export const RytmusTest: React.FC = () => {
           <Activity className="w-5 h-5 text-[#0A84FF]" />
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Rytmus</h3>
-            <p className="text-[11px] text-neutral-400">{CVICENI[cviceni].popis}</p>
+            <p className="text-drobne text-neutral-400">{CVICENI[cviceni].popis}</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Tempo</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
             <input
               type="number"
               min={40}
@@ -106,7 +106,7 @@ export const RytmusTest: React.FC = () => {
         </div>
 
         {stav.chyba && (
-          <p className="text-[11px] text-[#FF453A]">{stav.chyba}</p>
+          <p className="text-drobne text-[#FF453A]">{stav.chyba}</p>
         )}
 
         <VstupPanel zdroje={zdroje} onZmena={setZdroje} />
@@ -130,10 +130,10 @@ export const RytmusTest: React.FC = () => {
       {(stav.bezi || plan.current.length > 0) && (
         <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-white">
+            <span className="text-drobne font-bold text-white">
               {stav.ticho ? 'Metronom mlčí — drž tempo sám' : 'Metronom klepe'}
             </span>
-            <span className="ml-auto text-[10px] text-neutral-500 tabular-nums">
+            <span className="ml-auto text-stitek text-neutral-500 tabular-nums">
               {Math.max(0, stav.doba + 1)} / {stav.celkem || plan.current.length}
             </span>
           </div>
@@ -168,7 +168,7 @@ export const RytmusTest: React.FC = () => {
             <Cislo hodnota={`${hodnoceni.uderu}`} popis="započítaných úderů" />
           </div>
 
-          <div className="space-y-1.5 text-[12px] text-neutral-300">
+          <div className="space-y-1.5 text-drobne text-neutral-300">
             {hodnoceni.uderu < MIN_UDERU && (
               <p className="text-[#FF9F0A]">
                 Zachytilo se jen {hodnoceni.uderu} úderů — na hodnocení je to málo. Hraj do každé doby,
@@ -204,7 +204,7 @@ export const RytmusTest: React.FC = () => {
                   : 'Údery jsou rozházené. Vrať se o dvacet BPM níž — v pomalém tempu je slyšet, kde to ujíždí.'}
             </p>
 
-            <p className="text-neutral-500 text-[11px]">
+            <p className="text-neutral-500 text-drobne">
               Celý výkon je posunutý o {hodnoceni.posun > 0 ? '+' : ''}{hodnoceni.posun} ms proti klepnutí. Z toho
               je velká část zpoždění mikrofonu a zvukové karty, takže se do hodnocení nepočítá —
               rovnoměrně opožděné hraní je pořád v rytmu. Rozhoduje rozkolísanost a ujíždění.
@@ -247,9 +247,9 @@ export const RytmusTest: React.FC = () => {
                     />
                   );
                 })}
-                <span className="absolute left-2 top-1 text-[9px] text-neutral-600">pozdě</span>
-                <span className="absolute left-2 bottom-1 text-[9px] text-neutral-600">brzy</span>
-                <span className="absolute right-2 top-1 text-[9px] text-[#BF5AF2]">
+                <span className="absolute left-2 top-1 text-stitek text-neutral-600">pozdě</span>
+                <span className="absolute left-2 bottom-1 text-stitek text-neutral-600">brzy</span>
+                <span className="absolute right-2 top-1 text-stitek text-[#BF5AF2]">
                   fialová = bez metronomu · měřítko ±{Math.round(max)} ms
                 </span>
               </div>
@@ -272,6 +272,6 @@ const Cislo: React.FC<{ hodnota: string; popis: string; barva?: string }> = ({ h
     <div className="text-xl font-bold tabular-nums" style={{ color: barva || '#fff' }}>
       {hodnota}
     </div>
-    <div className="text-[10px] text-neutral-500 mt-0.5">{popis}</div>
+    <div className="text-stitek text-neutral-500 mt-0.5">{popis}</div>
   </div>
 );

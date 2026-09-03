@@ -162,7 +162,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
       {/* Attachments List Tabs */}
       <div className="flex items-center justify-between border-b border-[#222] pb-2 overflow-x-auto gap-2">
         <div className="flex items-center gap-1">
-          <span className="text-[10px] font-extrabold text-[#888] uppercase mr-2">PŘÍLOHY:</span>
+          <span className="text-stitek font-extrabold text-[#888] uppercase mr-2">PŘÍLOHY:</span>
           {attachments.map((att) => {
             const isSelected = activeAtt?.id === att.id;
             return (
@@ -185,7 +185,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#222] border border-[#333] text-[10px] font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
+            className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#222] border border-[#333] text-stitek font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
           >
             <FileUp className="w-3 h-3" /> PŘIDAT SOUBOR
           </button>
@@ -200,7 +200,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               {getTypeIcon(activeAtt.type)}
               <div>
                 <h4 className="text-xs font-bold text-white uppercase">{activeAtt.name}</h4>
-                <p className="text-[10px] text-[#666] uppercase">
+                <p className="text-stitek text-[#666] uppercase">
                   {getTypeName(activeAtt.type)} • {Math.round((activeAtt.size || 0) / 1024)} KB
                 </p>
               </div>
@@ -210,7 +210,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               <a
                 href={activeAtt.dataUrl}
                 download={activeAtt.name}
-                className="px-2.5 py-1 bg-[#141414] hover:bg-[#1A1A1A] border border-[#333] text-[#00FF41] text-[10px] font-bold uppercase flex items-center gap-1"
+                className="px-2.5 py-1 bg-[#141414] hover:bg-[#1A1A1A] border border-[#333] text-[#00FF41] text-stitek font-bold uppercase flex items-center gap-1"
               >
                 <Download className="w-3 h-3" /> STÁHNOUT SOUBOR
               </a>
@@ -238,11 +238,11 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 />
               </div>
               {activeAtt.parsedData?.extractedText && (
-                <details className="bg-[#0A0A0A] border border-[#222] p-2 text-[11px] text-[#AAA]">
+                <details className="bg-[#0A0A0A] border border-[#222] p-2 text-drobne text-[#AAA]">
                   <summary className="cursor-pointer font-bold uppercase text-[#00FF41]">
                     ZOBRAZIT EXTRACTOVANÝ TEXT Z PDF
                   </summary>
-                  <pre className="mt-2 whitespace-pre-wrap font-mono text-[10px] text-[#888]">
+                  <pre className="mt-2 whitespace-pre-wrap font-mono text-stitek text-[#888]">
                     {activeAtt.parsedData.extractedText}
                   </pre>
                 </details>
@@ -259,7 +259,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     <span className="text-xs font-extrabold text-[#00E5FF] uppercase">
                       INTERAKTIVNÍ MIDI PŘEHRÁVAČ
                     </span>
-                    <p className="text-[10px] text-[#A0F5FF]">
+                    <p className="text-stitek text-[#A0F5FF]">
                       Přehrává MIDI doprovod a melodii přímo ze syntetizéru appky
                     </p>
                   </div>
@@ -295,7 +295,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     }}
                   />
                 </div>
-                <div className="flex justify-between text-[10px] text-[#00E5FF]">
+                <div className="flex justify-between text-stitek text-[#00E5FF]">
                   <span>{Math.floor(midiProgress)}s</span>
                   <span>{Math.floor(midiDuration)}s</span>
                 </div>
@@ -303,7 +303,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
 
               {/* MIDI Track List */}
               {activeAtt.parsedData?.trackNames && activeAtt.parsedData.trackNames.length > 0 && (
-                <div className="text-[10px] text-[#A0F5FF] bg-black/40 p-2 border border-[#00E5FF]/20">
+                <div className="text-stitek text-[#A0F5FF] bg-black/40 p-2 border border-[#00E5FF]/20">
                   <span className="font-bold uppercase block mb-1">
                     STOPY A NÁSTROJE SOUBORU ({activeAtt.parsedData.trackNames.length}):
                   </span>
@@ -350,7 +350,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-[10px] font-bold px-1.5 text-[#AAA]">
+                  <span className="text-stitek font-bold px-1.5 text-[#AAA]">
                     {Math.round(imageZoom * 100)}%
                   </span>
                   <button
@@ -369,7 +369,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                   </button>
                   <button
                     onClick={() => setInvertImage((prev) => !prev)}
-                    className={`px-2 py-1 border text-[10px] font-bold uppercase transition-none ${
+                    className={`px-2 py-1 border text-stitek font-bold uppercase transition-none ${
                       invertImage
                         ? 'bg-[#FF0055] text-white border-[#FF0055]'
                         : 'bg-[#1A1A1A] text-[#AAA] border-[#444]'
@@ -383,7 +383,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                   href={activeAtt.dataUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[10px] text-[#00FF41] hover:underline flex items-center gap-1 font-bold"
+                  className="text-stitek text-[#00FF41] hover:underline flex items-center gap-1 font-bold"
                 >
                   <ExternalLink className="w-3 h-3" /> PLNÁ VELIKOST
                 </a>

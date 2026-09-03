@@ -75,7 +75,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
 
         {/* Local Setlists List */}
         <div className="space-y-2 pt-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 block">
+          <span className="text-drobne font-bold uppercase tracking-wider text-neutral-400 block">
             Moje setlisty a playlisty:
           </span>
 
@@ -174,7 +174,7 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-sm text-white">Smazat skladbu ze zpěvníku</h3>
-              <p className="text-[11px] text-neutral-400">Tato akce je nevratná</p>
+              <p className="text-drobne text-neutral-400">Tato akce je nevratná</p>
             </div>
           </div>
           <button
@@ -189,7 +189,7 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
           <p className="font-bold text-sm text-white">{song.title}</p>
           <p className="text-xs text-neutral-400">{song.artist || 'Neznámý interpret'}</p>
           {song.tuning && (
-            <p className="text-[10px] text-neutral-500 font-mono pt-1">🎸 Ladění: {song.tuning}</p>
+            <p className="text-stitek text-neutral-500 font-mono pt-1">🎸 Ladění: {song.tuning}</p>
           )}
         </div>
 

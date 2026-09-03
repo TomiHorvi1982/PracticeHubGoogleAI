@@ -173,7 +173,7 @@ export const SamplesStudio: React.FC = () => {
 
   const udaj = (t: string, hodnota: string) =>
     hodnota ? (
-      <span className="text-[9px] px-1 py-0.5 rounded bg-white/[0.06] text-neutral-400 shrink-0">
+      <span className="text-stitek px-1 py-0.5 rounded bg-white/[0.06] text-neutral-400 shrink-0">
         {t}
         {hodnota}
       </span>
@@ -186,16 +186,16 @@ export const SamplesStudio: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Layers className="w-4 h-4 text-[#FF9F0A] shrink-0" />
           <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Skládačka</h2>
-          <span className="text-[10px] text-neutral-500">stopy pod sebou, části za sebou</span>
+          <span className="text-stitek text-neutral-500">stopy pod sebou, části za sebou</span>
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
-              <span className="text-[9px] uppercase tracking-wider text-neutral-500">Tempo</span>
+              <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
               <input
                 type="number"
                 value={stav.bpm}
                 onChange={(e) => setBpm(Number(e.target.value))}
-                className="bez-sipek w-12 bg-transparent text-[12px] font-bold text-white text-center outline-none tabular-nums"
+                className="bez-sipek w-12 bg-transparent text-drobne font-bold text-white text-center outline-none tabular-nums"
               />
             </div>
 
@@ -208,7 +208,7 @@ export const SamplesStudio: React.FC = () => {
                 <button
                   key={r.id}
                   onClick={() => skladackaService.nastavRezim(r.id)}
-                  className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 cursor-pointer ${
                     stav.rezim === r.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
                   }`}
                 >
@@ -237,7 +237,7 @@ export const SamplesStudio: React.FC = () => {
         </div>
 
         {stav.chyba && (
-          <p className="text-[11px] text-[#FF453A] flex items-center gap-1.5">
+          <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {stav.chyba}
           </p>
         )}
@@ -254,7 +254,7 @@ export const SamplesStudio: React.FC = () => {
                 <button
                   key={c.id}
                   onClick={() => skladackaService.vyberCast(c.id)}
-                  className={`px-1.5 py-1 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                  className={`px-1.5 py-1 rounded-lg text-stitek font-bold cursor-pointer transition-all ${
                     stav.aktivniCast === c.id
                       ? 'bg-[#FF9F0A] text-black'
                       : 'bg-white/[0.05] text-neutral-400 hover:text-white'
@@ -268,7 +268,7 @@ export const SamplesStudio: React.FC = () => {
             </div>
 
             {stav.stopy.length === 0 ? (
-              <p className="text-[11px] text-neutral-600 py-3">
+              <p className="text-drobne text-neutral-600 py-3">
                 Zatím žádná stopa. Přidej ji tlačítkem níž a pak klikni do políčka, kam chceš sampl vložit.
               </p>
             ) : (
@@ -288,7 +288,7 @@ export const SamplesStudio: React.FC = () => {
                     >
                       {stopa.ztlumena ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                     </button>
-                    <span className="text-[11px] font-semibold text-white truncate flex-1">{stopa.nazev}</span>
+                    <span className="text-drobne font-semibold text-white truncate flex-1">{stopa.nazev}</span>
                     <button
                       onClick={() => skladackaService.smazStopu(stopa.id)}
                       className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer"
@@ -310,7 +310,7 @@ export const SamplesStudio: React.FC = () => {
                             : setCil(vybrane ? null : { stopa: stopa.id, cast: c.id })
                         }
                         style={pozadiPolicka(!!s, stav.hraje && stav.aktivniCast === c.id, stav.postup)}
-                        className={`px-1.5 py-1.5 rounded-lg text-[10px] truncate border cursor-pointer transition-all ${
+                        className={`px-1.5 py-1.5 rounded-lg text-stitek truncate border cursor-pointer transition-all ${
                           s
                             ? `border-[#30D158]/40 text-[#30D158] ${
                                 stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-[#30D158]/15'
@@ -334,7 +334,7 @@ export const SamplesStudio: React.FC = () => {
                 <button
                   key={n.id}
                   onClick={() => skladackaService.pridejStopu(n.popis)}
-                  className="px-2 py-1 rounded-lg text-[10px] font-semibold bg-white/[0.05] text-neutral-300 hover:bg-white/[0.12] cursor-pointer flex items-center gap-1"
+                  className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.05] text-neutral-300 hover:bg-white/[0.12] cursor-pointer flex items-center gap-1"
                 >
                   <Plus className="w-3 h-3" /> {n.ikona} {n.popis}
                 </button>
@@ -351,7 +351,7 @@ export const SamplesStudio: React.FC = () => {
             <button
               key={n.id}
               onClick={() => setNastroj(n.id)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
                 nastroj === n.id
                   ? 'bg-[#FF9F0A] text-black'
                   : 'bg-white/[0.04] text-neutral-400 hover:text-white'
@@ -362,12 +362,12 @@ export const SamplesStudio: React.FC = () => {
           ))}
 
           <div className="ml-auto flex items-center gap-1">
-            <span className="text-[9px] uppercase tracking-wider text-neutral-500">Řadit</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Řadit</span>
             {RAZENI.map((r) => (
               <button
                 key={r.id}
                 onClick={() => setRazeni(r.id)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer ${
+                className={`px-2 py-1 rounded-lg text-stitek font-semibold cursor-pointer ${
                   razeni === r.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
                 }`}
               >
@@ -383,31 +383,31 @@ export const SamplesStudio: React.FC = () => {
             value={hledat}
             onChange={(e) => setHledat(e.target.value)}
             placeholder="Hledat sampl…"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[13px] text-white placeholder-neutral-600 outline-none focus:border-[#FF9F0A]"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-[#FF9F0A]"
           />
         </div>
 
         {cil && (
-          <p className="text-[11px] text-[#FF9F0A]">
+          <p className="text-drobne text-[#FF9F0A]">
             Vyber sampl — vloží se do označeného políčka.
           </p>
         )}
 
         {chyba && (
-          <p className="text-[11px] text-[#FF453A] flex items-center gap-1.5">
+          <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
           </p>
         )}
 
         <div className="max-h-[38vh] overflow-y-auto space-y-1 pr-1">
           {nacitam && (
-            <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
+            <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
               <Loader2 className="w-3 h-3 animate-spin" /> Načítám…
             </p>
           )}
 
           {!nacitam && serazene.length === 0 && (
-            <p className="text-[11px] text-neutral-600">
+            <p className="text-drobne text-neutral-600">
               Pro tenhle nástroj zatím v knihovně žádné samply nejsou. Nahraj je v sekci Knihovna.
             </p>
           )}
@@ -451,7 +451,7 @@ export const SamplesStudio: React.FC = () => {
                   {/* Stín drží název čitelný i tam, kde je pod ním
                       nejhustší část vlnovky. */}
                   <span
-                    className="relative text-[12px] text-white truncate block"
+                    className="relative text-drobne text-white truncate block"
                     style={{ textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.8)' }}
                   >
                     {s.nazev}
@@ -479,14 +479,14 @@ export const SamplesStudio: React.FC = () => {
               nebo jen useknutá na první stránce. */}
           {celkem > 0 && (
             <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
-              <span className="text-[10px] text-neutral-500 tabular-nums">
+              <span className="text-stitek text-neutral-500 tabular-nums">
                 zobrazeno {serazene.length} z {celkem}
               </span>
               {serazene.length < celkem && (
                 <button
                   onClick={() => setOd(samply.length)}
                   disabled={nacitam}
-                  className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-neutral-300 cursor-pointer disabled:opacity-40"
+                  className="px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-drobne text-neutral-300 cursor-pointer disabled:opacity-40"
                 >
                   {nacitam ? 'Načítám…' : `Načíst dalších ${Math.min(NA_STRANU, celkem - serazene.length)}`}
                 </button>

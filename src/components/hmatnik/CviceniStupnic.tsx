@@ -69,7 +69,7 @@ export const CviceniStupnic: React.FC = () => {
     <div className="space-y-3">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <label className="block">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">Stupnice</span>
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">Stupnice</span>
           <select
             value={stupnice}
             onChange={(e) => setStupnice(e.target.value)}
@@ -82,7 +82,7 @@ export const CviceniStupnic: React.FC = () => {
         </label>
 
         <label className="block">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">Základní tón</span>
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">Základní tón</span>
           <select
             value={zaklad}
             onChange={(e) => setZaklad(Number(e.target.value))}
@@ -95,7 +95,7 @@ export const CviceniStupnic: React.FC = () => {
         </label>
 
         <label className="block">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">Vzorec</span>
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">Vzorec</span>
           <select
             value={cviceni}
             onChange={(e) => setCviceni(e.target.value)}
@@ -108,7 +108,7 @@ export const CviceniStupnic: React.FC = () => {
         </label>
 
         <label className="block">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">Oktávy</span>
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">Oktávy</span>
           <select
             value={oktav}
             onChange={(e) => setOktav(Number(e.target.value))}
@@ -119,8 +119,8 @@ export const CviceniStupnic: React.FC = () => {
         </label>
       </div>
 
-      {vybrana && <p className="text-[11px] text-neutral-500">{vybrana.description}</p>}
-      {vzorec && <p className="text-[11px] text-neutral-400">{vzorec.popis}</p>}
+      {vybrana && <p className="text-drobne text-neutral-500">{vybrana.description}</p>}
+      {vzorec && <p className="text-drobne text-neutral-400">{vzorec.popis}</p>}
 
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -135,7 +135,7 @@ export const CviceniStupnic: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">Tempo</span>
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">Tempo</span>
           <input
             type="range"
             min={40}
@@ -149,7 +149,7 @@ export const CviceniStupnic: React.FC = () => {
 
         <button
           onClick={() => setDokola((d) => !d)}
-          className={`px-2.5 py-2 rounded-xl text-[11px] font-semibold border cursor-pointer flex items-center gap-1.5 ${
+          className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
             dokola
               ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
               : 'bg-white/[0.06] border-white/10 text-neutral-400'
@@ -161,7 +161,7 @@ export const CviceniStupnic: React.FC = () => {
         <select
           value={nastroj}
           onChange={(e) => setNastroj(e.target.value as InstrumentProfile)}
-          className="bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[11px] text-white outline-none cursor-pointer"
+          className="bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-drobne text-white outline-none cursor-pointer"
         >
           <option value="acoustic_dreadnought">Akustická kytara</option>
           <option value="grand_piano_steinway">Klavír</option>
@@ -174,7 +174,7 @@ export const CviceniStupnic: React.FC = () => {
           jinak nedá poznat, kde v sekvenci člověk je. */}
       <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">
             Posloupnost ({tony.length} tónů)
           </span>
         </div>
@@ -182,7 +182,7 @@ export const CviceniStupnic: React.FC = () => {
           {tony.map((m, i) => (
             <span
               key={i}
-              className={`px-1.5 py-0.5 rounded text-[10px] font-bold tabular-nums ${
+              className={`px-1.5 py-0.5 rounded text-stitek font-bold tabular-nums ${
                 i === kde ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.06] text-neutral-400'
               }`}
             >

@@ -740,7 +740,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                       setIsLoopActive(true);
                     }
                   }}
-                  className={`text-[10px] px-2 py-0.5 rounded-lg flex items-center gap-1 font-semibold cursor-pointer ${
+                  className={`text-stitek px-2 py-0.5 rounded-lg flex items-center gap-1 font-semibold cursor-pointer ${
                     selectedSectionId === section.id && isLoopActive
                       ? 'bg-[#FF9F0A] text-black'
                       : 'bg-white/5 text-neutral-400 hover:text-white'
@@ -788,7 +788,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
               {/* Transposition & Capo */}
               <div className="flex items-center gap-1">
-                <span className="text-[11px] text-neutral-400 font-medium">Tónina:</span>
+                <span className="text-drobne text-neutral-400 font-medium">Tónina:</span>
                 <button
                   onClick={() => setTransposeSemitones((p) => p - 1)}
                   className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold cursor-pointer"
@@ -805,11 +805,11 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   +1
                 </button>
                 <div className="border-l border-white/10 pl-2 ml-1 flex items-center gap-1">
-                  <span className="text-[11px] text-neutral-400">Capo:</span>
+                  <span className="text-drobne text-neutral-400">Capo:</span>
                   <select
                     value={capoFret}
                     onChange={(e) => setCapoFret(parseInt(e.target.value, 10))}
-                    className="bg-black/80 border border-white/10 text-white text-[11px] rounded-lg px-1 py-0.5 outline-none cursor-pointer"
+                    className="bg-black/80 border border-white/10 text-white text-drobne rounded-lg px-1 py-0.5 outline-none cursor-pointer"
                   >
                     {[0, 1, 2, 3, 4, 5, 6, 7].map((f) => (
                       <option key={f} value={f}>
@@ -829,7 +829,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   >
                     A-
                   </button>
-                  <span className="text-[11px] text-neutral-300 px-1">{fontSize}px</span>
+                  <span className="text-drobne text-neutral-300 px-1">{fontSize}px</span>
                   <button
                     onClick={() => setFontSize((p) => Math.min(36, p + 2))}
                     className="text-white hover:text-[#FF9F0A] font-bold px-1"

@@ -556,7 +556,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#FF9F0A] text-black font-extrabold text-[10px] px-2 py-0.5 rounded-md uppercase tracking-wider">
+                <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
                   Sampled Drum Engine Pro
                 </span>
                 <span className="text-xs text-neutral-400 font-medium hidden sm:inline">
@@ -612,7 +612,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
         <div className="p-4 border-b border-white/10 bg-black/40 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Kit Switcher Pill Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin flex-1">
-            <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider mr-1 whitespace-nowrap">
+            <span className="text-drobne font-bold text-neutral-400 uppercase tracking-wider mr-1 whitespace-nowrap">
               Sady ({kits.length}):
             </span>
             {kits.map((kit) => {
@@ -632,7 +632,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                   <span>{kit.icon || '🥁'}</span>
                   <span>{kit.name}</span>
                   <span
-                    className={`text-[9px] px-1.5 py-0.2 rounded-md ${
+                    className={`text-stitek px-1.5 py-0.2 rounded-md ${
                       isSelected ? 'bg-black/30 text-white' : 'bg-white/10 text-neutral-400'
                     }`}
                   >
@@ -764,7 +764,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                     <Disc className="w-4 h-4 text-[#FF9F0A]" />
                     Pady Bicí Soustavy (Kick, Snare, Toms, Cymbals, Percussion)
                   </h3>
-                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                  <p className="text-drobne text-neutral-400 mt-0.5">
                     Přetáhněte sem libovolný audio soubor (.wav, .mp3) nebo nahrajte z mikrofonu. Engine automaticky odvodí dynamické multi-velocity vrstvy a round-robin micro-variace.
                   </p>
                 </div>
@@ -820,7 +820,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                                 {padDef.czName}
                               </h4>
                             </div>
-                            <span className="text-[10px] text-neutral-400 block font-medium mt-0.5">
+                            <span className="text-stitek text-neutral-400 block font-medium mt-0.5">
                               {padDef.desc}
                             </span>
                           </div>
@@ -828,17 +828,17 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
                         {/* Status badge */}
                         {multiLayerCount > 0 ? (
-                          <span className="text-[9px] font-mono font-bold text-[#FF9F0A] bg-[#FF9F0A]/10 px-2 py-0.5 rounded-md border border-[#FF9F0A]/30 flex items-center gap-1 whitespace-nowrap">
+                          <span className="text-stitek font-mono font-bold text-[#FF9F0A] bg-[#FF9F0A]/10 px-2 py-0.5 rounded-md border border-[#FF9F0A]/30 flex items-center gap-1 whitespace-nowrap">
                             <Layers className="w-3 h-3" />
                             <span>{multiLayerCount} Multi-vrstev</span>
                           </span>
                         ) : hasCustomSample ? (
-                          <span className="text-[9px] font-mono font-bold text-[#30D158] bg-[#30D158]/10 px-2 py-0.5 rounded-md border border-[#30D158]/20 flex items-center gap-1 whitespace-nowrap">
+                          <span className="text-stitek font-mono font-bold text-[#30D158] bg-[#30D158]/10 px-2 py-0.5 rounded-md border border-[#30D158]/20 flex items-center gap-1 whitespace-nowrap">
                             <Check className="w-3 h-3" />
                             <span>WAV ({sample?.duration}s)</span>
                           </span>
                         ) : (
-                          <span className="text-[9px] font-mono font-medium text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5 whitespace-nowrap">
+                          <span className="text-stitek font-mono font-medium text-neutral-400 bg-white/5 px-2 py-0.5 rounded-md border border-white/5 whitespace-nowrap">
                             Fyzikální model
                           </span>
                         )}
@@ -846,7 +846,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
                       {/* Sample info if uploaded */}
                       {hasCustomSample && (
-                        <div className="px-2.5 py-1.5 bg-white/[0.03] rounded-xl border border-white/5 flex items-center justify-between text-[11px] text-neutral-300">
+                        <div className="px-2.5 py-1.5 bg-white/[0.03] rounded-xl border border-white/5 flex items-center justify-between text-drobne text-neutral-300">
                           <div className="flex items-center gap-1.5 truncate mr-2">
                             <FileAudio className="w-3.5 h-3.5 text-[#30D158] shrink-0" />
                             <span className="truncate font-semibold">{sample?.name || 'Vlastní WAV vzorek'}</span>
@@ -856,7 +856,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               setSelectedPadId(padDef.id);
                               setActiveTab('multilayer');
                             }}
-                            className="text-[10px] font-bold text-[#FF9F0A] hover:underline whitespace-nowrap cursor-pointer"
+                            className="text-stitek font-bold text-[#FF9F0A] hover:underline whitespace-nowrap cursor-pointer"
                           >
                             Upravit vrstvy &rarr;
                           </button>
@@ -980,7 +980,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       <span>{pad.czName}</span>
                       {layerCount > 0 && (
                         <span
-                          className={`text-[9px] px-1.5 py-0.2 rounded-md ${
+                          className={`text-stitek px-1.5 py-0.2 rounded-md ${
                             isSel ? 'bg-black/30 text-white' : 'bg-[#30D158]/20 text-[#30D158]'
                           }`}
                         >
@@ -1011,7 +1011,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 {/* Velocity Test Controller with Live Round-Robin Badge */}
                 <div className="flex items-center gap-3 bg-white/5 px-3 py-2 rounded-xl border border-white/10">
                   <div className="flex flex-col">
-                    <div className="flex items-center justify-between text-[11px] text-neutral-300 font-bold mb-1">
+                    <div className="flex items-center justify-between text-drobne text-neutral-300 font-bold mb-1">
                       <span>Testovací Velocity:</span>
                       <span className="font-mono text-[#FF9F0A]">{testVelocity} (1-127)</span>
                     </div>
@@ -1034,7 +1034,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                   </button>
 
                   <div className="flex flex-col items-center">
-                    <span className="text-[9px] text-neutral-400 uppercase font-bold">Poslední RR</span>
+                    <span className="text-stitek text-neutral-400 uppercase font-bold">Poslední RR</span>
                     <span className="text-xs font-mono font-extrabold px-2 py-0.5 bg-[#FF9F0A]/20 text-[#FF9F0A] rounded-md border border-[#FF9F0A]/30">
                       RR{lastHitRR}
                     </span>
@@ -1064,7 +1064,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                           <span className="text-xs font-bold text-white">
                             MIDI Velocity: {tierOpt.range}
                           </span>
-                          <span className="text-[11px] text-neutral-400 hidden md:inline">
+                          <span className="text-drobne text-neutral-400 hidden md:inline">
                             &bull; {tierOpt.desc}
                           </span>
                         </div>
@@ -1076,7 +1076,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               const velValues = { soft: 20, med_soft: 45, med: 75, hard: 100, very_hard: 125 };
                               handleTestPlay(selectedPadId, velValues[tierOpt.tier]);
                             }}
-                            className="px-2.5 py-1 bg-white/5 hover:bg-white/15 text-neutral-200 text-[11px] font-semibold rounded-lg border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
+                            className="px-2.5 py-1 bg-white/5 hover:bg-white/15 text-neutral-200 text-drobne font-semibold rounded-lg border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
                           >
                             <Play className="w-3 h-3 text-[#30D158] fill-[#30D158]" />
                             <span>Zahrát {tierOpt.tier}</span>
@@ -1104,27 +1104,27 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               }`}
                             >
                               <div className="flex items-center justify-between">
-                                <span className="text-[11px] font-mono font-bold text-white flex items-center gap-1">
+                                <span className="text-drobne font-mono font-bold text-white flex items-center gap-1">
                                   <Zap className="w-3 h-3 text-[#FF9F0A]" />
                                   RR {rrIndex}
                                 </span>
                                 {hasLayer ? (
-                                  <span className="text-[9px] font-bold text-[#30D158] bg-[#30D158]/10 px-1.5 py-0.2 rounded border border-[#30D158]/20">
+                                  <span className="text-stitek font-bold text-[#30D158] bg-[#30D158]/10 px-1.5 py-0.2 rounded border border-[#30D158]/20">
                                     Vlastní WAV
                                   </span>
                                 ) : (
-                                  <span className="text-[9px] text-neutral-400 font-mono">
+                                  <span className="text-stitek text-neutral-400 font-mono">
                                     Anti-MG Micro-DSP
                                   </span>
                                 )}
                               </div>
 
-                              <div className="text-[10px] text-neutral-300 truncate">
+                              <div className="text-stitek text-neutral-300 truncate">
                                 {hasLayer ? customLayer.name : 'Automaticky generováno enginem'}
                               </div>
 
                               <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                                <label className="text-[10px] text-[#FF9F0A] hover:underline font-bold cursor-pointer flex items-center gap-1">
+                                <label className="text-stitek text-[#FF9F0A] hover:underline font-bold cursor-pointer flex items-center gap-1">
                                   <Upload className="w-2.5 h-2.5" />
                                   <span>{hasLayer ? 'Změnit' : 'Nahrát WAV'}</span>
                                   <input
@@ -1246,7 +1246,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               item.parsed.articulation = e.target.value as DrumArticulation;
                               setBatchParsedFiles([...batchParsedFiles]);
                             }}
-                            className="bg-black/60 text-white font-bold text-[11px] px-2 py-1 rounded-lg border border-white/15 outline-none"
+                            className="bg-black/60 text-white font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
                           >
                             {EXTENDED_PAD_DEFINITIONS.map((p) => (
                               <option key={p.id} value={p.id}>
@@ -1262,7 +1262,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               item.parsed.tier = e.target.value as VelocityTier;
                               setBatchParsedFiles([...batchParsedFiles]);
                             }}
-                            className="bg-black/60 text-[#FF9F0A] font-bold text-[11px] px-2 py-1 rounded-lg border border-white/15 outline-none"
+                            className="bg-black/60 text-[#FF9F0A] font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
                           >
                             {VELOCITY_TIER_OPTIONS.map((v) => (
                               <option key={v.tier} value={v.tier}>
@@ -1278,7 +1278,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               item.parsed.roundRobin = parseInt(e.target.value, 10);
                               setBatchParsedFiles([...batchParsedFiles]);
                             }}
-                            className="bg-black/60 text-[#30D158] font-bold text-[11px] px-2 py-1 rounded-lg border border-white/15 outline-none"
+                            className="bg-black/60 text-[#30D158] font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
                           >
                             {[1, 2, 3, 4].map((rr) => (
                               <option key={rr} value={rr}>
@@ -1288,7 +1288,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                           </select>
 
                           {item.status === 'imported' && (
-                            <span className="text-[10px] font-bold text-[#30D158] flex items-center gap-1">
+                            <span className="text-stitek font-bold text-[#30D158] flex items-center gap-1">
                               <Check className="w-3 h-3" />
                               Hotovo
                             </span>
@@ -1314,7 +1314,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 <button
                   key={pad.id}
                   onClick={() => handleTestPlay(pad.id)}
-                  className="px-2 py-1 bg-black/40 hover:bg-[#FF9F0A]/20 text-neutral-300 hover:text-[#FF9F0A] border border-white/10 rounded-lg text-[10px] font-mono font-bold transition-all cursor-pointer active:scale-95"
+                  className="px-2 py-1 bg-black/40 hover:bg-[#FF9F0A]/20 text-neutral-300 hover:text-[#FF9F0A] border border-white/10 rounded-lg text-stitek font-mono font-bold transition-all cursor-pointer active:scale-95"
                 >
                   {pad.keyLabel}: {pad.czName.split(' ')[0]}
                 </button>

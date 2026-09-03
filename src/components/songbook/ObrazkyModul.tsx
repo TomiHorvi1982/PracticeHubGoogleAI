@@ -80,7 +80,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
     <div className="flex-1 flex flex-col gap-2 min-h-0">
       <button
         onClick={() => setPridavam((v) => !v)}
-        className="shrink-0 self-start px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
+        className="shrink-0 self-start px-2.5 py-1 rounded-lg text-stitek font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
       >
         {pridavam ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
         {pridavam ? 'Zrušit' : 'Přidat z knihovny'}
@@ -100,7 +100,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
 
       <div className="flex-1 overflow-y-auto min-h-0">
         {prilohy.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-[11px]">
+          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-drobne">
             <ImageOff className="w-5 h-5 text-neutral-700" />
             K téhle písni zatím žádný obrázek není.
           </div>
@@ -130,7 +130,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
                 >
                   <X className="w-3 h-3" />
                 </button>
-                <div className="text-[9px] text-neutral-500 truncate mt-0.5">{p.name}</div>
+                <div className="text-stitek text-neutral-500 truncate mt-0.5">{p.name}</div>
               </div>
             ))}
           </div>

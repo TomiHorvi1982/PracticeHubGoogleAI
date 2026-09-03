@@ -84,13 +84,13 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
         <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
           Set list{vSetu.length > 0 ? ` (${vSetu.length})` : ''}
         </h2>
-        <span className="text-[10px] text-neutral-500">pořadí, ve kterém se bude hrát</span>
+        <span className="text-stitek text-neutral-500">pořadí, ve kterém se bude hrát</span>
 
         {sety.length > 1 && (
           <select
             value={set?.id || ''}
             onChange={(e) => setVybrany(e.target.value)}
-            className="bg-black/50 border border-white/10 text-white text-[11px] font-semibold rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer"
+            className="bg-black/50 border border-white/10 text-white text-drobne font-semibold rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer"
           >
             {sety.map((s) => (
               <option key={s.id} value={s.id}>
@@ -111,14 +111,14 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
       {/* Sbalený set ukazuje aspoň začátek programu — prázdné místo by
           vypadalo, jako by v setu nic nebylo. */}
       {!otevreno && vSetu.length > 0 && (
-        <p className="text-[11px] text-neutral-500 truncate">
+        <p className="text-drobne text-neutral-500 truncate">
           {vSetu.slice(0, 3).map((s) => s.title).join(' · ')}
           {vSetu.length > 3 ? ` · a další ${vSetu.length - 3}` : ''}
         </p>
       )}
 
       {otevreno && (vSetu.length === 0 ? (
-        <p className="text-[11px] text-neutral-600">
+        <p className="text-drobne text-neutral-600">
           Set je prázdný. Přidej skladby ikonou v seznamu vpravo.
         </p>
       ) : (
@@ -139,15 +139,15 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               }`}
             >
               <GripVertical className="w-3.5 h-3.5 text-neutral-600 shrink-0 cursor-grab active:cursor-grabbing" />
-              <span className="w-5 text-[10px] font-mono text-neutral-600 tabular-nums shrink-0">
+              <span className="w-5 text-stitek font-mono text-neutral-600 tabular-nums shrink-0">
                 {i + 1}.
               </span>
 
               <ObalkyPisne song={s} />
 
               <div className="min-w-0 flex-1">
-                <div className="text-[12px] font-semibold text-white truncate">{s.title}</div>
-                <div className="text-[10px] text-neutral-500 truncate">
+                <div className="text-drobne font-semibold text-white truncate">{s.title}</div>
+                <div className="text-stitek text-neutral-500 truncate">
                   {s.artist}
                   {s.bpm ? <span className="ml-1.5 tabular-nums">{s.bpm} BPM</span> : null}
                   {s.key ? <span className="ml-1.5">{s.key}</span> : null}
@@ -185,7 +185,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
       ))}
 
       {chybejici > 0 && (
-        <p className="text-[10px] text-[#FF9F0A]">
+        <p className="text-stitek text-[#FF9F0A]">
           {chybejici}× skladba v setu, která už v knihovně není — na Pódiu se přeskočí.
         </p>
       )}

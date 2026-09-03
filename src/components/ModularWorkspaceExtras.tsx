@@ -172,14 +172,14 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
                 }}
               />
             </div>
-            <p className={`text-[10px] font-bold uppercase mt-1 ${inTune ? 'text-[#30D158]' : 'text-[#FF9F0A]'}`}>
+            <p className={`text-stitek font-bold uppercase mt-1 ${inTune ? 'text-[#30D158]' : 'text-[#FF9F0A]'}`}>
               {inTune ? '✓ Naladěno' : cents > 0 ? `+${cents} centů (Příliš vysoko)` : `${cents} centů (Příliš nízko)`}
             </p>
           </div>
         ) : (
           <div className="text-center py-2 text-neutral-400 text-xs">
             <p className="font-semibold text-neutral-300">Připraveno k ladění ({activePreset.name})</p>
-            <p className="text-[11px] text-neutral-500 mt-0.5">
+            <p className="text-drobne text-neutral-500 mt-0.5">
               Klikněte na strunu níže pro referenční tón nebo zapněte mikrofon.
             </p>
           </div>
@@ -203,7 +203,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
               }`}
               title={`Přehrát referenční tón ${noteName}`}
             >
-              <div className="text-[10px] text-neutral-400">{idx + 1}. struna</div>
+              <div className="text-stitek text-neutral-400">{idx + 1}. struna</div>
               <div className="text-sm font-bold font-mono text-[#FF9F0A]">{noteName}</div>
             </button>
           );
@@ -290,7 +290,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
       {/* Quick Chord Selector Pills */}
       <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] text-neutral-400 font-medium">Akord na hmatníku:</span>
+          <span className="text-drobne text-neutral-400 font-medium">Akord na hmatníku:</span>
           {songChords.map((ch) => (
             <button
               key={ch}
@@ -321,12 +321,12 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
             </button>
           )}
 
-          <div className="flex items-center gap-1 text-[11px]">
+          <div className="flex items-center gap-1 text-drobne">
             <span className="text-neutral-400">Pražce:</span>
             <select
               value={activeFretLimit}
               onChange={(e) => setActiveFretLimit(parseInt(e.target.value, 10))}
-              className="bg-black/60 border border-white/10 text-white rounded-lg px-1.5 py-0.5 outline-none text-[11px] cursor-pointer"
+              className="bg-black/60 border border-white/10 text-white rounded-lg px-1.5 py-0.5 outline-none text-drobne cursor-pointer"
             >
               <option value={12}>12 pražců</option>
               <option value={15}>15 pražců</option>
@@ -338,7 +338,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
       {/* Interactive Fretboard Graphic Box */}
       <div className="flex-1 bg-black/50 p-3 sm:p-4 rounded-2xl border border-white/10 overflow-x-auto shadow-inner">
         {/* Fret Numbers Header */}
-        <div className="flex min-w-[650px] text-center text-[10px] font-mono text-neutral-400 font-bold mb-2">
+        <div className="flex min-w-[650px] text-center text-stitek font-mono text-neutral-400 font-bold mb-2">
           <span className="w-12 text-left">STRUNA</span>
           <span className="w-10">0</span>
           {Array.from({ length: activeFretLimit }).map((_, i) => (
@@ -398,7 +398,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
                       {/* Note Marker */}
                       {isChordFret && (
                         <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-[9px] font-mono z-10 shadow-md bg-[#FF9F0A] text-black shadow-[0_0_10px_#FF9F0A]"
+                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md bg-[#FF9F0A] text-black shadow-[0_0_10px_#FF9F0A]"
                           title={`Tón ${noteName} na ${fret}. pražci`}
                         >
                           {noteName}

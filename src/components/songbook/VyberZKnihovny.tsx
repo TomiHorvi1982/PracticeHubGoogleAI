@@ -93,24 +93,24 @@ export const VyberZKnihovny: React.FC<Props> = ({
           value={dotaz}
           onChange={(e) => setDotaz(e.target.value)}
           placeholder="Hledat v knihovně…"
-          className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-[12px] text-white outline-none focus:border-[#FF9F0A]"
+          className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-drobne text-white outline-none focus:border-[#FF9F0A]"
         />
       </div>
 
       <div className="max-h-44 overflow-y-auto space-y-1">
         {hledam && (
-          <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
             <Loader2 className="w-3 h-3 animate-spin" /> Hledám…
           </p>
         )}
         {!hledam && nalezene.length === 0 && (
-          <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
             <Database className="w-3 h-3 shrink-0" />
             {prazdno || 'V knihovně nic takového není.'}
           </p>
         )}
         {celkem !== null && celkem > nalezene.length && (
-          <p className="text-[10px] text-neutral-600 px-1">
+          <p className="text-stitek text-neutral-600 px-1">
             Ukazuje se {nalezene.length} z {celkem} — zbytek najdeš hledáním.
           </p>
         )}
@@ -129,7 +129,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
                   znamená pokaždé vložit, otevřít, zjistit, odpojit. */}
               <button
                 onClick={() => sNahledem && setNahlizeny(nahlizeny?.id === a.id ? null : a)}
-                className={`text-[11px] text-white truncate flex-1 text-left ${
+                className={`text-drobne text-white truncate flex-1 text-left ${
                   sNahledem ? 'cursor-pointer hover:text-[#FF9F0A]' : 'cursor-default'
                 }`}
                 title={sNahledem ? 'Prohlédnout' : a.name}
@@ -151,14 +151,14 @@ export const VyberZKnihovny: React.FC<Props> = ({
                 title={cil ? `Vložit ${cil}` : 'Vložit'}
               >
                 <Plus className="w-3.5 h-3.5" />
-                {cil && <span className="ml-1 text-[10px] font-semibold">{cil}</span>}
+                {cil && <span className="ml-1 text-stitek font-semibold">{cil}</span>}
               </button>
             </div>
 
             {nahlizeny?.id === a.id && (
               <div className="px-2 pb-2">
                 {nacitamNahled ? (
-                  <p className="text-[10px] text-neutral-600 flex items-center gap-1.5">
+                  <p className="text-stitek text-neutral-600 flex items-center gap-1.5">
                     <Loader2 className="w-3 h-3 animate-spin" /> Načítám náhled…
                   </p>
                 ) : urlNahledu ? (
@@ -168,7 +168,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
                     <img src={urlNahledu} alt="" className="w-full rounded-lg border border-white/10" />
                   )
                 ) : (
-                  <p className="text-[10px] text-neutral-600">Náhled se nepodařilo načíst.</p>
+                  <p className="text-stitek text-neutral-600">Náhled se nepodařilo načíst.</p>
                 )}
               </div>
             )}

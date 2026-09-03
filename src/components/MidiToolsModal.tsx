@@ -97,7 +97,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#30D158] text-black font-bold px-1.5 py-0.5 text-[9px] rounded uppercase tracking-wider">
+                <span className="bg-[#30D158] text-black font-bold px-1.5 py-0.5 text-stitek rounded uppercase tracking-wider">
                   MIDI Tools
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">Hardware & mapování</span>
@@ -190,11 +190,11 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                       >
                         <div>
                           <span className="font-bold text-xs text-white block">{dev.name}</span>
-                          <span className="text-[11px] text-neutral-400">
+                          <span className="text-drobne text-neutral-400">
                             Výrobce: {dev.manufacturer || 'Standardní MIDI controller'}
                           </span>
                         </div>
-                        <span className="bg-[#30D158] text-black font-semibold text-[10px] px-2 py-0.5 rounded-md uppercase flex items-center gap-1">
+                        <span className="bg-[#30D158] text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-black" /> Aktivní
                         </span>
                       </div>
@@ -204,7 +204,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   <div className="bg-black/40 p-4 rounded-xl border border-white/5 text-center space-y-1.5">
                     <AlertCircle className="w-6 h-6 text-[#FF9F0A] mx-auto" />
                     <p className="text-xs font-bold text-white">Žádný hardware MIDI kontrolér není připojen</p>
-                    <p className="text-[11px] text-neutral-400 max-w-md mx-auto">
+                    <p className="text-drobne text-neutral-400 max-w-md mx-auto">
                       Připojte USB/MIDI klávesnici k počítači a stiskněte „Obnovit hledání“. Můžete také hrát na virtuální klávesnici v aplikaci.
                     </p>
                   </div>
@@ -265,7 +265,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                     />
                     <span>Automaticky přehrávat zvuk z hardware MIDI klávesnice</span>
                   </label>
-                  <span className="text-[11px] text-[#30D158] font-mono">Polyfonní syntéza povolena</span>
+                  <span className="text-drobne text-[#30D158] font-mono">Polyfonní syntéza povolena</span>
                 </div>
               </div>
 
@@ -287,7 +287,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                           className="bg-[#30D158] text-black border border-black p-2 rounded-xl shadow-[0_0_15px_rgba(48,209,88,0.4)] animate-bounce flex flex-col items-center min-w-[50px]"
                         >
                           <span className="font-extrabold text-xs">{name}</span>
-                          <span className="text-[9px] font-mono">Vel: {Math.round(vel * 127)}</span>
+                          <span className="text-stitek font-mono">Vel: {Math.round(vel * 127)}</span>
                         </div>
                       );
                     })
@@ -305,13 +305,13 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   Historie příchozích MIDI zpráv (Communication Log)
                 </span>
 
-                <div className="bg-black/40 p-2.5 rounded-xl border border-white/5 h-28 overflow-y-auto space-y-1 font-mono text-[10px]">
+                <div className="bg-black/40 p-2.5 rounded-xl border border-white/5 h-28 overflow-y-auto space-y-1 font-mono text-stitek">
                   {recentEvents.length > 0 ? (
                     recentEvents.map((evt, idx) => (
                       <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-0.5">
                         <span className={evt.isFilteredOut ? 'text-[#FF453A] line-through opacity-70' : 'text-[#30D158]'}>
                           [{evt.type.toUpperCase()}] Ch: {evt.channel} | Nota: {evt.noteName || evt.note || '-'}
-                          {evt.isFilteredOut && <span className="ml-1 text-[9px] no-underline font-bold bg-[#FF453A] text-white px-1 rounded">[Ztmaveno]</span>}
+                          {evt.isFilteredOut && <span className="ml-1 text-stitek no-underline font-bold bg-[#FF453A] text-white px-1 rounded">[Ztmaveno]</span>}
                         </span>
                         <span className="text-neutral-400">
                           Vel: {evt.velocity ? Math.round(evt.velocity * 127) : evt.value || 0} | {evt.deviceName}
@@ -351,7 +351,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                         className="bg-black/40 p-3 rounded-xl border border-white/5 flex items-center justify-between gap-2"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="bg-[#FF9F0A] text-black font-bold text-[10px] px-2 py-0.5 rounded-md">
+                          <span className="bg-[#FF9F0A] text-black font-bold text-stitek px-2 py-0.5 rounded-md">
                             KANÁL {channel}
                           </span>
                         </div>
@@ -419,7 +419,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                       >
                         <div>
                           <span className="font-bold text-xs text-white block">{item.role}</span>
-                          <span className="text-[11px] text-neutral-400">{item.label}</span>
+                          <span className="text-drobne text-neutral-400">{item.label}</span>
                         </div>
 
                         <div className="flex items-center gap-2">

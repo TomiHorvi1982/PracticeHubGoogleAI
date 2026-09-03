@@ -81,7 +81,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+              <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
                 AlphaTab Labs
               </span>
               <span className="text-xs text-neutral-400 font-medium">Interaktivní přehrávač tabulatur</span>
@@ -119,7 +119,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             : <ChevronRight className="w-4 h-4 text-neutral-400" />}
           <Search className="w-4 h-4 text-[#FF9F0A]" />
           <span className="text-sm font-bold text-white">Najít tabulaturu</span>
-          <span className="text-[11px] text-neutral-500">
+          <span className="text-drobne text-neutral-500">
             naše sbírka, Ultimate Guitar a Freetar — nález se otevře rovnou tady
           </span>
         </button>

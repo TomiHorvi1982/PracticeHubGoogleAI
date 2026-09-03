@@ -286,7 +286,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#FF453A] text-white font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+                <span className="bg-[#FF453A] text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
                   YouTube
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">Vyhledávač &amp; Importér</span>
@@ -401,7 +401,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           <div className="space-y-3 bg-black/40 border border-white/5 rounded-2xl p-4 max-h-[440px] overflow-y-auto">
             <h4 className="text-xs font-bold text-white uppercase border-b border-white/5 pb-2 flex items-center justify-between">
               <span className="text-[#FF453A]">Nalezené video výsledky ({directYtResults.length}):</span>
-              <span className="text-[11px] text-neutral-400 font-normal lowercase">klikněte pro přehrání náhledu nebo uložte do zpěvníku</span>
+              <span className="text-drobne text-neutral-400 font-normal lowercase">klikněte pro přehrání náhledu nebo uložte do zpěvníku</span>
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -433,14 +433,14 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                       {video.title}
                     </p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-[10px] text-neutral-400 font-mono">ID: {video.id}</span>
+                      <span className="text-stitek text-neutral-400 font-mono">ID: {video.id}</span>
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           triggerImportPrompt(video);
                         }}
-                        className="px-3 py-1 bg-[#FF453A] hover:bg-[#ff5b52] text-white font-bold text-[10px] uppercase rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95"
+                        className="px-3 py-1 bg-[#FF453A] hover:bg-[#ff5b52] text-white font-bold text-stitek uppercase rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Do Mojich skladeb</span>
@@ -462,7 +462,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-[#FF453A] text-white text-[10px] font-bold px-2 py-0.5 rounded-md uppercase">
+              <span className="bg-[#FF453A] text-white text-stitek font-bold px-2 py-0.5 rounded-md uppercase">
                 Přehrávač
               </span>
               <h2 className="text-xl font-bold text-white tracking-tight">
@@ -613,7 +613,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2.5">
-                  <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg uppercase ${
+                  <span className={`text-stitek font-bold px-2.5 py-1 rounded-lg uppercase ${
                     selectedVideo.type === 'official' ? 'bg-[#FF453A]/20 text-[#FF453A] border border-[#FF453A]/30' : 'bg-[#30D158]/20 text-[#30D158] border border-[#30D158]/30'
                   }`}>
                     {selectedVideo.type}
@@ -697,7 +697,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <span className="text-[9px] font-bold px-2 py-0.5 bg-[#FF453A] text-white uppercase rounded-md inline-block mb-1.5">
+                        <span className="text-stitek font-bold px-2 py-0.5 bg-[#FF453A] text-white uppercase rounded-md inline-block mb-1.5">
                           {vid.type}
                         </span>
                         <p className="text-xs font-semibold text-white line-clamp-2 leading-tight">

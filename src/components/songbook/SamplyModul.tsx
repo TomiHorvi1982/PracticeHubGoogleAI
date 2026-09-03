@@ -40,12 +40,12 @@ export const SamplyModul: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
-          <span className="text-[9px] uppercase tracking-wider text-neutral-500">Tempo</span>
+          <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
           <input
             type="number"
             value={stav.bpm}
             onChange={(e) => setBpm(Number(e.target.value))}
-            className="bez-sipek w-11 bg-transparent text-[12px] font-bold text-white text-center outline-none tabular-nums"
+            className="bez-sipek w-11 bg-transparent text-drobne font-bold text-white text-center outline-none tabular-nums"
           />
         </div>
 
@@ -58,7 +58,7 @@ export const SamplyModul: React.FC = () => {
             <button
               key={r.id}
               onClick={() => skladackaService.nastavRezim(r.id)}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 cursor-pointer ${
+              className={`px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 cursor-pointer ${
                 stav.rezim === r.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
               }`}
             >
@@ -69,7 +69,7 @@ export const SamplyModul: React.FC = () => {
       </div>
 
       {prazdna ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-[11px] text-center px-4">
+        <div className="flex-1 flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-drobne text-center px-4">
           <Layers className="w-5 h-5 text-neutral-700" />
           Skládačka je prázdná. Poskládej si ji ve Virtual Instruments → Samples; objeví se tady.
         </div>
@@ -84,7 +84,7 @@ export const SamplyModul: React.FC = () => {
               <button
                 key={c.id}
                 onClick={() => skladackaService.vyberCast(c.id)}
-                className={`px-1 py-0.5 rounded text-[9px] font-bold cursor-pointer truncate ${
+                className={`px-1 py-0.5 rounded text-stitek font-bold cursor-pointer truncate ${
                   stav.aktivniCast === c.id
                     ? 'bg-[#FF9F0A] text-black'
                     : 'bg-white/[0.05] text-neutral-400 hover:text-white'
@@ -110,7 +110,7 @@ export const SamplyModul: React.FC = () => {
                 >
                   {stopa.ztlumena ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
                 </button>
-                <span className="text-[10px] font-semibold text-white truncate">{stopa.nazev}</span>
+                <span className="text-stitek font-semibold text-white truncate">{stopa.nazev}</span>
               </div>
               {stav.casti.map((c) => {
                 const s = stopa.vCastech[c.id];
@@ -118,7 +118,7 @@ export const SamplyModul: React.FC = () => {
                   <div
                     key={c.id}
                     style={pozadiPolicka(!!s, stav.hraje && stav.aktivniCast === c.id, stav.postup)}
-                    className={`px-1 py-1 rounded text-[9px] truncate border ${
+                    className={`px-1 py-1 rounded text-stitek truncate border ${
                       s
                         ? `border-[#30D158]/40 text-[#30D158] ${
                             stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-[#30D158]/15'

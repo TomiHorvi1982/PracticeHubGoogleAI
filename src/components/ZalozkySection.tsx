@@ -49,7 +49,7 @@ export const ZalozkySection: React.FC = () => {
           <Bookmark className="w-6 h-6" />
         </div>
         <div className="flex-1 min-w-[240px]">
-          <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+          <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
             Záložky
           </span>
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
@@ -115,16 +115,16 @@ export const ZalozkySection: React.FC = () => {
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-white truncate">{z.nazev}</h3>
-                    <p className="text-[10px] text-neutral-500 truncate font-mono">{z.url}</p>
+                    <p className="text-stitek text-neutral-500 truncate font-mono">{z.url}</p>
                   </div>
                 </div>
-                {z.popis && <p className="text-[11px] text-neutral-400 leading-relaxed">{z.popis}</p>}
+                {z.popis && <p className="text-drobne text-neutral-400 leading-relaxed">{z.popis}</p>}
                 <div className="flex items-center gap-1.5 mt-auto pt-1">
                   <a
                     href={z.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 text-center text-[11px] font-bold px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 hover:bg-white/[0.12] cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 text-center text-drobne font-bold px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 hover:bg-white/[0.12] cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <ExternalLink className="w-3 h-3" /> Otevřít
                   </a>
@@ -167,7 +167,7 @@ export const ZalozkySection: React.FC = () => {
         <div className="flex items-center gap-2">
           <Plus className="w-4 h-4 text-[#30D158]" />
           <h3 className="text-sm font-bold text-white">Přidat odkaz</h3>
-          <span className="text-[11px] text-neutral-500">uvidí ho celá kapela</span>
+          <span className="text-drobne text-neutral-500">uvidí ho celá kapela</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -233,12 +233,12 @@ const UpravaZalozky: React.FC<{
       <input
         value={url}
         onChange={(e) => setUrl(e.target.value)}
-        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[11px] font-mono"
+        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-drobne font-mono"
       />
       <input
         value={popis}
         onChange={(e) => setPopis(e.target.value)}
-        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[11px]"
+        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-drobne"
       />
       <div className="flex gap-1.5">
         <button
@@ -247,7 +247,7 @@ const UpravaZalozky: React.FC<{
             onChyba(ch);
             if (!ch) onHotovo();
           }}
-          className="flex-1 text-[11px] font-bold px-2 py-1.5 rounded-lg bg-[#30D158] text-black cursor-pointer"
+          className="flex-1 text-drobne font-bold px-2 py-1.5 rounded-lg bg-[#30D158] text-black cursor-pointer"
         >
           Uložit
         </button>

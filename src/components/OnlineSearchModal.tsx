@@ -95,7 +95,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-3 border-b border-[#222] pb-2">
           <div className="flex items-center gap-2">
-            <span className="bg-[#00FF41] text-black font-black px-2 py-0.5 text-[10px] uppercase">
+            <span className="bg-[#00FF41] text-black font-black px-2 py-0.5 text-stitek uppercase">
               ONLINE_API
             </span>
             <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -144,7 +144,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
           </div>
 
           {/* Quick Suggestions / Examples */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-[10px]">
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-stitek">
             <span className="text-[#666] uppercase font-bold shrink-0">RYCHLÝ VÝBĚR:</span>
             {[
               'Oasis - Wonderwall',
@@ -190,7 +190,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               <p className="text-xs uppercase font-bold text-[#888]">
                 VYHLEDEJTE PÍSNIČKU NEBO VLOŽTE URL ADRESU S AKORDY
               </p>
-              <p className="text-[10px] text-[#555] mt-1">
+              <p className="text-stitek text-[#555] mt-1">
                 Aplikace automaticky stáhne text, vytáhne akordy do [Akord] formátu a uloží přímo do vašeho zpěvníku.
               </p>
             </div>
@@ -206,11 +206,11 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-black text-white uppercase">{song.title}</h3>
-                    <span className="text-[10px] font-bold text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40 uppercase">
+                    <span className="text-stitek font-bold text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40 uppercase">
                       TÓNINA: {song.key}
                     </span>
                     {song.youtubeVideos && song.youtubeVideos.length > 0 && (
-                      <span className="text-[10px] font-black text-white bg-[#FF0000] px-2 py-0.5 border border-black uppercase flex items-center gap-1">
+                      <span className="text-stitek font-black text-white bg-[#FF0000] px-2 py-0.5 border border-black uppercase flex items-center gap-1">
                         🎬 YOUTUBE ({song.youtubeVideos.length} KLIPŮ / BACKING TRACK)
                       </span>
                     )}
@@ -234,7 +234,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
               {/* Source Tag */}
               {song.sourceName && (
-                <div className="flex items-center gap-1 text-[10px] text-[#666]">
+                <div className="flex items-center gap-1 text-stitek text-[#666]">
                   <ExternalLink className="w-3 h-3 text-[#00FF41]" />
                   <span>ZDROJ: {song.sourceName}</span>
                   {song.sourceUrl && (

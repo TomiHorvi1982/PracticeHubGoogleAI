@@ -245,7 +245,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <Sparkles className="w-4 h-4" />
                   <span>Obdrželi jste pozvánku od správce?</span>
                 </div>
-                <p className="text-[11px] text-neutral-400">
+                <p className="text-drobne text-neutral-400">
                   Otevřete odkaz z pozvánkového e-mailu — přihlásí vás automaticky. Tady si nastavte svoje vlastní trvalé heslo.
                 </p>
               </div>

@@ -133,7 +133,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
           </div>
           <div className="hidden sm:block">
             <h1 className="text-sm font-bold tracking-wide text-white leading-tight">NEVERLATE</h1>
-            <p className="text-[10px] text-amber-400 font-medium uppercase tracking-widest">Studio Workspace</p>
+            <p className="text-stitek text-amber-400 font-medium uppercase tracking-widest">Studio Workspace</p>
           </div>
         </div>
 
@@ -146,7 +146,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             ) : (
               <span className="text-slate-400 italic">Free Jam Mode (Bez skladby)</span>
             )}
-            {activeSong && <span className="text-slate-400 text-[11px] block truncate">{activeSong.artist}</span>}
+            {activeSong && <span className="text-slate-400 text-drobne block truncate">{activeSong.artist}</span>}
           </div>
         </div>
 
@@ -158,7 +158,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
               <span className="font-semibold text-emerald-100 block truncate">
                 {hraje.nazev || 'Přehrávání'}
               </span>
-              <span className="text-emerald-400/70 text-[10px] block truncate">{hraje.zdroj}</span>
+              <span className="text-emerald-400/70 text-stitek block truncate">{hraje.zdroj}</span>
             </div>
             <button
               onClick={() => audioBus.stopAll()}
@@ -172,9 +172,9 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
       </div>
 
       {/* CENTER SECTION: Global Musical Controls (BPM, Key, Tuning, Transport) */}
-      <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner min-w-0">
+      <div className="flex items-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-slate-900/80 rounded-2xl border border-slate-800/80 shadow-inner min-w-0">
         {/* BPM Control */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
           <Clock className="w-3.5 h-3.5 text-amber-400" />
           <input
             type="number"
@@ -184,20 +184,20 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             min={30}
             max={300}
           />
-          <span className="hidden sm:inline text-[10px] font-semibold text-slate-400 uppercase">BPM</span>
+          <span className="hidden sm:inline text-stitek font-semibold text-slate-400 uppercase">BPM</span>
           {/* Šipky mají 15×14px, což se na dotyk netrefí — a na úzkém okně
               navíc vytlačovaly profil uživatele mimo obrazovku. Číslo se
               dá přepsat přímo, takže se tu nic neztrácí. */}
           <div className="hidden sm:flex flex-col -space-y-1 ml-0.5">
             <button
               onClick={() => setBpm(bpm + 1)}
-              className="text-[9px] text-slate-400 hover:text-white px-1 font-bold"
+              className="text-stitek text-slate-400 hover:text-white px-1 font-bold"
             >
               ▲
             </button>
             <button
               onClick={() => setBpm(bpm - 1)}
-              className="text-[9px] text-slate-400 hover:text-white px-1 font-bold"
+              className="text-stitek text-slate-400 hover:text-white px-1 font-bold"
             >
               ▼
             </button>
@@ -220,7 +220,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
         {/* Key & Transpose Control */}
         <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
-          <span className="text-[10px] font-semibold text-slate-400 uppercase">Tónina</span>
+          <span className="text-stitek font-semibold text-slate-400 uppercase">Tónina</span>
           <select
             value={key}
             onChange={(e) => zahrajV(e.target.value)}
@@ -262,7 +262,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
         {/* Tuning Selector */}
         <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
-          <span className="text-[10px] font-semibold text-slate-400 uppercase">Ladění</span>
+          <span className="text-stitek font-semibold text-slate-400 uppercase">Ladění</span>
           <select
             value={tuning}
             onChange={(e) => setTuning(e.target.value)}

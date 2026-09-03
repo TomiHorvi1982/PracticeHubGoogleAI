@@ -200,19 +200,19 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
           {hraje ? <Square className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
         </button>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold text-white truncate">{nazev}</div>
-          <div className="text-[10px] font-mono text-neutral-500">
+          <div className="text-drobne font-bold text-white truncate">{nazev}</div>
+          <div className="text-stitek font-mono text-neutral-500">
             {delka > 0 ? `${pozice.toFixed(2)} / ${delka.toFixed(2)} s` : '—'}
           </div>
         </div>
       </div>
 
       {chyba ? (
-        <div className="flex items-center gap-1.5 text-[10px] text-[#FF453A]">
+        <div className="flex items-center gap-1.5 text-stitek text-[#FF453A]">
           <AlertCircle className="w-3 h-3 shrink-0" /> {chyba}
         </div>
       ) : !obalky ? (
-        <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 h-[88px]">
+        <div className="flex items-center gap-1.5 text-stitek text-neutral-500 h-[88px]">
           <Loader2 className="w-3 h-3 animate-spin" /> Počítám křivku…
         </div>
       ) : (

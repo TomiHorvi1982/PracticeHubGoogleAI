@@ -106,13 +106,13 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
       <div className="bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-2xl p-4 flex items-start gap-2">
         <AlertCircle className="w-4 h-4 text-[#FF453A] shrink-0 mt-0.5" />
         <div>
-          <p className="text-[12px] text-[#FF453A] font-semibold">PDF se nepodařilo zobrazit</p>
-          <p className="text-[11px] text-neutral-400 mt-0.5">{chyba}</p>
+          <p className="text-drobne text-[#FF453A] font-semibold">PDF se nepodařilo zobrazit</p>
+          <p className="text-drobne text-neutral-400 mt-0.5">{chyba}</p>
           <a
             href={url}
             target="_blank"
             rel="noreferrer"
-            className="text-[11px] text-[#FF9F0A] hover:underline inline-flex items-center gap-1 mt-1.5"
+            className="text-drobne text-[#FF9F0A] hover:underline inline-flex items-center gap-1 mt-1.5"
           >
             <ExternalLink className="w-3 h-3" /> Otevřít v novém okně
           </a>
@@ -131,7 +131,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-[11px] font-mono text-neutral-300 min-w-[64px] text-center">
+        <span className="text-drobne font-mono text-neutral-300 min-w-[64px] text-center">
           {nacitam ? '…' : `${strana} / ${stran}`}
         </span>
         <button
@@ -149,7 +149,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] font-mono text-neutral-500 w-9 text-center">
+          <span className="text-stitek font-mono text-neutral-500 w-9 text-center">
             {Math.round(zvetseni * 100)}%
           </span>
           <button
@@ -172,7 +172,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
 
       <div className="bg-black/40 rounded-2xl border border-white/10 overflow-auto max-h-[560px] flex justify-center p-3">
         {nacitam ? (
-          <div className="flex items-center gap-2 text-[12px] text-neutral-400 py-16">
+          <div className="flex items-center gap-2 text-drobne text-neutral-400 py-16">
             <Loader2 className="w-4 h-4 animate-spin" /> Otevírám PDF…
           </div>
         ) : (

@@ -117,7 +117,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
 
         <button
           onClick={() => setDokola((d) => !d)}
-          className={`px-2.5 py-2 rounded-xl text-[11px] font-semibold border cursor-pointer flex items-center gap-1.5 ${
+          className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
             dokola ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]' : 'bg-white/[0.06] border-white/10 text-neutral-400'
           }`}
         >
@@ -126,7 +126,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
 
         <button
           onClick={() => setMetronom((m) => !m)}
-          className={`px-2.5 py-2 rounded-xl text-[11px] font-semibold border cursor-pointer flex items-center gap-1.5 ${
+          className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
             metronom ? 'bg-[#FF9F0A]/15 border-[#FF9F0A]/40 text-[#FF9F0A]' : 'bg-white/[0.06] border-white/10 text-neutral-400'
           }`}
         >
@@ -134,19 +134,19 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         </button>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-widest text-neutral-500">Rychlost</span>
+          <span className="text-stitek uppercase tracking-widest text-neutral-500">Rychlost</span>
           {[0.5, 0.75, 1].map((r) => (
             <button
               key={r}
               onClick={() => setRychlost(r)}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold cursor-pointer ${
+              className={`px-2 py-1 rounded-lg text-stitek font-bold cursor-pointer ${
                 rychlost === r ? 'bg-[#FF9F0A] text-black' : 'bg-white/[0.06] text-neutral-400'
               }`}
             >
               {r * 100} %
             </button>
           ))}
-          <span className="text-[10px] text-neutral-500 tabular-nums">
+          <span className="text-stitek text-neutral-500 tabular-nums">
             {Math.round(bpm * rychlost)} BPM
           </span>
         </div>
@@ -157,7 +157,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         <div className="min-w-[560px]">
           <div className="flex mb-1 pl-8">
             {Array.from({ length: PRAZCU }, (_, p) => (
-              <div key={p} className="flex-1 text-center text-[9px] text-neutral-500 tabular-nums">
+              <div key={p} className="flex-1 text-center text-stitek text-neutral-500 tabular-nums">
                 {ZNACKY.includes(p) ? p : p === 0 ? '0' : ''}
               </div>
             ))}
@@ -165,7 +165,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
 
           {[1, 2, 3, 4, 5, 6].map((struna) => (
             <div key={struna} className="flex items-center h-7">
-              <span className="w-8 text-[9px] text-neutral-500 shrink-0">
+              <span className="w-8 text-stitek text-neutral-500 shrink-0">
                 {['e', 'B', 'G', 'D', 'A', 'E'][struna - 1]}
               </span>
               {Array.from({ length: PRAZCU }, (_, prazec) => {
@@ -179,7 +179,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
                   >
                     <div className="absolute inset-x-0 top-1/2 h-px bg-neutral-500/40" />
                     {svit && (
-                      <span className="relative z-10 w-5 h-5 rounded-full bg-[#FF9F0A] text-black text-[9px] font-bold flex items-center justify-center">
+                      <span className="relative z-10 w-5 h-5 rounded-full bg-[#FF9F0A] text-black text-stitek font-bold flex items-center justify-center">
                         {prazec}
                       </span>
                     )}
@@ -191,7 +191,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         </div>
       </div>
 
-      <p className="text-[11px] text-neutral-500">
+      <p className="text-drobne text-neutral-500">
         {doby.length
           ? `Úsek má ${doby.length} dob a ${usek.noty.length} tónů.`
           : 'Vyber v tabulatuře takty, které chceš cvičit.'}

@@ -130,7 +130,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => onUpdate({ isMuted: !channel.isMuted })}
-            className={`w-6 h-6 rounded-md font-black text-[10px] flex items-center justify-center transition-all cursor-pointer border ${
+            className={`w-6 h-6 rounded-md font-black text-stitek flex items-center justify-center transition-all cursor-pointer border ${
               channel.isMuted
                 ? 'bg-rose-600 text-white border-rose-400 shadow-[0_0_8px_rgba(225,29,72,0.6)]'
                 : 'bg-neutral-800/80 text-neutral-400 hover:text-white border-neutral-700 hover:bg-neutral-700'
@@ -141,7 +141,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           </button>
           <button
             onClick={() => onUpdate({ isSolo: !channel.isSolo })}
-            className={`w-6 h-6 rounded-md font-black text-[10px] flex items-center justify-center transition-all cursor-pointer border ${
+            className={`w-6 h-6 rounded-md font-black text-stitek flex items-center justify-center transition-all cursor-pointer border ${
               channel.isSolo
                 ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
                 : 'bg-neutral-800/80 text-neutral-400 hover:text-amber-300 border-neutral-700 hover:bg-neutral-700'
@@ -156,7 +156,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
       {/* Main Center Area: Vertical DAW Fader + LED VU Meter */}
       <div className="my-3 flex items-center justify-center gap-3 px-1">
         {/* dB Tick Marks */}
-        <div className="flex flex-col justify-between h-48 py-1 text-[9px] font-mono text-neutral-500 select-none text-right w-6">
+        <div className="flex flex-col justify-between h-48 py-1 text-stitek font-mono text-neutral-500 select-none text-right w-6">
           {ticks.map((t) => (
             <span
               key={t.label}
@@ -248,7 +248,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
         title="Dvojklikem resetujete na 0.0 dB"
       >
         {isLoading ? (
-          <div className="flex items-center justify-center gap-1 text-[11px] font-mono text-amber-400 font-bold animate-pulse">
+          <div className="flex items-center justify-center gap-1 text-drobne font-mono text-amber-400 font-bold animate-pulse">
             <RotateCcw className="w-3 h-3 animate-spin" />
             <span>SYNC...</span>
           </div>
@@ -272,7 +272,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
         <div className="mt-3 space-y-2.5 pt-2.5 border-t border-white/[0.08] text-xs">
           {/* Pan Rotary / Slider */}
           <div className="bg-black/40 p-2 rounded-xl border border-white/[0.06] space-y-1">
-            <div className="flex justify-between text-[10px] font-mono text-neutral-400">
+            <div className="flex justify-between text-stitek font-mono text-neutral-400">
               <span>Pan</span>
               <span className="font-bold text-emerald-400">
                 {channel.pan === 0
@@ -295,7 +295,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
 
           {/* Pitch Transpose */}
           <div className="bg-black/40 p-2 rounded-xl border border-white/[0.06] space-y-1">
-            <div className="flex justify-between text-[10px] font-mono text-neutral-400">
+            <div className="flex justify-between text-stitek font-mono text-neutral-400">
               <span>Pitch</span>
               <span className="font-bold text-purple-400">
                 {channel.pitchSemi > 0 ? `+${channel.pitchSemi}` : channel.pitchSemi} st
@@ -304,7 +304,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
             <div className="flex items-center justify-between gap-1">
               <button
                 onClick={() => onUpdate({ pitchSemi: Math.max(-12, channel.pitchSemi - 1) })}
-                className="w-5 h-5 bg-white/10 hover:bg-white/20 text-white rounded font-bold text-[10px] flex items-center justify-center cursor-pointer"
+                className="w-5 h-5 bg-white/10 hover:bg-white/20 text-white rounded font-bold text-stitek flex items-center justify-center cursor-pointer"
               >
                 -
               </button>
@@ -319,7 +319,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
               />
               <button
                 onClick={() => onUpdate({ pitchSemi: Math.min(12, channel.pitchSemi + 1) })}
-                className="w-5 h-5 bg-white/10 hover:bg-white/20 text-white rounded font-bold text-[10px] flex items-center justify-center cursor-pointer"
+                className="w-5 h-5 bg-white/10 hover:bg-white/20 text-white rounded font-bold text-stitek flex items-center justify-center cursor-pointer"
               >
                 +
               </button>
@@ -329,13 +329,13 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           {/* Guitar Mid/Side Processing Matrix */}
           {isGuitar && (
             <div className="bg-amber-500/10 p-2 rounded-xl border border-amber-500/20 space-y-1.5">
-              <div className="flex items-center justify-between text-[10px]">
+              <div className="flex items-center justify-between text-stitek">
                 <span className="font-bold text-amber-400 flex items-center gap-1">
                   <Radio className="w-3 h-3" /> M/S Šířka
                 </span>
                 <button
                   onClick={() => onUpdate({ isMono: !channel.isMono })}
-                  className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border cursor-pointer ${
+                  className={`px-1.5 py-0.5 rounded text-stitek font-mono font-bold border cursor-pointer ${
                     channel.isMono
                       ? 'bg-blue-600 text-white border-blue-400'
                       : 'bg-black/60 text-amber-300 border-amber-500/40'
@@ -345,7 +345,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
                 </button>
               </div>
 
-              <div className="flex justify-between text-[9px] font-mono text-neutral-300">
+              <div className="flex justify-between text-stitek font-mono text-neutral-300">
                 <span>Side Gain:</span>
                 <span className="font-bold text-amber-400">
                   {(channel.isMono ? 0 : channel.stereoWidth * 100).toFixed(0)}%

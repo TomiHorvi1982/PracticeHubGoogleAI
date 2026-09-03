@@ -52,11 +52,11 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
     <div className="bg-black/30 border border-white/[0.08] rounded-2xl p-3 space-y-2.5 min-w-[168px]">
       <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: barva }} />
-        <span className="text-[11px] font-bold text-white truncate flex-1">{nazev}</span>
+        <span className="text-drobne font-bold text-white truncate flex-1">{nazev}</span>
         {onZtlumit && (
           <button
             onClick={onZtlumit}
-            className={`px-1.5 py-0.5 rounded text-[9px] font-bold cursor-pointer ${
+            className={`px-1.5 py-0.5 rounded text-stitek font-bold cursor-pointer ${
               ztlumeno ? 'bg-[#FF453A] text-white' : 'bg-white/[0.08] text-neutral-400 hover:text-white'
             }`}
             title="Ztlumit"
@@ -101,7 +101,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
           />
         </div>
 
-        <div className="flex-1 space-y-2 text-[10px]">
+        <div className="flex-1 space-y-2 text-stitek">
           <div>
             <span className="text-neutral-500">Hlasitost</span>
             <div className="font-mono font-bold tabular-nums" style={{ color: barva }}>
@@ -125,7 +125,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
       {onGain && gain !== undefined && (
         <label className="block space-y-0.5">
-          <span className="text-[9px] uppercase tracking-wider text-neutral-500 flex justify-between">
+          <span className="text-stitek uppercase tracking-wider text-neutral-500 flex justify-between">
             <span>Gain</span>
             <span className="font-mono text-neutral-300">{gain.toFixed(1)}×</span>
           </span>
@@ -139,7 +139,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
       {onPanorama && panorama !== undefined && (
         <label className="block space-y-0.5">
-          <span className="text-[9px] uppercase tracking-wider text-neutral-500 flex justify-between">
+          <span className="text-stitek uppercase tracking-wider text-neutral-500 flex justify-between">
             <span>Panorama</span>
             <span className="font-mono text-neutral-300">
               {panorama === 0 ? 'střed' : panorama < 0 ? `L ${Math.round(-panorama * 100)}` : `P ${Math.round(panorama * 100)}`}
@@ -155,7 +155,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
       {onSirka && sirka !== undefined && (
         <label className="block space-y-0.5">
-          <span className="text-[9px] uppercase tracking-wider text-neutral-500 flex justify-between">
+          <span className="text-stitek uppercase tracking-wider text-neutral-500 flex justify-between">
             <span>Šířka</span>
             <span className="font-mono text-neutral-300">{Math.round(sirka * 100)} %</span>
           </span>

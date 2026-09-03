@@ -72,7 +72,7 @@ export const SoloRoom: React.FC = () => {
           <Target className="w-5 h-5 text-[#30D158]" />
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-bold text-white">Hraju v tónině?</h3>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-drobne text-neutral-400">
               Mikrofon poslouchá a porovnává s vybranou stupnicí. Ucho si na vlastní chybu
               zvykne — oko ne.
             </p>
@@ -117,7 +117,7 @@ export const SoloRoom: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[10px] uppercase tracking-wider text-neutral-500 mr-1">Stupnice</span>
+          <span className="text-stitek uppercase tracking-wider text-neutral-500 mr-1">Stupnice</span>
           {tonyStupnice.map((n) => (
             <span
               key={n}
@@ -132,7 +132,7 @@ export const SoloRoom: React.FC = () => {
           ))}
         </div>
 
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-drobne text-neutral-500">
           {STUPNICE.find((s) => s.id === stupnice)?.popis}
         </p>
 
@@ -141,7 +141,7 @@ export const SoloRoom: React.FC = () => {
             {historie.map((h, i) => (
               <span
                 key={i}
-                className={`px-2 py-0.5 rounded-lg text-[11px] font-mono ${
+                className={`px-2 py-0.5 rounded-lg text-drobne font-mono ${
                   h.sedi ? 'bg-[#30D158]/15 text-[#30D158]' : 'bg-[#FF453A]/15 text-[#FF453A]'
                 }`}
                 style={{ opacity: 1 - i * 0.03 }}
@@ -162,7 +162,7 @@ export const SoloRoom: React.FC = () => {
         <div className="flex items-center gap-2">
           <Sliders className="w-4 h-4 text-[#FF9F0A]" />
           <h3 className="text-sm font-bold text-white">Pult</h3>
-          <span className="text-[11px] text-neutral-500">
+          <span className="text-drobne text-neutral-500">
             stopa proti kytaře — a je vidět, jak silný signál ze zvukovky chodí
           </span>
         </div>
@@ -186,7 +186,7 @@ export const SoloRoom: React.FC = () => {
             nástrojem — na sólo se dá cvičit i proti klavíru nebo smyčcům. */}
         <KytaraJakoNastroj />
 
-        <p className="text-[10px] text-neutral-600">
+        <p className="text-stitek text-neutral-600">
           Nahranou kytaru si „Poslechnout" načte rovnou do přehrávače níž — dá se pak zpomalit a
           projet ve smyčce, takže je vidět, kde to ujíždí.
         </p>
@@ -195,7 +195,7 @@ export const SoloRoom: React.FC = () => {
       {/* Pilování sóla — stejný nástroj jako u riffů */}
       <div className="flex items-center gap-2 px-1">
         <BookOpen className="w-4 h-4 text-neutral-500" />
-        <span className="text-[11px] text-neutral-500">
+        <span className="text-drobne text-neutral-500">
           Níž si sólo ulož, zpomal a nech tempo samo růst — stejně jako u riffů.
         </span>
       </div>

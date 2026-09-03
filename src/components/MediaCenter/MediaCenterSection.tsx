@@ -339,7 +339,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white tracking-tight">Media Center</h1>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full text-stitek font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
                 Kaset Engine
               </span>
             </div>
@@ -352,16 +352,16 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <div className="flex items-center gap-3 px-4 py-2 bg-slate-800/80 rounded-2xl border border-slate-700/80 shadow-sm">
             <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
             <div className="text-left">
-              <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Aktivní skladba</div>
+              <div className="text-stitek uppercase font-bold text-slate-400 tracking-wider">Aktivní skladba</div>
               <div className="text-xs font-semibold text-white truncate max-w-[180px]">
                 {activeSong.title} <span className="text-slate-400 font-normal">({activeSong.artist})</span>
               </div>
             </div>
             <div className="flex items-center gap-1 pl-2 border-l border-slate-700">
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">
+              <span className="px-1.5 py-0.5 rounded text-stitek font-bold bg-amber-500/20 text-amber-300">
                 {activeSong.key || 'G'}
               </span>
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-700 text-slate-300">
+              <span className="px-1.5 py-0.5 rounded text-stitek font-bold bg-slate-700 text-slate-300">
                 {activeSong.bpm ? `${activeSong.bpm} BPM` : '120 BPM'}
               </span>
             </div>
@@ -394,7 +394,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
         <nav className="w-56 bg-slate-950/60 border-r border-slate-800/80 p-3 flex flex-col justify-between shrink-0">
           <div className="space-y-4">
             <div>
-              <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <div className="px-3 text-stitek font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                 Procházet & Hledat
               </div>
               <div className="space-y-1">
@@ -416,7 +416,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   <Music2 className="w-4 h-4" />
                   <span>Stopy Aktivní Písně</span>
                   {activeSongTracks.length > 0 && (
-                    <span className="ml-auto text-[10px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-bold">
+                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-bold">
                       {activeSongTracks.length}
                     </span>
                   )}
@@ -434,7 +434,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             </div>
 
             <div>
-              <div className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <div className="px-3 text-stitek font-bold text-slate-500 uppercase tracking-wider mb-1.5">
                 Knihovna & Fronta
               </div>
               <div className="space-y-1">
@@ -447,7 +447,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   <ListMusic className="w-4 h-4" />
                   <span>Fronta (Up Next)</span>
                   {queue.length > 0 && (
-                    <span className="ml-auto text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-bold">
+                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-bold">
                       {queue.length}
                     </span>
                   )}
@@ -461,7 +461,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   <Heart className="w-4 h-4 text-rose-400" />
                   <span>Oblíbené</span>
                   {likedTracks.length > 0 && (
-                    <span className="ml-auto text-[10px] px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-bold">
+                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-bold">
                       {likedTracks.length}
                     </span>
                   )}
@@ -508,7 +508,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 />
               </button>
             </div>
-            <p className="text-[11px] text-slate-400 leading-tight">
+            <p className="text-drobne text-slate-400 leading-tight">
               Automaticky domíchává doporučené backing tracky dle žánru a tóniny.
             </p>
           </div>
@@ -630,7 +630,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               <Play className="w-6 h-6 text-white fill-current" />
                             </div>
                             {isCurrent && playbackState.isPlaying && (
-                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-black text-[9px] font-bold">
+                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-black text-stitek font-bold">
                                 Hraje
                               </div>
                             )}
@@ -645,7 +645,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               >
                                 {track.title}
                               </div>
-                              <div className="text-[11px] text-slate-400 truncate mt-0.5">{track.artist}</div>
+                              <div className="text-drobne text-slate-400 truncate mt-0.5">{track.artist}</div>
                             </div>
 
                             <div className="flex items-center gap-1 pt-2">
@@ -668,7 +668,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               {activeSong && (
                                 <button
                                   onClick={() => handleAttachToActiveSong(track)}
-                                  className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-[10px] font-semibold transition-colors cursor-pointer"
+                                  className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-stitek font-semibold transition-colors cursor-pointer"
                                   title={`Přiřadit k písni ${activeSong.title}`}
                                 >
                                   + K písni
@@ -676,7 +676,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               )}
                               <button
                                 onClick={() => handleCreateSongFromTrack(track)}
-                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-medium transition-colors cursor-pointer ml-auto"
+                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-stitek font-medium transition-colors cursor-pointer ml-auto"
                                 title="Vytvořit novou skladbu v Song Library z tohoto podkladu"
                               >
                                 + Song Library
@@ -709,15 +709,15 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 hover:border-amber-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                          <span className="text-stitek font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
                             {sample.key}
                           </span>
-                          <span className="text-[10px] text-slate-400">{sample.bpm} BPM</span>
+                          <span className="text-stitek text-slate-400">{sample.bpm} BPM</span>
                         </div>
                         <div className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
                           {sample.title}
                         </div>
-                        <div className="text-[11px] text-slate-400 mt-1">{sample.artist}</div>
+                        <div className="text-drobne text-slate-400 mt-1">{sample.artist}</div>
                       </div>
                     ))}
                   </div>
@@ -797,7 +797,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                             >
                               {track.title}
                             </div>
-                            <div className="text-[11px] text-slate-400 truncate">{track.artist}</div>
+                            <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
                           </div>
 
                           <div className="flex items-center gap-2 pt-2">
@@ -855,7 +855,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               {queue.length === 0 ? (
                 <div className="p-12 text-center bg-slate-900/30 border border-slate-800/60 rounded-3xl space-y-2">
                   <p className="text-xs text-slate-400">Fronta je prázdná.</p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-drobne text-slate-500">
                     Se zapnutým <b>Smart Shuffle</b> se automaticky načtou další vhodné skladby při dohrání.
                   </p>
                 </div>
@@ -876,7 +876,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         />
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-white truncate">{track.title}</div>
-                          <div className="text-[11px] text-slate-400 truncate">{track.artist}</div>
+                          <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -948,7 +948,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         >
                           {track.title}
                         </div>
-                        <div className="text-[11px] text-slate-400 truncate">{track.artist}</div>
+                        <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
                       </div>
                       <button
                         onClick={() => mediaCenterService.toggleLike(track)}
@@ -994,7 +994,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         >
                           {track.title}
                         </div>
-                        <div className="text-[11px] text-slate-400 truncate">{track.artist}</div>
+                        <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
                       </div>
                     </div>
                     <button
@@ -1074,7 +1074,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                      <span className="text-[11px] text-slate-500 font-medium">{pl.trackIds.length} skladeb</span>
+                      <span className="text-drobne text-slate-500 font-medium">{pl.trackIds.length} skladeb</span>
                       {pl.isCustom && (
                         <button
                           onClick={() => mediaCenterService.deletePlaylist(pl.id)}
@@ -1166,7 +1166,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <div className="text-xs font-bold text-white truncate hover:text-amber-400 cursor-pointer">
                   {playbackState.currentTrack.title}
                 </div>
-                <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                <div className="text-drobne text-slate-400 truncate mt-0.5">
                   {playbackState.currentTrack.artist || 'NeverLate Backing Track'}
                 </div>
               </div>
@@ -1238,14 +1238,14 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             >
               <Repeat className="w-4 h-4" />
               {playbackState.loopMode === 'one' && (
-                <span className="absolute text-[8px] font-extrabold top-1 right-1">1</span>
+                <span className="absolute text-stitek font-extrabold top-1 right-1">1</span>
               )}
             </button>
           </div>
 
           {/* Scrubber Timeline */}
           <div className="w-full flex items-center gap-3">
-            <span className="text-[11px] font-mono text-slate-400 w-10 text-right">
+            <span className="text-drobne font-mono text-slate-400 w-10 text-right">
               {formatTime(playbackState.currentTime)}
             </span>
             <div className="flex-1 relative flex items-center">
@@ -1259,7 +1259,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
               />
             </div>
-            <span className="text-[11px] font-mono text-slate-400 w-10">
+            <span className="text-drobne font-mono text-slate-400 w-10">
               {formatTime(playbackState.duration)}
             </span>
           </div>
@@ -1271,7 +1271,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <select
             value={playbackState.playbackSpeed}
             onChange={(e) => mediaCenterService.setPlaybackSpeed(parseFloat(e.target.value))}
-            className="bg-slate-900 border border-slate-800 text-[11px] font-bold text-amber-400 rounded-xl px-2 py-1 outline-none cursor-pointer hover:border-amber-500/40"
+            className="bg-slate-900 border border-slate-800 text-drobne font-bold text-amber-400 rounded-xl px-2 py-1 outline-none cursor-pointer hover:border-amber-500/40"
             title="Rychlost přehrávání"
           >
             <option value="0.5">0.5x</option>

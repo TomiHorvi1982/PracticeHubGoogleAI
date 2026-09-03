@@ -111,7 +111,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
                 <button
                   key={typ}
                   onClick={() => pridej(typ)}
-                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-[12px] text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-all"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-drobne text-neutral-300 hover:bg-white/10 hover:text-white cursor-pointer transition-all"
                 >
                   <span className="text-sm leading-none">{POPIS_OKEN[typ].ikona}</span>
                   {POPIS_OKEN[typ].nazev}
@@ -125,12 +125,12 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
           <>
             <button
               onClick={() => uloz(srovnejDoRadku(okna, plochaRef.current?.getBoundingClientRect().width || 1200))}
-              className="px-3 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-[11px] font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+              className="px-3 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-drobne font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
               title="Srovnat okna vedle sebe"
             >
               <LayoutGrid className="w-3.5 h-3.5" /> Srovnat
             </button>
-            <span className="text-[10px] text-neutral-500">
+            <span className="text-stitek text-neutral-500">
               {okna.length} {okna.length === 1 ? 'okno' : okna.length < 5 ? 'okna' : 'oken'} · rozložení se ukládá k písni
             </span>
           </>
@@ -145,8 +145,8 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
         {okna.length === 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
             <div className="text-3xl opacity-40">🪟</div>
-            <p className="text-[13px] font-semibold text-neutral-400">Plocha je prázdná</p>
-            <p className="text-[11px] text-neutral-600 max-w-sm">
+            <p className="text-drobne font-semibold text-neutral-400">Plocha je prázdná</p>
+            <p className="text-drobne text-neutral-600 max-w-sm">
               Přidej si okna s tím, co k téhle písni potřebuješ — text, tabulaturu, mixážní pult.
               Rozložení si píseň zapamatuje.
             </p>

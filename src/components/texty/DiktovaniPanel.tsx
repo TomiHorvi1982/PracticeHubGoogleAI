@@ -106,7 +106,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
     <div className="space-y-3">
       {moznosti && (
         <div
-          className={`rounded-2xl border p-3 text-[11px] flex items-start gap-2 ${
+          className={`rounded-2xl border p-3 text-drobne flex items-start gap-2 ${
             moznosti.odesilaVen
               ? 'bg-amber-500/[0.08] border-amber-500/30 text-amber-200'
               : 'bg-[#30D158]/[0.06] border-[#30D158]/30 text-[#30D158]'
@@ -164,17 +164,17 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
       </div>
 
       {chyba && (
-        <p className="text-[11px] text-[#FF453A]">{chyba}</p>
+        <p className="text-drobne text-[#FF453A]">{chyba}</p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-widest text-neutral-500">Česky</span>
+            <span className="text-stitek uppercase tracking-widest text-neutral-500">Česky</span>
             {cesky && (
               <button
                 onClick={() => onVlozit(cesky)}
-                className="text-[11px] text-[#BF5AF2] hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-drobne text-[#BF5AF2] hover:text-white flex items-center gap-1 cursor-pointer"
               >
                 <CornerDownLeft className="w-3 h-3" /> Vložit do textu
               </button>
@@ -191,11 +191,11 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
 
         <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase tracking-widest text-neutral-500">Anglicky</span>
+            <span className="text-stitek uppercase tracking-widest text-neutral-500">Anglicky</span>
             {anglicky && (
               <button
                 onClick={() => void prectiAnglicky(anglicky)}
-                className="text-[11px] text-[#30D158] hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-drobne text-[#30D158] hover:text-white flex items-center gap-1 cursor-pointer"
               >
                 <Volume2 className="w-3 h-3" /> Přečíst
               </button>

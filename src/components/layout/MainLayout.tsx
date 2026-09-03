@@ -44,7 +44,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       <main className="flex-1 overflow-y-auto bg-[#0B1120] flex flex-col">
         {/* Bez bočního panelu má obsah celou šířku. Strop zůstává, aby se
             řádky textu na širokoúhlé obrazovce nerozjely donekonečna. */}
-        <div className="flex-1 p-4 sm:p-6 w-full max-w-[1920px] mx-auto">
+        {/* Na mobilu uzsi odsazeni: vnorene panely uvnitr sekci sezraly
+            na 375px pres sto pixelu a na obsah zbylo 267. */}
+        <div className="flex-1 p-3 sm:p-6 w-full max-w-[1920px] mx-auto">
           {children}
         </div>
 

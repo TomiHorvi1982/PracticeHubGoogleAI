@@ -77,7 +77,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
           <select
             value={vybrana}
             onChange={(e) => setVybrana(parseInt(e.target.value, 10))}
-            className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-[11px] text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
+            className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-drobne text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
           >
             {prilohy.map((p, i) => (
               <option key={p.id} value={i}>{p.name}</option>
@@ -106,8 +106,8 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
         </button>
 
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-bold text-white truncate">{priloha.name}</div>
-          <div className="text-[10px] font-mono text-neutral-500">
+          <div className="text-drobne font-bold text-white truncate">{priloha.name}</div>
+          <div className="text-stitek font-mono text-neutral-500">
             {nactene ? `${cas(stav.position)} / ${cas(stav.duration)} · ${stav.tracks.length} stop` : 'připraveno'}
           </div>
         </div>
@@ -141,7 +141,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
       )}
 
       {stav.error && nactene && (
-        <p className="text-[10px] text-[#FF453A] flex items-center gap-1 shrink-0">
+        <p className="text-stitek text-[#FF453A] flex items-center gap-1 shrink-0">
           <AlertCircle className="w-3 h-3 shrink-0" /> {stav.error}
         </p>
       )}
@@ -154,7 +154,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
             <button
               key={t.index}
               onClick={() => midiPlayerService.toggleMute(t.index)}
-              className={`px-2 py-0.5 rounded-lg text-[10px] font-medium border transition-all cursor-pointer ${
+              className={`px-2 py-0.5 rounded-lg text-stitek font-medium border transition-all cursor-pointer ${
                 t.muted
                   ? 'bg-transparent border-white/10 text-neutral-600 line-through'
                   : 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'

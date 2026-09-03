@@ -237,7 +237,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
       className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-xl px-2.5 py-1.5 hover:border-white/20 transition-all"
     >
       {typeof poradi === 'number' ? (
-        <span className="w-5 text-center text-[10px] font-mono text-neutral-600 shrink-0 tabular-nums">
+        <span className="w-5 text-center text-stitek font-mono text-neutral-600 shrink-0 tabular-nums">
           {poradi}
         </span>
       ) : s.obrazek ? (
@@ -249,12 +249,12 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
       <div className="min-w-0 flex-1">
         <button
           onClick={() => void ukazPodobne(s)}
-          className="block w-full text-left text-[12px] font-semibold text-white truncate cursor-pointer hover:text-[#FF9F0A]"
+          className="block w-full text-left text-drobne font-semibold text-white truncate cursor-pointer hover:text-[#FF9F0A]"
           title="Ukázat podobné"
         >
           {s.nazev || s.interpret}
         </button>
-        <div className="text-[10px] text-neutral-500 truncate">
+        <div className="text-stitek text-neutral-500 truncate">
           <button
             onClick={() => void otevriInterpreta(s.interpret)}
             className="cursor-pointer hover:text-[#FF9F0A] hover:underline"
@@ -308,7 +308,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
   const zpet = (kam: () => void, popis: string) => (
     <button
       onClick={kam}
-      className="flex items-center gap-1 text-[11px] text-neutral-400 hover:text-white cursor-pointer"
+      className="flex items-center gap-1 text-drobne text-neutral-400 hover:text-white cursor-pointer"
     >
       <ArrowLeft className="w-3.5 h-3.5" /> {popis}
     </button>
@@ -324,7 +324,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             onChange={(e) => setDotaz(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void hledej()}
             placeholder="Hledat skladbu nebo kapelu na Last.fm…"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-[13px] text-white placeholder-neutral-500 outline-none focus:border-[#FF9F0A]"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-500 outline-none focus:border-[#FF9F0A]"
           />
         </div>
         <button
@@ -351,7 +351,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
       )}
 
       {chyba && (
-        <div className="flex items-start gap-2 text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+        <div className="flex items-start gap-2 text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <div>
             <div>{chyba}</div>
@@ -375,8 +375,8 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             )}
             <div className="min-w-0">
               <div className="text-sm font-bold text-white truncate">{album.nazev}</div>
-              <div className="text-[11px] text-neutral-500 truncate">{album.interpret}</div>
-              <div className="text-[10px] text-neutral-600">{album.skladby.length} skladeb</div>
+              <div className="text-drobne text-neutral-500 truncate">{album.interpret}</div>
+              <div className="text-stitek text-neutral-600">{album.skladby.length} skladeb</div>
             </div>
           </div>
           {mrizka(album.skladby, true)}
@@ -391,7 +391,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold text-white truncate">{interpret.jmeno}</div>
               {interpret.posluchacu > 0 && (
-                <div className="text-[10px] text-neutral-500">
+                <div className="text-stitek text-neutral-500">
                   {interpret.posluchacu.toLocaleString('cs')} posluchačů
                 </div>
               )}
@@ -404,7 +404,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                       setRezim('styly');
                       void otevriStyl(t);
                     }}
-                    className="text-[9px] px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400 hover:text-[#FF9F0A] cursor-pointer"
+                    className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400 hover:text-[#FF9F0A] cursor-pointer"
                   >
                     {t}
                   </button>
@@ -413,12 +413,12 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             </div>
           </div>
           {interpret.popis && (
-            <p className="text-[11px] text-neutral-400 leading-relaxed line-clamp-4">{interpret.popis}</p>
+            <p className="text-drobne text-neutral-400 leading-relaxed line-clamp-4">{interpret.popis}</p>
           )}
 
           {interpret.alba.length > 0 && (
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+              <div className="flex items-center gap-1.5 text-stitek font-bold uppercase tracking-wider text-neutral-500">
                 <Disc3 className="w-3 h-3" /> Alba
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1">
@@ -438,7 +438,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                     ) : (
                       <div className="w-24 h-24 rounded-lg bg-white/5 border border-white/10" />
                     )}
-                    <div className="text-[10px] text-neutral-300 truncate mt-1 group-hover:text-[#FF9F0A]">
+                    <div className="text-stitek text-neutral-300 truncate mt-1 group-hover:text-[#FF9F0A]">
                       {a.nazev}
                     </div>
                   </button>
@@ -448,7 +448,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
           )}
 
           <div className="space-y-1">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">
+            <div className="text-stitek font-bold uppercase tracking-wider text-neutral-500">
               Nejposlouchanější
             </div>
             {mrizka(interpret.skladby, true)}
@@ -467,7 +467,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 <button
                   key={z.id}
                   onClick={() => setRezim(z.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-stitek font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
                     rezim === z.id
                       ? 'bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/40'
                       : 'text-neutral-500 hover:text-white border border-transparent'
@@ -491,7 +491,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                     <button
                       key={k.id}
                       onClick={() => setKdeZebricek(k.id)}
-                      className={`px-2 py-0.5 rounded-md text-[10px] font-semibold flex items-center gap-1 cursor-pointer ${
+                      className={`px-2 py-0.5 rounded-md text-stitek font-semibold flex items-center gap-1 cursor-pointer ${
                         kdeZebricek === k.id
                           ? 'bg-white/[0.12] text-white'
                           : 'text-neutral-500 hover:text-white'
@@ -503,7 +503,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 })}
               </div>
               {!zebricky ? (
-                <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
+                <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
                   <Loader2 className="w-3 h-3 animate-spin" /> Načítám žebříčky z Last.fm…
                 </p>
               ) : (
@@ -519,7 +519,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                   <button
                     key={t.nazev}
                     onClick={() => void otevriStyl(t.nazev)}
-                    className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold cursor-pointer transition-all ${
+                    className={`px-2 py-0.5 rounded-lg text-stitek font-semibold cursor-pointer transition-all ${
                       vybranyStyl === t.nazev
                         ? 'bg-[#FF9F0A] text-black'
                         : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.14]'
@@ -533,12 +533,12 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 skladbyStylu.length ? (
                   mrizka(skladbyStylu, true)
                 ) : (
-                  <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
+                  <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
                     <Loader2 className="w-3 h-3 animate-spin" /> Načítám {vybranyStyl}…
                   </p>
                 )
               ) : (
-                <p className="text-[11px] text-neutral-600">Vyber styl a Last.fm ukáže, co se v něm poslouchá.</p>
+                <p className="text-drobne text-neutral-600">Vyber styl a Last.fm ukáže, co se v něm poslouchá.</p>
               )}
             </div>
           )}
@@ -548,14 +548,14 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
               {vysledky.length > 0 ? (
                 mrizka(vysledky)
               ) : (
-                <p className="text-[11px] text-neutral-600">Napiš nahoru skladbu nebo kapelu.</p>
+                <p className="text-drobne text-neutral-600">Napiš nahoru skladbu nebo kapelu.</p>
               )}
             </>
           )}
 
           {vybrana && (
             <div className="space-y-1.5 border-t border-white/[0.06] pt-2.5">
-              <div className="flex items-center gap-1.5 text-[11px] text-neutral-400">
+              <div className="flex items-center gap-1.5 text-drobne text-neutral-400">
                 <Sparkles className="w-3.5 h-3.5 text-[#FF9F0A]" />
                 Podobné k{' '}
                 <strong className="text-white">
@@ -568,7 +568,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 )}
               </div>
               {podobne.length === 0 ? (
-                <p className="text-[11px] text-neutral-600">Last.fm k téhle skladbě nic nezná.</p>
+                <p className="text-drobne text-neutral-600">Last.fm k téhle skladbě nic nezná.</p>
               ) : (
                 mrizka(podobne)
               )}

@@ -601,7 +601,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+              <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
                 Freetar.de
               </span>
               <span className="text-xs text-neutral-400 font-medium">Oficiální repozitář tabulatur</span>
@@ -724,7 +724,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
             {/* Ukládání nálezů. Patří k vyhledávání, protože rozhoduje
                 o tom, co se stane hned po otevření tabulatury. */}
-            <label className="flex items-center gap-2 text-[11px] text-neutral-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-drobne text-neutral-300 cursor-pointer">
               <input
                 type="checkbox"
                 checked={ukladatSam}
@@ -848,7 +848,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                           </td>
                           <td className="p-4">
                             <span
-                              className={`px-2.5 py-1 text-[11px] font-semibold rounded-lg border ${
+                              className={`px-2.5 py-1 text-drobne font-semibold rounded-lg border ${
                                 isChords
                                   ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/30'
                                   : isBass

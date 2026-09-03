@@ -182,7 +182,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
-              <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+              <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
                 Společný Playlist
               </span>
             </div>
@@ -239,7 +239,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           
           {/* Playback Mode Selectors */}
           <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06]">
-            <span className="text-[11px] text-neutral-400 font-medium px-2">Režim:</span>
+            <span className="text-drobne text-neutral-400 font-medium px-2">Režim:</span>
             
             <button
               onClick={() => onChangePlaybackMode('normal')}
@@ -364,7 +364,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                       />
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-white truncate">{video.title}</div>
-                        <div className="text-[10px] text-neutral-400 truncate">{video.artist || 'YouTube Video'}</div>
+                        <div className="text-stitek text-neutral-400 truncate">{video.artist || 'YouTube Video'}</div>
                       </div>
                     </div>
 
@@ -479,7 +479,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               >
                 <div>
                   <div className="text-xs font-semibold text-white">{song.title}</div>
-                  <div className="text-[11px] text-neutral-400">{song.artist} ({song.key})</div>
+                  <div className="text-drobne text-neutral-400">{song.artist} ({song.key})</div>
                 </div>
                 <Plus className="w-4 h-4 text-[#30D158] shrink-0" />
               </button>
@@ -582,7 +582,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                         {item.title}
                       </button>
                       {isCurrent && (
-                        <span className="text-[9px] bg-[#FF9F0A] text-black font-bold px-1.5 py-0.5 rounded-md uppercase shrink-0">
+                        <span className="text-stitek bg-[#FF9F0A] text-black font-bold px-1.5 py-0.5 rounded-md uppercase shrink-0">
                           Hraje
                         </span>
                       )}

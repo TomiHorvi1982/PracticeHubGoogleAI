@@ -448,7 +448,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
         >
           {/* Subtle floating visual glow indicator when dock is auto-hidden */}
           {!isDockVisible && (
-            <div className="mb-1.5 px-4 py-0.5 bg-[#FF9F0A]/90 hover:bg-[#FF9F0A] text-black font-bold text-[10px] rounded-full shadow-lg shadow-[#FF9F0A]/30 transition-all transform hover:scale-105 flex items-center gap-1">
+            <div className="mb-1.5 px-4 py-0.5 bg-[#FF9F0A]/90 hover:bg-[#FF9F0A] text-black font-bold text-stitek rounded-full shadow-lg shadow-[#FF9F0A]/30 transition-all transform hover:scale-105 flex items-center gap-1">
               <ChevronUp className="w-3 h-3 animate-bounce" />
               <span>Přehrávač</span>
             </div>
@@ -505,10 +505,10 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] sm:text-[14px] font-semibold text-white truncate">
+                  <span className="text-drobne sm:text-zaklad font-semibold text-white truncate">
                     {currentTrack.title}
                   </span>
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-white/[0.08] text-neutral-300 shrink-0">
+                  <span className="text-stitek font-medium px-1.5 py-0.5 rounded-md bg-white/[0.08] text-neutral-300 shrink-0">
                     {isPlaying ? 'Hraje' : 'Pozastaveno'}
                   </span>
                 </div>
@@ -581,7 +581,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
               </div>
 
               {/* Time display */}
-              <div className="text-[11px] text-neutral-400 flex items-center gap-1.5 font-medium tabular-nums">
+              <div className="text-drobne text-neutral-400 flex items-center gap-1.5 font-medium tabular-nums">
                 <span className="text-white">{formatTime(currentTime)}</span>
                 <span className="text-neutral-600">/</span>
                 <span>{formatTime(duration)}</span>
@@ -715,7 +715,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 <h4 className="text-sm font-bold text-white truncate">{currentTrack.title}</h4>
                 <p className="text-xs text-neutral-400 truncate mt-0.5">{currentTrack.artist || 'Neznámý umělec'}</p>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30">
+                  <span className="text-stitek font-semibold px-2 py-0.5 rounded-full bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30">
                     {isPlaying ? 'Přehrává se' : 'Pozastaveno'}
                   </span>
                 </div>
@@ -732,7 +732,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 onChange={handleSeek}
                 className="w-full h-1.5 bg-white/10 rounded-full accent-[#FF9F0A] cursor-pointer"
               />
-              <div className="flex justify-between text-[11px] text-neutral-400 font-mono">
+              <div className="flex justify-between text-drobne text-neutral-400 font-mono">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
@@ -797,7 +797,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
           {/* Track Name */}
           <div className="max-w-[140px] truncate">
             <p className="text-xs font-bold text-white truncate">{currentTrack.title}</p>
-            <p className="text-[10px] text-neutral-400 truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
+            <p className="text-stitek text-neutral-400 truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
           </div>
 
           {/* Controls */}

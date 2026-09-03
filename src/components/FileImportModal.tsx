@@ -194,7 +194,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                   Soubor byl úspěšně načten
                 </span>
               </div>
-              <span className="text-[10px] bg-white/10 text-neutral-300 px-2.5 py-0.5 rounded-md font-mono uppercase">
+              <span className="text-stitek bg-white/10 text-neutral-300 px-2.5 py-0.5 rounded-md font-mono uppercase">
                 Typ: {importResult.attachment.type}
               </span>
             </div>
@@ -266,7 +266,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
             <div className="bg-white/5 p-3 rounded-xl border border-white/5 text-xs text-neutral-300 flex items-center justify-between">
               <div>
                 <span className="font-semibold text-white">{importResult.attachment.name}</span>
-                <span className="text-[11px] text-neutral-400 ml-2">
+                <span className="text-drobne text-neutral-400 ml-2">
                   ({Math.round((importResult.attachment.size || 0) / 1024)} KB)
                 </span>
               </div>

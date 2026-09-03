@@ -45,7 +45,7 @@ export const HmatnikTestu: React.FC<{
           {Array.from({ length: PRAZCU + 1 }, (_, p) => (
             <span
               key={p}
-              className={`text-center text-[9px] tabular-nums ${
+              className={`text-center text-stitek tabular-nums ${
                 ZNACKY.includes(p) ? 'text-[#FF9F0A] font-bold' : 'text-neutral-600'
               }`}
             >
@@ -60,7 +60,7 @@ export const HmatnikTestu: React.FC<{
             className="grid gap-[3px] mb-[3px]"
             style={{ gridTemplateColumns: `26px repeat(${PRAZCU + 1}, minmax(0,1fr))` }}
           >
-            <span className="text-[10px] font-bold text-neutral-500 self-center">{s.nazev}</span>
+            <span className="text-stitek font-bold text-neutral-500 self-center">{s.nazev}</span>
             {Array.from({ length: PRAZCU + 1 }, (_, prazec) => {
               const trida = Note.pitchClass(Note.fromMidi(s.midi + prazec));
               const jeCil = cilove.some((c) => stejnyTon(c, trida));
@@ -71,7 +71,7 @@ export const HmatnikTestu: React.FC<{
               return (
                 <div
                   key={prazec}
-                  className={`h-6 rounded flex items-center justify-center text-[9px] font-bold border ${
+                  className={`h-6 rounded flex items-center justify-center text-stitek font-bold border ${
                     jeChyba
                       ? 'bg-[#FF453A] border-[#FF453A] text-white'
                       : jeTrefeny
@@ -92,7 +92,7 @@ export const HmatnikTestu: React.FC<{
         ))}
 
         {chyba && chyba.minulO > 0 && (
-          <p className="text-[11px] text-[#FF453A] mt-2">
+          <p className="text-drobne text-[#FF453A] mt-2">
             {chyba.trida} — vedle o {chyba.minulO}{' '}
             {chyba.minulO === 1 ? 'půltón' : chyba.minulO < 5 ? 'půltóny' : 'půltónů'}
           </p>

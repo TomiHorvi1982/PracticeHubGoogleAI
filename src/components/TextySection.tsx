@@ -81,7 +81,7 @@ export const TextySection: React.FC = () => {
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Texty
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
@@ -138,7 +138,7 @@ export const TextySection: React.FC = () => {
 
         {hlaska && (
           <p
-            className={`text-[11px] mt-2 flex items-center gap-1.5 ${
+            className={`text-drobne mt-2 flex items-center gap-1.5 ${
               hlaska.chyba ? 'text-[#FF453A]' : 'text-[#30D158]'
             }`}
           >
@@ -168,7 +168,7 @@ export const TextySection: React.FC = () => {
         />
       ) : (
         <div className="space-y-3">
-          <label className="flex items-center gap-2 text-[11px] text-neutral-400 cursor-pointer">
+          <label className="flex items-center gap-2 text-drobne text-neutral-400 cursor-pointer">
             <input
               type="checkbox"
               checked={sCasy}

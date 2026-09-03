@@ -187,7 +187,7 @@ export const Tuner: React.FC = () => {
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+            <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Přesná Ladička
             </span>
             <span className="text-xs text-neutral-400 font-medium">Autodetekce frekvence</span>
@@ -217,7 +217,7 @@ export const Tuner: React.FC = () => {
           {referenceA !== REFERENCE_A_RANGE.default && (
             <button
               onClick={() => setReferenceA(REFERENCE_A_RANGE.default)}
-              className="text-[10px] font-bold text-neutral-400 hover:text-white px-1.5 cursor-pointer"
+              className="text-stitek font-bold text-neutral-400 hover:text-white px-1.5 cursor-pointer"
               title="Zpět na 440 Hz"
             >
               ↺
@@ -271,9 +271,9 @@ export const Tuner: React.FC = () => {
               const noteInfo = getNoteFromMidi(midi);
               return (
                 <div key={idx} className="bg-black/40 border border-white/10 p-3 rounded-2xl flex flex-col items-center">
-                  <span className="text-[10px] text-neutral-400 mb-1">{stringNum}. struna</span>
+                  <span className="text-stitek text-neutral-400 mb-1">{stringNum}. struna</span>
                   <span className="text-base font-bold text-[#FF9F0A]">{noteInfo.name}</span>
-                  <span className="text-[10px] text-neutral-400 font-mono mb-2">{noteInfo.frequency} Hz</span>
+                  <span className="text-stitek text-neutral-400 font-mono mb-2">{noteInfo.frequency} Hz</span>
                   
                   <div className="flex gap-1 w-full">
                     <button
@@ -316,7 +316,7 @@ export const Tuner: React.FC = () => {
         
         {/* Status Tag */}
         <div className="absolute top-4 right-4 flex items-center gap-2">
-          <span className={`text-[10px] font-medium px-2.5 py-1 rounded-lg border ${
+          <span className={`text-stitek font-medium px-2.5 py-1 rounded-lg border ${
             isListening 
               ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/30' 
               : 'bg-white/[0.04] text-neutral-400 border-white/[0.06]'
@@ -329,7 +329,7 @@ export const Tuner: React.FC = () => {
         <div className="relative w-80 h-36 mb-4 flex items-end justify-center border-b border-white/10 pb-2">
           <div className="absolute inset-0 border-t-2 border-white/10 rounded-t-full"></div>
 
-          <div className="absolute inset-x-0 top-3 flex justify-between px-6 text-[11px] font-mono text-neutral-400">
+          <div className="absolute inset-x-0 top-3 flex justify-between px-6 text-drobne font-mono text-neutral-400">
             <span>-50c</span>
             <span>-25c</span>
             <span className="text-[#30D158] font-bold">0</span>
@@ -420,7 +420,7 @@ export const Tuner: React.FC = () => {
           <h3 className="text-xs font-semibold text-white">
             Referenční tóny strun ({activeTuning.name})
           </h3>
-          <span className="text-[11px] text-neutral-400">
+          <span className="text-drobne text-neutral-400">
             Kliknutím přehrajte referenční tón
           </span>
         </div>
@@ -441,9 +441,9 @@ export const Tuner: React.FC = () => {
                     : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.06] text-neutral-300'
                 }`}
               >
-                <div className="text-[10px] text-neutral-400 mb-1">{stringNum}. struna</div>
+                <div className="text-stitek text-neutral-400 mb-1">{stringNum}. struna</div>
                 <div className="text-lg font-bold text-white mb-0.5">{noteName}</div>
-                <div className="text-[10px] text-neutral-400 font-mono">{freq} Hz</div>
+                <div className="text-stitek text-neutral-400 font-mono">{freq} Hz</div>
               </button>
             );
           })}
@@ -477,7 +477,7 @@ export const Tuner: React.FC = () => {
           <div className="flex items-center gap-3">
             <div className="bg-black/40 border border-white/10 px-4 py-2 rounded-2xl text-center min-w-[100px]">
               <div className="text-2xl font-bold text-white font-mono">{metroBpm}</div>
-              <div className="text-[10px] text-neutral-400 font-medium">BPM</div>
+              <div className="text-stitek text-neutral-400 font-medium">BPM</div>
             </div>
 
             <button

@@ -49,7 +49,7 @@ export const PodiumSection: React.FC = () => {
       onSelectModalChord={setAkordDetail}
     />
   ) : (
-    <div className="h-full flex items-center justify-center text-center text-[12px] text-neutral-600 border border-dashed border-white/[0.08] rounded-2xl p-10">
+    <div className="h-full flex items-center justify-center text-center text-drobne text-neutral-600 border border-dashed border-white/[0.08] rounded-2xl p-10">
       Vyber skladbu ze set listu. Skládá se v knihovně skladeb.
     </div>
   );

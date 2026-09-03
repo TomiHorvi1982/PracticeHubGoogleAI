@@ -87,17 +87,17 @@ export const VyberNastroje: React.FC<{
               </span>
               {aktivni && (
                 <span
-                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                  className="text-stitek font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
                   style={{ backgroundColor: `${n.barva}25`, color: n.barva }}
                 >
                   hraje
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-neutral-500 leading-tight mb-2.5">{n.popis}</p>
+            <p className="text-drobne text-neutral-500 leading-tight mb-2.5">{n.popis}</p>
 
             <label className="block">
-              <span className="text-[9px] uppercase tracking-widest text-neutral-600">Vstup</span>
+              <span className="text-stitek uppercase tracking-widest text-neutral-600">Vstup</span>
               <select
                 value={vstup}
                 onClick={(e) => e.stopPropagation()}
@@ -106,7 +106,7 @@ export const VyberNastroje: React.FC<{
                   setVstupy((p) => ({ ...p, [n.id]: nova }));
                   if (aktivni && nova !== KLAVESNICE) midiService.setSelectedInput(nova);
                 }}
-                className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-[11px] text-white outline-none focus:border-white/30 cursor-pointer"
+                className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-drobne text-white outline-none focus:border-white/30 cursor-pointer"
               >
                 <option value={KLAVESNICE}>Klávesnice počítače</option>
                 {zarizeni.length > 0 && <option value="all">Všechny MIDI vstupy</option>}

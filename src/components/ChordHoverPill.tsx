@@ -110,7 +110,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                 e.stopPropagation();
                 audioSynth.playGuitarChord(baseChord.frets);
               }}
-              className="text-[11px] bg-white/15 hover:bg-white/25 text-white font-medium px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+              className="text-drobne bg-white/15 hover:bg-white/25 text-white font-medium px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Přehrát základní hmat"
             >
               <Volume2 className="w-3 h-3 text-[#FF9F0A]" /> Přehrát
@@ -129,7 +129,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                 className="flex flex-col items-center bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 p-1.5 cursor-pointer transition-all rounded-xl group"
                 title={`Přehrát ${v.label}`}
               >
-                <span className="text-[10px] font-medium text-neutral-400 mb-1 text-center truncate w-full group-hover:text-white">
+                <span className="text-stitek font-medium text-neutral-400 mb-1 text-center truncate w-full group-hover:text-white">
                   {i === 0 ? 'Základní' : i === 1 ? 'Barre E' : 'Barre A'}
                 </span>
                 <GuitarChordDiagram
@@ -138,7 +138,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                   showTitle={false}
                   showPlayButton={false}
                 />
-                <span className="text-[9px] text-neutral-400 group-hover:text-[#FF9F0A] mt-1 font-medium flex items-center gap-0.5">
+                <span className="text-stitek text-neutral-400 group-hover:text-[#FF9F0A] mt-1 font-medium flex items-center gap-0.5">
                   <Volume2 className="w-2.5 h-2.5" /> Hrát
                 </span>
               </div>

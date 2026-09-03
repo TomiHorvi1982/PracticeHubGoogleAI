@@ -124,7 +124,7 @@ export const NahravaniSouboru: React.FC<{
           <FolderUp className="w-4 h-4" /> Vybrat složku
         </button>
 
-        <span className="text-[11px] text-neutral-500">
+        <span className="text-drobne text-neutral-500">
           nebo sem přetáhni · zařadí se do <strong className="text-neutral-300">{cil}</strong>
         </span>
 
@@ -132,7 +132,7 @@ export const NahravaniSouboru: React.FC<{
 
         <button
           onClick={() => setRozbaleno((r) => !r)}
-          className="ml-auto text-[11px] text-neutral-400 hover:text-white cursor-pointer flex items-center gap-1"
+          className="ml-auto text-drobne text-neutral-400 hover:text-white cursor-pointer flex items-center gap-1"
         >
           {rozbaleno ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           Kam a odkud
@@ -142,11 +142,11 @@ export const NahravaniSouboru: React.FC<{
       {rozbaleno && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-white/[0.06]">
           <label className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Zařadit do</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Zařadit do</span>
             <select
               value={kategorie}
               onChange={(e) => setKategorie(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[12px] text-white outline-none"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-drobne text-white outline-none"
             >
               <option value="">
                 {otevrenaKategorie ? `Otevřená složka (${nazevKategorie(otevrenaKategorie)})` : 'Podle přípony'}
@@ -158,11 +158,11 @@ export const NahravaniSouboru: React.FC<{
           </label>
 
           <label className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Sbírka</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Sbírka</span>
             <select
               value={sbirka}
               onChange={(e) => setSbirka(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[12px] text-white outline-none"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-drobne text-white outline-none"
             >
               <option value="">Žádná, nebo nová níž</option>
               {sbirky.map((s) => (
@@ -173,7 +173,7 @@ export const NahravaniSouboru: React.FC<{
 
           {!sbirka && (
             <label className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+              <span className="text-stitek uppercase tracking-wider text-neutral-500">
                 Nová sbírka — odkud dávka je
               </span>
               <div className="flex items-center gap-1.5">
@@ -181,7 +181,7 @@ export const NahravaniSouboru: React.FC<{
                   value={novaSbirka}
                   onChange={(e) => setNovaSbirka(e.target.value)}
                   placeholder="např. Cymatics Ultimate Drums"
-                  className="flex-1 bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[12px] text-white outline-none"
+                  className="flex-1 bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-drobne text-white outline-none"
                 />
                 {BARVY.slice(0, 6).map((b) => (
                   <button
@@ -198,21 +198,21 @@ export const NahravaniSouboru: React.FC<{
           )}
 
           <label className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500 flex items-center gap-1">
+            <span className="text-stitek uppercase tracking-wider text-neutral-500 flex items-center gap-1">
               <Tag className="w-3 h-3" /> Štítky, oddělené čárkou
             </span>
             <input
               value={tagy}
               onChange={(e) => setTagy(e.target.value)}
               placeholder="temné, metal"
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-[12px] text-white outline-none"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-drobne text-white outline-none"
             />
           </label>
         </div>
       )}
 
       {prevod && (
-        <p className="text-[11px] text-[#0A84FF]">
+        <p className="text-drobne text-[#0A84FF]">
           Zmenšuju „{prevod.nazev}" — {prevod.procent} %
         </p>
       )}

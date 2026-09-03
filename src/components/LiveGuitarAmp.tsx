@@ -121,21 +121,21 @@ export const LiveGuitarAmp: React.FC = () => {
         </div>
 
         {!karta.nazvyZname && (
-          <p className="text-[11px] text-neutral-500 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
+          <p className="text-drobne text-neutral-500 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
             Prohlížeč vydá názvy zařízení až po povolení mikrofonu. Do té doby
             se jmenují „Vstup 1, Vstup 2" — klikni na <strong>Načíst zařízení</strong>.
           </p>
         )}
 
         {karta.chyba && (
-          <p className="text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+          <p className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
             {karta.chyba}
           </p>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="space-y-1 block">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">
               Vstup — odsud se poslouchá
             </span>
             <select
@@ -153,7 +153,7 @@ export const LiveGuitarAmp: React.FC = () => {
           </label>
 
           <label className="space-y-1 block">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">
               Výstup — kudy to slyšíš ty
             </span>
             <select
@@ -176,7 +176,7 @@ export const LiveGuitarAmp: React.FC = () => {
             virtuální ovladač není potřeba. */}
         {maVicParu(karta.kanalu) && (
           <div className="space-y-1">
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">
               Vstupní kanály — zvukovka jich dala {karta.kanalu}
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -198,7 +198,7 @@ export const LiveGuitarAmp: React.FC = () => {
                 </button>
               ))}
             </div>
-            <p className="text-[10px] text-neutral-600">
+            <p className="text-stitek text-neutral-600">
               Změna se projeví po novém spuštění vstupu. Aparát z jiné aplikace
               bývá na jiném páru než 1–2.
             </p>
@@ -218,7 +218,7 @@ export const LiveGuitarAmp: React.FC = () => {
               <AlertTriangle className="w-4 h-4 shrink-0" />
               Zvuk z aparátu nemá kudy dovnitř
             </div>
-            <p className="text-[11px] text-neutral-300 leading-relaxed">
+            <p className="text-drobne text-neutral-300 leading-relaxed">
               Spusť vstup — teprve pak se pozná, kolik kanálů zvukovka nabízí.
               Když jich má jen dva a loopback neumí, nainstaluj{' '}
               <strong className="text-white">BlackHole</strong> (zdarma) a restartuj Mac.
@@ -230,7 +230,7 @@ export const LiveGuitarAmp: React.FC = () => {
             Posloucháš z „{vybranyVstup?.nazev}" — nastav v aparátu tenhle výstup a hraj.
           </div>
         ) : (
-          <p className="text-[11px] text-neutral-400 bg-black/30 border border-white/[0.06] rounded-2xl px-4 py-3">
+          <p className="text-drobne text-neutral-400 bg-black/30 border border-white/[0.06] rounded-2xl px-4 py-3">
             Našel jsem přelévací zařízení: <strong className="text-neutral-200">
             {prelevaci.map((z) => z.nazev).join(', ')}</strong>. Vyber ho výš jako vstup
             a v aparátu ho nastav jako výstup.
@@ -238,7 +238,7 @@ export const LiveGuitarAmp: React.FC = () => {
         )}
 
         {/* Odposlech přes reproduktory se vrací do vstupu a rozjede pískot. */}
-        <p className="text-[11px] text-neutral-500 flex items-center gap-1.5">
+        <p className="text-drobne text-neutral-500 flex items-center gap-1.5">
           <Headphones className="w-3.5 h-3.5 shrink-0" />
           Odposlech zapínej jen do sluchátek — z reproduktorů se signál vrátí do
           vstupu a rozezvučí se zpětná vazba.
@@ -253,13 +253,13 @@ export const LiveGuitarAmp: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Guitar className="w-4 h-4 text-[#BF5AF2] shrink-0" />
           <h2 className="text-sm font-bold text-white">Aparát</h2>
-          <span className="text-[11px] text-neutral-500 flex-1 min-w-[200px]">
+          <span className="text-drobne text-neutral-500 flex-1 min-w-[200px]">
             Modely Neural Amp Modeler z tvé složky — hrají rovnou tady, bez další aplikace.
           </span>
           {aparat.model && (
             <button
               onClick={() => void namAparat.vyndejModel()}
-              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[11px] text-neutral-300 cursor-pointer shrink-0"
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-drobne text-neutral-300 cursor-pointer shrink-0"
             >
               Vypnout aparát
             </button>
@@ -267,20 +267,20 @@ export const LiveGuitarAmp: React.FC = () => {
         </div>
 
         {!kanal.bezi && (
-          <p className="text-[11px] text-neutral-500 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
+          <p className="text-drobne text-neutral-500 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
             Aparát se zapne, až spustíš vstup níž — teprve tehdy vzniká zvukový řetěz,
             do kterého se dá zapojit.
           </p>
         )}
 
         {duvodAparatu && (
-          <p className="text-[11px] text-neutral-400 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
+          <p className="text-drobne text-neutral-400 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
             {duvodAparatu}
           </p>
         )}
 
         {aparat.chyba && (
-          <p className="text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+          <p className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
             {aparat.chyba}
           </p>
         )}
@@ -288,7 +288,7 @@ export const LiveGuitarAmp: React.FC = () => {
         {/* Model trénovaný na jinou frekvenci nezní jako předloha —
             je posunutý. Není to chyba, ale slyšet to je. */}
         {aparat.neshodaFrekvence && (
-          <p className="text-[11px] text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-center gap-1.5">
+          <p className="text-drobne text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             Model je natrénovaný na {aparat.neshodaFrekvence} Hz, zvuk běží na jiné
             frekvenci — bude znít posunutě.
@@ -309,10 +309,10 @@ export const LiveGuitarAmp: React.FC = () => {
                     : 'bg-black/30 border-white/[0.08] hover:border-white/25'
                 }`}
               >
-                <span className={`block text-[11px] truncate ${zapnuty ? 'text-white font-bold' : 'text-neutral-300'}`}>
+                <span className={`block text-drobne truncate ${zapnuty ? 'text-white font-bold' : 'text-neutral-300'}`}>
                   {a.nazev}
                 </span>
-                <span className="block text-[9px] text-neutral-500 truncate">
+                <span className="block text-stitek text-neutral-500 truncate">
                   {[
                     a.architektura,
                     a.vzorkovaciFrekvence ? `${Math.round(a.vzorkovaciFrekvence / 1000)} kHz` : null,
@@ -325,10 +325,10 @@ export const LiveGuitarAmp: React.FC = () => {
         </div>
 
         {aparat.nacita && (
-          <p className="text-[11px] text-neutral-400">Načítám model…</p>
+          <p className="text-drobne text-neutral-400">Načítám model…</p>
         )}
         {aparat.model && !aparat.nacita && (
-          <p className="text-[11px] text-[#30D158] flex items-center gap-1.5">
+          <p className="text-drobne text-[#30D158] flex items-center gap-1.5">
             <Check className="w-3.5 h-3.5 shrink-0" />
             Hraješ přes „{aparaty.find((x) => x.soubor === aparat.model)?.nazev || aparat.model}"
           </p>

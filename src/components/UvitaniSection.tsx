@@ -303,7 +303,7 @@ const KDYKOLI: { nadpis: string; popis: string; kam: MainTabType }[] = [
 export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
   <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6">
     <div className="bg-gradient-to-br from-[#FF9F0A]/15 to-transparent border border-[#FF9F0A]/25 rounded-3xl p-6 sm:p-8">
-      <span className="bg-[#FF9F0A] text-black font-extrabold text-[10px] px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+      <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
         NeverLate Studio
       </span>
       <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mt-3">
@@ -335,7 +335,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
             </span>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-white">{k.nadpis}</h3>
-              <p className="text-[11px] text-neutral-400 leading-relaxed mt-1">{k.popis}</p>
+              <p className="text-drobne text-neutral-400 leading-relaxed mt-1">{k.popis}</p>
             </div>
           </div>
           <button
@@ -359,8 +359,8 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
             onClick={() => onJit(v.kam)}
             className="text-left px-3 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-[#FF9F0A]/50 cursor-pointer transition-all"
           >
-            <div className="text-[12px] font-bold text-white">{v.nadpis}</div>
-            <div className="text-[10px] text-neutral-500 leading-snug mt-0.5">{v.popis}</div>
+            <div className="text-drobne font-bold text-white">{v.nadpis}</div>
+            <div className="text-stitek text-neutral-500 leading-snug mt-0.5">{v.popis}</div>
           </button>
         ))}
       </div>

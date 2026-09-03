@@ -53,7 +53,7 @@ export const VstupPanel: React.FC<{
             <button
               key={t.id}
               onClick={() => void prepni(t.id)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
+              className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
                 je ? 'bg-[#30D158] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
@@ -64,7 +64,7 @@ export const VstupPanel: React.FC<{
       </div>
 
       {chyba && zdroje.includes('mikrofon') && (
-        <p className="text-[11px] text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}

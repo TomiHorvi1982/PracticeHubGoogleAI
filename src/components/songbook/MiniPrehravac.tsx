@@ -170,7 +170,7 @@ export const MiniPrehravac: React.FC<Props> = ({
           )}
         </button>
 
-        <span className="text-[11px] font-semibold text-white truncate flex-1 min-w-0">{nazev}</span>
+        <span className="text-drobne font-semibold text-white truncate flex-1 min-w-0">{nazev}</span>
 
         <button
           onClick={() => skoc(0)}
@@ -193,10 +193,10 @@ export const MiniPrehravac: React.FC<Props> = ({
       </div>
 
       {chyba ? (
-        <p className="text-[10px] text-[#FF453A] px-1">{chyba}</p>
+        <p className="text-stitek text-[#FF453A] px-1">{chyba}</p>
       ) : (
         <div className="flex items-center gap-2 px-0.5">
-          <span className="text-[9px] font-mono text-neutral-500 tabular-nums w-8 shrink-0">{cas(kde)}</span>
+          <span className="text-stitek font-mono text-neutral-500 tabular-nums w-8 shrink-0">{cas(kde)}</span>
           <input
             type="range"
             min={0}
@@ -209,7 +209,7 @@ export const MiniPrehravac: React.FC<Props> = ({
             onChange={(e) => skoc(Number(e.target.value))}
             className="flex-1 h-1 accent-[#FF9F0A] cursor-pointer disabled:cursor-default"
           />
-          <span className="text-[9px] font-mono text-neutral-500 tabular-nums w-8 shrink-0 text-right">
+          <span className="text-stitek font-mono text-neutral-500 tabular-nums w-8 shrink-0 text-right">
             {cas(delka)}
           </span>
         </div>

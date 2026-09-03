@@ -51,7 +51,7 @@ export const KytaraFader: React.FC<{
         <div className="flex gap-1">
           <button
             onClick={() => (stav.bezi ? kytaraKanal.stop() : void kytaraKanal.start())}
-            className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer ${
+            className={`flex-1 px-2 py-1.5 rounded-lg text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer ${
               stav.bezi ? 'bg-[#30D158] text-black' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
             }`}
           >
@@ -72,7 +72,7 @@ export const KytaraFader: React.FC<{
         </div>
 
         {stav.odposlech && (
-          <p className="text-[9px] text-[#FF9F0A] flex items-start gap-1">
+          <p className="text-stitek text-[#FF9F0A] flex items-start gap-1">
             <AlertTriangle className="w-3 h-3 shrink-0 mt-px" />
             Odposlech jen do sluchátek.
           </p>
@@ -90,7 +90,7 @@ export const KytaraFader: React.FC<{
                 }
               }}
               disabled={!stav.bezi}
-              className={`w-full px-2 py-1.5 rounded-lg text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-30 ${
+              className={`w-full px-2 py-1.5 rounded-lg text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-30 ${
                 stav.nahrava ? 'bg-[#FF453A] text-white' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
               }`}
             >
@@ -103,7 +103,7 @@ export const KytaraFader: React.FC<{
                 {onNahravka && (
                   <button
                     onClick={() => vezmiNahravku(onNahravka)}
-                    className="flex-1 px-2 py-1.5 rounded-lg bg-[#0A84FF] text-white text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer"
+                    className="flex-1 px-2 py-1.5 rounded-lg bg-[#0A84FF] text-white text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer"
                     title="Načíst do přehrávače a poslechnout si to ve smyčce"
                   >
                     <Play className="w-3 h-3" /> Poslechnout
@@ -132,7 +132,7 @@ export const KytaraFader: React.FC<{
           </>
         )}
 
-        {stav.chyba && <p className="text-[9px] text-[#FF453A]">{stav.chyba}</p>}
+        {stav.chyba && <p className="text-stitek text-[#FF453A]">{stav.chyba}</p>}
       </div>
     </FaderKanalu>
   );

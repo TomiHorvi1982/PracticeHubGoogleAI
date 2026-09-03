@@ -73,7 +73,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
             <button
               key={n.id}
               onClick={() => setNaCem(n.id)}
-              className={`px-2 py-1 rounded-lg text-[10px] font-semibold flex items-center gap-1 cursor-pointer ${
+              className={`px-2 py-1 rounded-lg text-stitek font-semibold flex items-center gap-1 cursor-pointer ${
                 naCem === n.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
               }`}
             >
@@ -94,7 +94,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
           <select
             value={ladeni}
             onChange={(e) => setLadeni(e.target.value)}
-            className="ml-auto bg-black/50 border border-white/10 text-white text-[11px] rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer max-w-[220px]"
+            className="ml-auto bg-black/50 border border-white/10 text-white text-drobne rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer max-w-[220px]"
           >
             {TUNING_PRESETS.map((t) => (
               <option key={t.name} value={t.name}>
@@ -124,7 +124,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
         )}
 
         <div className="space-y-1">
-          <div className="text-[9px] uppercase tracking-wider text-neutral-500">
+          <div className="text-stitek uppercase tracking-wider text-neutral-500">
             {naCem === 'hmatnik' ? 'Na klavíru' : 'Na hmatníku'}
           </div>
           {naCem === 'hmatnik' ? (
@@ -141,7 +141,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
             />
           )}
           {tukane.length > 0 && (
-            <div className="text-[10px] text-neutral-400 font-mono">
+            <div className="text-stitek text-neutral-400 font-mono">
               {[...new Set(tukane.map((m) => ((m % 12) + 12) % 12))]
                 .sort((a, b) => a - b)
                 .map((t) => TONY[t])
@@ -153,7 +153,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0">
-          <div className="text-[9px] uppercase tracking-wider text-neutral-500">Rozpoznáno</div>
+          <div className="text-stitek uppercase tracking-wider text-neutral-500">Rozpoznáno</div>
           {rozpoznany ? (
             <div className="flex items-baseline gap-1.5">
               <span
@@ -163,10 +163,10 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
               >
                 {rozpoznany.nazev}
               </span>
-              <span className="text-[10px] text-neutral-500">{rozpoznany.popis}</span>
+              <span className="text-stitek text-neutral-500">{rozpoznany.popis}</span>
             </div>
           ) : (
-            <span className="text-[11px] text-neutral-600">Naťukej aspoň dva tóny.</span>
+            <span className="text-drobne text-neutral-600">Naťukej aspoň dva tóny.</span>
           )}
         </div>
 
@@ -195,12 +195,12 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
               value={nazev}
               onChange={(e) => setNazev(e.target.value)}
               placeholder={rozpoznany?.nazev || 'Vlastní název'}
-              className="w-28 bg-black/50 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white outline-none focus:border-[#FF9F0A] font-mono"
+              className="w-28 bg-black/50 border border-white/10 rounded-lg px-2 py-1 text-drobne text-white outline-none focus:border-[#FF9F0A] font-mono"
             />
             <button
               onClick={() => onUlozit(nazev || rozpoznany?.nazev || '', prahy, tukane)}
               disabled={!rozpoznany && !nazev.trim()}
-              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-[#30D158] text-black cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-[#30D158] text-black cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Uložit
             </button>

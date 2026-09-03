@@ -125,20 +125,20 @@ export const AkordZKytary: React.FC = () => {
         )}
       </div>
 
-      <p className="text-[11px] text-neutral-500 leading-relaxed">
+      <p className="text-drobne text-neutral-500 leading-relaxed">
         Rozeber akord po strunách. Tóny se nasbírají, akord se pojmenuje a ukáže se, jak ho vzít
         na klavír.
       </p>
 
       {chyba && (
-        <p className="text-[11px] text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}
 
       {/* Co se právě sbírá — bez toho není poznat, jestli appka vůbec slyší. */}
       {poslouchá && rozpracovane.length > 0 && (
-        <div className="flex items-center gap-1.5 text-[11px] text-[#BF5AF2]">
+        <div className="flex items-center gap-1.5 text-drobne text-[#BF5AF2]">
           <span className="w-2 h-2 rounded-full bg-[#BF5AF2] animate-pulse" />
           slyším: {rozpracovane.map(nazevTonu).join(' · ')}
         </div>
@@ -152,9 +152,9 @@ export const AkordZKytary: React.FC = () => {
             </span>
             {akord.nalez && (
               <>
-                <span className="text-[11px] text-neutral-400">{akord.nalez.popis}</span>
+                <span className="text-drobne text-neutral-400">{akord.nalez.popis}</span>
                 {akord.nalez.jistota === 'pribuzne' && (
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">
+                  <span className="text-stitek px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">
                     nejbližší shoda
                   </span>
                 )}
@@ -162,13 +162,13 @@ export const AkordZKytary: React.FC = () => {
             )}
           </div>
 
-          <div className="text-[11px] text-neutral-500">
+          <div className="text-drobne text-neutral-500">
             zahrané tóny: {akord.tony.map(nazevTonu).join(' · ')}
           </div>
 
           {/* Klaviatura s hmatem. */}
           <div className="pt-1">
-            <div className="text-[10px] uppercase tracking-widest text-neutral-500 mb-1.5 flex items-center gap-1.5">
+            <div className="text-stitek uppercase tracking-widest text-neutral-500 mb-1.5 flex items-center gap-1.5">
               <Piano className="w-3.5 h-3.5" /> na klavír
             </div>
             <div className="relative h-24 flex select-none">
@@ -178,7 +178,7 @@ export const AkordZKytary: React.FC = () => {
                 return (
                   <div
                     key={i}
-                    className={`flex-1 border border-black/40 rounded-b-md flex items-end justify-center pb-1 text-[9px] font-bold ${
+                    className={`flex-1 border border-black/40 rounded-b-md flex items-end justify-center pb-1 text-stitek font-bold ${
                       svit ? 'bg-[#BF5AF2] text-white' : 'bg-neutral-100 text-neutral-400'
                     }`}
                   >
@@ -197,7 +197,7 @@ export const AkordZKytary: React.FC = () => {
                     <div
                       key={`${o}-${b}`}
                       style={{ left: `calc(${levo}% - ${sirkaBile * 0.3}%)`, width: `${sirkaBile * 0.6}%` }}
-                      className={`absolute top-0 h-14 rounded-b-md border border-black/60 flex items-end justify-center pb-1 text-[8px] font-bold ${
+                      className={`absolute top-0 h-14 rounded-b-md border border-black/60 flex items-end justify-center pb-1 text-stitek font-bold ${
                         svit ? 'bg-[#BF5AF2] text-white' : 'bg-neutral-900 text-transparent'
                       }`}
                     >

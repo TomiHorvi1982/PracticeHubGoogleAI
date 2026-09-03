@@ -81,7 +81,7 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
           <button
             key={p.id}
             onClick={() => setVybrany(p.id)}
-            className={`px-2 py-1 rounded-lg text-[10px] font-semibold cursor-pointer transition-all max-w-[160px] truncate ${
+            className={`px-2 py-1 rounded-lg text-stitek font-semibold cursor-pointer transition-all max-w-[160px] truncate ${
               vybrany === p.id
                 ? 'bg-[#FF9F0A] text-black'
                 : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.14]'
@@ -93,7 +93,7 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
         ))}
         <button
           onClick={() => setPridavam((v) => !v)}
-          className="px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer"
+          className="px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer"
         >
           {pridavam ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
           {pridavam ? 'Zrušit' : 'Z knihovny'}
@@ -134,15 +134,15 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
 
       <div className="flex-1 min-h-0 overflow-hidden">
         {chyba ? (
-          <p className="text-[11px] text-[#FF453A]">{chyba}</p>
+          <p className="text-drobne text-[#FF453A]">{chyba}</p>
         ) : nacitam ? (
-          <p className="text-[11px] text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
             <Loader2 className="w-3 h-3 animate-spin" /> Načítám partituru…
           </p>
         ) : url && vybrany ? (
           <PdfNahled url={url} nazev={prilohy.find((p) => p.id === vybrany)?.name || 'Noty'} />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-[11px]">
+          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-drobne">
             <FileX2 className="w-5 h-5 text-neutral-700" />
             K téhle písni zatím žádné noty nejsou.
           </div>

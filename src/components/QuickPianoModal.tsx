@@ -131,7 +131,7 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
                         playKey(noteName);
                       }}
                       style={{ left: `${leftPx}px` }}
-                      className={`absolute top-0 w-7 h-24 sm:h-28 rounded-b-lg font-bold text-[10px] flex items-end justify-center pb-2 cursor-pointer z-10 transition-all ${
+                      className={`absolute top-0 w-7 h-24 sm:h-28 rounded-b-lg font-bold text-stitek flex items-end justify-center pb-2 cursor-pointer z-10 transition-all ${
                         isDown
                           ? 'bg-[#FF9F0A] text-black translate-y-1'
                           : 'bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md'
@@ -147,7 +147,7 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer info */}
-        <div className="flex items-center justify-between text-[11px] text-neutral-400 px-1">
+        <div className="flex items-center justify-between text-drobne text-neutral-400 px-1">
           <span>Stisknutím klávesy se přehraje tón v reálném čase.</span>
           <button
             onClick={onClose}

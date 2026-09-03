@@ -115,23 +115,23 @@ export const HraniTest: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Zahraj, co ti zadám</h3>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-drobne text-neutral-400">
               Trefu ověří detekce tónu — z kytary, z MIDI kláves i z klávesnice.
             </p>
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>
               <div className="text-lg font-bold text-[#30D158] tabular-nums">{splneno}</div>
-              <div className="text-[10px] text-neutral-500">splněno</div>
+              <div className="text-stitek text-neutral-500">splněno</div>
             </div>
             <div>
               <div className="text-lg font-bold text-[#FF453A] tabular-nums">{chyby}</div>
-              <div className="text-[10px] text-neutral-500">chyb</div>
+              <div className="text-stitek text-neutral-500">chyb</div>
             </div>
             {centy !== null && (
               <div>
                 <div className="text-lg font-bold text-[#FF9F0A] tabular-nums">{centy}¢</div>
-                <div className="text-[10px] text-neutral-500">intonace</div>
+                <div className="text-stitek text-neutral-500">intonace</div>
               </div>
             )}
           </div>
@@ -183,14 +183,14 @@ export const HraniTest: React.FC = () => {
         <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-5 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[200px]">
-              <div className="text-[10px] uppercase tracking-wider text-neutral-500">
+              <div className="text-stitek uppercase tracking-wider text-neutral-500">
                 {DRUHY.find((d) => d.id === ukol.druh)?.nazev}
                 {ukol.zpusob === 'poslech' && ' po sluchu'}
               </div>
               <h4 className="text-2xl font-bold text-white">
                 {odhaleno ? ukol.nazev : '? ? ?'}
               </h4>
-              <p className="text-[11px] text-neutral-500 mt-0.5">
+              <p className="text-drobne text-neutral-500 mt-0.5">
                 {ukol.druh === 'podklad'
                   ? 'Improvizuj do kadence — počítají se tóny mimo tóninu.'
                   : odhaleno
@@ -252,7 +252,7 @@ export const HraniTest: React.FC = () => {
               {stav.trefy.slice(-24).map((t, i) => (
                 <span
                   key={i}
-                  className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+                  className={`text-stitek px-1.5 py-0.5 rounded font-bold ${
                     t.spravne
                       ? 'bg-[#30D158]/20 text-[#30D158]'
                       : t.minulO > 0

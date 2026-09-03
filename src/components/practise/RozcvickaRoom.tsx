@@ -82,7 +82,7 @@ export const RozcvickaRoom: React.FC = () => {
         <Flame className="w-5 h-5 text-[#FF9F0A]" />
         <div className="flex-1 min-w-[200px]">
           <h3 className="text-sm font-bold text-white">Rozcvička před hraním</h3>
-          <p className="text-[11px] text-neutral-400">
+          <p className="text-drobne text-neutral-400">
             {delkaProgramu()} minut, {celkem} cviků. Jde se odshora — přesnost levé ruky
             nemá cenu cvičit, dokud pravá nedrží tempo sama.
           </p>
@@ -93,7 +93,7 @@ export const RozcvickaRoom: React.FC = () => {
           </div>
           <button
             onClick={() => uloz(new Set())}
-            className="text-[10px] text-neutral-500 hover:text-white cursor-pointer"
+            className="text-stitek text-neutral-500 hover:text-white cursor-pointer"
           >
             začít znovu
           </button>
@@ -107,7 +107,7 @@ export const RozcvickaRoom: React.FC = () => {
             <span className="text-3xl font-black text-[#FF9F0A] tabular-nums w-16">{zbyva}</span>
             <div className="flex-1 min-w-[180px]">
               <div className="text-sm font-bold text-white">{bezici.nazev}</div>
-              <div className="text-[11px] text-neutral-300">{bezici.pozor}</div>
+              <div className="text-drobne text-neutral-300">{bezici.pozor}</div>
             </div>
             {bezici.bpmOd > 0 && (
               <div className="flex items-center gap-2">
@@ -157,7 +157,7 @@ export const RozcvickaRoom: React.FC = () => {
         <div key={blok.id} className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
           <div>
             <h4 className="text-sm font-bold text-white">{blok.nazev}</h4>
-            <p className="text-[11px] text-neutral-500">{blok.popis}</p>
+            <p className="text-drobne text-neutral-500">{blok.popis}</p>
           </div>
 
           <div className="space-y-1.5">
@@ -186,16 +186,16 @@ export const RozcvickaRoom: React.FC = () => {
 
                   <div className="flex-1 min-w-[180px]">
                     <div className="text-xs font-semibold text-white">{c.nazev}</div>
-                    <div className="text-[11px] text-neutral-400">{c.popis}</div>
+                    <div className="text-drobne text-neutral-400">{c.popis}</div>
                   </div>
 
-                  <span className="text-[10px] font-mono text-neutral-500 tabular-nums">
+                  <span className="text-stitek font-mono text-neutral-500 tabular-nums">
                     {c.bpmOd ? `${c.bpmOd}–${c.bpmDo} BPM` : 'bez tempa'} · {c.vteriny}s
                   </span>
 
                   <button
                     onClick={() => spust(c)}
-                    className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-200 hover:text-white text-[11px] font-bold cursor-pointer flex items-center gap-1"
+                    className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-200 hover:text-white text-drobne font-bold cursor-pointer flex items-center gap-1"
                   >
                     <Play className="w-3 h-3" /> Cvičit
                   </button>

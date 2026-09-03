@@ -91,7 +91,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
     <div className="space-y-0.5">
       <button
         onClick={() => onVybrat(null, null)}
-        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[12px] cursor-pointer transition-all ${
+        className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-drobne cursor-pointer transition-all ${
           vybrana.kategorie === null && !vybrana.podkategorie
             ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'
             : 'text-neutral-300 hover:bg-white/[0.05]'
@@ -99,7 +99,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
       >
         <FolderOpen className="w-3.5 h-3.5 shrink-0" />
         <span className="flex-1 text-left">Celá knihovna</span>
-        <span className="text-[10px] font-mono text-neutral-500 tabular-nums">
+        <span className="text-stitek font-mono text-neutral-500 tabular-nums">
           {celkem.toLocaleString('cs')}
         </span>
       </button>
@@ -107,7 +107,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
       {nezarazenych > 0 && (
         <button
           onClick={() => onVybrat(null, '__bez__')}
-          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-[12px] cursor-pointer transition-all ${
+          className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-drobne cursor-pointer transition-all ${
             vybrana.podkategorie === '__bez__' && vybrana.kategorie === null
               ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'
               : 'text-neutral-400 hover:bg-white/[0.05]'
@@ -116,7 +116,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
         >
           <Inbox className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1 text-left">Nezařazené</span>
-          <span className="text-[10px] font-mono text-neutral-500 tabular-nums">
+          <span className="text-stitek font-mono text-neutral-500 tabular-nums">
             {nezarazenych.toLocaleString('cs')}
           </span>
         </button>
@@ -158,7 +158,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                 // tlačítko pro čtečku i pro hledání bezejmenné.
                 aria-label={`Složka ${nazevKategorie(k.id)}`}
                 title={`Otevřít složku ${nazevKategorie(k.id)}`}
-                className={`flex-1 flex items-center gap-2 py-1.5 pr-2.5 text-[12px] cursor-pointer text-left ${
+                className={`flex-1 flex items-center gap-2 py-1.5 pr-2.5 text-drobne cursor-pointer text-left ${
                   vybrana.kategorie === k.id && !vybrana.podkategorie
                     ? 'text-[#FF9F0A] font-bold'
                     : 'text-neutral-300'
@@ -166,10 +166,10 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
               >
                 <span className="shrink-0">{ikonaKategorie(k.id)}</span>
                 <span className="flex-1 truncate">{nazevKategorie(k.id)}</span>
-                <span className="text-[10px] font-mono text-neutral-500 tabular-nums">
+                <span className="text-stitek font-mono text-neutral-500 tabular-nums">
                   {k.souboru ? k.souboru.toLocaleString('cs') : ''}
                 </span>
-                <span className="text-[10px] font-mono text-neutral-600 tabular-nums w-14 text-right">
+                <span className="text-stitek font-mono text-neutral-600 tabular-nums w-14 text-right">
                   {k.souboru ? mb(k.bajtu) : 'prázdné'}
                 </span>
               </button>
@@ -190,14 +190,14 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                       <button
                         onClick={() => onVybrat(k.id, d.podkategorie)}
                         aria-label={`Podsložka ${d.podkategorie} ve složce ${nazevKategorie(k.id)}`}
-                        className={`w-full flex items-center gap-2 px-2 py-1 text-[11px] rounded-lg cursor-pointer ${
+                        className={`w-full flex items-center gap-2 px-2 py-1 text-drobne rounded-lg cursor-pointer ${
                           vybrana.kategorie === k.id && vybrana.podkategorie === d.podkategorie
                             ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'
                             : 'text-neutral-400 hover:bg-white/[0.05]'
                         }`}
                       >
                         <span className="flex-1 truncate text-left">{d.podkategorie}</span>
-                        <span className="text-[10px] font-mono text-neutral-600 tabular-nums">
+                        <span className="text-stitek font-mono text-neutral-600 tabular-nums">
                           {d.souboru.toLocaleString('cs')}
                         </span>
                       </button>
@@ -213,7 +213,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                       <div
                         key={p}
                         {...cileni(k.id, p)}
-                        className={`px-2 py-1 text-[11px] rounded-lg ${
+                        className={`px-2 py-1 text-drobne rounded-lg ${
                           nadKym === klic(k.id, p)
                             ? 'ring-1 ring-[#30D158] bg-[#30D158]/10 text-[#30D158]'
                             : 'text-neutral-600 italic'

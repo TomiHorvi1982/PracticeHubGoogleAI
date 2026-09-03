@@ -90,7 +90,7 @@ export const PoslechKytaryPanel: React.FC<{
 
         <div>
           <div className="text-xs font-bold text-white">Co hraješ</div>
-          <p className="text-[11px] text-neutral-400">
+          <p className="text-drobne text-neutral-400">
             Zahraj pár taktů a appka pozná stupnici i akordy, které do ní patří.
           </p>
         </div>
@@ -98,7 +98,7 @@ export const PoslechKytaryPanel: React.FC<{
         {/* Ozvěna: co mikrofon slyší, to zahraje vybraný nástroj.
             Kytara se tím dá poslouchat jako klavír nebo mandolína. */}
         <label
-          className="flex items-center gap-2 text-[11px] text-neutral-300 cursor-pointer"
+          className="flex items-center gap-2 text-drobne text-neutral-300 cursor-pointer"
           title="Zahraje vybraným nástrojem, co zrovna slyší"
         >
           <input
@@ -119,7 +119,7 @@ export const PoslechKytaryPanel: React.FC<{
             poslechKytary.nastavNastroj(v);
             void audioSynth.preloadInstrument(v);
           }}
-          className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-neutral-200 cursor-pointer disabled:opacity-40 max-w-[190px]"
+          className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-drobne text-neutral-200 cursor-pointer disabled:opacity-40 max-w-[190px]"
         >
           {SKUPINY.map(([kategorie, nastroje]) => (
             <optgroup key={kategorie} label={kategorie}>
@@ -133,14 +133,14 @@ export const PoslechKytaryPanel: React.FC<{
         {stav.historie.length > 0 && (
           <button
             onClick={() => poslechKytary.vymazHistorii()}
-            className="ml-auto text-[11px] text-neutral-500 hover:text-white cursor-pointer flex items-center gap-1.5"
+            className="ml-auto text-drobne text-neutral-500 hover:text-white cursor-pointer flex items-center gap-1.5"
           >
             <Eraser className="w-3.5 h-3.5" /> Zapomenout
           </button>
         )}
       </div>
 
-      {stav.chyba && <div className="text-[11px] text-[#FF453A]">{stav.chyba}</div>}
+      {stav.chyba && <div className="text-drobne text-[#FF453A]">{stav.chyba}</div>}
 
       {/* Kanál vstupu. Když detekce mlčí, je odsud vidět proč: buď ze
           zvukovky nechodí nic, nebo je signál tak slabý, že se ztratí
@@ -159,7 +159,7 @@ export const PoslechKytaryPanel: React.FC<{
           <div className={`text-4xl font-black tabular-nums ${stav.ton ? 'text-white' : 'text-neutral-700'}`}>
             {stav.ton ? Note.pitchClass(stav.ton) : '—'}
           </div>
-          <div className="text-[10px] font-mono text-neutral-500">
+          <div className="text-stitek font-mono text-neutral-500">
             {stav.ton ? `${stav.ton} · ${stav.frekvence.toFixed(1)} Hz` : 'ticho'}
           </div>
         </div>
@@ -175,7 +175,7 @@ export const PoslechKytaryPanel: React.FC<{
               />
             )}
           </div>
-          <div className="flex justify-between text-[9px] text-neutral-600 mt-1">
+          <div className="flex justify-between text-stitek text-neutral-600 mt-1">
             <span>-50 c</span>
             <span className={ladeni ? 'text-[#30D158]' : 'text-neutral-400'}>
               {stav.ton ? `${stav.centy > 0 ? '+' : ''}${stav.centy} centů` : ''}
@@ -188,12 +188,12 @@ export const PoslechKytaryPanel: React.FC<{
       {/* Co zaznělo */}
       <div className="flex flex-wrap gap-1.5">
         {stav.historie.length === 0 && (
-          <span className="text-[11px] text-neutral-500">Zatím nic — zahraj pár tónů.</span>
+          <span className="text-drobne text-neutral-500">Zatím nic — zahraj pár tónů.</span>
         )}
         {stav.historie.map((t, i) => (
           <span
             key={`${t}-${i}`}
-            className="px-2 py-0.5 rounded-lg text-[11px] font-mono border border-white/10 text-neutral-300"
+            className="px-2 py-0.5 rounded-lg text-drobne font-mono border border-white/10 text-neutral-300"
             style={{ opacity: 1 - i * 0.03 }}
           >
             {t}
@@ -206,7 +206,7 @@ export const PoslechKytaryPanel: React.FC<{
         <div className="border-t border-white/[0.06] pt-3 space-y-2">
           {stav.akord.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500 w-20">Akord</span>
+              <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Akord</span>
               {stav.akord.map((a) => (
                 <span key={a} className="px-2 py-1 rounded-lg bg-[#0A84FF]/15 text-[#0A84FF] text-xs font-bold">
                   {a}
@@ -217,7 +217,7 @@ export const PoslechKytaryPanel: React.FC<{
 
           {stav.stupnice.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500 w-20">Stupnice</span>
+              <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Stupnice</span>
               {stav.stupnice.map((s, i) => (
                 <button
                   key={s}
@@ -241,7 +241,7 @@ export const PoslechKytaryPanel: React.FC<{
 
           {akordyStupnice.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500 w-20">Sedí k tomu</span>
+              <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Sedí k tomu</span>
               {akordyStupnice.map((a) => (
                 <span key={a} className="px-2 py-1 rounded-lg bg-white/[0.05] text-neutral-300 text-xs font-mono">
                   {a}

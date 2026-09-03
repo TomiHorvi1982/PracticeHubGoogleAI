@@ -103,7 +103,7 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
                 setVybrana(parseInt(e.target.value, 10));
                 setVybralClovek(true);
               }}
-              className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-[11px] text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
+              className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-drobne text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
             >
               {prilohy.map((p, i) => (
                 <option key={p.id} value={i}>
@@ -113,7 +113,7 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
             </select>
             <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-          <span className="text-[10px] font-mono text-neutral-600 shrink-0">
+          <span className="text-stitek font-mono text-neutral-600 shrink-0">
             {vybrana + 1}/{prilohy.length}
           </span>
         </div>
@@ -121,9 +121,9 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
 
       <div className="flex-1 min-h-0 overflow-auto">
         {chyba ? (
-          <p className="text-[11px] text-[#FF453A] p-4 text-center">{chyba}</p>
+          <p className="text-drobne text-[#FF453A] p-4 text-center">{chyba}</p>
         ) : !adresa ? (
-          <p className="text-[11px] text-neutral-500 p-4 text-center">Načítám z úložiště…</p>
+          <p className="text-drobne text-neutral-500 p-4 text-center">Načítám z úložiště…</p>
         ) : !jeGuitarPro(priloha.name) ? (
           <TextovaTabulatura
             url={adresa}
@@ -187,11 +187,11 @@ const TextovaTabulatura: React.FC<TextProps> = ({ url, text, nacitam, onNacti })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
-  if (nacitam) return <p className="text-[11px] text-neutral-500 p-4 text-center">Načítám text…</p>;
-  if (!text) return <p className="text-[11px] text-neutral-500 p-4 text-center">Prázdný soubor.</p>;
+  if (nacitam) return <p className="text-drobne text-neutral-500 p-4 text-center">Načítám text…</p>;
+  if (!text) return <p className="text-drobne text-neutral-500 p-4 text-center">Prázdný soubor.</p>;
 
   return (
-    <pre className="whitespace-pre font-mono text-[11px] text-neutral-300 leading-snug p-3 overflow-auto">
+    <pre className="whitespace-pre font-mono text-drobne text-neutral-300 leading-snug p-3 overflow-auto">
       {text}
     </pre>
   );

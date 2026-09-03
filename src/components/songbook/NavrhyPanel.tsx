@@ -83,7 +83,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
       </button>
 
       {!otevreno && (
-        <p className="text-[11px] text-neutral-400 pl-6">
+        <p className="text-drobne text-neutral-400 pl-6">
           Klikni a vyber, co k písni patří. Co odmítneš, se znovu nenabídne.
         </p>
       )}
@@ -95,12 +95,12 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
               key={`${n.nazev}-${i}`}
               className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-2xl px-3 py-2"
             >
-              <span className="text-[9px] font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/10 px-1.5 py-0.5 rounded shrink-0">
+              <span className="text-stitek font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/10 px-1.5 py-0.5 rounded shrink-0">
                 {POPIS_DRUHU[n.druh] || n.druh}
               </span>
               <div className="min-w-0 flex-1">
-                <div className="text-[12px] text-white truncate">{n.nazev}</div>
-                <div className="text-[10px] text-neutral-500">
+                <div className="text-drobne text-white truncate">{n.nazev}</div>
+                <div className="text-stitek text-neutral-500">
                   {n.zdroj} · shoda {Math.round(n.jistota * 100)} %
                 </div>
               </div>
@@ -129,7 +129,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
         </div>
       )}
 
-      {hlaska && <p className="text-[11px] text-[#30D158] pl-6">{hlaska}</p>}
+      {hlaska && <p className="text-drobne text-[#30D158] pl-6">{hlaska}</p>}
     </div>
   );
 };

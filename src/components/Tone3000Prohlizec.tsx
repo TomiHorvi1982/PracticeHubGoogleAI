@@ -136,7 +136,7 @@ export const Tone3000Prohlizec: React.FC = () => {
           Tone3000 — aparáty a bedny
         </h3>
         {celkem > 0 && (
-          <span className="text-[10px] text-neutral-500 shrink-0 tabular-nums">
+          <span className="text-stitek text-neutral-500 shrink-0 tabular-nums">
             {pocet(celkem)} výsledků
           </span>
         )}
@@ -149,38 +149,38 @@ export const Tone3000Prohlizec: React.FC = () => {
             value={dotaz}
             onChange={(e) => setDotaz(e.target.value)}
             placeholder="Marshall, Mesa, V30, plate reverb…"
-            className="w-full bg-black/30 border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-[11px] text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/25"
+            className="w-full bg-black/30 border border-white/[0.08] rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder:text-neutral-600 focus:outline-none focus:border-white/25"
           />
         </div>
         <select
           value={razeni}
           onChange={(e) => { setRazeni(e.target.value); setStrana(1); void hledej(dotaz, e.target.value, 1); }}
-          className="bg-black/30 border border-white/[0.08] rounded-xl px-2 py-2 text-[11px] text-white focus:outline-none focus:border-white/25"
+          className="bg-black/30 border border-white/[0.08] rounded-xl px-2 py-2 text-drobne text-white focus:outline-none focus:border-white/25"
         >
           {RAZENI.map((r) => <option key={r.id} value={r.id}>{r.nazev}</option>)}
         </select>
         <button
           type="submit"
-          className="text-[11px] px-3 py-2 rounded-xl bg-[#0A84FF]/15 border border-[#0A84FF]/40 text-[#0A84FF] hover:bg-[#0A84FF]/25 transition-colors cursor-pointer"
+          className="text-drobne px-3 py-2 rounded-xl bg-[#0A84FF]/15 border border-[#0A84FF]/40 text-[#0A84FF] hover:bg-[#0A84FF]/25 transition-colors cursor-pointer"
         >
           Hledat
         </button>
       </form>
 
       {chyba && (
-        <p className="text-[11px] text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-start gap-1.5">
+        <p className="text-drobne text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />{chyba}
         </p>
       )}
 
       {nacita && (
-        <p className="text-[11px] text-neutral-400 flex items-center gap-1.5">
+        <p className="text-drobne text-neutral-400 flex items-center gap-1.5">
           <Loader2 className="w-3.5 h-3.5 animate-spin" />Hledám…
         </p>
       )}
 
       {!nacita && !tony.length && !chyba && (
-        <p className="text-[11px] text-neutral-500">Nic takového se nenašlo.</p>
+        <p className="text-drobne text-neutral-500">Nic takového se nenašlo.</p>
       )}
 
       <div className="space-y-1.5">
@@ -193,24 +193,24 @@ export const Tone3000Prohlizec: React.FC = () => {
                 className="w-full text-left px-3 py-2 hover:bg-white/[0.03] transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-neutral-200 truncate flex-1">{t.nazev}</span>
+                  <span className="text-drobne text-neutral-200 truncate flex-1">{t.nazev}</span>
                   {/* Katalog hlásí u některých tónů jiný počet, než pak
                       vrátí (61 vs 30), a `models_count` počítá i bedny.
                       Proto se to bere jen jako hrubý údaj a nic se
                       netvrdí o tom, kolik z toho jsou aparáty — přesný
                       seznam je vidět po rozkliknutí. */}
-                  <span className="text-[9px] text-neutral-600 shrink-0 tabular-nums">
+                  <span className="text-stitek text-neutral-600 shrink-0 tabular-nums">
                     {t.poctyModelu > 0 && `~${t.poctyModelu} souborů`}
                     {t.poctyIr > 0 && ` · ${t.poctyIr} beden`}
                   </span>
-                  <span className="text-[9px] text-neutral-600 shrink-0 tabular-nums">
+                  <span className="text-stitek text-neutral-600 shrink-0 tabular-nums">
                     ↓ {pocet(t.stazeni)}
                   </span>
                 </div>
                 {t.znacky.length > 0 && (
                   <div className="flex flex-wrap gap-1 mt-1">
                     {t.znacky.slice(0, 5).map((z) => (
-                      <span key={z} className="text-[9px] text-neutral-500 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">
+                      <span key={z} className="text-stitek text-neutral-500 bg-white/5 border border-white/10 rounded-md px-1.5 py-0.5">
                         {z}
                       </span>
                     ))}
@@ -221,32 +221,32 @@ export const Tone3000Prohlizec: React.FC = () => {
               {oteviren && (
                 <div className="px-3 pb-3 pt-1 border-t border-white/[0.06] space-y-1">
                   {nacitaModely && (
-                    <p className="text-[10px] text-neutral-500 flex items-center gap-1.5">
+                    <p className="text-stitek text-neutral-500 flex items-center gap-1.5">
                       <Loader2 className="w-3 h-3 animate-spin" />Načítám soubory…
                     </p>
                   )}
                   {!nacitaModely && !modely.length && (
-                    <p className="text-[10px] text-neutral-600">Žádné soubory ke stažení.</p>
+                    <p className="text-stitek text-neutral-600">Žádné soubory ke stažení.</p>
                   )}
                   {modely.map((m) => (
                     <div key={m.id} className="flex items-center gap-2 py-1">
-                      <span className={`text-[9px] shrink-0 border rounded-md px-1.5 py-0.5 ${
+                      <span className={`text-stitek shrink-0 border rounded-md px-1.5 py-0.5 ${
                         m.typ === 'nam'
                           ? 'text-[#FF9F0A] border-[#FF9F0A]/30 bg-[#FF9F0A]/10'
                           : 'text-[#FF375F] border-[#FF375F]/30 bg-[#FF375F]/10'
                       }`}>
                         {m.typ === 'nam' ? 'aparát' : 'bedna'}
                       </span>
-                      <span className="text-[10px] text-neutral-300 truncate flex-1">{m.nazev}</span>
+                      <span className="text-stitek text-neutral-300 truncate flex-1">{m.nazev}</span>
                       {stazene[m.id] ? (
-                        <span className="text-[9px] text-[#30D158] shrink-0 flex items-center gap-1 max-w-[45%] truncate">
+                        <span className="text-stitek text-[#30D158] shrink-0 flex items-center gap-1 max-w-[45%] truncate">
                           <Check className="w-3 h-3 shrink-0" />{stazene[m.id]}
                         </span>
                       ) : (
                         <button
                           onClick={() => void stahni(m)}
                           disabled={stahuje === m.id}
-                          className="text-[9px] shrink-0 px-2 py-1 rounded-lg border border-white/[0.08] text-neutral-300 hover:border-white/25 transition-colors cursor-pointer disabled:opacity-40 flex items-center gap-1"
+                          className="text-stitek shrink-0 px-2 py-1 rounded-lg border border-white/[0.08] text-neutral-300 hover:border-white/25 transition-colors cursor-pointer disabled:opacity-40 flex items-center gap-1"
                         >
                           {stahuje === m.id
                             ? <Loader2 className="w-3 h-3 animate-spin" />
@@ -272,7 +272,7 @@ export const Tone3000Prohlizec: React.FC = () => {
           >
             <ChevronLeft className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[10px] text-neutral-500 tabular-nums">
+          <span className="text-stitek text-neutral-500 tabular-nums">
             {strana} / {stranek}
           </span>
           <button
@@ -285,7 +285,7 @@ export const Tone3000Prohlizec: React.FC = () => {
         </div>
       )}
 
-      <p className="text-[10px] text-neutral-600 leading-relaxed">
+      <p className="text-stitek text-neutral-600 leading-relaxed">
         Aparáty se ukládají mezi ostatní modely, takže je hned uvidíš v nabídce
         nahoře. Bedny (IR) jdou do vlastní složky — použije je Soundshed.
       </p>

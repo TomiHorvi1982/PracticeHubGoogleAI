@@ -209,25 +209,25 @@ export const TestRoom: React.FC = () => {
           <Brain className="w-5 h-5 text-[#BF5AF2]" />
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-bold text-white">Zkoušení</h3>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-drobne text-neutral-400">
               Otázky se skládají pokaždé znovu, takže se nedají naučit nazpaměť.
             </p>
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>
               <div className="text-lg font-bold text-[#30D158] tabular-nums">{skore}</div>
-              <div className="text-[10px] text-neutral-500">správně</div>
+              <div className="text-stitek text-neutral-500">správně</div>
             </div>
             <div>
               <div className="text-lg font-bold text-[#FF453A] tabular-nums">{chyb}</div>
-              <div className="text-[10px] text-neutral-500">chyb</div>
+              <div className="text-stitek text-neutral-500">chyb</div>
             </div>
             {rekord > 0 && (
               <div>
                 <div className="text-lg font-bold text-[#FF9F0A] tabular-nums flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5" /> {rekord}
                 </div>
-                <div className="text-[10px] text-neutral-500">rekord</div>
+                <div className="text-stitek text-neutral-500">rekord</div>
               </div>
             )}
           </div>
@@ -281,7 +281,7 @@ export const TestRoom: React.FC = () => {
         <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-6 space-y-4">
           <div>
             <h4 className="text-lg font-bold text-white">{otazka.zadani}</h4>
-            <p className="text-[11px] text-neutral-500 mt-1">{otazka.napoveda}</p>
+            <p className="text-drobne text-neutral-500 mt-1">{otazka.napoveda}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

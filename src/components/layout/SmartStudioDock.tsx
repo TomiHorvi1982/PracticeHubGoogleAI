@@ -43,13 +43,13 @@ export const SmartStudioDock: React.FC = () => {
       {/* Dock Header Bar */}
       <div className="h-11 px-4 sm:px-6 bg-[#161722]/80 border-b border-white/[0.06] flex items-center justify-between select-none">
         <div className="flex items-center gap-3">
-          <span className="text-[10px] font-extrabold text-[#FF9F0A] uppercase tracking-widest px-2.5 py-1 rounded-lg bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 flex items-center gap-1.5 shadow-sm">
+          <span className="text-stitek font-extrabold text-[#FF9F0A] uppercase tracking-widest px-2.5 py-1 rounded-lg bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-[#FF9F0A] animate-pulse" />
             STUDIO DOCK
           </span>
           {activeChord && (
             <span className="text-xs font-bold text-white bg-black/40 px-2.5 py-1 rounded-lg border border-white/10 flex items-center gap-1.5">
-              <span className="text-neutral-400 font-medium text-[11px]">Akord:</span>
+              <span className="text-neutral-400 font-medium text-drobne">Akord:</span>
               <span className="text-[#FF9F0A] font-extrabold font-mono">{activeChord}</span>
             </span>
           )}

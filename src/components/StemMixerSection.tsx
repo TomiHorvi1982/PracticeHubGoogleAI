@@ -502,17 +502,17 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   />
                 </label>
                 {nahrava ? (
-                  <span className="text-[11px] text-amber-400">
+                  <span className="text-drobne text-amber-400">
                     Nahrávám {nahrava.hotovo} z {nahrava.celkem}…
                   </span>
                 ) : (
-                  <span className="text-[11px] text-slate-500">
+                  <span className="text-drobne text-slate-500">
                     Uloží se do knihovny a rovnou pověsí na fadery podle názvu.
                   </span>
                 )}
               </div>
 
-              <div className="text-[11px] text-slate-500 font-mono truncate pt-1 border-t border-slate-800">
+              <div className="text-drobne text-slate-500 font-mono truncate pt-1 border-t border-slate-800">
                 Nebo ze složky: {mistni.slozka}
               </div>
 
@@ -532,13 +532,13 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                         <span className="text-xs font-bold text-white truncate flex-1">
                           {sk.nazev || '(bez názvu)'}
                         </span>
-                        <span className="text-[10px] text-slate-500 shrink-0">
+                        <span className="text-stitek text-slate-500 shrink-0">
                           {sk.stopy.length} {sk.stopy.length === 1 ? 'stopa' : sk.stopy.length < 5 ? 'stopy' : 'stop'}
                         </span>
                         {sk.stopy.some((t) => t.role) && (
                           <button
                             onClick={() => nactiSadu(sk)}
-                            className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold cursor-pointer shrink-0"
+                            className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-drobne font-bold cursor-pointer shrink-0"
                           >
                             Načíst na fadery
                           </button>
@@ -552,7 +552,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                             title={`${t.jmeno} — pověsit na ${
                               ROLE_FADERU.find((r) => r.id === (t.role || cilovyFader))?.popis || t.role
                             }`}
-                            className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-[10px] text-slate-300 cursor-pointer"
+                            className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-stitek text-slate-300 cursor-pointer"
                           >
                             {ROLE_FADERU.find((r) => r.id === t.role)?.popis || '?'}
                             <span className="text-slate-500 ml-1">{Math.round(t.velikost / 1048576)} MB</span>
@@ -670,11 +670,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   {uklada ? 'Ukládám…' : cilovaPisen ? 'Připojit ke skladbě' : 'Uložit jako skladbu'}
                 </button>
               </div>
-              {hlaska && <div className="text-[11px] text-emerald-400">{hlaska}</div>}
+              {hlaska && <div className="text-drobne text-emerald-400">{hlaska}</div>}
 
               {vlastniStopy.map((v) => (
                 <div key={v.role} className="flex items-center gap-2 text-xs text-slate-300">
-                  <span className="text-[10px] font-bold text-amber-400 w-16 shrink-0 uppercase">
+                  <span className="text-stitek font-bold text-amber-400 w-16 shrink-0 uppercase">
                     {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
                   </span>
                   <span className="truncate flex-1">{v.nazev}</span>
@@ -713,7 +713,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 </p>
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-drobne font-mono text-slate-300">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
               Tone.js Engine Sync
             </div>
@@ -795,7 +795,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           {videoId && (
             <button
               onClick={() => setVideoId(null)}
-              className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] cursor-pointer"
+              className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-drobne cursor-pointer"
             >
               Zavřít video
             </button>
@@ -836,7 +836,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           </button>
         </div>
 
-        {chybaVidea && <div className="text-[11px] text-rose-400">{chybaVidea}</div>}
+        {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
 
         {videoId && (
           <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
@@ -881,18 +881,18 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   ['Délka', duration > 0 ? casOsy(duration) : null, null],
                 ].map(([popis, hodnota, pod]) => (
                   <div key={String(popis)} className="min-w-[92px]">
-                    <div className="text-[9px] uppercase tracking-wider text-slate-500">{popis}</div>
+                    <div className="text-stitek uppercase tracking-wider text-slate-500">{popis}</div>
                     <div className="text-sm font-bold text-white tabular-nums">
                       {hodnota ?? <span className="text-slate-700">—</span>}
                     </div>
                     {pod && hodnota && (
-                      <div className="text-[9px] text-slate-500">{pod}</div>
+                      <div className="text-stitek text-slate-500">{pod}</div>
                     )}
                   </div>
                 ))}
 
                 {rozbor.pocita && (
-                  <div className="flex items-center gap-1.5 text-[11px] text-amber-400 self-center">
+                  <div className="flex items-center gap-1.5 text-drobne text-amber-400 self-center">
                     <RotateCcw className="w-3 h-3 animate-spin" />
                     počítám z audia…
                   </div>
@@ -910,8 +910,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                     return (
                       <div key={r.id} className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full" style={{ background: barva }} />
-                        <span className="text-[10px] text-slate-400">{r.popis}</span>
-                        <span className="text-[10px] font-mono font-bold tabular-nums" style={{ color: barva }}>
+                        <span className="text-stitek text-slate-400">{r.popis}</span>
+                        <span className="text-stitek font-mono font-bold tabular-nums" style={{ color: barva }}>
                           {p} %
                         </span>
                       </div>
@@ -933,7 +933,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40">
             <div className="flex items-stretch bg-slate-900/60">
               <div
-                className="shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center text-[10px] font-bold uppercase tracking-wider text-slate-500"
+                className="shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center text-stitek font-bold uppercase tracking-wider text-slate-500"
                 style={{ width: SIRKA_OVLADANI }}
               >
                 Mixér
@@ -942,7 +942,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 {popiskyCasu.map((t) => (
                   <div
                     key={t.cas}
-                    className="absolute top-0 bottom-0 border-l border-slate-800/70 pl-1 text-[10px] text-slate-500 tabular-nums flex items-center"
+                    className="absolute top-0 bottom-0 border-l border-slate-800/70 pl-1 text-stitek text-slate-500 tabular-nums flex items-center"
                     style={{ left: t.x }}
                   >
                     {casOsy(t.cas)}
@@ -1028,7 +1028,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 <button
                   key={rr}
                   onClick={() => stemAudioService.setRychlost(rr)}
-                  className={`px-2 py-1 rounded-lg text-[11px] font-mono cursor-pointer ${
+                  className={`px-2 py-1 rounded-lg text-drobne font-mono cursor-pointer ${
                     rychlost === rr ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -1071,7 +1071,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold">{selectedSong.title}</h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  <span className="text-stitek font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
                     {selectedSong.progressPercentage}% HOTOVO
                   </span>
                 </div>
@@ -1130,7 +1130,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
                   {/* Stem Separation Progress Bar */}
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                    <div className="flex justify-between text-stitek font-mono text-slate-400">
                       <span>Stav stopy</span>
                       <span className="text-amber-400 font-bold">{selectedSong.progressPercentage}%</span>
                     </div>

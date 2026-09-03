@@ -103,7 +103,7 @@ export const AiKapelaSection: React.FC = () => {
             <Users className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-[240px]">
-            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wide">
+            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Jam Room
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
@@ -128,10 +128,10 @@ export const AiKapelaSection: React.FC = () => {
         </div>
 
         {engine.nacita && (
-          <p className="text-[11px] text-[#FF9F0A] mt-3">Stahuji zvukovou banku (40 MB)…</p>
+          <p className="text-drobne text-[#FF9F0A] mt-3">Stahuji zvukovou banku (40 MB)…</p>
         )}
         {(engine.chyba || stav.chyba) && (
-          <p className="text-[11px] text-[#FF453A] mt-3">{engine.chyba || stav.chyba}</p>
+          <p className="text-drobne text-[#FF453A] mt-3">{engine.chyba || stav.chyba}</p>
         )}
       </div>
 
@@ -141,7 +141,7 @@ export const AiKapelaSection: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <Music4 className="w-4 h-4 text-[#BF5AF2]" />
             <h3 className="text-sm font-bold text-white">Akordy dokola</h3>
-            <span className="text-[11px] text-neutral-500">
+            <span className="text-drobne text-neutral-500">
               každý akord jeden takt — klikni pro odebrání
             </span>
             <button
@@ -149,7 +149,7 @@ export const AiKapelaSection: React.FC = () => {
                 const molovy = /m$/i.test(key || '');
                 aiKapela.postupZToniny((key || 'C').replace(/m$/i, ''), !molovy);
               }}
-              className="ml-auto text-[11px] px-2.5 py-1 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer flex items-center gap-1.5"
+              className="ml-auto text-drobne px-2.5 py-1 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer flex items-center gap-1.5"
               title="Poskládá postup z tóniny nastavené v horní liště"
             >
               <Wand2 className="w-3.5 h-3.5" /> Z tóniny {key || 'C'}
@@ -219,7 +219,7 @@ export const AiKapelaSection: React.FC = () => {
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] uppercase tracking-wider text-neutral-500">Tempo</span>
+              <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
               <span className="text-sm font-mono font-bold text-[#BF5AF2] tabular-nums">
                 {stav.bpm} BPM
               </span>
@@ -235,7 +235,7 @@ export const AiKapelaSection: React.FC = () => {
           </div>
 
           <div>
-            <span className="text-[10px] uppercase tracking-wider text-neutral-500">Styl</span>
+            <span className="text-stitek uppercase tracking-wider text-neutral-500">Styl</span>
             <div className="grid grid-cols-2 gap-1.5 mt-1">
               {STYLY.map((s) => (
                 <button
@@ -251,7 +251,7 @@ export const AiKapelaSection: React.FC = () => {
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-neutral-500 mt-2">{styl.popis}</p>
+            <p className="text-drobne text-neutral-500 mt-2">{styl.popis}</p>
           </div>
         </div>
       </div>
@@ -275,14 +275,14 @@ export const AiKapelaSection: React.FC = () => {
                 <span className="text-sm font-bold text-white flex-1">{c.nazev}</span>
                 <button
                   onClick={() => aiKapela.prepniClena(c.id)}
-                  className={`text-[10px] px-2 py-1 rounded-lg font-bold cursor-pointer ${
+                  className={`text-stitek px-2 py-1 rounded-lg font-bold cursor-pointer ${
                     hraje ? 'bg-white/[0.08] text-neutral-300' : 'bg-[#FF453A]/20 text-[#FF453A]'
                   }`}
                 >
                   {hraje ? 'hraje' : 'mlčí'}
                 </button>
               </div>
-              <p className="text-[11px] text-neutral-500 mb-2">{c.popis}</p>
+              <p className="text-drobne text-neutral-500 mb-2">{c.popis}</p>
               <input
                 type="range"
                 min={0}
@@ -304,11 +304,11 @@ export const AiKapelaSection: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#FF375F]" />
           <h3 className="text-sm font-bold text-white">AI sólista</h3>
-          <span className="text-[11px] text-neutral-500">
+          <span className="text-drobne text-neutral-500">
             Magenta RealTime — běží na tomhle Macu, ne v prohlížeči
           </span>
           <span
-            className={`ml-auto text-[10px] font-bold px-2 py-1 rounded-lg ${
+            className={`ml-auto text-stitek font-bold px-2 py-1 rounded-lg ${
               solista.stav === 'hraje'
                 ? 'bg-[#30D158]/20 text-[#30D158]'
                 : solista.stav === 'chyba'
@@ -364,11 +364,11 @@ export const AiKapelaSection: React.FC = () => {
         */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
           <FileMusic className="w-3.5 h-3.5 text-[#BF5AF2]" />
-          <span className="text-[11px] text-neutral-400 flex-1 min-w-[180px]">
+          <span className="text-drobne text-neutral-400 flex-1 min-w-[180px]">
             Nechat sólo vyrenderovat větším modelem — zní líp, ale musíš počkat.
           </span>
 
-          <label className="flex items-center gap-1 text-[11px] text-neutral-400">
+          <label className="flex items-center gap-1 text-drobne text-neutral-400">
             kol
             <input
               type="number" min={1} max={16} value={kolRenderu}
@@ -380,7 +380,7 @@ export const AiKapelaSection: React.FC = () => {
           <button
             onClick={() => void renderuj()}
             disabled={!!solista.render}
-            className="px-3 py-1.5 rounded-xl bg-[#BF5AF2] text-white text-[11px] font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl bg-[#BF5AF2] text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
             title="Vyrenderovat sólo přes celý postup větším modelem"
           >
             {solista.render ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileMusic className="w-3.5 h-3.5" />}
@@ -401,21 +401,21 @@ export const AiKapelaSection: React.FC = () => {
 
         {hotoveSolo && (
           <div className="flex flex-wrap items-center gap-2 bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 rounded-xl px-3 py-2">
-            <span className="text-[11px] text-white flex-1">
+            <span className="text-drobne text-white flex-1">
               Sólo hotové — {hotoveSolo.vterin.toFixed(1)} s
             </span>
             <audio src={hotoveSolo.url} controls className="h-8 max-w-[240px]" />
             <button
               onClick={() => void ulozSolo()}
               disabled={uklada}
-              className="px-2.5 py-1.5 rounded-lg bg-[#30D158] text-black text-[11px] font-bold cursor-pointer disabled:opacity-40"
+              className="px-2.5 py-1.5 rounded-lg bg-[#30D158] text-black text-drobne font-bold cursor-pointer disabled:opacity-40"
             >
               {uklada ? 'Ukládám…' : 'Do knihovny'}
             </button>
             <a
               href={hotoveSolo.url}
               download={`ai-solo-${Date.now()}.wav`}
-              className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 text-[11px] font-bold cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 text-drobne font-bold cursor-pointer"
             >
               Stáhnout
             </a>
@@ -423,7 +423,7 @@ export const AiKapelaSection: React.FC = () => {
         )}
 
         {solista.chyba && (
-          <div className="text-[11px] text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/25 rounded-xl px-3 py-2">
+          <div className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/25 rounded-xl px-3 py-2">
             {solista.chyba}
             <div className="text-neutral-400 mt-1">
               Poprvé to stáhne váhy modelu — pár gigabajtů, jednorázově.
@@ -435,7 +435,7 @@ export const AiKapelaSection: React.FC = () => {
             Model umí přijmout klavírní roli, takže nemusí jen „hrát ve
             stylu" — může hrát do harmonie, kterou drží kapela. */}
         <div className="flex flex-wrap items-center gap-3 pt-1">
-          <span className="text-[10px] uppercase tracking-wider text-neutral-500 shrink-0">
+          <span className="text-stitek uppercase tracking-wider text-neutral-500 shrink-0">
             Držet se akordů
           </span>
           <input
@@ -451,13 +451,13 @@ export const AiKapelaSection: React.FC = () => {
             {solista.drzeniAkordu}
           </span>
           {solista.posledniAkord && (
-            <span className="text-[11px] text-neutral-400">
+            <span className="text-drobne text-neutral-400">
               posláno: <strong className="text-white">{solista.posledniAkord}</strong>
             </span>
           )}
         </div>
 
-        <p className="text-[11px] text-neutral-500">
+        <p className="text-drobne text-neutral-500">
           Styl se popisuje slovy, ne notami — model rozumí anglicky. Změna se projeví
           za pochodu. Posuvník říká, jak moc se má držet akordů kapely: na nule si hraje
           po svém, výš jde do harmonie.
@@ -466,7 +466,7 @@ export const AiKapelaSection: React.FC = () => {
 
       <div className="bg-[#16161A]/50 border border-white/[0.06] rounded-2xl px-4 py-3 flex items-start gap-2.5">
         <Mic className="w-4 h-4 text-neutral-500 shrink-0 mt-0.5" />
-        <p className="text-[11px] text-neutral-400 leading-relaxed">
+        <p className="text-drobne text-neutral-400 leading-relaxed">
           Kapela zní přes tutéž zvukovou banku jako MIDI přehrávač a tabulatury. Hraj si k ní na
           cokoli — a v Hmatníku pod záložkou <strong className="text-neutral-300">Poslech kytary</strong> uvidíš, co
           hraješ, i s akordy, které do té tóniny patří.

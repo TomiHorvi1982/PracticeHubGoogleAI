@@ -281,7 +281,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-[10px] rounded-md uppercase tracking-wider">
+                <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wider">
                   Správa kapely
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">{users.length} aktivních účtů</span>
@@ -448,17 +448,17 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                   <div className="font-semibold text-white flex items-center gap-2">
                                     <span>{u.displayName}</span>
                                     {isPrimaryAdmin && (
-                                      <span className="text-[9px] bg-[#FF453A] text-white font-bold px-1.5 py-0.2 rounded uppercase">
+                                      <span className="text-stitek bg-[#FF453A] text-white font-bold px-1.5 py-0.2 rounded uppercase">
                                         Superadmin
                                       </span>
                                     )}
                                     {isSelf && (
-                                      <span className="text-[9px] bg-white/10 text-neutral-300 font-semibold px-1.5 py-0.2 rounded uppercase">
+                                      <span className="text-stitek bg-white/10 text-neutral-300 font-semibold px-1.5 py-0.2 rounded uppercase">
                                         Vy
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-[11px] text-neutral-400">{u.email}</div>
+                                  <div className="text-drobne text-neutral-400">{u.email}</div>
                                 </div>
                               </div>
                             </td>
@@ -466,10 +466,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             {/* Role & Rules badges */}
                             <td className="py-3.5 px-4">
                               <div className="space-y-1.5">
-                                <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-md ${roleMeta.badgeBg}`}>
+                                <span className={`inline-block text-stitek font-bold px-2 py-0.5 rounded-md ${roleMeta.badgeBg}`}>
                                   {roleMeta.label}
                                 </span>
-                                <div className="flex flex-wrap gap-1 text-[10px] text-neutral-400">
+                                <div className="flex flex-wrap gap-1 text-stitek text-neutral-400">
                                   {u.permissions.canEditSongs && <span className="text-[#30D158]">✓Edit</span>}
                                   {u.permissions.canDeleteSongs && <span className="text-[#FF453A]">✓Mazat</span>}
                                   {u.permissions.canStartBandSession && <span className="text-[#0A84FF]">✓Zkoušky</span>}
@@ -626,7 +626,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                               <span>{meta.label}</span>
                               {isSelected && <Check className="w-4 h-4 text-[#30D158]" />}
                             </div>
-                            <div className="text-[11px] text-neutral-400 leading-relaxed">
+                            <div className="text-drobne text-neutral-400 leading-relaxed">
                               {meta.desc}
                             </div>
                           </div>
@@ -826,7 +826,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             }`}
                           >
                             <div className="text-xs font-bold">{meta.label.split(' ')[0]}</div>
-                            <div className="text-[10px] text-neutral-400 truncate mt-0.5">{meta.desc.substring(0, 24)}...</div>
+                            <div className="text-stitek text-neutral-400 truncate mt-0.5">{meta.desc.substring(0, 24)}...</div>
                           </button>
                         );
                       })}
@@ -837,7 +837,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   <div className="bg-black/40 p-3.5 rounded-2xl border border-white/[0.08] space-y-2">
                     <div className="text-xs font-semibold text-neutral-300 flex items-center justify-between">
                       <span>Pravidla & Oprávnění pro tuto pozvánku:</span>
-                      <span className="text-[11px] text-[#30D158] font-bold">Role: {ROLE_LABELS[newRole].label}</span>
+                      <span className="text-drobne text-[#30D158] font-bold">Role: {ROLE_LABELS[newRole].label}</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
                       <label className="flex items-center gap-2.5 cursor-pointer">
@@ -941,7 +941,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         <Sparkles className="w-4 h-4" />
                         <span>Pozvánka připravena</span>
                       </div>
-                      <span className="text-[10px] bg-[#30D158] text-black px-2 py-0.5 rounded-md font-bold uppercase">
+                      <span className="text-stitek bg-[#30D158] text-black px-2 py-0.5 rounded-md font-bold uppercase">
                         Aktivní
                       </span>
                     </div>
@@ -970,9 +970,9 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             readOnly
                             value={lastCreatedInvite.invitation.odkazNaHeslo}
                             onFocus={(e) => e.currentTarget.select()}
-                            className="w-full font-mono text-[10px] text-[#30D158] bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
+                            className="w-full font-mono text-stitek text-[#30D158] bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
                           />
-                          <span className="text-[10px] text-neutral-500">
+                          <span className="text-stitek text-neutral-500">
                             Platí jednou a po čase vyprší. Heslo si pozvaný nastaví sám.
                           </span>
                         </div>
@@ -998,7 +998,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         fgColor="#000000"
                         level="M"
                       />
-                      <span className="text-[10px] font-bold text-neutral-800 uppercase mt-1.5">
+                      <span className="text-stitek font-bold text-neutral-800 uppercase mt-1.5">
                         Naskenovat mobilem pro rychlý vstup
                       </span>
                     </div>
@@ -1082,9 +1082,9 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="font-semibold text-white text-xs">{inv.displayName}</div>
-                          <div className="text-[11px] text-neutral-400">{inv.email}</div>
+                          <div className="text-drobne text-neutral-400">{inv.email}</div>
                         </div>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${ROLE_LABELS[inv.role].badgeBg}`}>
+                        <span className={`text-stitek font-bold px-2 py-0.5 rounded-md ${ROLE_LABELS[inv.role].badgeBg}`}>
                           {ROLE_LABELS[inv.role].label}
                         </span>
                       </div>
@@ -1092,14 +1092,14 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       {/* Credentials Display */}
                       <div className="bg-black/40 p-2.5 rounded-xl border border-white/[0.06] space-y-1.5 text-xs">
                         <div className="flex justify-between items-center">
-                          <span className="text-[11px] text-neutral-400">Odkaz na heslo:</span>
-                          <span className="text-[11px] font-semibold text-neutral-300">
+                          <span className="text-drobne text-neutral-400">Odkaz na heslo:</span>
+                          <span className="text-drobne font-semibold text-neutral-300">
                             {cerstveOdkazy[inv.id]
                               ? 'vyrobený — platí jednou'
                               : 'vyrobí se při kopírování'}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-[11px] text-neutral-400">
+                        <div className="flex justify-between items-center text-drobne text-neutral-400">
                           <span>Kód:</span>
                           <span className="font-mono text-neutral-300">{inv.token}</span>
                         </div>
@@ -1158,7 +1158,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             fgColor="#000000"
                             level="M"
                           />
-                          <span className="text-[10px] font-bold text-neutral-800 uppercase mt-1">
+                          <span className="text-stitek font-bold text-neutral-800 uppercase mt-1">
                             Naskenovat pro přihlášení ({inv.displayName})
                           </span>
                         </div>

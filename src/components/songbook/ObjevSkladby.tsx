@@ -75,7 +75,7 @@ export const ObjevSkladby: React.FC<Props> = ({
             <button
               key={z.id}
               onClick={() => prepni(z.id)}
-              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold flex items-center gap-1.5 cursor-pointer border transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer border transition-all ${
                 aktivni
                   ? 'bg-[#FF9F0A] text-black border-[#FF9F0A]'
                   : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
