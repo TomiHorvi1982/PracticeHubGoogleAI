@@ -24,6 +24,11 @@ import { authorizedFetch } from '../services/assetLibraryService';
 import { StopaVodorovne, SIRKA_OVLADANI } from './mixer/StopaVodorovne';
 import { popiskyOsy, cas as casOsy } from '../services/vlnovka';
 import { RYCHLOSTI } from '../services/prehravani';
+import {
+  rozeberStopu, rms, naDb, zastoupeniStop, vyrezZeStredu, stabilitaTempa,
+  VTERIN_NA_TONINU, Tonina,
+} from '../services/analyzaAudia';
+import { odhadniTempoZUseku } from '../services/detekceUderu';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { idZAdresy } from '../services/youtubeApi';
@@ -105,6 +110,24 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   /** Šířka časové osy — popisky se podle ní ředí, ať se neslijí. */
   const osa = useRef<HTMLDivElement | null>(null);
   const [sirkaOsy, setSirkaOsy] = useState(0);
+  /**
+   * Rozbor načtené sady.
+   *
+   * Čísla, která dřív chodila hotová odjinud, se počítají tady z tvého
+   * zvuku. Běží to na pozadí s pauzami mezi stopami — bez nich by okno
+   * na pár vteřin ztuhlo, protože FFT přes celou stopu je práce na
+   * miliony vzorků.
+   */
+  const [rozbor, setRozbor] = useState<{
+    pocita: boolean;
+    tonina: Tonina | null;
+    bpm: number;
+    lufs: number;
+    spickaDb: number;
+    dynamika: number;
+    stabilita: number;
+    zastoupeni: Record<string, number>;
+  } | null>(null);
 
   useEffect(() => {
     const unsub = stemAudioService.subscribe((state) => {
@@ -236,6 +259,91 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       setHlaska(err.message || 'Nepodařilo se odstranit sadu stop.');
     }
   };
+
+  /** Spustí rozbor, jakmile jsou stopy načtené. */
+  useEffect(() => {
+    if (!audioReady) { setRozbor(null); return; }
+    const stopy = stemAudioService.nactenaStopy();
+    if (!stopy.length) { setRozbor(null); return; }
+
+    let zruseno = false;
+    // Pauza mezi kroky pustí prohlížeč k překreslení; bez ní se rozbor
+    // udělá rychleji, ale okno mezitím nereaguje.
+    const pauza = () => new Promise((r) => setTimeout(r, 0));
+
+    (async () => {
+      setRozbor((r) => ({
+        pocita: true,
+        tonina: r?.tonina ?? null,
+        bpm: r?.bpm ?? 0,
+        lufs: r?.lufs ?? -120,
+        spickaDb: r?.spickaDb ?? -120,
+        dynamika: r?.dynamika ?? 0,
+        stabilita: r?.stabilita ?? 0,
+        zastoupeni: r?.zastoupeni ?? {},
+      }));
+
+      // 1) Zastoupení stop podle efektivní hodnoty — jeden průchod polem.
+      const hodnoty: Record<string, number> = {};
+      let vzorkovaci = 48000;
+      let delkaVyrezu = 0;
+      for (const id of stopy) {
+        const v = stemAudioService.vzorkyStopy(id);
+        if (!v) continue;
+        hodnoty[id] = rms(v.data);
+        vzorkovaci = v.vzorkovaci;
+        delkaVyrezu = Math.max(
+          delkaVyrezu,
+          Math.min(v.data.length, Math.floor(VTERIN_NA_TONINU * v.vzorkovaci)),
+        );
+        await pauza();
+        if (zruseno) return;
+      }
+
+      // 2) Součet stop na hlasitost a tóninu celého mixu. Bere se výřez
+      //    ze středu: na tónině ani hlasitosti se od celku neliší a
+      //    ušetří to násobky práce i paměti.
+      const mix = new Float32Array(delkaVyrezu);
+      for (const id of stopy) {
+        const v = stemAudioService.vzorkyStopy(id);
+        if (!v) continue;
+        const vyrez = vyrezZeStredu(v.data, v.vzorkovaci, VTERIN_NA_TONINU);
+        const n = Math.min(vyrez.length, mix.length);
+        for (let i = 0; i < n; i++) mix[i] += vyrez[i];
+        await pauza();
+        if (zruseno) return;
+      }
+
+      const r = rozeberStopu(mix, vzorkovaci);
+      if (zruseno) return;
+
+      // 3) Tempo z bicích; když je nemáme, ze součtu.
+      let bpm = 0;
+      const proTempo = stemAudioService.bufferStopy('drums')
+        || stemAudioService.bufferStopy(stopy[0]);
+      if (proTempo) {
+        const doKonce = Math.min(proTempo.duration, 60);
+        bpm = Math.round(odhadniTempoZUseku(proTempo, 0, doKonce) || 0);
+      }
+
+      if (zruseno) return;
+      setRozbor({
+        pocita: false,
+        tonina: r.tonina,
+        bpm,
+        lufs: r.lufs,
+        spickaDb: r.spickaDb,
+        dynamika: r.dynamika,
+        // Stabilitu z jednoho odhadu tempa spočítat nejde; drží se
+        // místo, dokud nebude z čeho.
+        stabilita: 0,
+        zastoupeni: zastoupeniStop(hodnoty),
+      });
+    })();
+
+    return () => { zruseno = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioReady, selectedSong?.id]);
 
   const popiskyCasu = React.useMemo(
     () => popiskyOsy(duration, sirkaOsy),
@@ -649,6 +757,66 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               {selectedSong?.artist || 'Vyber soubory na fadery níž'}
             </p>
           </div>
+
+          {/* PRUH S ÚDAJI
+              Tahle čísla dřív chodila hotová z cizího nástroje. Teď se
+              počítají z tvého zvuku, takže sedí i na stopy, které jsi
+              nahrál z počítače. Co se spočítat nedá, se neukazuje —
+              prázdné místo je poctivější než vymyšlená hodnota. */}
+          {rozbor && (
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-3 space-y-2">
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                {[
+                  ['Tónina', rozbor.tonina ? rozbor.tonina.popis : null,
+                    rozbor.tonina ? `jistota ${rozbor.tonina.jistota} %` : null],
+                  ['Tempo', rozbor.bpm > 0 ? `${rozbor.bpm} BPM` : null, null],
+                  ['Hlasitost', rozbor.lufs > -119 ? `${rozbor.lufs.toFixed(1)} LUFS` : null,
+                    rozbor.spickaDb > -119 ? `špička ${rozbor.spickaDb.toFixed(1)} dB` : null],
+                  ['Dynamika', rozbor.dynamika > 0 ? `${rozbor.dynamika.toFixed(1)} dB` : null,
+                    rozbor.dynamika >= 12 ? 'široká' : rozbor.dynamika >= 8 ? 'běžná' : 'stlačená'],
+                  ['Délka', duration > 0 ? casOsy(duration) : null, null],
+                ].map(([popis, hodnota, pod]) => (
+                  <div key={String(popis)} className="min-w-[92px]">
+                    <div className="text-[9px] uppercase tracking-wider text-slate-500">{popis}</div>
+                    <div className="text-sm font-bold text-white tabular-nums">
+                      {hodnota ?? <span className="text-slate-700">—</span>}
+                    </div>
+                    {pod && hodnota && (
+                      <div className="text-[9px] text-slate-500">{pod}</div>
+                    )}
+                  </div>
+                ))}
+
+                {rozbor.pocita && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-amber-400 self-center">
+                    <RotateCcw className="w-3 h-3 animate-spin" />
+                    počítám z audia…
+                  </div>
+                )}
+              </div>
+
+              {/* Zastoupení stop. Proti nejhlasitější, ne proti součtu:
+                  u šesti stop by proti součtu měla každá sotva dvacet
+                  procent i tam, kde je zřetelně slyšet. */}
+              {Object.keys(rozbor.zastoupeni).length > 0 && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-slate-800/70">
+                  {ROLE_FADERU.filter((r) => rozbor.zastoupeni[r.id] !== undefined).map((r) => {
+                    const p = rozbor.zastoupeni[r.id];
+                    const barva = (stemColors[r.id] || stemColors['other']).accent;
+                    return (
+                      <div key={r.id} className="flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: barva }} />
+                        <span className="text-[10px] text-slate-400">{r.popis}</span>
+                        <span className="text-[10px] font-mono font-bold tabular-nums" style={{ color: barva }}>
+                          {p} %
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* VODOROVNÉ STOPY S VLNOVKOU
 

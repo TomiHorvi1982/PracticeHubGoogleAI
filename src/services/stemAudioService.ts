@@ -558,6 +558,32 @@ class StemAudioService {
     return v;
   }
 
+  /**
+   * Vzorky načtené stopy, nebo `null`, dokud nedorazí.
+   *
+   * Bere se první kanál — na rozbor hlasitosti i tóniny je to totéž co
+   * součet obou a je to o polovinu míň práce.
+   */
+  public vzorkyStopy(stemId: string): { data: Float32Array; vzorkovaci: number } | null {
+    const buffer = this.players[stemId]?.buffer;
+    if (!buffer?.loaded) return null;
+    const zvuk = buffer.get() as AudioBuffer | undefined;
+    if (!zvuk) return null;
+    return { data: zvuk.getChannelData(0), vzorkovaci: zvuk.sampleRate };
+  }
+
+  /** Celý buffer stopy — odhad tempa si ho žádá vcelku. */
+  public bufferStopy(stemId: string): AudioBuffer | null {
+    const buffer = this.players[stemId]?.buffer;
+    if (!buffer?.loaded) return null;
+    return (buffer.get() as AudioBuffer | undefined) ?? null;
+  }
+
+  /** Které stopy jsou právě načtené. */
+  public nactenaStopy(): string[] {
+    return Object.keys(this.players).filter((k) => this.players[k]?.buffer?.loaded);
+  }
+
   public seek(seconds: number) {
     this.currentTime = seconds;
     if (this.isPlaying) {

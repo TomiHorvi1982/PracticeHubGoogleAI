@@ -253,10 +253,33 @@ export interface RozborStopy {
 }
 
 /**
+ * Kolik vteřin se rozebírá kvůli tónině.
+ *
+ * Hlasitost i dynamika se počítají přes celou nahrávku — je to jeden
+ * průchod polem a nic to nestojí. Tónina je ale FFT přes každé okno,
+ * a to je u tříminutové skladby deset milionů vzorků. Na tónině se
+ * minuta a půl neliší od celku, tak se bere výřez ze středu: začátky
+ * bývají předehra a konce dozvuk.
+ */
+export const VTERIN_NA_TONINU = 90;
+
+/** Výřez ze středu, nebo celá nahrávka, když je kratší. */
+export function vyrezZeStredu(
+  data: Float32Array,
+  vzorkovaci: number,
+  vterin: number,
+): Float32Array {
+  const chce = Math.floor(vterin * vzorkovaci);
+  if (!(chce > 0) || data.length <= chce) return data;
+  const od = Math.floor((data.length - chce) / 2);
+  return data.subarray(od, od + chce);
+}
+
+/**
  * Celý rozbor jedné stopy.
  *
- * Tónina se počítá z chromatického obrazu přes celou nahrávku; u kratší
- * než dvě vteřiny se vynechá, protože z pár akordů vyjde náhoda.
+ * Tónina se hledá z výřezu ze středu; u nahrávky kratší než dvě vteřiny
+ * se vynechá, protože z pár akordů vyjde náhoda.
  */
 export function rozeberStopu(data: Float32Array, vzorkovaci: number): RozborStopy {
   const delka = vzorkovaci > 0 ? data.length / vzorkovaci : 0;
@@ -269,7 +292,8 @@ export function rozeberStopu(data: Float32Array, vzorkovaci: number): RozborStop
     tonina: null,
   };
   if (delka >= 2) {
-    const snimky = snimkySpektra(data, VYCHOZI_SNIMKY);
+    const vyrez = vyrezZeStredu(data, vzorkovaci, VTERIN_NA_TONINU);
+    const snimky = snimkySpektra(vyrez, VYCHOZI_SNIMKY);
     const soucet = new Float64Array(12);
     for (const s of snimky) {
       const ch = chromaZeSpektra(s, vzorkovaci, VYCHOZI_SNIMKY.okno);

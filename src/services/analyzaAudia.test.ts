@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   spicka, rms, naDb, dynamickyRozsah, hlasitostLufs,
-  toninaZChroma, stabilitaTempa, zastoupeniStop,
+  toninaZChroma, stabilitaTempa, zastoupeniStop, vyrezZeStredu,
 } from './analyzaAudia.js';
 
 /** Sinus o dané amplitudě a kmitočtu. */
@@ -119,4 +119,31 @@ test('zastoupení se počítá proti nejhlasitější stopě', () => {
 test('samé ticho dá nuly, ne dělení nulou', () => {
   assert.deepEqual(zastoupeniStop({ a: 0, b: 0 }), { a: 0, b: 0 });
   assert.deepEqual(zastoupeniStop({}), {});
+});
+
+test('výřez ze středu má žádanou délku', () => {
+  const d = new Float32Array(48000 * 200); // 200 vteřin
+  const v = vyrezZeStredu(d, 48000, 90);
+  assert.equal(v.length, 48000 * 90);
+});
+
+test('kratší nahrávka se nekrátí', () => {
+  const d = new Float32Array(48000 * 10);
+  assert.equal(vyrezZeStredu(d, 48000, 90).length, d.length);
+});
+
+test('výřez je opravdu ze středu, ne od začátku', () => {
+  // Značka uprostřed musí ve výřezu být, značka na začátku ne.
+  const d = new Float32Array(48000 * 100);
+  d[Math.floor(d.length / 2)] = 1;
+  d[10] = 1;
+  const v = vyrezZeStredu(d, 48000, 20);
+  assert.equal(spicka(v), 1, 'střed měl být uvnitř výřezu');
+  assert.equal(v[10], 0, 'začátek nahrávky do výřezu nepatří');
+});
+
+test('nesmyslná délka výřezu vrátí celou nahrávku', () => {
+  const d = new Float32Array(1000);
+  assert.equal(vyrezZeStredu(d, 48000, 0).length, 1000);
+  assert.equal(vyrezZeStredu(d, 48000, -5).length, 1000);
 });
