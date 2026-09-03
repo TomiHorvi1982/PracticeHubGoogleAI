@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, ListMusic, Check, Music2, X,
+  ChevronDown, ChevronRight,
 } from 'lucide-react';
 import { Song } from '../../types';
 import { audioSynth } from '../../services/audioSynth';
@@ -45,6 +46,22 @@ const DOB_V_TAKTU = 4;
 export const Podium: React.FC<Props> = ({
   songs, playlists, aktivni, onVybrat, plocha, onPridatDoSetu, onOdebratZeSetu,
 }) => {
+  /**
+   * Sbalený seznam skladeb.
+   *
+   * Set má klidně čtyřicet písní a na Pódiu tlačil plochu s okny až
+   * pod obrazovku. Drží se v prohlížeči, ne v profilu: profil skládá
+   * stav z výslovného výčtu polí, takže by se nové pole tiše zahodilo
+   * a seznam by se po každém přihlášení zase rozbaloval.
+   */
+  const [seznamOtevreny, setSeznamOtevreny] = useState(() => {
+    try { return localStorage.getItem('neverlate_podium_seznam') !== '0'; } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('neverlate_podium_seznam', seznamOtevreny ? '1' : '0'); }
+    catch { /* plné úložiště nesmí rozbít Pódium */ }
+  }, [seznamOtevreny]);
+
   // Naposledy zvolený playlist, jinak první, ve kterém něco je — prázdný
   // set list na Pódiu vypadá, jako by se nic neuložilo.
   const [playlistId, setPlaylistId] = useState<string>(() => {
@@ -285,6 +302,13 @@ export const Podium: React.FC<Props> = ({
   const zahlavi = (velke: boolean) => (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="flex items-center gap-2 min-w-0">
+        <button
+          onClick={() => setSeznamOtevreny((o) => !o)}
+          className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+          title={seznamOtevreny ? 'Sbalit seznam' : 'Rozbalit seznam'}
+        >
+          {seznamOtevreny ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
         <ListMusic className="w-4 h-4 text-[#FF9F0A] shrink-0" />
         {playlists.length > 1 ? (
           <select

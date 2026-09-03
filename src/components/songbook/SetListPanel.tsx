@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { ListMusic, ChevronUp, ChevronDown, X, GripVertical, Maximize2 } from 'lucide-react';
+import {
+  ListMusic, ChevronUp, ChevronDown, ChevronRight, X, GripVertical, Maximize2,
+} from 'lucide-react';
 import { Song } from '../../types';
 import { setListy, SetList } from '../../services/setListy';
+import { ObalkyPisne } from './ObalkyPisne';
 
 interface Props {
   songs: Song[];
@@ -18,6 +21,20 @@ interface Props {
  */
 export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   const [sety, setSety] = useState<SetList[]>(setListy.hratelne());
+  /**
+   * Sbalený set list.
+   *
+   * Program má klidně čtyřicet písní a nad seznamem skladeb zabíral půl
+   * obrazovky. Volba se pamatuje, protože kdo si ho jednou sbalil,
+   * nechce ho mít po každém načtení zase rozbalený.
+   */
+  const [otevreno, setOtevreno] = useState(() => {
+    try { return localStorage.getItem('neverlate_setlist_otevreny') !== '0'; } catch { return true; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('neverlate_setlist_otevreny', otevreno ? '1' : '0'); }
+    catch { /* plné úložiště nesmí rozbít panel */ }
+  }, [otevreno]);
   // Naskočí set, ve kterém něco je. Prázdný set na první pohled vypadá,
   // jako by se přidané skladby ztratily.
   const [vybrany, setVybrany] = useState<string>('');
@@ -53,8 +70,20 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   return (
     <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
       <div className="flex flex-wrap items-center gap-2">
+        {/* Šipka je vlastní tlačítko, ne celá hlavička: ta obsahuje
+            výběr setu a „Na Pódium", které se do tlačítka vnořit nedají
+            a musí jít použít i ve sbaleném stavu. */}
+        <button
+          onClick={() => setOtevreno((o) => !o)}
+          className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+          title={otevreno ? 'Sbalit set list' : 'Rozbalit set list'}
+        >
+          {otevreno ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+        </button>
         <ListMusic className="w-4 h-4 text-[#FF9F0A] shrink-0" />
-        <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Set list</h2>
+        <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+          Set list{vSetu.length > 0 ? ` (${vSetu.length})` : ''}
+        </h2>
         <span className="text-[10px] text-neutral-500">pořadí, ve kterém se bude hrát</span>
 
         {sety.length > 1 && (
@@ -79,7 +108,16 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
         </button>
       </div>
 
-      {vSetu.length === 0 ? (
+      {/* Sbalený set ukazuje aspoň začátek programu — prázdné místo by
+          vypadalo, jako by v setu nic nebylo. */}
+      {!otevreno && vSetu.length > 0 && (
+        <p className="text-[11px] text-neutral-500 truncate">
+          {vSetu.slice(0, 3).map((s) => s.title).join(' · ')}
+          {vSetu.length > 3 ? ` · a další ${vSetu.length - 3}` : ''}
+        </p>
+      )}
+
+      {otevreno && (vSetu.length === 0 ? (
         <p className="text-[11px] text-neutral-600">
           Set je prázdný. Přidej skladby ikonou v seznamu vpravo.
         </p>
@@ -96,7 +134,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
                 setTazene(null);
               }}
               onDragEnd={() => setTazene(null)}
-              className={`flex items-center gap-2 px-3 py-1.5 transition-all ${
+              className={`flex items-center gap-2 px-3 py-2 transition-all ${
                 tazene === i ? 'opacity-40' : 'hover:bg-white/[0.04]'
               }`}
             >
@@ -104,6 +142,8 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               <span className="w-5 text-[10px] font-mono text-neutral-600 tabular-nums shrink-0">
                 {i + 1}.
               </span>
+
+              <ObalkyPisne song={s} />
 
               <div className="min-w-0 flex-1">
                 <div className="text-[12px] font-semibold text-white truncate">{s.title}</div>
@@ -142,7 +182,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
             </div>
           ))}
         </div>
-      )}
+      ))}
 
       {chybejici > 0 && (
         <p className="text-[10px] text-[#FF9F0A]">
