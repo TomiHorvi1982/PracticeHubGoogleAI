@@ -1,9 +1,7 @@
-import React from 'react';
-import {
-  FileCode, Piano, Sliders, Settings, Clock, Mic, Maximize2, Compass, FolderOpen, Users,
-  Bookmark, GraduationCap, FileText,
-} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Settings, Compass, Maximize2 } from 'lucide-react';
 import { MainTabType } from './sekce';
+import { PRIME, SKUPINY, STRANOU, skupinaSekce, Skupina } from './skupiny';
 
 interface Props {
   activeTab: MainTabType;
@@ -11,98 +9,192 @@ interface Props {
 }
 
 /**
- * Nástroje ve vrchní liště.
+ * Vrchní navigace.
  *
- * Boční panel zabíral pruh obrazovky u každé sekce, včetně těch, kde je
- * plocha to hlavní. Nahoře zaberou tytéž položky jeden řádek a hlavní
- * stránka dostane celou šířku.
+ * Bývalo tu devatenáct sekcí v jedné ploché řadě, všechny stejnou vahou.
+ * Do lišty se jich vešlo čtrnáct, poslední useknutá, a na mobilu jich
+ * bylo osm mimo obrazovku bez náznaku, že se dá posouvat.
  *
- * Seznam je záměrně krátký. Knihovna skladeb je sama hlavní stránkou a
- * playlist se přesunul do přehrávače dole, takže sem nepatří — to, co
- * zbylo, jsou nástroje, které si k písni otevřeš, když je potřebuješ.
+ * Teď jsou v liště dva cíle a čtyři rozbalovátka. Které je otevřené, se
+ * pozná i podle skupiny — kdo je v mixážním pultu, vidí zvýrazněné
+ * „Zvuk", takže po kliknutí neztratí stopu, kde vlastně je.
  *
- * Media Center a YouTube Jam odešly do „Objevit novou skladbu". Nejsou to
- * nástroje k písni, ale způsoby, jak hudbu najít venku — a to teď dělá
- * jedno místo na hlavní stránce, ne tři sekce na přeskáčku.
- *
- * Teorie & trénink zmizela úplně: byla to tatáž komponenta, jakou má
- * Hmatník ve Virtual Instruments pod záložkami Akordy a Stupnice. Dvě
- * cesty k jedné obrazovce jen nutily hádat, která z nich je ta správná.
+ * Rozbalovátka jdou ovládat klávesnicí; předchozí lišta byla jen řada
+ * tlačítek bez jakéhokoli zacházení se šipkami nebo Escapem.
  */
-const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: string }> }[] = [
-  { id: 'alphatab', label: 'Guitar Pro', icon: FileCode },
-  { id: 'instruments', label: 'Virtual Instruments', icon: Piano },
-  { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
-  // AI Band je odložený, ne smazaný: komponenta, služba i trasa v App
-  // zůstávají na místě. Vrátí se odkomentováním tohohle řádku a aliasu
-  // v `sekce.ts`.
-  // { id: 'aikapela', label: 'AI Band', icon: Users },
-  { id: 'liveamp', label: 'Live Guitar Amp', icon: Mic },
-  { id: 'practise', label: 'Practise Hub', icon: GraduationCap },
-  { id: 'texty', label: 'Texty', icon: FileText },
-  { id: 'practice', label: 'Metronom', icon: Clock },
-  { id: 'tuner', label: 'Ladička', icon: Mic },
-  // Katalog souborů. Bez něj se ke knihovně dá dostat jen přes písničku,
-  // takže 17 tisíc souborů nemá kde procházet ani mazat.
-  { id: 'library', label: 'Soubory', icon: FolderOpen },
-  { id: 'zalozky', label: 'Záložky', icon: Bookmark },
-  { id: 'settings', label: 'Nastavení', icon: Settings },
-  // Rozcestník až na konci: hledá se jen když člověk neví kudy dál, a
-  // vedle nastavení je po ruce, aniž by zabíral místo těm, kdo to vědí.
-  { id: 'vitejte', label: 'Rozcestník', icon: Compass },
-];
+
+const ZAKLAD_TLACITKA = 'inline-flex items-center gap-1.5 rounded-prvek text-drobne font-medium '
+  + 'whitespace-nowrap transition-colors cursor-pointer shrink-0 px-3 '
+  + 'min-h-dotyk lg:min-h-0 lg:py-1.5 '
+  + 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka';
+
+const Rozbalovatko: React.FC<{
+  skupina: Skupina;
+  activeTab: MainTabType;
+  onSelectTab: (t: MainTabType) => void;
+}> = ({ skupina, activeTab, onSelectTab }) => {
+  const [otevrene, setOtevrene] = useState(false);
+  // Pozice se počítá při otevření a menu se kreslí mimo tok.
+  // Lišta má `overflow-x: auto` kvůli posouvání na úzkých oknech, což
+  // vytváří ořezávací kontext — absolutně pozicované menu se v ní celé
+  // schovalo za obsah stránky a nebylo vidět, přestože v DOM bylo.
+  const [pozice, setPozice] = useState<{ left: number; top: number } | null>(null);
+  const obal = useRef<HTMLDivElement>(null);
+  const spoust = useRef<HTMLButtonElement>(null);
+  const polozkyRef = useRef<(HTMLButtonElement | null)[]>([]);
+  const maAktivni = skupinaSekce(activeTab) === skupina.id;
+
+  // Kliknutí mimo a Escape zavírají. Bez toho zůstane nabídka viset
+  // přes obsah a překáží tomu, kvůli čemu si ji člověk otevřel.
+  useEffect(() => {
+    if (!otevrene) return;
+    const mimo = (e: MouseEvent) => {
+      if (!obal.current?.contains(e.target as Node)) setOtevrene(false);
+    };
+    const klavesa = (e: KeyboardEvent) => { if (e.key === 'Escape') setOtevrene(false); };
+    // Menu drží spočítanou pozici, takže by při posunutí zůstalo viset
+    // vedle tlačítka. Radši se zavře.
+    const zavri = () => setOtevrene(false);
+    document.addEventListener('mousedown', mimo);
+    document.addEventListener('keydown', klavesa);
+    window.addEventListener('resize', zavri);
+    window.addEventListener('scroll', zavri, true);
+    return () => {
+      document.removeEventListener('mousedown', mimo);
+      document.removeEventListener('keydown', klavesa);
+      window.removeEventListener('resize', zavri);
+      window.removeEventListener('scroll', zavri, true);
+    };
+  }, [otevrene]);
+
+  /**
+   * Otevře a spočítá, kam menu patří.
+   *
+   * Když by přeteklo pravý okraj, zarovná se doprava — jinak by na
+   * úzkém okně vyjelo mimo obrazovku.
+   */
+  const otevri = () => {
+    const r = spoust.current?.getBoundingClientRect();
+    if (!r) return;
+    const SIRKA = 220;
+    setPozice({
+      left: Math.max(8, Math.min(r.left, window.innerWidth - SIRKA - 8)),
+      top: r.bottom + 4,
+    });
+    setOtevrene(true);
+  };
+
+  /** Šipkami se přejíždí po položkách a na koncích se to otočí. */
+  const posun = (od: number, smer: 1 | -1) => {
+    const n = skupina.polozky.length;
+    polozkyRef.current[(od + smer + n) % n]?.focus();
+  };
+
+  return (
+    <div ref={obal} className="relative shrink-0">
+      <button
+        ref={spoust}
+        onClick={() => (otevrene ? setOtevrene(false) : otevri())}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') { e.preventDefault(); otevri(); setTimeout(() => polozkyRef.current[0]?.focus(), 0); }
+        }}
+        aria-expanded={otevrene}
+        aria-haspopup="menu"
+        className={`${ZAKLAD_TLACITKA} ${
+          maAktivni
+            ? 'bg-znacka-tlum text-znacka border border-znacka-okraj'
+            : 'text-pismo-tlum hover:text-pismo hover:bg-plocha-2 border border-transparent'
+        }`}
+      >
+        {skupina.nazev}
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform ${otevrene ? 'rotate-180' : ''}`} />
+      </button>
+
+      {otevrene && (
+        <div
+          role="menu"
+          aria-label={skupina.nazev}
+          style={{ left: pozice?.left, top: pozice?.top }}
+          className="fixed z-50 w-[220px] rounded-panel border border-kresba-silna bg-plocha-3 p-1 shadow-lg shadow-black/40"
+        >
+          {skupina.polozky.map((p, i) => {
+            const aktivni = activeTab === p.id;
+            return (
+              <button
+                key={p.id}
+                ref={(el) => { polozkyRef.current[i] = el; }}
+                role="menuitem"
+                onClick={() => { onSelectTab(p.id); setOtevrene(false); }}
+                onKeyDown={(e) => {
+                  if (e.key === 'ArrowDown') { e.preventDefault(); posun(i, 1); }
+                  if (e.key === 'ArrowUp') { e.preventDefault(); posun(i, -1); }
+                }}
+                className={`w-full text-left px-3 py-2.5 rounded-prvek text-drobne transition-colors cursor-pointer
+                  flex items-center min-h-dotyk lg:min-h-0
+                  focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-znacka ${
+                  aktivni ? 'bg-znacka-tlum text-znacka font-semibold' : 'text-pismo-tlum hover:bg-plocha-nad hover:text-pismo'
+                }`}
+              >
+                {p.nazev}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const HorniNavigace: React.FC<Props> = ({ activeTab, onSelectTab }) => (
-  <nav className="h-11 bg-[#0C1424] border-b border-slate-800/80 px-3 sm:px-4 flex items-center gap-1 overflow-x-auto scrollbar-thin shrink-0">
-    {/* Zpět na hlavní stránku. Oddělené mezerou, protože to není nástroj
-        jako ostatní, ale cesta domů. */}
-    <button
-      onClick={() => onSelectTab('songbook')}
-      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-        activeTab === 'songbook'
-          ? 'bg-amber-500 text-slate-950 shadow-sm'
-          : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white'
-      }`}
-    >
-      Knihovna skladeb
-    </button>
-
-    {/* Pódium vedle knihovny: dvě cesty domů, jedna k hledání a druhá
-        ke hraní. Set se skládá v knihovně, chystá a hraje se tady. */}
-    <button
-      onClick={() => onSelectTab('podium')}
-      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
-        activeTab === 'podium'
-          ? 'bg-amber-500 text-slate-950 shadow-sm'
-          : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white'
-      }`}
-      title="Příprava oken ke skladbám a pódiový režim"
-    >
-      <Maximize2 className={`w-3.5 h-3.5 ${activeTab === 'podium' ? '' : 'text-amber-400'}`} />
-      Pódium
-    </button>
-
-    <span className="w-px h-5 bg-slate-800 mx-1.5 shrink-0" />
-
-    {POLOZKY.map((p) => {
-      const Icon = p.icon;
+  <nav
+    aria-label="Hlavní navigace"
+    className="bg-plocha-1 border-b border-kresba px-3 sm:px-4 flex items-center gap-1.5 overflow-x-auto shrink-0"
+  >
+    {PRIME.map((p) => {
       const aktivni = activeTab === p.id;
       return (
         <button
           key={p.id}
           onClick={() => onSelectTab(p.id)}
-          title={p.label}
-          className={`px-2.5 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
+          aria-current={aktivni ? 'page' : undefined}
+          className={`${ZAKLAD_TLACITKA} font-semibold ${
             aktivni
-              ? 'bg-white/15 text-white border border-white/10'
-              : 'text-slate-400 hover:text-white hover:bg-white/5'
+              ? 'bg-znacka text-podklad'
+              : 'bg-plocha-3 text-pismo border border-kresba hover:border-kresba-silna'
           }`}
         >
-          <Icon className={`w-3.5 h-3.5 shrink-0 ${aktivni ? 'text-amber-400' : ''}`} />
-          {/* Na úzké obrazovce zůstanou jen ikony, ať se řádek nezalomí. */}
-          <span className="hidden lg:inline">{p.label}</span>
+          {p.id === 'podium' && <Maximize2 className="w-3.5 h-3.5" />}
+          {p.nazev}
         </button>
       );
     })}
+
+    <span className="w-px h-5 bg-kresba mx-1 shrink-0" aria-hidden="true" />
+
+    {SKUPINY.map((s) => (
+      <Rozbalovatko key={s.id} skupina={s} activeTab={activeTab} onSelectTab={onSelectTab} />
+    ))}
+
+    {/* Zázemí vpravo: nejsou to nástroje, ale nemají kam jinam. */}
+    <div className="ml-auto flex items-center gap-1 shrink-0 pl-2">
+      {STRANOU.map((p) => {
+        const Ikona = p.id === 'settings' ? Settings : Compass;
+        const aktivni = activeTab === p.id;
+        return (
+          <button
+            key={p.id}
+            onClick={() => onSelectTab(p.id)}
+            title={p.nazev}
+            aria-label={p.nazev}
+            aria-current={aktivni ? 'page' : undefined}
+            className={`${ZAKLAD_TLACITKA} lg:px-2 ${
+              aktivni ? 'bg-znacka-tlum text-znacka' : 'text-pismo-slaby hover:text-pismo hover:bg-plocha-2'
+            }`}
+          >
+            <Ikona className="w-4 h-4" />
+          </button>
+        );
+      })}
+    </div>
   </nav>
 );
