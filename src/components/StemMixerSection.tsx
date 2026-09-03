@@ -20,7 +20,6 @@ import {
 } from 'lucide-react';
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
-import { StemDeckImport } from './stems/StemDeckImport';
 import { authorizedFetch } from '../services/assetLibraryService';
 import { StopaVodorovne, SIRKA_OVLADANI } from './mixer/StopaVodorovne';
 import { popiskyOsy, cas as casOsy } from '../services/vlnovka';
@@ -42,23 +41,6 @@ interface MistniOdpoved {
   skladby: MistniSkladba[];
 }
 
-/** Hotová úloha ve StemDecku, ze které se dají brát stopy. */
-interface UlohaSD {
-  id: string;
-  nazev: string;
-  delka: number;
-  bpm: number;
-  tonina: string;
-  stupnice: string;
-  obrazek: string;
-  stopy: string[];
-  zdroj: string;
-}
-
-/** Adresa, ze které si engine stáhne stopu přímo ze StemDecku. */
-const odkazNaStemDeck = (jobId: string, stopa: string) =>
-  `/api/stemdeck/stopa?jobId=${encodeURIComponent(jobId)}&stopa=${encodeURIComponent(stopa)}`;
-
 /** Adresa, ze které si engine stáhne soubor ležící na disku. */
 const odkazNaMistni = (cesta: string) =>
   `/api/stopy/mistni/soubor?cesta=${encodeURIComponent(cesta)}`;
@@ -70,7 +52,7 @@ const ROLE_FADERU: { id: string; popis: string }[] = [
   { id: 'lead', popis: 'Sólo kytara' },
   { id: 'bass', popis: 'Basa' },
   { id: 'drums', popis: 'Bicí' },
-  // StemDeck dělí i piano zvlášť; bez vlastního tahu by splynulo s Ostatními.
+  // Piano má vlastní tah; jinak by splynulo s Ostatními.
   { id: 'piano', popis: 'Piano' },
   // Klik, podle kterého se hraje, patří na vlastní tah — jinak se ztlumí
   // spolu s něčím jiným zrovna ve chvíli, kdy je nejpotřebnější.
@@ -108,7 +90,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     { role: string; nazev: string; assetId?: string; url?: string }[]
   >([]);
   /** Odkud se právě vybírá: z databáze, nebo ze složky na disku. */
-  const [zdroj, setZdroj] = useState<'stemdeck' | 'knihovna' | 'disk' | 'sady'>('stemdeck');
+  const [zdroj, setZdroj] = useState<'knihovna' | 'disk'>('knihovna');
   const [mistni, setMistni] = useState<MistniOdpoved>({ dostupne: false, slozka: '', skladby: [] });
   const [mistniNacita, setMistniNacita] = useState(false);
   /** Sady, které ve složce přibyly, zatímco byl pult otevřený. */
@@ -120,8 +102,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [videoId, setVideoId] = useState<string | null>(null);
   const [odkazVidea, setOdkazVidea] = useState('');
   const [chybaVidea, setChybaVidea] = useState<string | null>(null);
-  const [stemdeck, setStemdeck] = useState<{ bezi: boolean; ulohy: UlohaSD[] }>({ bezi: false, ulohy: [] });
-  const [sdNacita, setSdNacita] = useState(false);
   /** Šířka časové osy — popisky se podle ní ředí, ať se neslijí. */
   const osa = useRef<HTMLDivElement | null>(null);
   const [sirkaOsy, setSirkaOsy] = useState(0);
@@ -203,56 +183,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     setChybaVidea(null);
   };
 
-  /**
-   * Zeptá se StemDecku, co má hotového.
-   *
-   * Nejdřív na stav: když neběží, ptát se na úlohy by jen čekalo do
-   * vypršení a vypadalo to, že se appka zasekla.
-   */
-  const nactiStemDeck = React.useCallback(async () => {
-    setSdNacita(true);
-    try {
-      const stav = await (await authorizedFetch('/api/stemdeck/stav')).json();
-      if (!stav?.bezi) { setStemdeck({ bezi: false, ulohy: [] }); return; }
-      const d = await (await authorizedFetch('/api/stemdeck/ulohy')).json();
-      setStemdeck({ bezi: true, ulohy: Array.isArray(d?.ulohy) ? d.ulohy : [] });
-    } catch {
-      setStemdeck({ bezi: false, ulohy: [] });
-    } finally {
-      setSdNacita(false);
-    }
-  }, []);
-
-  useEffect(() => { nactiStemDeck(); }, [nactiStemDeck]);
-
-  /**
-   * Naveze celou úlohu ze StemDecku.
-   *
-   * Názvy stop, které posílá (vocals, drums, bass, guitar, piano, other),
-   * jsou přesně naše role, takže sedají bez překládání. Co bychom neznali,
-   * spadne na Ostatní, aby se stopa neztratila potichu.
-   */
-  const nactiUlohu = (u: UlohaSD) => {
-    const nove = [...vlastniStopy];
-    for (const st of u.stopy) {
-      const role = ROLE_FADERU.some((r) => r.id === st) ? st : 'other';
-      const polozka = { role, nazev: st, url: odkazNaStemDeck(u.id, st) };
-      const i = nove.findIndex((v) => v.role === role);
-      if (i >= 0) nove[i] = polozka; else nove.push(polozka);
-    }
-    setVlastniStopy(nove);
-    stemAudioService.pouzijVlastniStopy(nove);
-  };
-
-  useEffect(() => {
-    const el = osa.current;
-    if (!el) return;
-    const o = new ResizeObserver(([z]) => setSirkaOsy(Math.floor(z.contentRect.width)));
-    o.observe(el);
-    setSirkaOsy(Math.floor(el.getBoundingClientRect().width));
-    return () => o.disconnect();
-  }, []);
-
   /** Zpěvník kvůli náhledu videa — bere se z něj, co má odkaz na YouTube. */
   useEffect(() => {
     setPisne(songDatabaseService.getSongs());
@@ -323,11 +253,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 text-slate-100">
-      {/* Stopy hotové jinde.
-          Separace u sebe na stroji je řádově rychlejší než přes vzdálený
-          worker; sem se přenese jen výsledek. Panel se sám schová, když
-          StemDeck neběží — na nasazené verzi to nikdy nebude. */}
-      <StemDeckImport />
 
       {/* HEADER TITLE BANNER */}
       <div className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/30 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
@@ -343,7 +268,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             Mixážní pult
           </h1>
           <p className="text-slate-300 text-sm leading-relaxed">
-            Osm stop pod sebou na jedné ose — <strong className="text-amber-400">Zpěv, Kytara, Sólo, Basa, Bicí, Piano, Metronom, Ostatní</strong> — takže je vidět, kde sloka končí i kde vypadnou bicí. Kliknutím do vlnovky se skočí kamkoli. Soubory se berou ze <strong className="text-amber-400">StemDecku</strong>, z knihovny, nebo ze složky, kam ti separátor odkládá stopy.
+            Osm stop pod sebou na jedné ose — <strong className="text-amber-400">Zpěv, Kytara, Sólo, Basa, Bicí, Piano, Metronom, Ostatní</strong> — takže je vidět, kde sloka končí i kde vypadnou bicí. Kliknutím do vlnovky se skočí kamkoli. Soubory se berou z knihovny, nebo z počítače — a rovnou se uloží do knihovny.
           </p>
         </div>
       </div>
@@ -384,10 +309,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               stihlo cokoli nahrát nahoru. */}
           <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
             {([
-              ['stemdeck', 'Ze StemDecku'],
               ['knihovna', 'Z knihovny'],
-              ['disk', 'Ze složky na disku'],
-              ['sady', 'Uložené sady'],
+              ['disk', 'Z počítače'],
             ] as const).map(([id, popis]) => (
               <button
                 key={id}
@@ -399,106 +322,16 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 {popis}
               </button>
             ))}
-            {(zdroj === 'disk' || zdroj === 'stemdeck') && (
+            {zdroj === 'disk' && (
               <button
-                onClick={() => (zdroj === 'disk' ? nactiMistni('rucne') : nactiStemDeck())}
-                disabled={zdroj === 'disk' ? mistniNacita : sdNacita}
+                onClick={() => nactiMistni('rucne')}
+                disabled={mistniNacita}
                 className="ml-auto px-3 py-1.5 rounded-xl text-xs bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer disabled:opacity-50"
               >
-                {(zdroj === 'disk' ? mistniNacita : sdNacita) ? 'Hledám…' : 'Načíst znovu'}
+                {mistniNacita ? 'Hledám…' : 'Načíst znovu'}
               </button>
             )}
           </div>
-
-          {zdroj === 'sady' && (
-            <div className="space-y-2">
-              {loading ? (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
-                  Načítám…
-                </div>
-              ) : songs.length === 0 ? (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
-                  Zatím tu žádná uložená sada není. Pověs si stopy na fadery a ulož je níž jako skladbu.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  {songs.map((sada) => (
-                    <div
-                      key={sada.id}
-                      className={`p-3 rounded-xl border flex items-center gap-3 ${
-                        selectedSong?.id === sada.id
-                          ? 'bg-amber-500/10 border-amber-500/50'
-                          : 'bg-slate-950/60 border-slate-800'
-                      }`}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-bold text-white truncate">{sada.title}</div>
-                        <div className="text-[10px] text-slate-400 truncate">
-                          {[sada.artist, `${sada.stems.length} stop`,
-                            sada.status !== 'completed' ? sada.status : null]
-                            .filter(Boolean).join(' · ')}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => stemAudioService.selectSong(sada)}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold cursor-pointer shrink-0"
-                      >
-                        Načíst na fadery
-                      </button>
-                      <button
-                        onClick={() => handleDeleteStemSet(sada)}
-                        title="Smazat sadu"
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 cursor-pointer shrink-0"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {zdroj === 'stemdeck' && (
-            <div className="space-y-2">
-              {!stemdeck.bezi ? (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400 leading-relaxed">
-                  StemDeck neodpovídá. Spusť ho u sebe — pak se tu jeho hotové
-                  separace objeví samy a stopy se pověsí na fadery jedním kliknutím.
-                </div>
-              ) : stemdeck.ulohy.length === 0 ? (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
-                  StemDeck běží, ale nemá zatím žádnou hotovou separaci.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  {stemdeck.ulohy.map((u) => (
-                    <div key={u.id} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center gap-3">
-                      {u.obrazek && (
-                        <img src={u.obrazek} alt="" className="w-14 h-10 object-cover rounded-lg shrink-0" />
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <div className="text-xs font-bold text-white truncate">{u.nazev}</div>
-                        <div className="text-[10px] text-slate-400 flex flex-wrap gap-x-2">
-                          {u.bpm > 0 && <span>{u.bpm} BPM</span>}
-                          {u.tonina && <span>{u.tonina}{u.stupnice ? ` · ${u.stupnice}` : ''}</span>}
-                          {u.delka > 0 && <span>{formatTime(u.delka)}</span>}
-                          <span>{u.stopy.length} stop</span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => nactiUlohu(u)}
-                        disabled={!u.stopy.length}
-                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-bold cursor-pointer shrink-0 disabled:opacity-40"
-                      >
-                        Načíst na fadery
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
 
           {zdroj === 'disk' && (
             <div className="space-y-2">
