@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Flame, Music4, Target, Brain, GraduationCap } from 'lucide-react';
+import { Flame, Target, Brain, GraduationCap } from 'lucide-react';
 import { RozcvickaRoom } from './practise/RozcvickaRoom';
-import { RiffRoom } from './practise/RiffRoom';
 import { SoloRoom } from './practise/SoloRoom';
 import { TestRoom } from './practise/TestRoom';
 
@@ -13,7 +12,7 @@ import { TestRoom } from './practise/TestRoom';
  * byla jedna dlouhá stránka, kde se nedá začít.
  */
 
-type Mistnost = 'rozcvicka' | 'riffy' | 'sola' | 'test';
+type Mistnost = 'rozcvicka' | 'sola' | 'test';
 
 const MISTNOSTI: { id: Mistnost; nazev: string; popis: string; ikona: typeof Flame; barva: string }[] = [
   {
@@ -22,13 +21,10 @@ const MISTNOSTI: { id: Mistnost; nazev: string; popis: string; ikona: typeof Fla
     ikona: Flame, barva: '#FF9F0A',
   },
   {
-    id: 'riffy', nazev: 'Riffstation',
-    popis: 'Uložené riffy, smyčka, zpomalení a tabulatura před očima',
-    ikona: Music4, barva: '#0A84FF',
-  },
-  {
-    id: 'sola', nazev: 'SoloGuitar Room',
-    popis: 'Sóla, stupnice a kontrola, jestli hraješ v tónině',
+    // Riffstation byl samostatnou mistnosti, prestoze SoloGuitar Room
+    // uz ho cely obsahoval — vedly do teze veci dvoje dvere.
+    id: 'sola', nazev: 'SoloGuitar & Riffstation',
+    popis: 'Sóla i riffy: úseky z tabulatury, smyčka, zpomalení a kontrola tóniny',
     ikona: Target, barva: '#30D158',
   },
   {
@@ -93,7 +89,6 @@ export const PractiseHubSection: React.FC = () => {
       </div>
 
       {mistnost === 'rozcvicka' && <RozcvickaRoom />}
-      {mistnost === 'riffy' && <RiffRoom typ="riff" />}
       {mistnost === 'sola' && <SoloRoom />}
       {mistnost === 'test' && <TestRoom />}
     </div>
