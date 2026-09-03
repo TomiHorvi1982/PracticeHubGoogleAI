@@ -1,3 +1,15 @@
+/**
+ * Katalog riffů — momentálně bez rozhraní.
+ *
+ * Komponenta, která ho používala (porovnání nahrávky s předlohou), byla
+ * odstraněna ze Solo Guitar i z Riffstationu. Služba zůstává schválně:
+ * v tabulce `riffy` leží uložená data a smazáním téhle vrstvy by se
+ * staly nedosažitelnými, aniž by kdokoli poznal, že tam vůbec jsou.
+ *
+ * Až bude jasné, že se ke katalogu nikdo vracet nechce, jde smazat
+ * obojí — službu i řádky.
+ */
+
 import { supabase } from './supabaseClient';
 import { Hodnoceni } from './porovnaniHry';
 
