@@ -1,4 +1,5 @@
 import { zvukovaKarta } from './zvukovaKarta';
+import { parKanalu } from './kanalyVstupu';
 
 /**
  * Kanál pro vstup z kytary — pult, ne jen mikrofon.
@@ -61,6 +62,8 @@ class KytaraKanal {
   private insertOd: GainNode | null = null;
   private insertDo: GainNode | null = null;
   private insert: AudioNode | null = null;
+  private rozdelovac: ChannelSplitterNode | null = null;
+  private slucovac: ChannelMergerNode | null = null;
   private data: Float32Array | null = null;
   private smycka = 0;
 
@@ -106,6 +109,19 @@ class KytaraKanal {
     void zvukovaKarta.pouzijVystup(ctx);
 
     this.zdroj = ctx.createMediaStreamSource(this.proud);
+
+    /**
+     * Který pár kanálů poslouchat.
+     *
+     * Zvukovka s loopbackem vydá víc kanálů, než má fyzických vstupů —
+     * na těch dalších vrací zvuk počítače. Bez vyříznutí by se vždycky
+     * poslouchaly první dva, tedy jen to, co jde do zvukovky kabelem.
+     */
+    const kanalu = this.proud.getAudioTracks()[0]?.getSettings().channelCount
+      || this.zdroj.channelCount
+      || 2;
+    zvukovaKarta.zaznamenejKanaly(kanalu);
+    const par = parKanalu(kanalu, zvukovaKarta.getStav().par);
     this.uzelGain = ctx.createGain();
     // Stálé místo pro efekt mezi vstupním zesílením a panoramatem.
     // Dva pevné uzly proto, aby se aparát dal zapojit i vypojit za běhu
@@ -122,7 +138,18 @@ class KytaraKanal {
     this.data = new Float32Array(this.analyzer.fftSize);
 
     // Suchá větev jde rovnou, zpožděná se přimíchává podle šířky.
-    this.zdroj.connect(this.uzelGain);
+    if (par && kanalu > 2) {
+      // Vyříznout pár se vyplatí jen u vícekanálového vstupu; u běžného
+      // sterea by to byla dvojice uzlů navíc bez užitku.
+      this.rozdelovac = ctx.createChannelSplitter(kanalu);
+      this.slucovac = ctx.createChannelMerger(2);
+      this.zdroj.connect(this.rozdelovac);
+      this.rozdelovac.connect(this.slucovac, par.levy, 0);
+      this.rozdelovac.connect(this.slucovac, par.pravy, 1);
+      this.slucovac.connect(this.uzelGain);
+    } else {
+      this.zdroj.connect(this.uzelGain);
+    }
     this.uzelGain.connect(this.insertOd);
     // Bez efektu se místo prostě přemostí.
     this.insertOd.connect(this.insertDo);
@@ -179,6 +206,8 @@ class KytaraKanal {
     this.insertOd = null;
     this.insertDo = null;
     this.insert = null;
+    this.rozdelovac = null;
+    this.slucovac = null;
     this.oznam({ bezi: false, uroven: 0, spicka: 0, preburacene: false });
   }
 

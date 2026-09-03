@@ -13,6 +13,7 @@
 
 const KLIC_VSTUP = 'neverlate_zvuk_vstup';
 const KLIC_VYSTUP = 'neverlate_zvuk_vystup';
+const KLIC_PAR = 'neverlate_zvuk_par';
 
 export interface Zarizeni {
   id: string;
@@ -26,6 +27,16 @@ export interface StavKarty {
   vystup: string | null;
   /** `false`, dokud prohlížeč nevydá názvy — tedy než se povolí mikrofon. */
   nazvyZname: boolean;
+  /**
+   * Který pár vstupních kanálů poslouchat, číslováno od nuly.
+   *
+   * Zvukovky s loopbackem mají víc kanálů než fyzických vstupů — na těch
+   * dalších vracejí zvuk počítače. Právě tudy se poslouchá aparát běžící
+   * ve vlastní aplikaci.
+   */
+  par: number;
+  /** Kolik kanálů vstup opravdu dal. Zjistí se až po otevření proudu. */
+  kanalu: number;
   chyba: string | null;
 }
 
@@ -37,6 +48,8 @@ class ZvukovaKarta {
     vystupy: [],
     vstup: localStorage.getItem(KLIC_VSTUP),
     vystup: localStorage.getItem(KLIC_VYSTUP),
+    par: Number(localStorage.getItem(KLIC_PAR)) || 0,
+    kanalu: 0,
     nazvyZname: false,
     chyba: null,
   };
@@ -95,6 +108,18 @@ class ZvukovaKarta {
     this.oznam({ vstup: id });
   }
 
+  /** Který pár kanálů poslouchat. Projeví se po novém spuštění vstupu. */
+  public nastavPar(index: number): void {
+    const i = Math.max(0, Math.floor(index) || 0);
+    localStorage.setItem(KLIC_PAR, String(i));
+    this.oznam({ par: i });
+  }
+
+  /** Ohlásí, kolik kanálů otevřený proud doopravdy dal. */
+  public zaznamenejKanaly(pocet: number): void {
+    if (pocet !== this.stav.kanalu) this.oznam({ kanalu: pocet });
+  }
+
   public nastavVystup(id: string | null): void {
     if (id) localStorage.setItem(KLIC_VYSTUP, id);
     else localStorage.removeItem(KLIC_VYSTUP);
@@ -111,6 +136,10 @@ class ZvukovaKarta {
         echoCancellation: false,
         noiseSuppression: false,
         autoGainControl: false,
+        // Bez tohohle dá prohlížeč jen první dva kanály, takže na
+        // loopback zvukovky se vůbec nedostaneme. `ideal` proto, aby
+        // běžný stereo vstup nepřestal fungovat.
+        channelCount: { ideal: 8 },
       },
     };
   }

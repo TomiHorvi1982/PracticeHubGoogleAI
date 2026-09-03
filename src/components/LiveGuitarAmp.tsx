@@ -4,6 +4,7 @@ import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
 import { KytaraFader } from './mixer/KytaraFader';
 import { kytaraKanal, StavKanalu } from '../services/kytaraKanal';
 import { namAparat, StavAparatu } from '../services/namAparat';
+import { paryKanalu, maVicParu } from '../services/kanalyVstupu';
 import { authorizedFetch } from '../services/assetLibraryService';
 
 /**
@@ -164,17 +165,59 @@ export const LiveGuitarAmp: React.FC = () => {
           </label>
         </div>
 
+        {/* Kanály vstupu.
+            Zvukovka s loopbackem vydá víc kanálů, než má fyzických
+            vstupů — na těch dalších vrací zvuk počítače. Právě tudy se
+            poslouchá aparát běžící ve vlastní aplikaci, takže žádný
+            virtuální ovladač není potřeba. */}
+        {maVicParu(karta.kanalu) && (
+          <div className="space-y-1">
+            <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+              Vstupní kanály — zvukovka jich dala {karta.kanalu}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {paryKanalu(karta.kanalu).map((par) => (
+                <button
+                  key={par.index}
+                  onClick={() => zvukovaKarta.nastavPar(par.index)}
+                  title={par.index === 0
+                    ? 'Fyzické vstupy — co jde do zvukovky kabelem'
+                    : 'Nejspíš loopback — co hraje počítač'}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
+                    karta.par === par.index
+                      ? 'bg-[#BF5AF2] text-white'
+                      : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10'
+                  }`}
+                >
+                  {par.popis}
+                  {par.index === 0 && <span className="ml-1 font-normal opacity-60">kabel</span>}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-neutral-600">
+              Změna se projeví po novém spuštění vstupu. Aparát z jiné aplikace
+              bývá na jiném páru než 1–2.
+            </p>
+          </div>
+        )}
+
         {/* Stav propojení. Bez tohohle se hledá naslepo, proč nic nejde. */}
-        {prelevaci.length === 0 ? (
+        {maVicParu(karta.kanalu) ? (
+          <div className="flex items-center gap-2 text-[#30D158] text-xs bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl px-4 py-3">
+            <Check className="w-4 h-4 shrink-0" />
+            Zvukovka má loopback ({karta.kanalu} kanálů) — virtuální zařízení
+            instalovat nemusíš, stačí vybrat správný pár.
+          </div>
+        ) : prelevaci.length === 0 ? (
           <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-2xl p-4 space-y-2">
             <div className="flex items-center gap-2 text-[#FF9F0A] text-xs font-bold">
               <AlertTriangle className="w-4 h-4 shrink-0" />
-              Chybí virtuální zvukové zařízení
+              Zvuk z aparátu nemá kudy dovnitř
             </div>
             <p className="text-[11px] text-neutral-300 leading-relaxed">
-              Bez něj nemá zvuk z aparátu kudy do prohlížeče. Nainstaluj{' '}
-              <strong className="text-white">BlackHole</strong> (zdarma, open source)
-              a restartuj Mac — pak se tu objeví jako vstup.
+              Spusť vstup — teprve pak se pozná, kolik kanálů zvukovka nabízí.
+              Když jich má jen dva a loopback neumí, nainstaluj{' '}
+              <strong className="text-white">BlackHole</strong> (zdarma) a restartuj Mac.
             </p>
           </div>
         ) : jedeZAparatu ? (
