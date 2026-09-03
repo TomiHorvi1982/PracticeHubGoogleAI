@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Music2,
+  Upload,
   Repeat,
   Square,
   Sliders, 
@@ -29,6 +30,9 @@ import {
   VTERIN_NA_TONINU, Tonina,
 } from '../services/analyzaAudia';
 import { odhadniTempoZUseku } from '../services/detekceUderu';
+import { rolePodleNazvu } from '../services/roleStop';
+import { skladby } from '../services/mnozneCislo';
+import { assetLibraryService } from '../services/assetLibraryService';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { idZAdresy } from '../services/youtubeApi';
@@ -88,6 +92,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [cilovyFader, setCilovyFader] = useState<string>('vocals');
   /** Ukládání poskládaného mixu jako další skladby. */
   const [nazevMixu, setNazevMixu] = useState('');
+  /** Ke které skladbě mix připojit. Prázdné = založit novou. */
+  const [cilovaPisen, setCilovaPisen] = useState('');
   const [uklada, setUklada] = useState(false);
   const [hlaska, setHlaska] = useState<string | null>(null);
   /** Na faderu může viset soubor z knihovny (assetId) i z disku (url). */
@@ -100,6 +106,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [mistniNacita, setMistniNacita] = useState(false);
   /** Sady, které ve složce přibyly, zatímco byl pult otevřený. */
   const [noveSady, setNoveSady] = useState<string[]>([]);
+  /** Průběh nahrávání souborů z počítače do knihovny. */
+  const [nahrava, setNahrava] = useState<{ hotovo: number; celkem: number } | null>(null);
   const otiskyMinule = useRef<Map<string, OtiskSady>>(new Map());
   const jizVidene = useRef<Set<string>>(new Set());
   /** Náhled videa: co hraješ, ať máš při mixu před očima. */
@@ -204,6 +212,43 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     setVideoId(id);
     setOdkazVidea('');
     setChybaVidea(null);
+  };
+
+  /**
+   * Nahraje soubory z počítače do knihovny a pověsí je na fadery.
+   *
+   * Ukládá se, ne jen načítá: soubor z disku by po zavření stránky
+   * zmizel a stopa na faderu by příště chyběla. V knihovně zůstane
+   * a dá se použít i jinde.
+   *
+   * Role se hádá z názvu stejně jako u složky na disku — separátory
+   * věší štítek za název, takže `Netáhlo-bass.wav` sedne na Basu.
+   */
+  const nahrajZPocitace = async (soubory: FileList) => {
+    const seznam = Array.from(soubory).filter((f) => f.type.startsWith('audio/') || /\.(wav|mp3|m4a|aac|flac|ogg|aif|aiff)$/i.test(f.name));
+    if (!seznam.length) return;
+
+    setNahrava({ hotovo: 0, celkem: seznam.length });
+    const nove = [...vlastniStopy];
+    for (let i = 0; i < seznam.length; i++) {
+      const f = seznam[i];
+      try {
+        const a = await assetLibraryService.upload(f, 'stem_mix', 'stem', 'global');
+        // Co se nepodaří zařadit podle názvu, jde na právě vybraný fader.
+        const role = rolePodleNazvu(f.name) || cilovyFader;
+        const polozka = { role, nazev: f.name, assetId: a.id };
+        const k = nove.findIndex((v) => v.role === role);
+        if (k >= 0) nove[k] = polozka; else nove.push(polozka);
+      } catch (e: any) {
+        setHlaska(`„${f.name}" se nepodařilo nahrát: ${e?.message || e}`);
+      }
+      setNahrava({ hotovo: i + 1, celkem: seznam.length });
+    }
+
+    setVlastniStopy(nove);
+    stemAudioService.pouzijVlastniStopy(nove);
+    setNahrava(null);
+    setHlaska(`Nahráno do knihovny: ${skladby(seznam.length)}.`);
   };
 
   /** Zpěvník kvůli náhledu videa — bere se z něj, co má odkaz na YouTube. */
@@ -443,7 +488,35 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
           {zdroj === 'disk' && (
             <div className="space-y-2">
-              <div className="text-[11px] text-slate-500 font-mono truncate">{mistni.slozka}</div>
+              {/* Vybrané soubory se uloží do knihovny, ne jen načtou —
+                  jinak by po zavření stránky zmizely. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold cursor-pointer inline-flex items-center gap-1.5">
+                  <Upload className="w-3.5 h-3.5" />
+                  Vybrat soubory z počítače
+                  <input
+                    type="file"
+                    accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.aif,.aiff"
+                    multiple
+                    className="hidden"
+                    disabled={!!nahrava}
+                    onChange={(e) => { if (e.target.files) void nahrajZPocitace(e.target.files); e.target.value = ''; }}
+                  />
+                </label>
+                {nahrava ? (
+                  <span className="text-[11px] text-amber-400">
+                    Nahrávám {nahrava.hotovo} z {nahrava.celkem}…
+                  </span>
+                ) : (
+                  <span className="text-[11px] text-slate-500">
+                    Uloží se do knihovny a rovnou pověsí na fadery podle názvu.
+                  </span>
+                )}
+              </div>
+
+              <div className="text-[11px] text-slate-500 font-mono truncate pt-1 border-t border-slate-800">
+                Nebo ze složky: {mistni.slozka}
+              </div>
 
               {!mistni.dostupne ? (
                 <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
@@ -532,25 +605,58 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   jako další skladba se stopami, takže se objeví v seznamu
                   vedle ostatních a jde k ní vrátit. */}
               <div className="flex flex-wrap items-center gap-2">
-                <input
-                  value={nazevMixu}
-                  onChange={(e) => setNazevMixu(e.target.value)}
-                  placeholder="Název skladby…"
-                  className="flex-1 min-w-[160px] bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-amber-500 outline-none"
-                />
+                {/* Připojit k existující skladbě je to obvyklé: stopy patří
+                    k písni, kterou už v katalogu máš, a zakládat vedle ní
+                    druhou se stejným názvem jen dělá nepořádek. */}
+                <select
+                  value={cilovaPisen}
+                  onChange={(e) => setCilovaPisen(e.target.value)}
+                  className="flex-1 min-w-[200px] bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
+                >
+                  <option value="">— založit novou skladbu —</option>
+                  {pisne.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.artist ? `${p.artist} — ${p.title}` : p.title}
+                    </option>
+                  ))}
+                </select>
+
+                {!cilovaPisen && (
+                  <input
+                    value={nazevMixu}
+                    onChange={(e) => setNazevMixu(e.target.value)}
+                    placeholder="Název nové skladby…"
+                    className="flex-1 min-w-[160px] bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-amber-500 outline-none"
+                  />
+                )}
+
                 <button
-                  disabled={!nazevMixu.trim() || uklada}
+                  disabled={(!cilovaPisen && !nazevMixu.trim()) || uklada}
                   onClick={async () => {
                     setUklada(true);
                     setHlaska(null);
                     try {
                       const res = await authorizedFetch('/api/stems/vlastni', {
                         method: 'POST',
-                        body: JSON.stringify({ nazev: nazevMixu.trim(), stopy: vlastniStopy }),
+                        body: JSON.stringify({
+                          nazev: nazevMixu.trim(),
+                          songId: cilovaPisen || undefined,
+                          stopy: vlastniStopy,
+                          // Hlasitosti, panoramata a ztlumení — bez nich by
+                          // se po otevření všechno vrátilo na výchozí.
+                          nastaveni: channels,
+                        }),
                       });
                       const d = await res.json();
                       if (!res.ok) throw new Error(d.error || 'Uložení selhalo.');
-                      setHlaska(`Uloženo jako „${nazevMixu.trim()}" — najdeš to v seznamu skladeb.`);
+                      const kam = cilovaPisen
+                        ? pisne.find((p) => p.id === cilovaPisen)?.title || 'skladbě'
+                        : nazevMixu.trim();
+                      setHlaska(
+                        cilovaPisen
+                          ? `Mix i s nastavením připojen ke skladbě „${kam}".`
+                          : `Uloženo jako „${kam}" — najdeš to v seznamu skladeb.`,
+                      );
                       setNazevMixu('');
                       // Seznam se musí načíst znovu, jinak by tam nová
                       // skladba nebyla vidět až do dalšího otevření sekce.
@@ -563,7 +669,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   }}
                   className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {uklada ? 'Ukládám…' : 'Uložit jako skladbu'}
+                  {uklada ? 'Ukládám…' : cilovaPisen ? 'Připojit ke skladbě' : 'Uložit jako skladbu'}
                 </button>
               </div>
               {hlaska && <div className="text-[11px] text-emerald-400">{hlaska}</div>}

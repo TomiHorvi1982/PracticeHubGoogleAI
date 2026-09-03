@@ -3614,8 +3614,14 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     const nazev = String(req.body?.nazev || '').trim();
     const interpret = String(req.body?.interpret || '').trim() || 'vlastní mix';
     const stopy = Array.isArray(req.body?.stopy) ? req.body.stopy : [];
+    /** Ke které písni mix připojit. Bez toho se založí nová. */
+    const songId = String(req.body?.songId || '').trim();
+    /** Hlasitosti, panoramata a ztlumení jednotlivých faderů. */
+    const nastaveni = req.body?.nastaveni && typeof req.body.nastaveni === 'object'
+      ? req.body.nastaveni
+      : null;
 
-    if (!nazev) return res.status(400).json({ error: 'Skladba musí mít název.' });
+    if (!songId && !nazev) return res.status(400).json({ error: 'Skladba musí mít název.' });
     if (stopy.length === 0) return res.status(400).json({ error: 'Na faderech nic není.' });
 
     const platne = stopy.filter(
@@ -3625,18 +3631,54 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       return res.status(400).json({ error: 'Žádná ze stop nemá platný fader ani soubor.' });
     }
 
-    const { data: song, error: chybaPisne } = await admin
-      .from('songs')
-      .insert({
-        title: nazev,
-        artist: interpret,
-        status: 'active',
-        metadata: { puvod: 'mixazni-pult', slozil: req.user!.id },
-      })
-      .select('id')
-      .single();
-    if (chybaPisne || !song) {
-      return res.status(500).json({ error: 'Píseň se nepodařilo založit.', details: chybaPisne?.message });
+    /**
+     * Buď se mix připojí k existující písni, nebo se založí nová.
+     *
+     * Připojení je to, co člověk chce obvykle: stopy patří ke skladbě,
+     * kterou už v katalogu má, a zakládat vedle ní druhou se stejným
+     * názvem jen dělá nepořádek.
+     */
+    let song: { id: string } | null = null;
+    if (songId) {
+      const { data: existujici, error: chybaHledani } = await admin
+        .from('songs')
+        .select('id, metadata')
+        .eq('id', songId)
+        .eq('status', 'active')
+        .maybeSingle();
+      if (chybaHledani || !existujici) {
+        return res.status(404).json({ error: 'Taková skladba v katalogu není.' });
+      }
+      song = { id: existujici.id };
+      // Nastavení faderů se ukládá k písni: patří k mixu, ne k souborům,
+      // a bez něj by se po otevření všechno vrátilo na výchozí hodnoty.
+      if (nastaveni) {
+        await admin
+          .from('songs')
+          .update({
+            metadata: { ...((existujici as any).metadata || {}), mixNastaveni: nastaveni },
+          })
+          .eq('id', song.id);
+      }
+    } else {
+      const { data: nova, error: chybaPisne } = await admin
+        .from('songs')
+        .insert({
+          title: nazev,
+          artist: interpret,
+          status: 'active',
+          metadata: {
+            puvod: 'mixazni-pult',
+            slozil: req.user!.id,
+            ...(nastaveni ? { mixNastaveni: nastaveni } : {}),
+          },
+        })
+        .select('id')
+        .single();
+      if (chybaPisne || !nova) {
+        return res.status(500).json({ error: 'Píseň se nepodařilo založit.', details: chybaPisne?.message });
+      }
+      song = nova;
     }
 
     const { data: set, error: chybaSetu } = await admin
@@ -3646,7 +3688,8 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       .single();
     if (chybaSetu || !set) {
       // Píseň bez sady stop by v seznamu visela prázdná — uklidí se.
-      await admin.from('songs').delete().eq('id', song.id);
+      // Jen ta, kterou jsme právě založili: existující se mazat nesmí.
+      if (!songId) await admin.from('songs').delete().eq('id', song.id);
       return res.status(500).json({ error: 'Sadu stop se nepodařilo založit.', details: chybaSetu?.message });
     }
 
@@ -3655,7 +3698,7 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     );
     if (chybaStop) {
       await admin.from('stem_sets').delete().eq('id', set.id);
-      await admin.from('songs').delete().eq('id', song.id);
+      if (!songId) await admin.from('songs').delete().eq('id', song.id);
       return res.status(500).json({ error: 'Stopy se nepodařilo uložit.', details: chybaStop.message });
     }
 
