@@ -6,8 +6,8 @@ import { prehravacCviceni, StavCviceni } from '../../services/prehravacCviceni';
 import { FaderKanalu } from '../mixer/FaderKanalu';
 import { KytaraFader } from '../mixer/KytaraFader';
 import { RiffRoom } from './RiffRoom';
-import { PorovnaniRiffu } from './PorovnaniRiffu';
 import { UsekZTabulatury } from './UsekZTabulatury';
+import { KytaraJakoNastroj } from '../hmatnik/KytaraJakoNastroj';
 
 /**
  * Sólová místnost.
@@ -65,12 +65,6 @@ export const SoloRoom: React.FC = () => {
       {/* Úsek přenesený z tabulatury. Nahoře schválně: když si ho člověk
           poslal, přišel sem právě kvůli němu. */}
       <UsekZTabulatury />
-
-      {/* Sólo se učí po částech a každá se ověřuje proti stopě — jinak
-          se člověk naučí něco, co jen znělo podobně. */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4">
-        <PorovnaniRiffu />
-      </div>
 
       {/* Kontrola hraní */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
@@ -187,6 +181,10 @@ export const SoloRoom: React.FC = () => {
             onNahravka={(b) => void prehravacCviceni.nactiZBlobu(b)}
           />
         </div>
+
+        {/* Čím kytara zní. Tóny se poznají ze vstupu a zahrají zvoleným
+            nástrojem — na sólo se dá cvičit i proti klavíru nebo smyčcům. */}
+        <KytaraJakoNastroj />
 
         <p className="text-[10px] text-neutral-600">
           Nahranou kytaru si „Poslechnout" načte rovnou do přehrávače níž — dá se pak zpomalit a

@@ -3,6 +3,7 @@ import { Mic, MicOff, Piano, Keyboard, AlertCircle } from 'lucide-react';
 import { vstupHrace, ZdrojVstupu } from '../../../services/vstupHrace';
 import { poslechKytary } from '../../../services/poslechKytary';
 import { KytaraFader } from '../../mixer/KytaraFader';
+import { KytaraJakoNastroj } from '../../hmatnik/KytaraJakoNastroj';
 
 /**
  * Odkud se bere, co hráč hraje.
@@ -73,6 +74,8 @@ export const VstupPanel: React.FC<{
       {zdroje.includes('mikrofon') && (
         <div className="pt-1">
           <KytaraFader />
+          {/* Čím kytara zní — tóny ze vstupu zahraje zvolený nástroj. */}
+          <KytaraJakoNastroj />
         </div>
       )}
     </div>

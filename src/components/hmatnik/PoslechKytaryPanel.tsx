@@ -5,6 +5,7 @@ import { poslechKytary, StavPoslechu } from '../../services/poslechKytary';
 import { audioSynth, InstrumentProfile } from '../../services/audioSynth';
 import { ALL_INSTRUMENTS } from '../../data/instrumentPresets';
 import { KytaraFader } from '../mixer/KytaraFader';
+import { KytaraJakoNastroj } from './KytaraJakoNastroj';
 
 /**
  * Co zrovna hraješ — a co k tomu sedí.
@@ -147,6 +148,8 @@ export const PoslechKytaryPanel: React.FC<{
       {stav.poslouchá && (
         <div className="flex">
           <KytaraFader />
+          {/* Čím kytara zní — tóny ze vstupu zahraje zvolený nástroj. */}
+          <KytaraJakoNastroj />
         </div>
       )}
 

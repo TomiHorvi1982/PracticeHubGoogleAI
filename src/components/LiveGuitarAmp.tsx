@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Guitar, Headphones, AlertTriangle, RefreshCw, Check } from 'lucide-react';
 import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
 import { KytaraFader } from './mixer/KytaraFader';
+import { KytaraJakoNastroj } from './hmatnik/KytaraJakoNastroj';
 import { kytaraKanal, StavKanalu } from '../services/kytaraKanal';
 import { namAparat, StavAparatu } from '../services/namAparat';
 import { paryKanalu, maVicParu } from '../services/kanalyVstupu';
@@ -333,6 +334,10 @@ export const LiveGuitarAmp: React.FC = () => {
 
       {/* Měřák, ovládání a nahrávání — týž kanál, jaký appka používá jinde. */}
       <KytaraFader sNahravanim />
+
+      {/* Čím kytara zní. Tóny se poznají ze vstupu a zahrají zvoleným
+          nástrojem — vedle aparátu tak jde zkusit i klavír nebo smyčce. */}
+      <KytaraJakoNastroj />
     </div>
   );
 };
