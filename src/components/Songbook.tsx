@@ -27,6 +27,8 @@ import { useMusicalContext } from '../context/MusicalContext';
 import { AddToPlaylistModal, DeleteSongConfirmModal } from './SongbookModals';
 import { doplnObalkyVsem, maObalky, PostupDoplnovani } from '../services/obalkyService';
 import { playlistService } from '../services/playlistService';
+import { assetLibraryService } from '../services/assetLibraryService';
+import { prilohaZAssetu, jizPripojeno } from '../services/priradKPisni';
 
 interface SongbookProps {
   customNewSong?: Song | null;
@@ -233,6 +235,35 @@ export const Songbook: React.FC<SongbookProps> = ({
     songDatabaseService.saveSong(updatedSong);
     setActiveSong(updatedSong);
     setSongs((prev) => prev.map((s) => (s.id === updatedSong.id ? updatedSong : s)));
+  };
+
+  /**
+   * Přidá k písni zvuk z počítače.
+   *
+   * Ukládá se do knihovny, ne jen k písni: soubor pak jde použít
+   * i jinde — v mixážním pultu, ve cvičení — a nezmizí, když se
+   * píseň smaže. K písni se připojí jako příloha.
+   */
+  const handleNahratAudio = async (song: Song, soubor: File) => {
+    try {
+      const asset = await assetLibraryService.upload(soubor, 'my_songs', 'recording', 'global');
+      // Tentýž soubor podruhé jen zmate; příloha se nepřidává dvakrát.
+      if (jizPripojeno(song, asset)) {
+        showToast(`„${soubor.name}" už u téhle skladby je.`);
+        return;
+      }
+      const aktualizovana: Song = {
+        ...song,
+        attachments: [...(song.attachments || []), prilohaZAssetu(asset)],
+        updatedAt: Date.now(),
+      };
+      const ulozena = await songDatabaseService.saveSong(aktualizovana);
+      setSongs((p) => p.map((x) => (x.id === ulozena.id ? ulozena : x)));
+      if (activeSong?.id === ulozena.id) setActiveSong(ulozena);
+      showToast(`„${soubor.name}" přidáno ke skladbě „${song.title}" a uloženo do knihovny.`);
+    } catch (e: any) {
+      showToast(e?.message || 'Zvuk se nepodařilo nahrát.');
+    }
   };
 
   const handleDeleteClick = (song: Song, e?: React.MouseEvent) => {
@@ -588,6 +619,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                 setTransposeSemitones(0);
               }}
               onSmazat={handleDeleteClick}
+              onNahratAudio={handleNahratAudio}
               onDoPlaylistu={handleOpenAddToPlaylist}
               onDoPlaylistuHromadne={handleAddManyToPlaylist}
               sety={playlists.map((p) => ({ id: p.id, nazev: p.name }))}

@@ -4,7 +4,7 @@ import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
 import { skladby } from '../../services/mnozneCislo';
 import {
   Play, Trash2, ListPlus, ChevronDown, ChevronRight, Pencil,
-  FileText, Music4, FileCode, Youtube, Volume2, Sliders, Piano, Download,
+  FileText, Music, Music4, FileCode, Youtube, Volume2, Sliders, Piano, Download,
 } from 'lucide-react';
 import { Song } from '../../types';
 import { KlicRazeni, SLOUPCE, seradPodle, odhadniJazyk } from '../../services/songSort';
@@ -16,6 +16,13 @@ interface Props {
   aktivniId?: string;
   onVybrat: (s: Song) => void;
   onSmazat: (s: Song, e?: React.MouseEvent) => void;
+  /**
+   * Přidá k písni zvuk z počítače.
+   *
+   * Uloží se do knihovny, ne jen k písni — jinak by soubor žil jen
+   * v jedné skladbě a nešel použít třeba v mixážním pultu.
+   */
+  onNahratAudio?: (s: Song, soubor: File) => void | Promise<void>;
   onDoPlaylistu: (s: Song, e?: React.MouseEvent) => void;
   /** Přidá víc skladeb do playlistu naráz. */
   onDoPlaylistuHromadne?: (skladby: Song[]) => void | Promise<void>;
@@ -114,7 +121,7 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
 };
 
 export const SeznamSkladeb: React.FC<Props> = ({
-  songs, aktivniId, onVybrat, onSmazat, onDoPlaylistu, onDoPlaylistuHromadne,
+  songs, aktivniId, onVybrat, onSmazat, onNahratAudio, onDoPlaylistu, onDoPlaylistuHromadne,
   sety = [], onDoSetuHromadne, onSmazatHromadne, onUpravit,
 }) => {
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
@@ -580,6 +587,25 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     >
                       <Download className={`w-3.5 h-3.5 ${stahujeSe === s.id ? 'animate-pulse' : ''}`} />
                     </button>
+                  )}
+                  {onNahratAudio && (
+                    <label
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#BF5AF2] cursor-pointer transition-all inline-flex"
+                      title="Přidat k písni zvuk z počítače — uloží se i do knihovny"
+                    >
+                      <Music className="w-3.5 h-3.5" />
+                      <input
+                        type="file"
+                        accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) void onNahratAudio(s, f);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
                   )}
                   <button
                     onClick={(e) => onDoPlaylistu(s, e)}

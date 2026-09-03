@@ -28,10 +28,13 @@ export interface Kategorie {
 export const KATEGORIE: Kategorie[] = [
   {
     id: 'my_songs',
-    nazev: 'Moje skladby',
+    // Dřív „Moje skladby“ — jenže tak se jmenuje i sekce se zpěvníkem,
+    // takže se dvě různé věci jmenovaly stejně. Tady jsou zvukové
+    // soubory patřící ke skladbám, ne skladby samy.
+    nazev: 'Songy',
     ikona: '⭐',
     podkategorie: ['nahrávky kapely', 'dema', 'podklady', 'ke cvičení'],
-    napoveda: 'Interpret - Název.mp3 — z názvu vznikne píseň ve zpěvníku.',
+    napoveda: 'Zvuk ke skladbě. Přidat jde i notičkou u písně ve zpěvníku.',
   },
   {
     id: 'guitar_pro',
