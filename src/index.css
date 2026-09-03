@@ -1,5 +1,78 @@
 @import "tailwindcss";
 
+/**
+ * Design tokeny.
+ *
+ * Do téhle chvíle žádné nebyly: v komponentách leželo 100 různých
+ * hexů ve 2140 výskytech, z toho 63 barev použitých jednou nebo
+ * dvakrát. Každá oprava vzhledu se tak musela psát do 111 souborů.
+ *
+ * Tailwind 4 z `@theme` generuje utility, takže `--color-plocha-2`
+ * se dá použít jako `bg-plocha-2`. Přidání je čistě aditivní —
+ * stávající natvrdo psané třídy fungují dál a překlápí se postupně.
+ *
+ * Škála písma začíná na 12px. Naměřeno bylo 400 prvků na 10px a
+ * stovky na 7–9px, což se na hudebním nástroji nedá číst za hraní.
+ */
+@theme {
+  /* --- Plochy. Hloubka se dělá odstupňovaným pozadím a kresbou
+         okraje, ne stínem — stín se na tmavém podkladu ztrácí. --- */
+  --color-podklad:    #0A0A0C;
+  --color-plocha-1:   #121216;
+  --color-plocha-2:   #17171C;
+  --color-plocha-3:   #1E1E24;
+  --color-plocha-nad: #26262E;
+
+  /* --- Okraje. Nesou hierarchii místo stínů. --- */
+  --color-kresba:        rgba(255, 255, 255, 0.09);
+  --color-kresba-silna:  rgba(255, 255, 255, 0.16);
+  --color-kresba-jemna:  rgba(255, 255, 255, 0.05);
+
+  /* --- Text. Tři úrovně stačí; čtvrtá už se nedá odlišit. --- */
+  --color-pismo:       #F2F2F5;
+  --color-pismo-tlum:  #9E9EA7;
+  --color-pismo-slaby: #6B6B74;
+
+  /* --- Značka. Jantarová je v aplikaci nejčastější (660 výskytů),
+         tak zůstává; jen dostala jméno. --- */
+  --color-znacka:       #FF9F0A;
+  --color-znacka-tlum:  rgba(255, 159, 10, 0.13);
+  --color-znacka-okraj: rgba(255, 159, 10, 0.42);
+
+  /* --- Významové barvy. Oddělené od značky: „hraje" a „smazat"
+         musí jít poznat i tam, kde je jantarová jen ozdoba. --- */
+  --color-uspech: #30D158;
+  --color-pozor:  #FFD60A;
+  --color-chyba:  #FF453A;
+  --color-info:   #0A84FF;
+  --color-nastroj:#BF5AF2;
+
+  /* --- Písmo. Od 12px výš, základ 14px. --- */
+  --text-stitek:  0.75rem;   /* 12px — štítky, jednotky */
+  --text-stitek--line-height: 1rem;
+  --text-drobne:  0.8125rem; /* 13px — sekundární údaje */
+  --text-drobne--line-height: 1.125rem;
+  --text-zaklad:  0.875rem;  /* 14px — běžný text */
+  --text-zaklad--line-height: 1.3125rem;
+  --text-vedouci: 1rem;      /* 16px — úvodní odstavec */
+  --text-vedouci--line-height: 1.5rem;
+  --text-nadpis-3: 1.125rem; /* 18px */
+  --text-nadpis-3--line-height: 1.5rem;
+  --text-nadpis-2: 1.375rem; /* 22px */
+  --text-nadpis-2--line-height: 1.75rem;
+  --text-nadpis-1: 1.75rem;  /* 28px */
+  --text-nadpis-1--line-height: 2.125rem;
+
+  /* --- Zaoblení. Dvě, ne šest. Naměřeno bylo šest škál používaných
+         zaměnitelně (xl 559×, 2xl 304×, lg 267×, 3xl 132×…). --- */
+  --radius-prvek: 0.5rem;   /* 8px — tlačítka, pole, štítky */
+  --radius-panel: 0.75rem;  /* 12px — karty a panely */
+
+  /* --- Dotyk. Pod 1024px musí být cíl aspoň takhle velký; naměřeno
+         bylo 95 % prvků pod limitem, nejmenší 13×13px. --- */
+  --spacing-dotyk: 2.75rem; /* 44px */
+}
+
 @layer base {
   :root {
     --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

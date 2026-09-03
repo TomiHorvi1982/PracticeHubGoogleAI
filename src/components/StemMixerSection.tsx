@@ -1,10 +1,10 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Music2,
   Upload,
   Repeat,
   Square,
-  Sliders, 
   Play, 
   Pause, 
   RotateCcw, 
@@ -405,26 +405,24 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const activeProcessingSong = songs.find((s) => s.status === 'processing') || (selectedSong?.status === 'processing' ? selectedSong : null);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 p-4 sm:p-6 text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-5 p-4 sm:p-6 text-slate-100">
 
-      {/* HEADER TITLE BANNER */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/30 border border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-          <Sliders className="w-64 h-64 text-amber-400" />
-        </div>
-
-        <div className="relative z-10 max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" /> Vodorovné stopy na společné časové ose
-          </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Mixážní pult
-          </h1>
-          <p className="text-slate-300 text-sm leading-relaxed">
-            Osm stop pod sebou na jedné ose — <strong className="text-amber-400">Zpěv, Kytara, Sólo, Basa, Bicí, Piano, Metronom, Ostatní</strong> — takže je vidět, kde sloka končí i kde vypadnou bicí. Kliknutím do vlnovky se skočí kamkoli. Soubory se berou z knihovny, nebo z počítače — a rovnou se uloží do knihovny.
-          </p>
-        </div>
-      </div>
+      {/* Hlavička místo původního hero bloku: ten měl gradient,
+          dekorativní ikonu 256×256 a odstavec, dohromady přes 300px,
+          takže první fader začínal až na 473px a při každém otevření
+          se četlo totéž vysvětlení. Text nezmizel, jen se sbalil. */}
+      <HlavickaSekce
+        nazev="Mixážní pult"
+        klic="stemmixer"
+        napoveda={(
+          <>
+            Osm stop pod sebou na jedné ose — Zpěv, Kytara, Sólo, Basa, Bicí,
+            Piano, Metronom, Ostatní — takže je vidět, kde sloka končí i kde
+            vypadnou bicí. Kliknutím do vlnovky se skočí kamkoli. Soubory se
+            berou z knihovny, nebo z počítače — a rovnou se uloží do knihovny.
+          </>
+        )}
+      />
 
       {/* PŘIŘAZENÍ STOP NA FADERY */}
       <div className="space-y-6">
