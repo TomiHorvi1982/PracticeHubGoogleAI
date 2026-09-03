@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ChevronDown, Settings, Compass, Maximize2 } from 'lucide-react';
 import { MainTabType } from './sekce';
-import { PRIME, SKUPINY, STRANOU, skupinaSekce, Skupina } from './skupiny';
+import { PRIME, SKUPINY, STRANOU, skupinaSekce, viditelnePolozky, Skupina } from './skupiny';
 
 interface Props {
   activeTab: MainTabType;
@@ -43,6 +43,7 @@ const Rozbalovatko: React.FC<{
   const spoust = useRef<HTMLButtonElement>(null);
   const polozkyRef = useRef<(HTMLButtonElement | null)[]>([]);
   const maAktivni = skupinaSekce(activeTab) === skupina.id;
+  const polozky = viditelnePolozky(skupina);
 
   // Kliknutí mimo a Escape zavírají. Bez toho zůstane nabídka viset
   // přes obsah a překáží tomu, kvůli čemu si ji člověk otevřel.
@@ -86,7 +87,7 @@ const Rozbalovatko: React.FC<{
 
   /** Šipkami se přejíždí po položkách a na koncích se to otočí. */
   const posun = (od: number, smer: 1 | -1) => {
-    const n = skupina.polozky.length;
+    const n = polozky.length;
     polozkyRef.current[(od + smer + n) % n]?.focus();
   };
 
@@ -117,7 +118,7 @@ const Rozbalovatko: React.FC<{
           style={{ left: pozice?.left, top: pozice?.top }}
           className="fixed z-50 w-[220px] rounded-panel border border-kresba-silna bg-plocha-3 p-1 shadow-lg shadow-black/40"
         >
-          {skupina.polozky.map((p, i) => {
+          {polozky.map((p, i) => {
             const aktivni = activeTab === p.id;
             return (
               <button

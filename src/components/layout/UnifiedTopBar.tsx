@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
 import { audioBus, CoHraje } from '../../services/audioBus';
 import { posunDoToniny } from '../../services/akordy';
+import { NastrojeDocku } from './NastrojeDocku';
 import { MikrofonTlacitko } from '../hlas/MikrofonTlacitko';
 import { zaregistruj } from '../../services/hlas/vykonavac';
 import { toninaZReci } from '../../services/tonina';
@@ -171,7 +172,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
       </div>
 
       {/* CENTER SECTION: Global Musical Controls (BPM, Key, Tuning, Transport) */}
-      <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner">
+      <div className="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner min-w-0">
         {/* BPM Control */}
         <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
           <Clock className="w-3.5 h-3.5 text-amber-400" />
@@ -183,8 +184,11 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             min={30}
             max={300}
           />
-          <span className="text-[10px] font-semibold text-slate-400 uppercase">BPM</span>
-          <div className="flex flex-col -space-y-1 ml-0.5">
+          <span className="hidden sm:inline text-[10px] font-semibold text-slate-400 uppercase">BPM</span>
+          {/* Šipky mají 15×14px, což se na dotyk netrefí — a na úzkém okně
+              navíc vytlačovaly profil uživatele mimo obrazovku. Číslo se
+              dá přepsat přímo, takže se tu nic neztrácí. */}
+          <div className="hidden sm:flex flex-col -space-y-1 ml-0.5">
             <button
               onClick={() => setBpm(bpm + 1)}
               className="text-[9px] text-slate-400 hover:text-white px-1 font-bold"
@@ -274,7 +278,11 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
       </div>
 
       {/* RIGHT SECTION: Quick Dock Triggers, Live Band Session & Account */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Nástroje dolního panelu. Komentář nad tímhle blokem je sliboval,
+            ale žádná tlačítka tu nebyla — panel se vykresluje jen když je
+            v něm nástroj zapnutý, takže byl bez nich nedosažitelný. */}
+        <NastrojeDocku />
         {/* Hlasové příkazy — v liště, tedy dostupné ze všech sekcí. */}
         <MikrofonTlacitko />
         {/* User Profile / Admin Button */}

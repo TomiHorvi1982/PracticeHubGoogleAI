@@ -15,10 +15,22 @@ import { MainTabType } from './sekce';
  * zrovna dělá, ne podle toho, jak jsou postavené.
  */
 
+export interface Polozka {
+  id: MainTabType;
+  nazev: string;
+  /**
+   * Sekce, která má domov jinde a v nabídce se neukazuje.
+   *
+   * Zůstává dosažitelná hlasem a přímým přepnutím, takže se o ni
+   * nepřijde — jen nezabírá místo tam, kde je totéž po ruce jinak.
+   */
+  jenHlasem?: boolean;
+}
+
 export interface Skupina {
   id: string;
   nazev: string;
-  polozky: { id: MainTabType; nazev: string }[];
+  polozky: Polozka[];
 }
 
 /** Sekce, do kterých se chodí nejvíc — zůstávají na jeden klik. */
@@ -42,8 +54,14 @@ export const SKUPINY: Skupina[] = [
     polozky: [
       { id: 'practise', nazev: 'Practise Hub' },
       { id: 'instruments', nazev: 'Virtual Instruments' },
-      { id: 'practice', nazev: 'Metronom' },
-      { id: 'tuner', nazev: 'Ladička' },
+      // Jmenovalo se to „Metronom", ale sekce vykresluje `PracticeAssistant`
+      // — akordové postupy, rytmické vzory a výběr nástroje na 896 řádcích.
+      // Metronom je z toho jedna část a název schovával zbytek.
+      { id: 'practice', nazev: 'Akordový trenažér' },
+      // Ladička tu byla taky a vykreslovala tutéž komponentu jako dolní
+      // panel. Teď je jen v panelu, kam patří: ladí se během hraní,
+      // ne místo něj. Spouští se z horní lišty.
+      { id: 'tuner', nazev: 'Ladička', jenHlasem: true },
     ],
   },
   {
@@ -78,6 +96,11 @@ export const STRANOU: { id: MainTabType; nazev: string }[] = [
  */
 export function skupinaSekce(tab: MainTabType): string | null {
   return SKUPINY.find((s) => s.polozky.some((p) => p.id === tab))?.id ?? null;
+}
+
+/** Položky skupiny, které se v nabídce opravdu ukážou. */
+export function viditelnePolozky(s: Skupina): Polozka[] {
+  return s.polozky.filter((p) => !p.jenHlasem);
 }
 
 /**

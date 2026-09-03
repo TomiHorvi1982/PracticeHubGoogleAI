@@ -47,7 +47,11 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   // 'ai band': 'aikapela',
   'practise hub': 'practise',
   'texty': 'texty',
+  // Sekce se jmenuje Akordový trenažér; „metronom" zůstává, protože
+  // se to tak léta říkalo a hlasový příkaz nemá důvod přestat fungovat.
   'metronom': 'practice',
+  'akordový trenažér': 'practice',
+  'akordy a tempo': 'practice',
   'ladička': 'tuner',
   'soubory': 'library',
   'záložky': 'zalozky',
