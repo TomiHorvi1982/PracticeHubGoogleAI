@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { udajeSouboru } from '../services/udajeZNazvu';
 import { usePamet, usePametMnoziny } from '../hooks/usePamet';
 import { WaveformPrehravac } from './songbook/WaveformPrehravac';
 import { PdfNahled } from './songbook/PdfNahled';
@@ -285,6 +286,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         dataUrl: '',
         size: Number(a.size_bytes || 0),
         uploadedAt: new Date(a.created_at).getTime(),
+        // Tempo a tónina: u smyčky je to podstatnější než datum a
+        // velikost. Metadata mají přednost, jinak se čte z názvu —
+        // tak je pojmenovávají sample packy.
+        ...udajeSouboru(a.name, (a as any).metadata),
       }));
       // Při „načíst další" se přidává, jinak se seznam vymění — jinak by
       // přepnutí kategorie nechalo na obrazovce i soubory té předchozí.
@@ -1278,6 +1283,21 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         <div className="flex items-center gap-2 text-[11px] text-neutral-400 mt-0.5">
                           {item.artist && <span className="text-neutral-300 font-medium">{item.artist}</span>}
                           {item.songTitle && <span>• {item.songTitle}</span>}
+                          {/* U smyčky rozhoduje tempo a tónina, ne datum
+                              a velikost — proto stojí před nimi. Prázdné
+                              se nevypisuje, jinak by řádek nesl samé
+                              pomlčky. */}
+                          {(item as any).bpm > 0 && (
+                            <span className="text-[#0A84FF] font-mono tabular-nums">
+                              {(item as any).bpm} BPM
+                            </span>
+                          )}
+                          {(item as any).tonina && (
+                            <span className="text-[#BF5AF2] font-mono">{(item as any).tonina}</span>
+                          )}
+                          {(item as any).takt && (
+                            <span className="text-neutral-500 font-mono">{(item as any).takt}</span>
+                          )}
                           <span>• {Math.round(item.size / 1024)} KB</span>
                         </div>
                       </div>

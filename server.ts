@@ -17,6 +17,7 @@ import { textZPdf } from './pdfText';
 import {
   kategorieVyberu, strankovani, vzorHledani, ZVUKOVE_MIME,
 } from './server/vyberSamplu';
+import { udajeSouboru } from './src/services/udajeZNazvu';
 import {
   postavDotaz as postavDotazTipu,
   zpracujOdpoved as zpracujTipy,
@@ -1655,39 +1656,8 @@ export async function createApp() {
    * neříká nic.
    */
 
-  /**
-   * Konec údaje v názvu souboru.
-   *
-   * Buď oddělovač, nebo konec názvu. Bez té druhé možnosti se údaj na
-   * konci nikdy nerozpozná — a přípona se ustřihává dřív, takže
-   * `riff_100bpm_Em_4-4.wav` končí právě taktem.
-   */
-  const KONEC = '(?=[_\\-\\s.]|$)';
-
-  /** Tempo z názvu: „120bpm", „_95_", „128 BPM". */
-  function tempoZNazvu(nazev: string): number {
-    const m =
-      nazev.match(/(\d{2,3})\s*bpm/i) ||
-      nazev.match(new RegExp(`[_\\-\\s](\\d{2,3})${KONEC}`));
-    const t = m ? Number(m[1]) : 0;
-    // Rozumné hranice: čtyřciferná čísla v názvech bývají roky nebo pořadí.
-    return t >= 40 && t <= 260 ? t : 0;
-  }
-
-  /** Tónina z názvu: „Am", „F#m", „_C_", „Ebmaj". */
-  function toninaZNazvu(nazev: string): string {
-    const m = nazev.match(new RegExp(`[_\\-\\s]([A-G](?:#|b)?)(m|min|maj)?${KONEC}`));
-    if (!m) return '';
-    return m[1] + (m[2] && m[2].startsWith('m') && m[2] !== 'maj' ? 'm' : '');
-  }
-
-  /** Takt z názvu: „4-4", „3_4", „6/8". */
-  function taktZNazvu(nazev: string): string {
-    const m = nazev.match(new RegExp(`[_\\-\\s](\\d)[\\/\\-_](\\d)${KONEC}`));
-    if (!m) return '';
-    const spodek = Number(m[2]);
-    return [2, 4, 8, 16].includes(spodek) ? `${m[1]}/${m[2]}` : '';
-  }
+  // Vyčítání údajů z názvu sedí ve sdíleném modulu — používá ho
+  // i seznam souborů v prohlížeči.
 
   app.get('/api/samples', requireAuth, async (req, res) => {
     const admin = getSupabaseAdmin();
@@ -1716,30 +1686,13 @@ export async function createApp() {
     const { data, error, count } = await q;
     if (error) return res.status(500).json({ error: error.message });
 
-    /**
-     * Tónina jen když to tóninou opravdu je.
-     *
-     * `metadata.key` není vyhrazené pro hudbu — sady bicích si do něj
-     * ukládají označení vrstvy (`layer:crash_left:hard:rr1`). Bez téhle
-     * kontroly se takový řetězec ukázal ve sloupci tóniny.
-     */
-    const jeTonina = (v: string) => /^[A-Ha-h][#b]?(m|maj|min|dur|moll)?$/.test(v.trim());
-    const jeTakt = (v: string) => /^\d{1,2}[/\-]\d{1,2}$/.test(v.trim());
-
     const samply = (data || []).map((a) => {
-      const cisty = String(a.name).replace(/\.(wav|mp3|aif|aiff|ogg)$/i, '');
       const m = (a.metadata || {}) as any;
       return {
         id: a.id,
-        nazev: cisty,
+        nazev: String(a.name).replace(/\.(wav|mp3|aif|aiff|ogg)$/i, ''),
         kategorie: a.category,
-        // Metadata mají přednost — když je někdo vyplnil, ví to líp než
-        // hádání z názvu.
-        bpm: Number(m.bpm || 0) || tempoZNazvu(cisty),
-        tonina: jeTonina(String(m.key || '')) ? String(m.key).trim() : toninaZNazvu(cisty),
-        takt: jeTakt(String(m.takt || m.meter || ''))
-          ? String(m.takt || m.meter).trim()
-          : taktZNazvu(cisty),
+        ...udajeSouboru(String(a.name), m),
         balik: String(m.balik || ''),
         velikost: Number(a.size_bytes || 0),
       };
