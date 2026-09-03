@@ -22,7 +22,7 @@ export const CviceniStupnic: React.FC = () => {
   const [oktav, setOktav] = useState(1);
   const [tempo, setTempo] = useState(80);
   const [dokola, setDokola] = useState(true);
-  const [nastroj, setNastroj] = useState<InstrumentProfile>('acoustic_guitar');
+  const [nastroj, setNastroj] = useState<InstrumentProfile>('acoustic_dreadnought');
 
   const [hraje, setHraje] = useState(false);
   const [kde, setKde] = useState(-1);
@@ -163,9 +163,10 @@ export const CviceniStupnic: React.FC = () => {
           onChange={(e) => setNastroj(e.target.value as InstrumentProfile)}
           className="bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[11px] text-white outline-none cursor-pointer"
         >
-          <option value="acoustic_guitar">Kytara</option>
+          <option value="acoustic_dreadnought">Akustická kytara</option>
           <option value="grand_piano_steinway">Klavír</option>
-          <option value="electric_guitar">Elektrická kytara</option>
+          <option value="electric_strat_clean">Elektrická kytara</option>
+          <option value="electric_lespaul_crunch">Elektrická — crunch</option>
         </select>
       </div>
 

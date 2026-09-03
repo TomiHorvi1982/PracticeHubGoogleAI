@@ -21,7 +21,7 @@ const DELKA_S = 2.2;
 export const KytaraJakoNastroj: React.FC = () => {
   const [hraje, setHraje] = useState(false);
   const [zapina, setZapina] = useState(false);
-  const [nastroj, setNastroj] = useState<InstrumentProfile>('grand_piano_steinway');
+  const [nastroj, setNastroj] = useState<InstrumentProfile>('electric_strat_clean');
   const [hlasitost, setHlasitost] = useState(0.7);
   const [posledni, setPosledni] = useState<string[]>([]);
   const [chyba, setChyba] = useState<string | null>(null);

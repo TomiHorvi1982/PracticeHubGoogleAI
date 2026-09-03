@@ -3,6 +3,7 @@
 // IndexedDB Local Sample Caching, Polyphonic Voice Management & Damper Release.
 
 import { ALL_INSTRUMENTS, InstrumentPreset } from '../data/instrumentPresets';
+import { skutecneId } from './aliasyNastroju';
 import { DRUM_KITS, DrumKitOption } from '../data/drumKits';
 import { drumKitFactory } from './drumKitFactory';
 import { eventBus } from './eventBus';
@@ -438,10 +439,18 @@ class SoundSynthesizer {
       return 'taiko_drum';
     }
 
-    const preset = ALL_INSTRUMENTS.find(i => i.id === profile);
+    const preset = ALL_INSTRUMENTS.find(i => i.id === skutecneId(profile));
     if (preset && preset.soundfont) {
       return preset.soundfont;
     }
+    // Neznámé id znamenalo tiše klavír. Kytara na hmatníku tak léta zněla
+    // jako křídlo a nikde nebyla chyba — protože ID jako `acoustic_guitar`
+    // v katalogu nikdy nebylo. Náhrada zůstává (hrát se má vždycky),
+    // ale ať to je poznat.
+    console.warn(
+      `[audioSynth] Nástroj „${profile}" v katalogu není — hraje se klavír. `
+      + 'Zkontroluj id proti instrumentPresets.',
+    );
     return 'acoustic_grand_piano';
   }
 
@@ -909,7 +918,7 @@ class SoundSynthesizer {
       this.preloadInstrument(profile);
 
       // Play rich expressive modeling preset while sample loads
-      const preset = ALL_INSTRUMENTS.find(i => i.id === profile) || ALL_INSTRUMENTS[0];
+      const preset = ALL_INSTRUMENTS.find(i => i.id === skutecneId(profile)) || ALL_INSTRUMENTS[0];
       this.playPresetNote(preset, noteName, duration, volume, velocity);
     }
   }
