@@ -11,10 +11,8 @@ import { nactiObsahJakoUrl, assetLibraryService, LibraryAsset } from '../service
 import { authService } from '../services/authService';
 import { StromKnihovny } from './knihovna/StromKnihovny';
 import { MistoVUlozisti } from './knihovna/MistoVUlozisti';
-import { PohledSamples } from './knihovna/PohledSamples';
 import { UzelStromu, PODLE_ID, navrhniPodkategorii, nazevKategorie } from '../services/knihovnaStrom';
 import { prevedNaMp3, jePrevoditelny, Kvalita } from '../services/prevodNaMp3';
-import { SbirkyPanel } from './knihovna/SbirkyPanel';
 import { HromadneAkce } from './knihovna/HromadneAkce';
 import { NahravaniSouboru } from './knihovna/NahravaniSouboru';
 import { Sbirka, nactiSbirky } from '../services/sbirkyService';
@@ -118,6 +116,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [prejmenovavany, setPrejmenovavany] = useState<{ id: string; nazev: string } | null>(null);
   const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
   const [searchQuery, setSearchQuery] = usePamet('knihovna_hledani', '');
+  /**
+   * Filtr podle sbírky — druhá osa knihovny.
+   *
+   * Strom kategorií říká, CO soubor je; sbírka, ODKUD přišel. Dřív na to
+   * byl samostatný pohled; po sloučení do jediného seznamu by se ta osa
+   * ztratila, kdyby se sem nepřenesla jako filtr.
+   */
+  const [sbirkaFiltr, setSbirkaFiltr] = usePamet<string | null>('knihovna_sbirka', null);
   /** Označené soubory pro hromadné akce. */
   const [oznacene, setOznacene] = usePametMnoziny('knihovna_oznacene');
   /** Probíhá hromadné mazání — ať se nedá spustit dvakrát. */
@@ -132,14 +138,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const blobRef = useRef<string[]>([]);
   useEffect(() => () => { blobRef.current.forEach((u) => URL.revokeObjectURL(u)); }, []);
 
-  /**
-   * Co se ukazuje: soubory, nebo zvuky.
-   *
-   * Sample se nevybírá podle názvu a data, ale podle toho, jak zní a jestli
-   * sedne do tempa. Proto má vlastní pohled — v seznamu souborů by to byly
-   * jen další řádky.
-   */
-  const [pohled, setPohled] = usePamet<'soubory' | 'samples' | 'sbirky'>('knihovna_pohled', 'soubory');
 
   /**
    * Zmenšovat zvuky před nahráním?
@@ -275,6 +273,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         search: dotaz.trim() || undefined,
         category: kategorieFiltr || undefined,
         subcategory: podkategorieFiltr || undefined,
+        sbirka: sbirkaFiltr || undefined,
         limit: 200,
         offset,
         sort: 'name',
@@ -304,7 +303,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     const id = window.setTimeout(() => nactiKnihovnu(searchQuery), 300);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, kategorieFiltr, podkategorieFiltr]);
+  }, [searchQuery, kategorieFiltr, podkategorieFiltr, sbirkaFiltr]);
 
   /** Strom se přepočítá po každé změně — přeřazení i smazání ho mění. */
   const nactiStrom = async () => {
@@ -968,22 +967,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-        <div className="flex rounded-xl bg-white/[0.04] border border-white/10 p-0.5">
-          {(['soubory', 'samples', 'sbirky'] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPohled(p)}
-              className={`px-3 py-2 rounded-[10px] text-xs font-semibold capitalize transition-colors cursor-pointer ${
-                pohled === p ? 'bg-[#0A84FF] text-white' : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              {p === 'soubory' ? 'Soubory' : p === 'samples' ? 'Samples' : 'Sbírky'}
-            </button>
-          ))}
-        </div>
-
-        </div>
       </div>
 
       {/* Status Alerts */}
@@ -1017,11 +1000,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           a maže se tady, takže i důsledek má být vidět tady. */}
       <MistoVUlozisti jsemSpravce={jsemSpravce} />
 
-      {pohled === 'samples' && <PohledSamples jsemSpravce={jsemSpravce} />}
-
-      {pohled === 'sbirky' && <SbirkyPanel />}
-
-      {pohled === 'soubory' && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         
         {/* Left Column: Explorer Filters & File List (5 cols) */}
@@ -1068,6 +1046,23 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               placeholder="Vyhledat soubor, interpreta..."
               className="w-full bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-[#0A84FF] outline-none transition-all shadow-sm"
             />
+
+            {/* Sbírka je druhá osa: strom říká, CO soubor je, sbírka
+                ODKUD přišel. Po sloučení pohledů by se bez tohohle
+                filtru ztratila. */}
+            {sbirky.length > 0 && (
+              <select
+                value={sbirkaFiltr || ''}
+                onChange={(e) => setSbirkaFiltr(e.target.value || null)}
+                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-[#0A84FF] shrink-0"
+                title="Filtrovat podle sbírky — odkud soubory přišly"
+              >
+                <option value="">Všechny sbírky</option>
+                {sbirky.map((sb) => (
+                  <option key={sb.id} value={sb.nazev}>{sb.nazev}</option>
+                ))}
+              </select>
+            )}
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
@@ -1699,7 +1694,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         </div>
 
       </div>
-      )}
 
     </div>
   );
