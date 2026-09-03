@@ -11,7 +11,6 @@ export type MainTabType =
   | 'podium'
   | 'playlist'
   | 'alphatab'
-  | 'alphatabhriste'
   | 'liveamp'
   | 'instruments'
   | 'youtube'
@@ -40,7 +39,6 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'pódium': 'podium',
   'playlist': 'playlist',
   'guitar pro': 'alphatab',
-  'alphatab': 'alphatabhriste',
   'live guitar amp': 'liveamp',
   'aparát': 'liveamp',
   'virtual instruments': 'instruments',

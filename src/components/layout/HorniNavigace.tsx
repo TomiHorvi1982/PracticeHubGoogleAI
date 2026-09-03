@@ -31,7 +31,6 @@ interface Props {
  */
 const POLOZKY: { id: MainTabType; label: string; icon: React.FC<{ className?: string }> }[] = [
   { id: 'alphatab', label: 'Guitar Pro', icon: FileCode },
-  { id: 'alphatabhriste', label: 'AlphaTab', icon: FileCode },
   { id: 'instruments', label: 'Virtual Instruments', icon: Piano },
   { id: 'stemmixer', label: 'Mixážní pult', icon: Sliders },
   // AI Band je odložený, ne smazaný: komponenta, služba i trasa v App
