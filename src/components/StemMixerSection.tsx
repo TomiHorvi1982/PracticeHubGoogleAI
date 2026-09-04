@@ -2,6 +2,8 @@ import { HlavickaSekce } from './ui/HlavickaSekce';
 import { DawVerticalFader } from './DawVerticalFader';
 import { vyrez as spocitejVyrez, najdiFazi, tempoZNastupu, MIN_ZOOM, MAX_ZOOM } from '../services/mrizkaDob';
 import { CasovaOsa } from './mixer/CasovaOsa';
+import { KanalKytary } from './mixer/KanalKytary';
+import { KANAL_KYTARY } from '../services/kytaraVMixu';
 import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
@@ -915,6 +917,35 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/*
+            Živá kytara jako další kanál pultu.
+
+            Není to samostatný nástroj vedle mixu, ale kanál v něm:
+            fader, panorama, ztlumení i sólo má společné s ostatními
+            a končí v témž součtu. Panel nad faderem řeší jen to, co má
+            kytara navíc — odkud bere signál a čím prochází.
+          */}
+          <div className="overflow-x-auto">
+            <div className="flex items-start gap-2 min-w-max pb-1">
+              <KanalKytary />
+              {channels[KANAL_KYTARY] && (
+                <div className="flex flex-col w-[168px] shrink-0">
+                  <DawVerticalFader
+                    stemId={KANAL_KYTARY}
+                    name="Kytara živě"
+                    channel={channels[KANAL_KYTARY]}
+                    meterLevel={meterLevels?.[KANAL_KYTARY] || 0}
+                    isPlaying={isPlaying}
+                    colorTheme={stemColors['guitar'] || stemColors['other']}
+                    vybrany={cilovyFader === KANAL_KYTARY}
+                    onVybrat={() => setCilovyFader(KANAL_KYTARY)}
+                    onUpdate={(u) => stemAudioService.updateChannel(KANAL_KYTARY, u)}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

@@ -1,4 +1,5 @@
 import * as Tone from 'tone';
+import { kytaraVMixu, KANAL_KYTARY } from './kytaraVMixu';
 import { spocitejVrcholy } from './vlnovka';
 import { dalsiCas, kompenzacePitche } from './prehravani';
 import { StemSongDocument, SongStem } from '../types';
@@ -444,6 +445,56 @@ class StemAudioService {
       this.loadingAudio = false;
       this.notify();
     }
+  }
+
+  /**
+   * Zapojí živou kytaru jako další kanál pultu.
+   *
+   * Staví se tytéž uzly jako u stopy — panner, gain, měřák — a zapíší
+   * se do stejných map. Tím kytara podědí hlasitost, panorama, ztlumení
+   * i sólo bez jediného řádku navíc: `applyChannelParams` prochází
+   * `channels` a nezajímá ji, co je zdrojem.
+   *
+   * Vlastní zvukový řetěz (vstup → aparát → bedna → EQ) staví
+   * `kytaraVMixu` na kontextu Tone.js, tedy na tom, který pult už
+   * používá. Druhý audio engine tu nevzniká.
+   */
+  public async pripojKytaru(): Promise<boolean> {
+    if (this.gains[KANAL_KYTARY]) return true;
+    await Tone.start();
+
+    const panner = new Tone.Panner(0);
+    const gain = new Tone.Gain(1);
+    const meter = new Tone.Meter();
+    panner.connect(gain);
+    gain.connect(meter);
+    gain.toDestination();
+
+    this.panners[KANAL_KYTARY] = panner;
+    this.gains[KANAL_KYTARY] = gain;
+    this.meters[KANAL_KYTARY] = meter;
+    this.channels[KANAL_KYTARY] = {
+      volume: 0, pan: 0, isMuted: false, isSolo: false,
+      pitchSemi: 0, isMono: false, stereoWidth: 1.0,
+    };
+
+    const ok = await kytaraVMixu.spust(panner.input as unknown as AudioNode);
+    if (!ok) { this.odpojKytaru(); return false; }
+
+    this.applyChannelParams();
+    this.notify();
+    return true;
+  }
+
+  /** Sundá kytaru z pultu i s jejím řetězem. */
+  public odpojKytaru(): void {
+    kytaraVMixu.stop();
+    [this.panners, this.gains, this.meters].forEach((mapa: any) => {
+      try { mapa[KANAL_KYTARY]?.dispose?.(); } catch { /* uzel už mohl zmizet */ }
+      delete mapa[KANAL_KYTARY];
+    });
+    delete this.channels[KANAL_KYTARY];
+    this.notify();
   }
 
   public applyChannelParams() {

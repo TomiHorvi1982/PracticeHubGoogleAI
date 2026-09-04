@@ -58,6 +58,17 @@ class NamAparat {
    * Motor se váže na kontext, takže při jeho výměně (zastavení a nové
    * spuštění kanálu) se staví znovu. Vrací uzel k zapojení do řetězu.
    */
+  /**
+   * Uzel aparátu k zapojení do řetězu, nebo `null`.
+   *
+   * Vystavuje se, protože kytarový kanál si řetěz staví sám a musí uzel
+   * umět vložit i vyndat, aniž by ho zakládal znovu — přestavba uzlu
+   * při každém obejití aparátu by lupla.
+   */
+  public dejUzel(): NamNode | null {
+    return this.uzel;
+  }
+
   public async pripoj(ctx: AudioContext): Promise<NamNode | null> {
     if (this.uzel && this.ctx === ctx) return this.uzel;
     await this.odpoj();
