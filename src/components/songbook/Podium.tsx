@@ -8,6 +8,7 @@ import { audioSynth } from '../../services/audioSynth';
 import { audioBus } from '../../services/audioBus';
 import { podiumProfil } from '../../services/podiumProfil';
 import { ObalkyPisne } from './ObalkyPisne';
+import { usePretahovaniPoradi } from './usePretahovaniPoradi';
 
 interface Playlist {
   id: string;
@@ -245,6 +246,18 @@ export const Podium: React.FC<Props> = ({
    * Obal je vepředu, protože z něj poznáš skladbu dřív, než stihneš
    * přečíst název.
    */
+  /**
+   * Přetahování skladeb v setu.
+   *
+   * Týž hook používá knihovna, aby se seznam na obou místech choval
+   * stejně. Osa je vodorovná: skladby jsou tu v mřížce vedle sebe,
+   * ne pod sebou.
+   */
+  const tah = usePretahovaniPoradi(
+    (z, na) => playlist && onPresunoutVSetu?.(playlist.id, z, na),
+    'vodorovne',
+  );
+
   const seznam = (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
       {vPlaylistu.length === 0 ? (
@@ -257,12 +270,20 @@ export const Podium: React.FC<Props> = ({
           return (
             <div
               key={s.id}
-              className={`flex items-center rounded-xl border transition-all min-w-0 ${
+              {...(onPresunoutVSetu && playlist ? tah.vlastnostiPolozky(i) : {})}
+              className={`relative flex items-center rounded-xl border transition-all min-w-0 ${
+                tah.tazene === i ? 'opacity-40' : ''
+              } ${
                 je
                   ? 'bg-znacka/20 border-znacka'
                   : 'bg-black/30 border-white/[0.08] hover:border-white/25'
               }`}
             >
+              {/* Značka, kam se skladba zařadí. V mřížce je svislá —
+                  skladby stojí vedle sebe, ne pod sebou. */}
+              {tah.znackaPred(i) && (
+                <span className="absolute -left-0.5 top-0 bottom-0 w-0.5 bg-znacka rounded-full" aria-hidden="true" />
+              )}
               <button
                 onClick={() => onVybrat(s)}
                 className="flex items-center gap-2 px-2 py-1.5 flex-1 min-w-0 cursor-pointer text-left"

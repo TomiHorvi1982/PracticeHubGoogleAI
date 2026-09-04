@@ -3,6 +3,7 @@ import {
   ListMusic, ChevronUp, ChevronDown, ChevronRight, X, GripVertical, Maximize2,
 } from 'lucide-react';
 import { Song } from '../../types';
+import { usePretahovaniPoradi } from './usePretahovaniPoradi';
 import { setListy, SetList } from '../../services/setListy';
 import { ObalkyPisne } from './ObalkyPisne';
 
@@ -38,7 +39,6 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   // Naskočí set, ve kterém něco je. Prázdný set na první pohled vypadá,
   // jako by se přidané skladby ztratily.
   const [vybrany, setVybrany] = useState<string>('');
-  const [tazene, setTazene] = useState<number | null>(null);
 
   useEffect(
     () =>
@@ -66,6 +66,10 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   const presun = (z: number, na: number) => {
     if (set) void setListy.presun(set.id, z, na);
   };
+
+  // Přetahování se značkou, kam se skladba zařadí. Stejný hook používá
+  // i Pódium — je to týž seznam a nemá důvod se chovat jinak.
+  const tah = usePretahovaniPoradi(presun, 'svisle');
 
   return (
     <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
@@ -126,18 +130,16 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
           {vSetu.map((s, i) => (
             <div
               key={s.id}
-              draggable
-              onDragStart={() => setTazene(i)}
-              onDragOver={(e) => e.preventDefault()}
-              onDrop={() => {
-                if (tazene !== null && tazene !== i) presun(tazene, i);
-                setTazene(null);
-              }}
-              onDragEnd={() => setTazene(null)}
-              className={`flex items-center gap-2 px-3 py-2 transition-all ${
-                tazene === i ? 'opacity-40' : 'hover:bg-white/[0.04]'
+              {...tah.vlastnostiPolozky(i)}
+              className={`relative flex items-center gap-2 px-3 py-2 transition-all ${
+                tah.tazene === i ? 'opacity-40' : 'hover:bg-white/[0.04]'
               }`}
             >
+              {/* Značka, kam skladba spadne. Bez ní bylo puštění
+                  překvapením — vidělo se jen, co se táhne, ne kam. */}
+              {tah.znackaPred(i) && (
+                <span className="absolute left-0 right-0 -top-px h-0.5 bg-znacka rounded-full" aria-hidden="true" />
+              )}
               <GripVertical className="w-3.5 h-3.5 text-neutral-600 shrink-0 cursor-grab active:cursor-grabbing" />
               <span className="w-5 text-stitek font-mono text-neutral-600 tabular-nums shrink-0">
                 {i + 1}.
@@ -181,6 +183,17 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               </button>
             </div>
           ))}
+          {/* Pruh pod poslední skladbou: bez něj by za ni nešlo nic
+              zařadit, protože značka se kreslí vždy nad položku. */}
+          <div
+            {...tah.vlastnostiKonce(vSetu.length)}
+            className="relative h-2"
+            aria-hidden="true"
+          >
+            {tah.znackaNaKonci(vSetu.length) && (
+              <span className="absolute left-0 right-0 top-0 h-0.5 bg-znacka rounded-full" />
+            )}
+          </div>
         </div>
       ))}
 
