@@ -149,6 +149,8 @@ export function slucPisne(stavajici: Song, nova: Song): Song {
 class SongDatabaseService {
   private songs: Song[] = [];
   private subscribers: Set<SongsCallback> = new Set();
+  /** Odhlášení z hlídání přihlášení; drží se, aby se nenavěsilo dvakrát. */
+  private odhlasOdAuth: (() => void) | null = null;
   private realtimeChannel: RealtimeChannel | null = null;
 
   constructor() {
@@ -194,6 +196,28 @@ class SongDatabaseService {
 
   public async init() {
     await this.fetchAll();
+
+    /*
+     * Znovu načíst po přihlášení.
+     *
+     * `init()` běží v konstruktoru, tedy jednou při načtení modulu.
+     * Když v té chvíli uživatel přihlášený není, vrátí RLS prázdný
+     * seznam — a to BEZ chyby, takže se nic neohlásí a knihovna
+     * zůstane prázdná i po přihlášení. Přesně tak to vypadalo:
+     * člověk se přihlásil a neviděl ani jednu skladbu.
+     */
+    if (!this.odhlasOdAuth) {
+      let bylPrihlasen = authService.isAuthenticated();
+      this.odhlasOdAuth = authService.subscribe((session) => {
+        const jePrihlasen = !!session;
+        // Reaguje se na změnu, ne na každé ohlášení — jinak by se
+        // seznam stahoval při každém překreslení.
+        if (jePrihlasen !== bylPrihlasen) {
+          bylPrihlasen = jePrihlasen;
+          void this.fetchAll();
+        }
+      });
+    }
 
     // Realtime: any insert/update/delete on `songs` (from this tab, another
     // tab, or another band member) re-syncs everyone's local list.

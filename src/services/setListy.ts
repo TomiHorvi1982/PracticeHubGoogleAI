@@ -29,6 +29,7 @@ export interface SetList {
 let seznamy: SetList[] = [];
 let nacteno = false;
 const posluchaci = new Set<(s: SetList[]) => void>();
+let odhlasOdAuth: (() => void) | null = null;
 let kanal: ReturnType<typeof supabase.channel> | null = null;
 
 function oznam(): void {
@@ -120,6 +121,26 @@ export const setListy = {
         .subscribe();
     }
     if (!nacteno) void stahni().then(prenesStare);
+
+    /*
+     * Po přihlášení znovu.
+     *
+     * `nacteno` zamkne stahování po prvním pokusu, jenže ten často
+     * proběhne dřív, než je uživatel přihlášený — a RLS tehdy vrátí
+     * prázdno bez chyby. Set list pak zůstal prázdný, dokud se stránka
+     * nenačetla znovu.
+     */
+    if (!odhlasOdAuth) {
+      let bylPrihlasen = authService.isAuthenticated();
+      odhlasOdAuth = authService.subscribe((session) => {
+        const jePrihlasen = !!session;
+        if (jePrihlasen !== bylPrihlasen) {
+          bylPrihlasen = jePrihlasen;
+          nacteno = false;
+          void stahni().then(prenesStare);
+        }
+      });
+    }
 
     return () => posluchaci.delete(f);
   },

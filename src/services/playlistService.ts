@@ -125,6 +125,18 @@ class PlaylistService {
   public async init() {
     await this.fetchAll();
 
+    // Po přihlášení znovu — `init()` běží v konstruktoru a bez
+    // přihlášení vrátí RLS prázdno bez chyby, takže by playlist
+    // zůstal prázdný. Totéž řeší knihovna i set listy.
+    let bylPrihlasen = authService.isAuthenticated();
+    authService.subscribe((session) => {
+      const jePrihlasen = !!session;
+      if (jePrihlasen !== bylPrihlasen) {
+        bylPrihlasen = jePrihlasen;
+        void this.fetchAll();
+      }
+    });
+
     this.realtimeChannel = supabase
       .channel('playlist-songs-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'playlist_songs' }, () => {

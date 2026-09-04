@@ -797,6 +797,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 +
               </button>
             </div>
+          </div>
 
           <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40">
             <div className="flex items-stretch bg-slate-900/60">
@@ -949,7 +950,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             </div>
           </div>
 
-          </div>
         </div>
       )}
 
