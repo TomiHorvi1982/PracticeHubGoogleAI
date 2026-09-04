@@ -215,7 +215,7 @@ export const Tone3000Katalog: React.FC = () => {
           <AlertTriangle className="w-4 h-4 shrink-0 mt-px text-pozor" />
           <span>
             Chybí klíč k TONE3000. Založ si aplikaci v jejich nastavení a publishable
-            key (<code className="text-pismo">t3k_pk_…</code>) dej do <code className="text-pismo">.env</code> jako
+            key (<code className="text-pismo">t3k_pub_…</code>) dej do <code className="text-pismo">.env</code> jako
             {' '}<code className="text-pismo">VITE_TONE3000_CLIENT_ID</code>. Jako návratovou adresu
             tam zadej <code className="text-pismo">{window.location.origin}/tone3000-callback.html</code>.
           </span>
