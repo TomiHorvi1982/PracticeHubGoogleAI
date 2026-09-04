@@ -863,7 +863,7 @@ export const VirtualInstruments: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5 justify-between">
+                <div className="flex flex-wrap items-center gap-1.5 justify-between">
                   <button
                     onClick={() => setOctaveShift((prev) => Math.max(-2, prev - 1))}
                     disabled={octaveShift <= -2}

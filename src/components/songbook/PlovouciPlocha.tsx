@@ -140,7 +140,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
       <div
         ref={plochaRef}
         onClick={() => nabidkaOtevrena && setNabidkaOtevrena(false)}
-        className="relative w-full min-h-[70vh] bg-black/20 border border-white/[0.06] rounded-3xl overflow-hidden"
+        className="relative w-full min-h-[70vh] bg-black/20 border border-white/[0.06] rounded-3xl overflow-x-auto overflow-y-hidden"
       >
         {okna.length === 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">

@@ -977,7 +977,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           </div>
 
           {/* TRANSPORT */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
             <button
               onClick={() => stemAudioService.togglePlay()}
               disabled={!audioReady || loadingAudio}
@@ -1023,7 +1023,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
             {/* Tempo. Zvuk se dopočítaně posune zpátky, takže pomalejší
                 cvičení hraje pořád ve své tónině. */}
-            <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1 shrink-0">
+            {/* Šest rychlostí v jedné neroztržitelné řadě mělo 310px
+                v místě širokém 269. `shrink-0` jim navíc bránilo
+                ustoupit, takže se řada ořízla místo zalomení. */}
+            <div className="flex flex-wrap items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1">
               {RYCHLOSTI.map((rr) => (
                 <button
                   key={rr}

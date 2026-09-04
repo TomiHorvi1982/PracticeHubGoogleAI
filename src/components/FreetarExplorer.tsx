@@ -613,7 +613,9 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         </div>
 
         {/* Mode Switcher */}
-        <div className="flex items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/10">
+        {/* Tri rezimy vedle sebe se na uzkem okne nevesly a rada se
+            orizla. Zalomeni je lepsi nez schovany treti rezim. */}
+        <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/10">
           <button
             onClick={() => setActiveMode('native_search')}
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
@@ -692,7 +694,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 e.preventDefault();
                 handleExecuteSearch(searchQuery);
               }}
-              className="flex gap-2.5"
+              className="flex flex-wrap gap-2.5"
             >
               <div className="relative flex-1">
                 <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />

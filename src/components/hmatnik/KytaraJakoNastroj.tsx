@@ -97,7 +97,7 @@ export const KytaraJakoNastroj: React.FC = () => {
         <select
           value={nastroj}
           onChange={(e) => setNastroj(e.target.value as InstrumentProfile)}
-          className="flex-1 min-w-[200px] bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
+          className="flex-1 min-w-0 sm:min-w-[200px] truncate bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
         >
           {INSTRUMENT_PROFILES.map((n) => (
             <option key={n.id} value={n.id}>{n.name}</option>

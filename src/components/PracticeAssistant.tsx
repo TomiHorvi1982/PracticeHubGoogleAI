@@ -384,7 +384,7 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* Beats Per Measure Settings & Interactive Beat Cards */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 space-y-4">
+        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
@@ -395,7 +395,7 @@ export const PracticeAssistant: React.FC = () => {
             </div>
 
             {/* Time Signature Presets */}
-            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+            <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
               <span className="text-stitek text-neutral-400 font-semibold px-1.5 uppercase">Takt:</span>
               {[
                 { label: '2/4', beats: 2 },
@@ -481,7 +481,7 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* BPM Tempo Controls & Tap Tempo */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 space-y-4">
+        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-4">
             
@@ -504,14 +504,18 @@ export const PracticeAssistant: React.FC = () => {
             </div>
 
             {/* Stepper Buttons & Slider */}
-            <div className="flex-1 max-w-md space-y-2">
-              <div className="flex items-center justify-between text-xs text-neutral-400 font-medium">
+            <div className="flex-1 min-w-0 max-w-md space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs text-neutral-400 font-medium">
                 <span>30 BPM</span>
                 <span>Nastavení tempa</span>
                 <span>280 BPM</span>
               </div>
 
-              <div className="flex items-center gap-2">
+              {/* Posuvník a čtyři krokovací tlačítka se na úzkém okně
+                  do jedné řady nevešly a řada sahala do 514px v místě
+                  širokém 283. Posuvník dostane celou šířku a tlačítka
+                  se zalomí pod něj. */}
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => setBpm((prev) => Math.max(30, prev - 5))}
                   className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-lg border border-white/10 text-xs font-semibold cursor-pointer"
@@ -531,7 +535,7 @@ export const PracticeAssistant: React.FC = () => {
                   max="280"
                   value={bpm}
                   onChange={(e) => setBpm(Number(e.target.value))}
-                  className="flex-1 accent-znacka cursor-pointer"
+                  className="w-full sm:flex-1 sm:w-auto accent-znacka cursor-pointer"
                 />
 
                 <button
@@ -633,7 +637,7 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* 1. CHORD PROGRESSION BUILDER (VLASTNÍ AKORDY) */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 space-y-3.5">
+        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2.5">
             <span className="text-xs font-bold text-white flex items-center gap-2">
               <Music className="w-4 h-4 text-uspech" /> 1. Akordová posloupnost:
@@ -728,7 +732,7 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* 2. MODE & PATTERN SELECTOR (STRUMMING VS VYDRNKÁVÁNÍ VS KLAVÍR) */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 space-y-4">
+        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
@@ -739,7 +743,7 @@ export const PracticeAssistant: React.FC = () => {
             </div>
 
             {/* Mode Selector Tabs */}
-            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+            <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
               <button
                 onClick={() => setBackingMode('strum')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
@@ -768,7 +772,7 @@ export const PracticeAssistant: React.FC = () => {
           </div>
 
           {/* Instrument Sound Selection */}
-          <div className="flex items-center gap-4 text-xs bg-white/[0.02] p-3 rounded-xl border border-white/5">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs bg-white/[0.02] p-3 rounded-xl border border-white/5">
             <span className="text-xs text-neutral-400 font-medium">Zvuk nástroje:</span>
             <label className="flex items-center gap-2 cursor-pointer text-white">
               <input
