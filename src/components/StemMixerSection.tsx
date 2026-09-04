@@ -103,7 +103,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     { role: string; nazev: string; assetId?: string; url?: string }[]
   >([]);
   /** Odkud se právě vybírá: z databáze, nebo ze složky na disku. */
-  const [zdroj, setZdroj] = useState<'knihovna' | 'disk'>('knihovna');
   const [mistni, setMistni] = useState<MistniOdpoved>({ dostupne: false, slozka: '', skladby: [] });
   const [mistniNacita, setMistniNacita] = useState(false);
   /** Sady, které ve složce přibyly, zatímco byl pult otevřený. */
@@ -437,273 +436,30 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
       {/* PŘIŘAZENÍ STOP NA FADERY */}
       <div className="space-y-6">
-        {/* Vlastní stopy: fadery zůstávají, jen se na ně věší soubory
-            z knihovny. Hotových rozdělených sad je pár, kdežto jednotlivých
-            stop leží v databázi spousta a nešlo z nich mix poskládat. */}
-        <div id="stopy-na-fadery" className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
-          <div className="flex flex-wrap items-center gap-2">
-            <Layers className="w-5 h-5 text-amber-400 shrink-0" />
-            <h3 className="text-base font-bold text-white">Stopy na fadery</h3>
-            <span className="text-xs text-slate-400">vyber fader a k němu soubor</span>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-1.5">
-            {ROLE_FADERU.map((r) => (
-              <button
-                key={r.id}
-                onClick={() => setCilovyFader(r.id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-                  cilovyFader === r.id
-                    ? 'bg-amber-500 text-slate-950'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {r.popis}
-                {vlastniStopy.some((v) => v.role === r.id) && (
-                  <span className="ml-1.5 text-emerald-400">•</span>
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Odkud brát soubory. Knihovna je sdílená s kapelou, disk je
-              jen tenhle počítač — separátor tam sype rychleji, než by se
-              stihlo cokoli nahrát nahoru. */}
-          <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-            {([
-              ['knihovna', 'Z knihovny'],
-              ['disk', 'Z počítače'],
-            ] as const).map(([id, popis]) => (
-              <button
-                key={id}
-                onClick={() => setZdroj(id)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-                  zdroj === id ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                {popis}
-              </button>
-            ))}
-            {zdroj === 'disk' && (
-              <button
-                onClick={() => nactiMistni('rucne')}
-                disabled={mistniNacita}
-                className="ml-auto px-3 py-1.5 rounded-xl text-xs bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer disabled:opacity-50"
-              >
-                {mistniNacita ? 'Hledám…' : 'Načíst znovu'}
-              </button>
-            )}
-          </div>
-
-          {zdroj === 'disk' && (
-            <div className="space-y-2">
-              {/* Vybrané soubory se uloží do knihovny, ne jen načtou —
-                  jinak by po zavření stránky zmizely. */}
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold cursor-pointer inline-flex items-center gap-1.5">
-                  <Upload className="w-3.5 h-3.5" />
-                  Vybrat soubory z počítače
-                  <input
-                    type="file"
-                    accept="audio/*,.wav,.mp3,.m4a,.aac,.flac,.ogg,.aif,.aiff"
-                    multiple
-                    className="hidden"
-                    disabled={!!nahrava}
-                    onChange={(e) => { if (e.target.files) void nahrajZPocitace(e.target.files); e.target.value = ''; }}
-                  />
-                </label>
-                {nahrava ? (
-                  <span className="text-drobne text-amber-400">
-                    Nahrávám {nahrava.hotovo} z {nahrava.celkem}…
-                  </span>
-                ) : (
-                  <span className="text-drobne text-slate-500">
-                    Uloží se do knihovny a rovnou pověsí na fadery podle názvu.
-                  </span>
-                )}
-              </div>
-
-              <div className="text-drobne text-slate-500 font-mono truncate pt-1 border-t border-slate-800">
-                Nebo ze složky: {mistni.slozka}
-              </div>
-
-              {!mistni.dostupne ? (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
-                  {mistni.duvod || 'Složku se stopami se nepodařilo přečíst.'}
-                </div>
-              ) : mistni.skladby.length === 0 ? (
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-xs text-slate-400">
-                  Ve složce zatím žádné zvukové soubory nejsou.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  {mistni.skladby.map((sk) => (
-                    <div key={sk.nazev} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white truncate flex-1">
-                          {sk.nazev || '(bez názvu)'}
-                        </span>
-                        <span className="text-stitek text-slate-500 shrink-0">
-                          {sk.stopy.length} {sk.stopy.length === 1 ? 'stopa' : sk.stopy.length < 5 ? 'stopy' : 'stop'}
-                        </span>
-                        {sk.stopy.some((t) => t.role) && (
-                          <button
-                            onClick={() => nactiSadu(sk)}
-                            className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-drobne font-bold cursor-pointer shrink-0"
-                          >
-                            Načíst na fadery
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {sk.stopy.map((t) => (
-                          <button
-                            key={t.cesta}
-                            onClick={() => povesNaFader(t.role || cilovyFader, { nazev: t.jmeno, url: odkazNaMistni(t.cesta) })}
-                            title={`${t.jmeno} — pověsit na ${
-                              ROLE_FADERU.find((r) => r.id === (t.role || cilovyFader))?.popis || t.role
-                            }`}
-                            className="px-2 py-1 rounded-lg bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-stitek text-slate-300 cursor-pointer"
-                          >
-                            {ROLE_FADERU.find((r) => r.id === t.role)?.popis || '?'}
-                            <span className="text-slate-500 ml-1">{Math.round(t.velikost / 1048576)} MB</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+        {/* Panel „Stopy na fadery" odsud zmizel: soubory se teď vybírají
+            pod tím faderem, kterému patří, takže se nedá splést komu.
+            Zůstalo jen nahrávání do knihovny — to není výběr stopy, ale
+            uložení souboru, a jinde v pultu není. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-prvek bg-plocha-3 border border-kresba text-drobne text-neutral-200 hover:border-kresba-silna cursor-pointer transition-colors">
+            <Upload className="w-3.5 h-3.5 text-znacka" />
+            Nahrát stopy do knihovny
+            <input
+              type="file"
+              accept="audio/*"
+              multiple
+              className="hidden"
+              onChange={(e) => { if (e.target.files) void nahrajZPocitace(e.target.files); e.target.value = ''; }}
+            />
+          </label>
+          {nahrava && (
+            <span className="text-drobne text-neutral-400 tabular-nums">
+              Nahrávám {nahrava.hotovo} z {nahrava.celkem}…
+            </span>
           )}
-
-          {zdroj === 'knihovna' && (
-          <VyberZKnihovny
-            kategorie="stem_mix,backing_tracks,recordings,samples"
-            cil={`na ${ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis || cilovyFader}`}
-            prazdno="V knihovně zatím žádné použitelné stopy nejsou."
-            sNahledem
-            nahled={(u) => <audio src={u} controls className="w-full h-8" />}
-            onVybrat={(a) => {
-              // Na jednom faderu je jedna stopa; nová nahradí starou.
-              const nove = [
-                ...vlastniStopy.filter((v) => v.role !== cilovyFader),
-                {
-                  role: cilovyFader,
-                  nazev: a.name,
-                  assetId: a.id,
-                  popisRole: ROLE_FADERU.find((r) => r.id === cilovyFader)?.popis,
-                },
-              ];
-              setVlastniStopy(nove);
-              stemAudioService.pouzijVlastniStopy(nove);
-              // Posun na první fader, který je ještě prázdný. Stopy se
-              // věší po sadách a přepínat cíl ručně mezi každými dvěma
-              // kliknutími je přesně ta chvíle, kdy se na to zapomene.
-              const volny = ROLE_FADERU.find((r) => !nove.some((v) => v.role === r.id));
-              if (volny) setCilovyFader(volny.id);
-            }}
-          />
-          )}
-
-          {vlastniStopy.length > 0 && (
-            <div className="border-t border-slate-800 pt-3 space-y-2">
-              {/* Uložení mixu.
-                  Poskládat stopy je práce na několik minut a dosud žila
-                  jen v otevřené stránce — po načtení byla pryč. Ukládá se
-                  jako další skladba se stopami, takže se objeví v seznamu
-                  vedle ostatních a jde k ní vrátit. */}
-              <div className="flex flex-wrap items-center gap-2">
-                {/* Připojit k existující skladbě je to obvyklé: stopy patří
-                    k písni, kterou už v katalogu máš, a zakládat vedle ní
-                    druhou se stejným názvem jen dělá nepořádek. */}
-                <select
-                  value={cilovaPisen}
-                  onChange={(e) => setCilovaPisen(e.target.value)}
-                  className="flex-1 min-w-[200px] bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
-                >
-                  <option value="">— založit novou skladbu —</option>
-                  {pisne.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.artist ? `${p.artist} — ${p.title}` : p.title}
-                    </option>
-                  ))}
-                </select>
-
-                {!cilovaPisen && (
-                  <input
-                    value={nazevMixu}
-                    onChange={(e) => setNazevMixu(e.target.value)}
-                    placeholder="Název nové skladby…"
-                    className="flex-1 min-w-[160px] bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:border-amber-500 outline-none"
-                  />
-                )}
-
-                <button
-                  disabled={(!cilovaPisen && !nazevMixu.trim()) || uklada}
-                  onClick={async () => {
-                    setUklada(true);
-                    setHlaska(null);
-                    try {
-                      const res = await authorizedFetch('/api/stems/vlastni', {
-                        method: 'POST',
-                        body: JSON.stringify({
-                          nazev: nazevMixu.trim(),
-                          songId: cilovaPisen || undefined,
-                          stopy: vlastniStopy,
-                          // Hlasitosti, panoramata a ztlumení — bez nich by
-                          // se po otevření všechno vrátilo na výchozí.
-                          nastaveni: channels,
-                        }),
-                      });
-                      const d = await res.json();
-                      if (!res.ok) throw new Error(d.error || 'Uložení selhalo.');
-                      const kam = cilovaPisen
-                        ? pisne.find((p) => p.id === cilovaPisen)?.title || 'skladbě'
-                        : nazevMixu.trim();
-                      setHlaska(
-                        cilovaPisen
-                          ? `Mix i s nastavením připojen ke skladbě „${kam}".`
-                          : `Uloženo jako „${kam}" — najdeš to v seznamu skladeb.`,
-                      );
-                      setNazevMixu('');
-                      // Seznam se musí načíst znovu, jinak by tam nová
-                      // skladba nebyla vidět až do dalšího otevření sekce.
-                      await stemAudioService.fetchSongs();
-                    } catch (e: any) {
-                      setHlaska(e?.message || 'Uložení selhalo.');
-                    } finally {
-                      setUklada(false);
-                    }
-                  }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {uklada ? 'Ukládám…' : cilovaPisen ? 'Připojit ke skladbě' : 'Uložit jako skladbu'}
-                </button>
-              </div>
-              {hlaska && <div className="text-drobne text-emerald-400">{hlaska}</div>}
-
-              {vlastniStopy.map((v) => (
-                <div key={v.role} className="flex items-center gap-2 text-xs text-slate-300">
-                  <span className="text-stitek font-bold text-amber-400 w-16 shrink-0 uppercase">
-                    {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
-                  </span>
-                  <span className="truncate flex-1">{v.nazev}</span>
-                  <button
-                    onClick={() => {
-                      const nove = vlastniStopy.filter((x) => x.role !== v.role);
-                      setVlastniStopy(nove);
-                      stemAudioService.pouzijVlastniStopy(nove);
-                    }}
-                    className="p-1 rounded text-slate-500 hover:text-rose-400 cursor-pointer"
-                    title="Sundat z faderu"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          <span className="text-stitek text-neutral-600">
+            Vybrat, co na kterém faderu hraje, jde pod ním.
+          </span>
         </div>
       </div>
 
@@ -776,7 +532,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 onClick={() => {
                   if (sk) nactiSadu(sk);
                   setNoveSady((p) => p.filter((x) => x !== n));
-                  setZdroj('disk');
                 }}
                 className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 max-w-[18rem] truncate"
                 title={`Načíst „${n}" na fadery`}
@@ -970,13 +725,18 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                         setCilovyFader(role.id);
                         povesNaFader(role.id, { nazev: m.jmeno, url: odkazNaMistni(m.cesta) });
                       }}
-                      onZKnihovny={() => {
-                        // Terč se přepne a horní panel se stane výběrem
-                        // pro tenhle fader.
-                        setCilovyFader(role.id);
-                        setZdroj('knihovna');
-                        document.getElementById('stopy-na-fadery')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                      }}
+                      knihovna={(hotovo) => (
+                        <VyberZKnihovny
+                          kategorie="stem_mix,backing_tracks,recordings,samples"
+                          cil={`na ${role.popis}`}
+                          prazdno="V knihovně zatím žádné použitelné stopy nejsou."
+                          onVybrat={(a) => {
+                            povesNaFader(role.id, { nazev: a.name, assetId: a.id });
+                            setCilovyFader(role.id);
+                            hotovo();
+                          }}
+                        />
+                      )}
                       onOdebrat={naNem ? () => {
                         const nove = vlastniStopy.filter((v) => v.role !== role.id);
                         setVlastniStopy(nove);
@@ -988,72 +748,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               })}
             </div>
           </div>
-
-          {/* Náhled videa až pod fadery: při mixu se kouká na stopy,
-              video je kontrola, ne to hlavní. */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
-        <div className="flex flex-wrap items-center gap-2">
-          <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
-          <h3 className="text-base font-bold text-white">Náhled videa</h3>
-          <span className="text-xs text-slate-400">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
-          {videoId && (
-            <button
-              onClick={() => setVideoId(null)}
-              className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-drobne cursor-pointer"
-            >
-              Zavřít video
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <select
-            value={videoId ?? ''}
-            onChange={(e) => setVideoId(e.target.value || null)}
-            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
-          >
-            <option value="">— skladba ze zpěvníku —</option>
-            {pisne
-              .filter((p) => (p.youtubeVideos?.length ?? 0) > 0)
-              .map((p) => (
-                <optgroup key={p.id} label={`${p.artist ? p.artist + ' — ' : ''}${p.title}`}>
-                  {p.youtubeVideos!.map((v) => (
-                    <option key={v.id} value={v.id}>{v.title || v.type}</option>
-                  ))}
-                </optgroup>
-              ))}
-          </select>
-
-          <input
-            value={odkazVidea}
-            onChange={(e) => setOdkazVidea(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
-            placeholder="…nebo vlož odkaz na YouTube"
-            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
-          />
-          <button
-            onClick={zobrazOdkaz}
-            disabled={!odkazVidea.trim()}
-            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer disabled:opacity-40"
-          >
-            Zobrazit
-          </button>
-        </div>
-
-        {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
-
-        {videoId && (
-          <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title="Náhled videa"
-              allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
-          </div>
-        )}
-      </div>
 
           {/* TRANSPORT */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
@@ -1141,6 +835,72 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           </div>
         </div>
       )}
+
+        {/* Náhled videa až pod fadery: při mixu se kouká na stopy,
+            video je kontrola, ne to hlavní. */}
+    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
+      <div className="flex flex-wrap items-center gap-2">
+        <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
+        <h3 className="text-base font-bold text-white">Náhled videa</h3>
+        <span className="text-xs text-slate-400">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
+        {videoId && (
+          <button
+            onClick={() => setVideoId(null)}
+            className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-drobne cursor-pointer"
+          >
+            Zavřít video
+          </button>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <select
+          value={videoId ?? ''}
+          onChange={(e) => setVideoId(e.target.value || null)}
+          className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
+        >
+          <option value="">— skladba ze zpěvníku —</option>
+          {pisne
+            .filter((p) => (p.youtubeVideos?.length ?? 0) > 0)
+            .map((p) => (
+              <optgroup key={p.id} label={`${p.artist ? p.artist + ' — ' : ''}${p.title}`}>
+                {p.youtubeVideos!.map((v) => (
+                  <option key={v.id} value={v.id}>{v.title || v.type}</option>
+                ))}
+              </optgroup>
+            ))}
+        </select>
+
+        <input
+          value={odkazVidea}
+          onChange={(e) => setOdkazVidea(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
+          placeholder="…nebo vlož odkaz na YouTube"
+          className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
+        />
+        <button
+          onClick={zobrazOdkaz}
+          disabled={!odkazVidea.trim()}
+          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer disabled:opacity-40"
+        >
+          Zobrazit
+        </button>
+      </div>
+
+      {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
+
+      {videoId && (
+        <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
+          <iframe
+            className="absolute inset-0 w-full h-full"
+            src={`https://www.youtube.com/embed/${videoId}`}
+            title="Náhled videa"
+            allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+          />
+        </div>
+      )}
+    </div>
 
       {/* PROCESSING STATE DAW WORKSPACE PREVIEW (when active selected song is processing) */}
       {selectedSong && selectedSong.status === 'processing' && (

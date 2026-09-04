@@ -23,17 +23,25 @@ interface Props {
   mistniDostupne: boolean;
   slozka: string;
   onZMistnich: (p: MistniPolozka) => void;
-  onZKnihovny: () => void;
+  /**
+   * Výběr z databáze přímo tady.
+   *
+   * Dřív na to byl společný panel nahoře a fader se k němu volil
+   * zvlášť. Dostat výběr pod fader znamená, že se nedá splést, komu
+   * soubor patří — dostane ho ten, u kterého se vybíralo.
+   */
+  knihovna: (onHotovo: () => void) => React.ReactNode;
   onOdebrat?: () => void;
 }
 
 const mb = (b: number) => (b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${Math.round(b / 1024)} kB`);
 
 export const ZdrojStopy: React.FC<Props> = ({
-  naNem, mistni, mistniDostupne, slozka, onZMistnich, onZKnihovny, onOdebrat,
+  naNem, mistni, mistniDostupne, slozka, onZMistnich, knihovna, onOdebrat,
 }) => {
   const [otevrene, setOtevrene] = useState(false);
   const [hledani, setHledani] = useState('');
+  const [zalozka, setZalozka] = useState<'knihovna' | 'pocitac'>('knihovna');
   const obal = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,49 +101,62 @@ export const ZdrojStopy: React.FC<Props> = ({
       )}
 
       {otevrene && (
-        <div className="absolute left-0 right-0 top-full mt-1 z-40 w-56 rounded-panel border border-kresba-silna bg-plocha-3 p-1.5 shadow-lg shadow-black/50">
-          <button
-            onClick={() => { onZKnihovny(); setOtevrene(false); }}
-            className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-prvek text-drobne text-neutral-200 hover:bg-plocha-nad cursor-pointer"
-          >
-            <Library className="w-3.5 h-3.5 text-znacka shrink-0" /> Z knihovny
-          </button>
+        <div className="absolute left-0 top-full mt-1 z-40 w-[320px] max-w-[80vw] rounded-panel border border-kresba-silna bg-plocha-3 p-2 shadow-lg shadow-black/50">
+          <div className="flex gap-1 mb-2">
+            <button
+              onClick={() => setZalozka('knihovna')}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-prvek text-stitek font-semibold cursor-pointer transition-colors ${
+                zalozka === 'knihovna' ? 'bg-znacka text-podklad' : 'text-neutral-400 hover:bg-plocha-nad'
+              }`}
+            >
+              <Library className="w-3 h-3" /> Z databáze
+            </button>
+            <button
+              onClick={() => setZalozka('pocitac')}
+              className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-prvek text-stitek font-semibold cursor-pointer transition-colors ${
+                zalozka === 'pocitac' ? 'bg-znacka text-podklad' : 'text-neutral-400 hover:bg-plocha-nad'
+              }`}
+            >
+              <FolderOpen className="w-3 h-3" /> Z počítače
+            </button>
+          </div>
 
-          <div className="mt-1 pt-1 border-t border-kresba">
-            <div className="flex items-center gap-1.5 px-2 py-1">
-              <FolderOpen className="w-3.5 h-3.5 text-info shrink-0" />
-              <span className="text-stitek text-neutral-400 truncate" title={slozka}>
-                {mistniDostupne ? 'Z počítače' : 'Počítač není po ruce'}
-              </span>
+          {zalozka === 'knihovna' && (
+            <div className="max-h-72 overflow-y-auto">
+              {knihovna(() => setOtevrene(false))}
             </div>
+          )}
 
-            {!mistniDostupne && (
-              <p className="px-2 pb-1 text-stitek text-neutral-600">
-                Appka běží na serveru, kde tvůj disk není.
+          {zalozka === 'pocitac' && (
+            !mistniDostupne ? (
+              <p className="px-1 py-2 text-stitek text-neutral-500">
+                Appka běží na serveru, kde tvůj disk není. Stopy z počítače
+                se načtou, když ji spustíš u sebe.
               </p>
-            )}
-
-            {mistniDostupne && (
+            ) : (
               <>
+                <p className="px-1 pb-1.5 text-stitek text-neutral-600 truncate" title={slozka}>
+                  {slozka}
+                </p>
                 {mistni.length > 8 && (
                   <input
                     value={hledani}
                     onChange={(e) => setHledani(e.target.value)}
-                    placeholder="Hledat v složce…"
+                    placeholder="Hledat ve složce…"
                     className="w-full bg-black/40 border border-kresba rounded-prvek px-2 py-1 mb-1 text-stitek text-white placeholder:text-neutral-600 focus:outline-none focus:border-znacka/60"
                   />
                 )}
-                <div className="max-h-48 overflow-y-auto">
+                <div className="max-h-64 overflow-y-auto">
                   {nalezene.length === 0 && (
-                    <p className="px-2 py-1.5 text-stitek text-neutral-600">
+                    <p className="px-1 py-1.5 text-stitek text-neutral-600">
                       {mistni.length ? 'Nic takového tu není.' : 'Ve složce nejsou žádné stopy.'}
                     </p>
                   )}
-                  {nalezene.slice(0, 60).map((m) => (
+                  {nalezene.slice(0, 80).map((m) => (
                     <button
                       key={m.cesta}
                       onClick={() => { onZMistnich(m); setOtevrene(false); }}
-                      className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-prvek text-left hover:bg-plocha-nad cursor-pointer"
+                      className="w-full flex items-center gap-1.5 px-1.5 py-1.5 rounded-prvek text-left hover:bg-plocha-nad cursor-pointer"
                       title={m.cesta}
                     >
                       <span className="flex-1 min-w-0 truncate text-stitek text-neutral-300">{m.jmeno}</span>
@@ -144,10 +165,11 @@ export const ZdrojStopy: React.FC<Props> = ({
                   ))}
                 </div>
               </>
-            )}
-          </div>
+            )
+          )}
         </div>
       )}
+
     </div>
   );
 };

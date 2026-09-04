@@ -3132,27 +3132,22 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
         });
 
         /*
-         * Freetar sám nic nenajde.
+         * Když Freetar nic nenajde, vypadá to, že se hledání neodeslalo.
          *
-         * Jejich služba stahuje akordy z Ultimate Guitar a to jí
-         * přestalo fungovat — na jakýkoli dotaz, i na jediné písmeno,
-         * odpovídá „Could not find any chords". Stránka s tou hláškou
-         * vypadá skoro jako jejich úvodní, takže to zvenčí vypadá, že
-         * se hledání vůbec neodeslalo.
-         *
-         * Vlastní vyhledávač aplikace přitom funguje, jen chodí rovnou
-         * na Ultimate Guitar. Proto se sem přidá vysvětlení — nechat to
-         * bez něj znamená, že to každý hledá u sebe.
+         * Hlášku „Could not find any chords" má drobným písmem a zbytek
+         * stránky je stejný jako jejich úvodní — tatáž hlavička, totéž
+         * vyhledávací pole. Proto se sem přidá viditelné vysvětlení
+         * a odkaz na vlastní vyhledávač, který chodí rovnou na
+         * Ultimate Guitar.
          */
         if (/Could not find any chords/i.test(html)) {
           const oznam = `
             <div style="margin:12px;padding:12px 14px;border-radius:12px;
                         background:#3a2a06;border:1px solid #6b4d0a;
                         color:#ffd88a;font:600 13px/1.5 system-ui,sans-serif">
-              Freetar teď nenajde nic — jejich zdroj akordů je mimo provoz
-              a na každý dotaz odpovídá prázdnou stránkou.
-              Použij vedle <strong>Nativní vyhledávač</strong>, ten jde
-              rovnou na Ultimate Guitar.
+              Freetar na tenhle dotaz nic nenašel. Zkus jiné znění, nebo
+              vedle <strong>Nativní vyhledávač</strong> — ten jde rovnou
+              na Ultimate Guitar.
             </div>`;
           html = html.replace(/(<body[^>]*>)/i, `$1${oznam}`);
         }
@@ -3198,7 +3193,7 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
                 
                 var absAction = action;
                 if (!action.startsWith('http://') && !action.startsWith('https://')) {
-                  var cleanAct = action.replace(/^\//, '');
+                  var cleanAct = action.replace(/^\\//, '')  // dvojite lomitko: v sablone je \/ unikova sekvence;
                   absAction = 'https://freetar.de/' + cleanAct;
                 }
                 
@@ -3340,7 +3335,7 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
                   
                   var absAction = action;
                   if (!action.startsWith('http://') && !action.startsWith('https://')) {
-                    var cleanAct = action.replace(/^\//, '');
+                    var cleanAct = action.replace(/^\\//, '')  // dvojite lomitko: v sablone je \/ unikova sekvence;
                     absAction = 'https://www.all-guitar-chords.com/' + cleanAct;
                   }
                   
