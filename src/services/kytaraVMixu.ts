@@ -41,6 +41,11 @@ export interface StavKytary {
   bypassEq: boolean;
   /** Špička vstupu 0–1, na měřák před aparátem. */
   urovenVstupu: number;
+
+  /** Ozvěna. `mix` 0–1 je podíl efektu, `cas` v sekundách, `zpetna` 0–0.9. */
+  delay: { zapnuto: boolean; cas: number; zpetna: number; mix: number };
+  /** Dozvuk. `delka` je doba doznění v sekundách. */
+  reverb: { zapnuto: boolean; delka: number; mix: number };
 }
 
 const VYCHOZI: StavKytary = {
@@ -48,11 +53,39 @@ const VYCHOZI: StavKytary = {
   model: null, bedna: null,
   bypassAparatu: false, bypassBedny: false, bypassEq: true,
   urovenVstupu: 0,
+  // Vypnuté a s nulovým podílem: kytara má napoprvé znít, jak ji hraješ.
+  delay: { zapnuto: false, cas: 0.35, zpetna: 0.35, mix: 0.25 },
+  reverb: { zapnuto: false, delka: 2.2, mix: 0.25 },
 };
 
 type Poslucha = (s: StavKytary) => void;
 
 const dbNaPomer = (db: number) => 10 ** (db / 20);
+
+/**
+ * Vyrobí odezvu prostoru pro dozvuk.
+ *
+ * Konvoluce potřebuje nahranou odezvu — a když žádná není po ruce, dá
+ * se použít šum, který exponenciálně doznívá. Zní to jako sál, ne jako
+ * konkrétní místnost, ale na kytaru pod ruku to stačí a nemusí se kvůli
+ * tomu nic stahovat.
+ *
+ * Dva kanály se počítají zvlášť, jinak by dozvuk vyšel uprostřed hlavy
+ * místo kolem ní.
+ */
+export function vyrobOdezvu(ctx: BaseAudioContext, delka: number): AudioBuffer {
+  const vterin = Math.max(0.1, Math.min(10, delka || 2));
+  const vzorku = Math.floor(ctx.sampleRate * vterin);
+  const buf = ctx.createBuffer(2, vzorku, ctx.sampleRate);
+  for (let k = 0; k < 2; k++) {
+    const d = buf.getChannelData(k);
+    for (let i = 0; i < vzorku; i++) {
+      // Mocnina dva dává znatelný ocas; vyšší by useklo dozvuk moc brzy.
+      d[i] = (Math.random() * 2 - 1) * (1 - i / vzorku) ** 2;
+    }
+  }
+  return buf;
+}
 
 class KytaraVMixu {
   private stav: StavKytary = { ...VYCHOZI };
@@ -71,6 +104,25 @@ class KytaraVMixu {
   private eq: BiquadFilterNode[] = [];
   private vystupGain: GainNode | null = null;
   private mericTimer: number | null = null;
+
+  /*
+   * Ozvěna a dozvuk.
+   *
+   * Oboje je zapojené paralelně, ne v cestě: suchý signál jde pořád
+   * dál a efekt se k němu jen přimíchá. Vypnout ho tak znamená stáhnout
+   * `mokro` na nulu — signál se nemusí přepojovat a nelupne to.
+   *
+   * Dělá se to nativními uzly, ne přes Tone.Effect, protože zbytek
+   * řetězu (NAM worklet, konvoluce bedny) je taky nativní a míchat obojí
+   * na jednom kontextu jen kvůli dvěma efektům by přidalo vrstvu navíc.
+   */
+  private delayUzel: DelayNode | null = null;
+  private delayZpetna: GainNode | null = null;
+  private delayMokro: GainNode | null = null;
+  private reverbUzel: ConvolverNode | null = null;
+  private reverbMokro: GainNode | null = null;
+  /** Analyzér za celým řetězem — z něj čte spektrum. */
+  private spektrum: AnalyserNode | null = null;
 
   public getStav(): StavKytary { return this.stav; }
 
@@ -155,7 +207,41 @@ class KytaraVMixu {
     this.eq[0].connect(this.eq[1]);
     this.eq[1].connect(this.eq[2]);
     this.eq[2].connect(this.vystupGain);
+
+    // Ozvěna: vlastní odbočka z výstupu, zpětná vazba uvnitř ní.
+    this.delayUzel = ctx.createDelay(2.0);
+    this.delayUzel.delayTime.value = this.stav.delay.cas;
+    this.delayZpetna = ctx.createGain();
+    this.delayZpetna.gain.value = this.stav.delay.zpetna;
+    this.delayMokro = ctx.createGain();
+    this.delayMokro.gain.value = 0;
+    this.vystupGain.connect(this.delayUzel);
+    this.delayUzel.connect(this.delayZpetna);
+    this.delayZpetna.connect(this.delayUzel);
+    this.delayUzel.connect(this.delayMokro);
+
+    // Dozvuk: konvoluce s vyrobenou odezvou, viz `vyrobOdezvu`.
+    this.reverbUzel = ctx.createConvolver();
+    this.reverbUzel.normalize = true;
+    this.reverbUzel.buffer = vyrobOdezvu(ctx, this.stav.reverb.delka);
+    this.reverbMokro = ctx.createGain();
+    this.reverbMokro.gain.value = 0;
+    this.vystupGain.connect(this.reverbUzel);
+    this.reverbUzel.connect(this.reverbMokro);
+
+    // Spektrum čte až to, co jde na fader — tedy i s efekty.
+    this.spektrum = ctx.createAnalyser();
+    this.spektrum.fftSize = 2048;
+    this.spektrum.smoothingTimeConstant = 0.75;
+
+    this.vystupGain.connect(this.spektrum);
+    this.delayMokro.connect(this.spektrum);
+    this.reverbMokro.connect(this.spektrum);
+
     this.vystupGain.connect(cil);
+    this.delayMokro.connect(cil);
+    this.reverbMokro.connect(cil);
+    this.pouzijEfekty();
 
     // Aparát se připojuje na týž kontext jako pult.
     await namAparat.pripoj(ctx);
@@ -169,7 +255,8 @@ class KytaraVMixu {
     if (this.mericTimer) { clearInterval(this.mericTimer); this.mericTimer = null; }
     this.proud?.getTracks().forEach((t) => t.stop());
     [this.zdroj, this.vstupGain, this.analyzer, this.aparatOd, this.aparatDo,
-      this.bednaOd, this.bednaDo, this.vystupGain, ...this.eq].forEach((u) => {
+      this.bednaOd, this.bednaDo, this.vystupGain, this.delayUzel, this.delayZpetna,
+      this.delayMokro, this.reverbUzel, this.reverbMokro, this.spektrum, ...this.eq].forEach((u) => {
       try { u?.disconnect(); } catch { /* uzel už mohl zmizet */ }
     });
     namAparat.odpoj();
@@ -225,6 +312,51 @@ class KytaraVMixu {
       this.aparatOd.connect(this.aparatDo);
     }
   }
+
+  /**
+   * Přepíše hodnoty efektů do uzlů.
+   *
+   * Vypnutý efekt má nulové mokro; uzly zůstávají zapojené, aby se
+   * přepínáním nemuselo přepojovat za běhu.
+   */
+  private pouzijEfekty(): void {
+    const ctx = this.delayUzel ? this.kontext() : null;
+    if (!ctx) return;
+    const ted = ctx.currentTime;
+    const { delay, reverb } = this.stav;
+    // Krátká rampa místo skoku: skok v hlasitosti je slyšet jako lupnutí.
+    this.delayUzel?.delayTime.setTargetAtTime(delay.cas, ted, 0.02);
+    this.delayZpetna?.gain.setTargetAtTime(delay.zpetna, ted, 0.02);
+    this.delayMokro?.gain.setTargetAtTime(delay.zapnuto ? delay.mix : 0, ted, 0.02);
+    this.reverbMokro?.gain.setTargetAtTime(reverb.zapnuto ? reverb.mix : 0, ted, 0.02);
+  }
+
+  public nastavDelay(z: Partial<StavKytary['delay']>): void {
+    const d = { ...this.stav.delay, ...z };
+    // Zpětná vazba nad devadesát procent se rozjede do nekonečna.
+    d.cas = Math.max(0.01, Math.min(2, d.cas));
+    d.zpetna = Math.max(0, Math.min(0.9, d.zpetna));
+    d.mix = Math.max(0, Math.min(1, d.mix));
+    this.oznam({ delay: d });
+    this.pouzijEfekty();
+  }
+
+  public nastavReverb(z: Partial<StavKytary['reverb']>): void {
+    const r = { ...this.stav.reverb, ...z };
+    r.delka = Math.max(0.1, Math.min(10, r.delka));
+    r.mix = Math.max(0, Math.min(1, r.mix));
+    const zmenaDelky = r.delka !== this.stav.reverb.delka;
+    this.oznam({ reverb: r });
+    // Odezvu stačí přepočítat, když se mění délka — je to pár desítek
+    // tisíc náhodných čísel a při tahání jezdcem mixu by to bylo zbytečné.
+    if (zmenaDelky && this.reverbUzel) {
+      this.reverbUzel.buffer = vyrobOdezvu(this.kontext(), r.delka);
+    }
+    this.pouzijEfekty();
+  }
+
+  /** Analyzér za řetězem — pro spektrum. `null`, dokud kytara neběží. */
+  public dejSpektrum(): AnalyserNode | null { return this.spektrum; }
 
   public async nactiModel(json: string, jmeno: string): Promise<boolean> {
     const ok = await namAparat.nactiModel(json, jmeno);

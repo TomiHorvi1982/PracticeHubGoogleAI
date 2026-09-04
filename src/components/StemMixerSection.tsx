@@ -1119,13 +1119,20 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             postavit sem druhý, který se chová jinak, by znamenalo dvě
             místa, která se musí držet v souladu.
           */}
+          {/* Fadery si šířku dělí, místo aby ji každý měl pevnou.
+
+              S pevnými 168 px se osm faderů na obrazovku nevešlo a
+              poslední dva byly za okrajem — kdo mixuje, potřebuje vidět
+              všechny naráz, jinak si sólo hledá posouváním. Spodní mez
+              zůstává, aby se při zúženém okně místo nečitelné kaše
+              objevil posuvník. */}
           <div className="overflow-x-auto">
-            <div className="flex items-stretch gap-2 min-w-max pb-1">
+            <div className="flex items-stretch gap-2 pb-1 min-w-[880px]">
               {ROLE_FADERU.map((role) => {
                 const stem = selectedSong?.stems.find((x) => x.id === role.id);
                 const naNem = vlastniStopy.find((v) => v.role === role.id);
                 return (
-                  <div key={role.id} className="flex flex-col w-[168px] shrink-0">
+                  <div key={role.id} className="flex flex-col flex-1 min-w-0 basis-0">
                     <DawVerticalFader
                       stemId={role.id}
                       name={role.popis}
@@ -1188,8 +1195,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             kytara navíc — odkud bere signál a čím prochází.
           */}
           <div className="overflow-x-auto">
-            <div className="flex items-start gap-2 min-w-max pb-1">
-              <KanalKytary />
+            <div className="flex items-stretch gap-2 pb-1 min-w-[880px]">
+              <div className="w-[300px] shrink-0 flex flex-col gap-2">
+                <KanalKytary />
+              </div>
               {channels[KANAL_KYTARY] && (
                 <div className="flex flex-col w-[168px] shrink-0">
                   <DawVerticalFader
@@ -1206,8 +1215,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 </div>
               )}
               {/* Katalog hned vedle faderu: aparát se vybírá tam, kde se
-                  zapojuje kytara, ne o dvě sekce dál. */}
-              <div className="w-[340px] shrink-0">
+                  zapojuje kytara, ne o dvě sekce dál. Bere si, co zbylo —
+                  seznam tónů je tu to nejširší a v úzkém sloupci se
+                  z názvů nedalo nic přečíst. */}
+              <div className="flex-1 min-w-[380px]">
                 <Tone3000Katalog />
               </div>
             </div>
