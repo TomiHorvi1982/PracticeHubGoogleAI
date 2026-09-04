@@ -1,3 +1,4 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useEffect, useState } from 'react';
 import { Bookmark, Plus, Trash2, ExternalLink, Check, Pencil, X } from 'lucide-react';
 import { zalozkyService, Zalozka, Kategorie, KATEGORIE } from '../services/zalozkyService';
@@ -43,24 +44,16 @@ export const ZalozkySection: React.FC = () => {
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
-      {/* Hlavička */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-wrap items-center gap-3.5">
-        <div className="p-3 bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] rounded-2xl">
-          <Bookmark className="w-6 h-6" />
-        </div>
-        <div className="flex-1 min-w-[240px]">
-          <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
-            Záložky
-          </span>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
-            Kam kapela chodí
-          </h2>
-          <p className="text-xs text-neutral-400 mt-1">
-            Sdílené odkazy — co si jeden najde, mají ostatní hned taky.
-            {zalozky.length > 0 && ` Zatím jich je ${zalozky.length}.`}
-          </p>
-        </div>
-      </div>
+      {/* Odznak „Záložky" nad nadpisem opakoval to, na co uživatel
+          před chvílí klikl v navigaci. Počet zůstává, ten je užitečný. */}
+      <HlavickaSekce
+        nazev="Kam kapela chodí"
+        klic="zalozky"
+        akce={zalozky.length > 0 ? (
+          <span className="text-drobne text-pismo-tlum tabular-nums">{zalozky.length} záložek</span>
+        ) : undefined}
+        napoveda="Sdílené odkazy — co si jeden najde, mají ostatní hned taky."
+      />
 
       {chyba && (
         <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl px-4 py-2.5 text-xs">

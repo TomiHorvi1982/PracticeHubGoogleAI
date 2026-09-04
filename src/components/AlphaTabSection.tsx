@@ -1,3 +1,4 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState, useEffect } from 'react';
 import { 
   FileUp, Disc, Music, Sliders, Play, Plus, BookOpen, Trash2, 
@@ -73,37 +74,12 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
-      {/* Title block */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
-            <Sliders className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
-                AlphaTab Labs
-              </span>
-              <span className="text-xs text-neutral-400 font-medium">Interaktivní přehrávač tabulatur</span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              AlphaTab Studio &amp; Guitar Pro
-            </h2>
-            <p className="text-xs text-neutral-400 mt-1">
-              Otevřete libovolný soubor GP3/GP4/GP5/GPX, přehrávejte MIDI tóny, přepínejte nástroje a trénujte.
-            </p>
-          </div>
-        </div>
+      <HlavickaSekce
+        nazev="Guitar Pro"
+        klic="alphatab"
+        napoveda="Otevři soubor GP3/GP4/GP5/GPX, přehraj si ho, přepínej nástroje a trénuj."
+      />
 
-        {activeFile && (
-          <button 
-            onClick={() => { setActiveFile(null); setSuccessMsg(null); setErrorMsg(null); }}
-            className="px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500 hover:text-white font-semibold text-xs rounded-xl transition-all cursor-pointer"
-          >
-            Zavřít soubor
-          </button>
-        )}
-      </div>
 
       {/* Hledání tabulatur.
           Bydlelo ve vlastní sekci, takže se za každou nalezenou

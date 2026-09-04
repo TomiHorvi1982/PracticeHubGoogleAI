@@ -1,3 +1,4 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useEffect, useMemo, useState } from 'react';
 import { PenLine, Mic, FileText, Check, AlertCircle, Languages } from 'lucide-react';
 import { songDatabaseService } from '../services/songDatabaseService';
@@ -75,24 +76,15 @@ export const TextySection: React.FC = () => {
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
+      {/* Hlavička je venku z karty: uvnitř zůstalo jen to, co se
+          používá. Odznak nad nadpisem opakoval název sekce z navigace. */}
+      <HlavickaSekce
+        nazev="Psaní a přepis"
+        klic="texty"
+        napoveda="Přepis vytáhne text z nahrávky i s časy; editor hlídá slabiky a rýmy. Obojí se ukládá rovnou do písně ve zpěvníku."
+      />
+
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
-        <div className="flex flex-wrap items-center gap-3.5 mb-4">
-          <div className="p-3 bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 text-[#BF5AF2] rounded-2xl">
-            <FileText className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
-              Texty
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
-              Psaní a přepis
-            </h2>
-            <p className="text-xs text-neutral-400 mt-1">
-              Přepis vytáhne text z nahrávky i s časy; editor hlídá slabiky a rýmy. Obojí se ukládá
-              rovnou do písně ve zpěvníku.
-            </p>
-          </div>
-        </div>
 
         <div className="flex flex-wrap gap-1.5">
           <button

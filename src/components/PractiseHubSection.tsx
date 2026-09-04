@@ -1,3 +1,4 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState } from 'react';
 import { Flame, Target, Brain, GraduationCap } from 'lucide-react';
 import { RozcvickaRoom } from './practise/RozcvickaRoom';
@@ -40,23 +41,15 @@ export const PractiseHubSection: React.FC = () => {
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
+      {/* Hlavička je venku z karty: uvnitř zůstalo jen to, co se
+          používá. Odznak nad nadpisem opakoval název sekce z navigace. */}
+      <HlavickaSekce
+        nazev="Zkušebna pro jednoho"
+        klic="practise"
+        napoveda="Čtyři místnosti podle toho, co zrovna děláš — od rozehřátí po zkoušení teorie."
+      />
+
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
-        <div className="flex flex-wrap items-center gap-3.5 mb-4">
-          <div className="p-3 bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] rounded-2xl">
-            <GraduationCap className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="bg-[#30D158] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
-              Practise Hub
-            </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
-              Zkušebna pro jednoho
-            </h2>
-            <p className="text-xs text-neutral-400 mt-1">
-              Čtyři místnosti podle toho, co zrovna děláš — od rozehřátí po zkoušení teorie.
-            </p>
-          </div>
-        </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {MISTNOSTI.map((m) => {

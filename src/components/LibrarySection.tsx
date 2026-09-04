@@ -1,3 +1,4 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState, useEffect, useRef } from 'react';
 import { udajeSouboru } from '../services/udajeZNazvu';
 import { usePamet, usePametMnoziny } from '../hooks/usePamet';
@@ -941,38 +942,28 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   return (
     <div className="space-y-4 font-sans text-white pb-12">
       
-      {/* Header Banner */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-[#0A84FF]/10 border border-[#0A84FF]/30 text-[#0A84FF] rounded-2xl">
-            <FolderArchive className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="bg-[#0A84FF] text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
-                Knihovna
-              </span>
-              {/* Skutečný počet v knihovně, ne počet právě načtených. Seznam
-                  níž je jedna stránka — dvacet tisíc řádků by prohlížeč
-                  stahoval a třídil zbytečně. Zbytek se najde hledáním. */}
-              <span className="text-xs text-neutral-400 font-medium tabular-nums">
-                {celkemVKnihovne.toLocaleString('cs')} souborů v knihovně
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              Multimediální Knihovna Souborů
-            </h2>
-            <p className="text-xs text-neutral-400 mt-1">
-              Guitar Pro, PDF noty, textové akordy, obrázky, MIDI a samply — všechno, co appka
-              nabízí k písním.{' '}
-              {!kategorieFiltr && !podkategorieFiltr
-                ? `Zobrazeno ${allCombinedItems.length} z ${celkemVKnihovne.toLocaleString('cs')}.`
-                : `V této kategorii je ${celkemVKnihovne.toLocaleString('cs')} souborů, zobrazeno ${filteredItems.length}.`}
-            </p>
-          </div>
-        </div>
-
-      </div>
+      {/* Hlavička místo původního baneru: ten měl ikonu, odznak, nadpis
+          i odstavec v kartě a tlačil strom složek na 338px. Počet souborů
+          zůstává v řádku — to je údaj, kvůli kterému se sem chodí, ne
+          vysvětlení. */}
+      <HlavickaSekce
+        nazev="Knihovna souborů"
+        klic="library"
+        akce={(
+          <span className="text-drobne text-pismo-tlum tabular-nums">
+            {celkemVKnihovne.toLocaleString('cs')} souborů
+          </span>
+        )}
+        napoveda={(
+          <>
+            Guitar Pro, PDF noty, textové akordy, obrázky, MIDI a samply — všechno,
+            co appka nabízí k písním.{' '}
+            {!kategorieFiltr && !podkategorieFiltr
+              ? `Zobrazeno ${allCombinedItems.length} z ${celkemVKnihovne.toLocaleString('cs')}.`
+              : `V této kategorii je ${celkemVKnihovne.toLocaleString('cs')} souborů, zobrazeno ${filteredItems.length}.`}
+          </>
+        )}
+      />
 
       {/* Status Alerts */}
       {statusMessage && (
