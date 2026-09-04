@@ -1,3 +1,4 @@
+import { AlbumSkladby } from './AlbumSkladby';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ObalkyPisne } from './ObalkyPisne';
 import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
@@ -556,7 +557,9 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   </span>
                 ))}
 
-                <div className="flex items-center gap-0.5 justify-self-end">
+                {/* Zalomení kvůli panelu s albem: rozbaluje se pod ikony
+                    a bez něj by se vecpal do řádku vedle nich. */}
+                <div className="flex flex-wrap items-center gap-0.5 justify-self-end">
                   {/* Detail jen u téhle písně — celý seznam kvůli jedné
                       skladbě narůstat nemusí. */}
                   <button
@@ -606,6 +609,12 @@ export const SeznamSkladeb: React.FC<Props> = ({
                         }}
                       />
                     </label>
+                  )}
+                  {/* Album, ze kterého píseň je. Dohledá se až po
+                      kliknutí — ke každému řádku dopředu by to znamenalo
+                      desítky dotazů pokaždé, co se seznam ukáže. */}
+                  {s.artist && (
+                    <AlbumSkladby interpret={s.artist} nazev={s.title} drobne />
                   )}
                   <button
                     onClick={(e) => onDoPlaylistu(s, e)}
