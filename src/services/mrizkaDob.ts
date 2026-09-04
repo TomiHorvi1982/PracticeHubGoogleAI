@@ -36,6 +36,47 @@ export function vyrez(delka: number, zoom: number, stred: number): { od: number;
   return { od: Math.max(0, od), do: Math.min(delka, od + sirka) };
 }
 
+/**
+ * Jak dlouhý úsek se při daném přiblížení vejde.
+ *
+ * Vytažené zvlášť, protože se to počítá i mimo výřez — posuvník podle
+ * toho ví, jak velký má být jezdec.
+ */
+export function sirkaVyrezu(delka: number, zoom: number): number {
+  if (!(delka > 0)) return 0;
+  return delka / Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom || 1));
+}
+
+/**
+ * Srovná ruční posun tak, aby výřez zůstal uvnitř skladby.
+ *
+ * Bez tohohle by šlo odjet za konec a koukat do prázdna.
+ */
+export function srovnejPosun(delka: number, zoom: number, od: number): number {
+  const sirka = sirkaVyrezu(delka, zoom);
+  if (!(sirka > 0)) return 0;
+  return Math.max(0, Math.min(delka - sirka, Number.isFinite(od) ? od : 0));
+}
+
+/** Výřez daný začátkem, ne středem — takhle se posouvá ručně. */
+export function vyrezOd(delka: number, zoom: number, od: number): { od: number; do: number } {
+  const sirka = sirkaVyrezu(delka, zoom);
+  if (!(sirka > 0)) return { od: 0, do: 0 };
+  const zac = srovnejPosun(delka, zoom, od);
+  return { od: zac, do: zac + sirka };
+}
+
+/**
+ * Je čas vidět ve výřezu?
+ *
+ * Podle toho se pozná, kdy má obraz zase začít sledovat hlavu: dokud
+ * je hlava na obraze, ruční posun platí; jakmile uteče ven, přebírá
+ * to zpátky přehrávání.
+ */
+export function jeVidet(cas: number, v: { od: number; do: number }): boolean {
+  return cas >= v.od && cas <= v.do;
+}
+
 /** Čas na vodorovnou pozici v pixelech. */
 export function casNaX(cas: number, od: number, doKdy: number, sirka: number): number {
   const rozsah = doKdy - od;

@@ -1,6 +1,9 @@
 import { HlavickaSekce } from './ui/HlavickaSekce';
 import { DawVerticalFader } from './DawVerticalFader';
-import { vyrez as spocitejVyrez, najdiFazi, tempoZNastupu, MIN_ZOOM, MAX_ZOOM } from '../services/mrizkaDob';
+import {
+  vyrez as spocitejVyrez, vyrezOd, srovnejPosun, sirkaVyrezu, jeVidet,
+  najdiFazi, tempoZNastupu, MIN_ZOOM, MAX_ZOOM,
+} from '../services/mrizkaDob';
 import { CasovaOsa } from './mixer/CasovaOsa';
 import { KanalKytary } from './mixer/KanalKytary';
 import { Tone3000Katalog } from './mixer/Tone3000Katalog';
@@ -100,6 +103,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [cilovyFader, setCilovyFader] = useState<string>('vocals');
   /** Přiblížení vlnovky a úsek, který je z něj vidět. */
   const [zoom, setZoom] = useState(1);
+  /** Ruční posun vlnovky do stran. `null` = obraz sleduje hlavu. */
+  const [posun, setPosun] = useState<number | null>(null);
+  const plochaStop = React.useRef<HTMLDivElement>(null);
+  const listaPosuvniku = React.useRef<HTMLDivElement>(null);
   /** Smyčka: `null`, dokud si ji člověk nevytáhne. */
   const [smycka, setSmycka] = useState<{ od: number; do: number } | null>(null);
   /** Doby odvozené z tempa; `shoda` říká, jestli jim věřit. */
@@ -441,11 +448,62 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioReady, selectedSong?.id]);
 
-  /** Kus skladby, který je při daném přiblížení vidět. */
+  /**
+   * Kus skladby, který je při daném přiblížení vidět.
+   *
+   * `posun` je ruční odjetí do strany. Dokud je `null`, drží se obraz
+   * přehrávací hlavy jako dřív. Jakmile se posuvníkem nebo prsty odjede
+   * jinam, platí ruční poloha — a přehrávání ji zase přebere, teprve až
+   * hlava z obrazu uteče. Jinak by při hraní nešlo nikam odjet.
+   */
   const pohled = React.useMemo(
-    () => spocitejVyrez(duration || 0, zoom, currentTime),
-    [duration, zoom, currentTime],
+    () => (posun === null
+      ? spocitejVyrez(duration || 0, zoom, currentTime)
+      : vyrezOd(duration || 0, zoom, posun)),
+    [duration, zoom, currentTime, posun],
   );
+
+  useEffect(() => {
+    if (posun === null || !isPlaying) return;
+    if (!jeVidet(currentTime, pohled)) setPosun(null);
+  }, [isPlaying, currentTime, pohled, posun]);
+
+  /** Kolik z celé skladby je vidět. Pod 1 znamená, že je kam posouvat. */
+  const podilVidet = duration > 0 ? sirkaVyrezu(duration, zoom) / duration : 1;
+  const jdePosouvat = podilVidet < 0.999;
+
+  const posunOJinak = React.useCallback((zmena: number) => {
+    setPosun((p) => srovnejPosun(
+      duration || 0, zoom, (p === null ? pohled.od : p) + zmena,
+    ));
+  }, [duration, zoom, pohled.od]);
+
+  /*
+   * Posouvání dvěma prsty.
+   *
+   * Trackpad hlásí vodorovné tažení jako `deltaX`; myš s kolečkem umí
+   * totéž se Shiftem. Bere se jen to, co je vodorovné — svislé kolečko
+   * musí dál rolovat stránkou, jinak by se v pultu nedalo hnout dolů.
+   *
+   * Posluchač se věší ručně, protože `preventDefault` v Reactu na
+   * `onWheel` neprojde — kolečko je tam pasivní.
+   */
+  useEffect(() => {
+    const el = plochaStop.current;
+    if (!el || !jdePosouvat) return;
+    const kolecko = (e: WheelEvent) => {
+      const vodorovne = e.shiftKey ? e.deltaY : e.deltaX;
+      if (Math.abs(vodorovne) < 1) return;
+      // Svislé tažení nechat stránce: rozhoduje, co převažuje.
+      if (!e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX)) return;
+      e.preventDefault();
+      const sirkaPx = el.clientWidth - SIRKA_OVLADANI;
+      if (sirkaPx <= 0) return;
+      posunOJinak((vodorovne / sirkaPx) * sirkaVyrezu(duration || 0, zoom));
+    };
+    el.addEventListener('wheel', kolecko, { passive: false });
+    return () => el.removeEventListener('wheel', kolecko);
+  }, [jdePosouvat, duration, zoom, posunOJinak]);
 
   const popiskyCasu = React.useMemo(
     () => popiskyOsy(duration, sirkaOsy),
@@ -800,7 +858,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40">
+          <div
+            ref={plochaStop}
+            id="stopy-vlnovky"
+            className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40"
+          >
             <div className="flex items-stretch bg-slate-900/60">
               <div
                 className="shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center text-stitek font-bold uppercase tracking-wider text-slate-500"
@@ -849,6 +911,73 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 />
               );
             })}
+
+            {/* POSUVNÍK
+
+                Přiblížená vlnovka ukazuje jen kus skladby a beze změny
+                se do zbytku nedalo dostat jinak než přehráváním. Jezdec
+                je široký podle toho, kolik je vidět, takže je z něj
+                zároveň poznat, jak hluboko je přiblíženo.
+
+                Sedí pod stopami a začíná až za sloupcem s názvy, aby
+                jeho délka odpovídala ploše, kterou posouvá. */}
+            {jdePosouvat && (
+              <div className="flex items-stretch border-t border-slate-800/70 bg-slate-900/40">
+                <div className="shrink-0" style={{ width: SIRKA_OVLADANI }} />
+                <div
+                  ref={listaPosuvniku}
+                  role="scrollbar"
+                  aria-controls="stopy-vlnovky"
+                  aria-orientation="horizontal"
+                  aria-label="Posun vlnovky do stran"
+                  aria-valuemin={0}
+                  aria-valuemax={Math.round(Math.max(0, duration - sirkaVyrezu(duration, zoom)))}
+                  aria-valuenow={Math.round(pohled.od)}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    const krok = sirkaVyrezu(duration || 0, zoom) / 8;
+                    if (e.key === 'ArrowLeft') { e.preventDefault(); posunOJinak(-krok); }
+                    if (e.key === 'ArrowRight') { e.preventDefault(); posunOJinak(krok); }
+                    if (e.key === 'Home') { e.preventDefault(); setPosun(0); }
+                    if (e.key === 'End') {
+                      e.preventDefault();
+                      setPosun(srovnejPosun(duration || 0, zoom, duration));
+                    }
+                  }}
+                  onPointerDown={(e) => {
+                    const lista = listaPosuvniku.current;
+                    if (!lista) return;
+                    const r = lista.getBoundingClientRect();
+                    const sirkaJezdce = r.width * podilVidet;
+                    const levyJezdce = r.left + (pohled.od / duration) * r.width;
+                    // Kliknutí mimo jezdce ho nejdřív přesune pod prst.
+                    const uchop = (e.clientX >= levyJezdce && e.clientX <= levyJezdce + sirkaJezdce)
+                      ? e.clientX - levyJezdce
+                      : sirkaJezdce / 2;
+                    const naCas = (x: number) => srovnejPosun(
+                      duration || 0, zoom, ((x - uchop - r.left) / r.width) * duration,
+                    );
+                    setPosun(naCas(e.clientX));
+                    const tahni = (ev: PointerEvent) => setPosun(naCas(ev.clientX));
+                    const pust = () => {
+                      window.removeEventListener('pointermove', tahni);
+                      window.removeEventListener('pointerup', pust);
+                    };
+                    window.addEventListener('pointermove', tahni);
+                    window.addEventListener('pointerup', pust);
+                  }}
+                  className="relative flex-1 min-w-0 h-3 cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/70"
+                >
+                  <div
+                    className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-slate-600 hover:bg-slate-500 transition-colors pointer-events-none"
+                    style={{
+                      left: `${(pohled.od / duration) * 100}%`,
+                      width: `${Math.max(4, podilVidet * 100)}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/*

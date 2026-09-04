@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 import {
   vyrez, casNaX, xNaCas, srovnejSmycku, dobyVRozsahu, dobaVTaktu, najdiFazi,
   MIN_ZOOM, MAX_ZOOM, tempoZNastupu, PRAH_MRIZKY,
+  sirkaVyrezu,
+  srovnejPosun,
+  vyrezOd,
+  jeVidet,
 } from './mrizkaDob';
 
 test('bez přiblížení je vidět celá skladba', () => {
@@ -134,4 +138,44 @@ test('málo nástupů tempo nedá', () => {
 
 test('samé dlouhé pauzy tempo nedají', () => {
   assert.equal(tempoZNastupu([0, 3, 6, 9, 12, 15, 18, 21, 24]), 0);
+});
+
+test('šířka výřezu klesá s přiblížením', () => {
+  assert.equal(sirkaVyrezu(120, 1), 120);
+  assert.equal(sirkaVyrezu(120, 4), 30);
+  // Mimo rozsah se přiblížení srovná, ne aby to vrátilo nesmysl.
+  assert.equal(sirkaVyrezu(120, 0), 120);
+  assert.equal(sirkaVyrezu(120, 1000), 120 / MAX_ZOOM);
+  assert.equal(sirkaVyrezu(0, 4), 0);
+});
+
+test('posun se nedostane před začátek ani za konec', () => {
+  // Při 4× je vidět 30 s ze 120, takže nejdál se dá odjet na 90.
+  assert.equal(srovnejPosun(120, 4, -10), 0);
+  assert.equal(srovnejPosun(120, 4, 45), 45);
+  assert.equal(srovnejPosun(120, 4, 200), 90);
+  // Bez přiblížení není kam posouvat.
+  assert.equal(srovnejPosun(120, 1, 50), 0);
+  assert.equal(srovnejPosun(120, 4, NaN), 0);
+});
+
+test('výřez daný začátkem drží šířku i u kraje', () => {
+  assert.deepEqual(vyrezOd(120, 4, 45), { od: 45, do: 75 });
+  assert.deepEqual(vyrezOd(120, 4, 500), { od: 90, do: 120 });
+  assert.deepEqual(vyrezOd(120, 4, -5), { od: 0, do: 30 });
+  assert.deepEqual(vyrezOd(0, 4, 10), { od: 0, do: 0 });
+});
+
+test('posunutý výřez a výřez ze středu popisují totéž', () => {
+  // Výřez ze středu 60 při 4× začíná na 45; ruční posun na 45 musí dát stejné.
+  assert.deepEqual(vyrezOd(120, 4, 45), vyrez(120, 4, 60));
+});
+
+test('poznáme, jestli je hlava ještě na obraze', () => {
+  const v = { od: 45, do: 75 };
+  assert.equal(jeVidet(60, v), true);
+  assert.equal(jeVidet(45, v), true, 'kraj se počítá jako vidět');
+  assert.equal(jeVidet(75, v), true);
+  assert.equal(jeVidet(44.9, v), false);
+  assert.equal(jeVidet(80, v), false);
 });
