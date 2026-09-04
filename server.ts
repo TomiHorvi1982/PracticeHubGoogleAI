@@ -3131,6 +3131,32 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
           return `${attr}="/api/freetar-proxy?url=${encodeURIComponent(absUrl)}"`;
         });
 
+        /*
+         * Freetar sám nic nenajde.
+         *
+         * Jejich služba stahuje akordy z Ultimate Guitar a to jí
+         * přestalo fungovat — na jakýkoli dotaz, i na jediné písmeno,
+         * odpovídá „Could not find any chords". Stránka s tou hláškou
+         * vypadá skoro jako jejich úvodní, takže to zvenčí vypadá, že
+         * se hledání vůbec neodeslalo.
+         *
+         * Vlastní vyhledávač aplikace přitom funguje, jen chodí rovnou
+         * na Ultimate Guitar. Proto se sem přidá vysvětlení — nechat to
+         * bez něj znamená, že to každý hledá u sebe.
+         */
+        if (/Could not find any chords/i.test(html)) {
+          const oznam = `
+            <div style="margin:12px;padding:12px 14px;border-radius:12px;
+                        background:#3a2a06;border:1px solid #6b4d0a;
+                        color:#ffd88a;font:600 13px/1.5 system-ui,sans-serif">
+              Freetar teď nenajde nic — jejich zdroj akordů je mimo provoz
+              a na každý dotaz odpovídá prázdnou stránkou.
+              Použij vedle <strong>Nativní vyhledávač</strong>, ten jde
+              rovnou na Ultimate Guitar.
+            </div>`;
+          html = html.replace(/(<body[^>]*>)/i, `$1${oznam}`);
+        }
+
         // Strip Content-Security-Policy & Frame-Options
         res.removeHeader('X-Frame-Options');
         res.removeHeader('Content-Security-Policy');

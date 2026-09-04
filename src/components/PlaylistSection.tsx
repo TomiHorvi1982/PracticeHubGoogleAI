@@ -1,3 +1,4 @@
+import { usePretahovaniPoradi } from './songbook/usePretahovaniPoradi';
 import React, { useState } from 'react';
 import { PlaylistItem, Song, UserAccount } from '../types';
 import { searchYouTubeDirect } from '../services/onlineSongSearch';
@@ -153,6 +154,23 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
     onAddItem(newItem);
     setIsSongbookPickerOpen(false);
   };
+
+  /**
+   * Přetahování skladeb v playlistu.
+   *
+   * Týž hook jako v knihovně a na Pódiu — tři seznamy skladeb nemají
+   * důvod se chovat každý jinak.
+   *
+   * Šipky níž prohazují sousedy, což pro krok o jedno stačí; tady se
+   * ale položka vyjme a vloží jinam, protože přetáhnout se dá přes
+   * celý seznam naráz.
+   */
+  const tah = usePretahovaniPoradi((z, na) => {
+    const nove = [...playlist];
+    const [x] = nove.splice(z, 1);
+    nove.splice(na, 0, x);
+    onReorderItems(nove);
+  }, 'svisle');
 
   const handleMoveUp = (index: number, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -530,12 +548,20 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             return (
               <div
                 key={item.id}
-                className={`flex items-center justify-between px-4 sm:px-5 py-3 transition-all ${
+                {...tah.vlastnostiPolozky(index)}
+                className={`relative flex items-center justify-between px-4 sm:px-5 py-3 transition-all
+                  cursor-grab active:cursor-grabbing ${
+                  tah.tazene === index ? 'opacity-40' : ''
+                } ${
                   isCurrent
                     ? 'bg-white/10 border-l-4 border-l-znacka'
                     : 'hover:bg-white/[0.03]'
                 }`}
               >
+                {/* Značka, kam skladba spadne. */}
+                {tah.znackaPred(index) && (
+                  <span className="absolute left-0 right-0 -top-px h-0.5 bg-znacka rounded-full" aria-hidden="true" />
+                )}
                 {/* Left: Index, Thumbnail, Title */}
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                   
@@ -601,7 +627,9 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                   </span>
 
                   {/* Move Up/Down */}
-                  <div className="flex items-center gap-0.5">
+                  {/* Šipky jen na úzkých oknech: přetahování stojí na
+                      událostech HTML5, které se na dotyku nespustí. */}
+                  <div className="lg:hidden flex items-center gap-0.5">
                     <button
                       onClick={(e) => handleMoveUp(index, e)}
                       disabled={index === 0}

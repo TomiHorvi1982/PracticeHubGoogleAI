@@ -271,7 +271,8 @@ export const Podium: React.FC<Props> = ({
             <div
               key={s.id}
               {...(onPresunoutVSetu && playlist ? tah.vlastnostiPolozky(i) : {})}
-              className={`relative flex items-center rounded-xl border transition-all min-w-0 ${
+              className={`relative flex items-center rounded-xl border transition-all min-w-0
+                ${onPresunoutVSetu && playlist ? 'cursor-grab active:cursor-grabbing' : ''} ${
                 tah.tazene === i ? 'opacity-40' : ''
               } ${
                 je
@@ -311,11 +312,11 @@ export const Podium: React.FC<Props> = ({
                 </span>
               </button>
 
-              {/* Posun v pořadí. Šipky, ne přetahování: na dotykovém
-                  displeji se přetahování pere s posouváním stránky a na
-                  zkoušce se míří palcem, ne myší. */}
+              {/* Šipky jen na úzkých oknech: přetahování stojí na
+                  událostech HTML5, které se na dotyku nespustí. Na
+                  počítači se táhne myší a šipky by jen zabíraly místo. */}
               {onPresunoutVSetu && playlist && vPlaylistu.length > 1 && (
-                <span className="flex flex-col shrink-0">
+                <span className="lg:hidden flex flex-col shrink-0">
                   <button
                     onClick={() => onPresunoutVSetu(playlist.id, i, i - 1)}
                     disabled={i === 0}

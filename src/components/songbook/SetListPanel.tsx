@@ -131,7 +131,8 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
             <div
               key={s.id}
               {...tah.vlastnostiPolozky(i)}
-              className={`relative flex items-center gap-2 px-3 py-2 transition-all ${
+              className={`relative flex items-center gap-2 px-3 py-2 transition-all
+                cursor-grab active:cursor-grabbing ${
                 tah.tazene === i ? 'opacity-40' : 'hover:bg-white/[0.04]'
               }`}
             >
@@ -156,12 +157,14 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
                 </div>
               </div>
 
-              {/* Šipky vedle tažení: myší se to táhne rychleji, ale na
-                  dotyku a jednou rukou u kytary je klik spolehlivější. */}
+              {/* Šipky jen na úzkých oknech. Přetahování stojí na
+                  událostech HTML5, které se na dotykovém displeji
+                  nespustí — bez šipek by tam pořadí nešlo změnit vůbec.
+                  Na počítači, kde se táhne myší, jen zabíraly místo. */}
               <button
                 onClick={() => presun(i, i - 1)}
                 disabled={i === 0}
-                className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                className="lg:hidden p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="Posunout výš"
               >
                 <ChevronUp className="w-3.5 h-3.5" />
@@ -169,7 +172,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               <button
                 onClick={() => presun(i, i + 1)}
                 disabled={i === vSetu.length - 1}
-                className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                className="lg:hidden p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="Posunout níž"
               >
                 <ChevronDown className="w-3.5 h-3.5" />
