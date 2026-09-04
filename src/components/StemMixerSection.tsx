@@ -1,4 +1,5 @@
 import { HlavickaSekce } from './ui/HlavickaSekce';
+import { DawVerticalFader } from './DawVerticalFader';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Music2,
@@ -974,6 +975,42 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 />
               );
             })}
+          </div>
+
+          {/*
+            Fadery ke stopám.
+            Vodorovné stopy nad nimi ukazují, KDE ve skladbě něco je;
+            fader říká, JAK to zní — hlasitost, panorama, výška, sólo,
+            ztlumení a ukazatel úrovně. Obojí je potřeba: podle vlnovky
+            se hledá místo, podle faderu se míchá.
+
+            Je to týž `DawVerticalFader`, jaký má okno mixu na Pódiu —
+            postavit sem druhý, který se chová jinak, by znamenalo dvě
+            místa, která se musí držet v souladu.
+          */}
+          <div className="overflow-x-auto">
+            <div className="flex items-stretch gap-2 min-w-max pb-1">
+              {ROLE_FADERU.map((role) => {
+                const stem = selectedSong?.stems.find((x) => x.id === role.id);
+                const naNem = vlastniStopy.find((v) => v.role === role.id);
+                return (
+                  <DawVerticalFader
+                    key={role.id}
+                    stemId={role.id}
+                    name={naNem?.nazev || stem?.name || role.popis}
+                    channel={channels[role.id] || {
+                      volume: 0, pan: 0, isMuted: false, isSolo: false,
+                      pitchSemi: 0, isMono: false, stereoWidth: 1.0,
+                    }}
+                    meterLevel={meterLevels?.[role.id] || 0}
+                    isPlaying={isPlaying}
+                    isLoading={loadingAudio}
+                    colorTheme={stemColors[role.id] || stemColors['other']}
+                    onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
+                  />
+                );
+              })}
+            </div>
           </div>
 
           {/* TRANSPORT */}
