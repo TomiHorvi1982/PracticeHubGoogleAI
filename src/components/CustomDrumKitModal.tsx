@@ -1207,7 +1207,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 />
                 <button
                   onClick={() => batchFileInputRef.current?.click()}
-                  className="px-4 py-2 bg-znacka hover:bg-[#FFB340] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  className="px-4 py-2 bg-znacka hover:bg-znacka-svetla text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
                 >
                   Vybrat soubory ze složky
                 </button>
@@ -1332,7 +1332,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
             <button
               onClick={handleSaveActiveKit}
-              className="flex items-center gap-1.5 px-5 py-2 bg-znacka hover:bg-[#FFB340] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg"
+              className="flex items-center gap-1.5 px-5 py-2 bg-znacka hover:bg-znacka-svetla text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg"
             >
               <Check className="w-4 h-4" />
               <span>Použít tuto sadu v bicích</span>

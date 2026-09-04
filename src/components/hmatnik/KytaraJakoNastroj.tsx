@@ -85,7 +85,7 @@ export const KytaraJakoNastroj: React.FC = () => {
           onClick={() => void prepni()}
           disabled={zapina}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-            hraje ? 'bg-chyba text-white' : 'bg-nastroj text-white hover:bg-[#c96ff5]'
+            hraje ? 'bg-chyba text-white' : 'bg-nastroj text-white hover:bg-nastroj-svetla'
           }`}
         >
           {zapina ? <Loader2 className="w-3.5 h-3.5 animate-spin" />

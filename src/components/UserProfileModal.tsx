@@ -234,7 +234,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full bg-znacka hover:bg-[#ffb03a] text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
+                  className="w-full bg-znacka hover:bg-znacka-svetla text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
                 >
                   <Check className="w-4 h-4" />
                   <span>Uložit nové heslo</span>

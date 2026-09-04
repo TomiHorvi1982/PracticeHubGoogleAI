@@ -343,7 +343,7 @@ export const Podium: React.FC<Props> = ({
 
   if (naCelou) {
     return (
-      <div className="fixed inset-0 z-[100] bg-[#0E0E12] text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
+      <div className="fixed inset-0 z-[100] bg-podklad text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">

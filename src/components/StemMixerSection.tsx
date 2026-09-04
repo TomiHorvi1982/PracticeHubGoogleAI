@@ -1114,7 +1114,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   </div>
 
                   {/* Fader Track Shimmer Graphic */}
-                  <div className="h-44 bg-[#0a0a0d] rounded-2xl border border-slate-800/60 flex items-center justify-center relative overflow-hidden p-3">
+                  <div className="h-44 bg-podklad rounded-2xl border border-slate-800/60 flex items-center justify-center relative overflow-hidden p-3">
                     <div className="w-1.5 h-full bg-slate-800 rounded-full" />
                     {/* Pulsing Fader Cap Placeholder */}
                     <div

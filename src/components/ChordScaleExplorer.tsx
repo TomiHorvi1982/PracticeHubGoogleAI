@@ -565,7 +565,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                         ? isRoot
                           ? 'bg-znacka text-black font-extrabold shadow-[0_0_10px_#FF9F0A]'
                           : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#30D158]'
-                        : 'bg-plocha-3 hover:bg-[#2C2C2E] text-neutral-400 hover:text-white'
+                        : 'bg-plocha-3 hover:bg-plocha-nad text-neutral-400 hover:text-white'
                     }`}
                     title={`Přehrát tón ${noteName} na piano`}
                   >

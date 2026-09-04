@@ -1356,7 +1356,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   {/* Create Song from Item */}
                   <button
                     onClick={() => handleCreateSongFromItem(activeItem)}
-                    className="px-3.5 py-2 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                    className="px-3.5 py-2 bg-uspech hover:bg-uspech-svetla text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
                     title="Vytvořit novou skladbu v Song Library z tohoto souboru"
                   >
                     <Plus className="w-4 h-4" /> <span>Přidat do zpěvníku</span>

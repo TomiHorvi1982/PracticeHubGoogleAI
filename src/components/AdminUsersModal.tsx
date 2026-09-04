@@ -404,7 +404,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                   <button
                     onClick={() => setActiveTab('add')}
-                    className="bg-uspech hover:bg-[#34e260] text-black font-bold px-3.5 py-2 text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md cursor-pointer shrink-0 active:scale-95"
+                    className="bg-uspech hover:bg-uspech-svetla text-black font-bold px-3.5 py-2 text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md cursor-pointer shrink-0 active:scale-95"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Přidat člena</span>
@@ -716,7 +716,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    className="px-5 py-2.5 bg-uspech hover:bg-uspech-svetla text-black text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <Check className="w-4 h-4" />
                     <span>Uložit oprávnění</span>
@@ -923,7 +923,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full bg-uspech hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    className="w-full bg-uspech hover:bg-uspech-svetla text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Vytvořit účet a generovat pozvánku</span>
@@ -1029,7 +1029,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             getInviteFormattedText(lastCreatedInvite.invitation),
                           )
                         }
-                        className="w-full bg-uspech hover:bg-[#34e260] text-black py-2.5 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                        className="w-full bg-uspech hover:bg-uspech-svetla text-black py-2.5 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                       >
                         <Mail className="w-4 h-4" />
                         <span>Odeslat pozvánku e-mailem</span>
@@ -1132,7 +1132,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             const text = await textSCerstvymOdkazem(inv);
                             if (text) otevriMail(inv, text);
                           }}
-                          className="bg-uspech hover:bg-[#34e260] text-black px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
+                          className="bg-uspech hover:bg-uspech-svetla text-black px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
                           title="Odeslat e-mailem"
                         >
                           <Send className="w-3.5 h-3.5" />

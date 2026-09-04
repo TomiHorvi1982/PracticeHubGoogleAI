@@ -559,8 +559,8 @@ export const PracticeAssistant: React.FC = () => {
                 onClick={() => setIsPlayingMetro(!isPlayingMetro)}
                 className={`px-5 py-3 rounded-2xl font-bold text-xs uppercase flex items-center gap-2 shadow-lg cursor-pointer transition-all active:scale-95 ${
                   isPlayingMetro
-                    ? 'bg-chyba text-white hover:bg-[#ff5b52]'
-                    : 'bg-uspech text-black hover:bg-[#34e260]'
+                    ? 'bg-chyba text-white hover:bg-chyba-svetla'
+                    : 'bg-uspech text-black hover:bg-uspech-svetla'
                 }`}
               >
                 {isPlayingMetro ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}
@@ -627,8 +627,8 @@ export const PracticeAssistant: React.FC = () => {
             onClick={() => setIsPlayingBacking(!isPlayingBacking)}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase shadow-lg cursor-pointer transition-all active:scale-95 ${
               isPlayingBacking
-                ? 'bg-chyba text-white hover:bg-[#ff5b52]'
-                : 'bg-uspech text-black hover:bg-[#34e260]'
+                ? 'bg-chyba text-white hover:bg-chyba-svetla'
+                : 'bg-uspech text-black hover:bg-uspech-svetla'
             }`}
           >
             {isPlayingBacking ? <Pause className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
@@ -723,7 +723,7 @@ export const PracticeAssistant: React.FC = () => {
               />
               <button
                 onClick={() => handleAddCustomChord()}
-                className="px-3.5 py-2 bg-uspech hover:bg-[#34e260] text-black font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all shadow-md"
+                className="px-3.5 py-2 bg-uspech hover:bg-uspech-svetla text-black font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer transition-all shadow-md"
               >
                 <Plus className="w-3.5 h-3.5" /> Přidat
               </button>

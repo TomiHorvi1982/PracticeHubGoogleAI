@@ -282,7 +282,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
               </button>
               <button
                 onClick={handleConfirmImport}
-                className="flex-1 py-2.5 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                className="flex-1 py-2.5 bg-uspech hover:bg-uspech-svetla text-black text-xs font-bold uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
               >
                 <ArrowRight className="w-4 h-4" /> Uložit a importovat
               </button>

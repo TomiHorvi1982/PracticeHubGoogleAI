@@ -680,7 +680,7 @@ export const MidiPlayerPanel: React.FC = () => {
           <div className="flex items-center gap-3 flex-wrap px-4 py-2.5 border-b border-white/10 bg-black/30">
             <button
               onClick={() => (stav.isPlaying ? midiPlayerService.pause() : midiPlayerService.play())}
-              className="flex items-center gap-1.5 bg-znacka hover:bg-[#FFB340] text-black font-black text-xs px-3.5 py-1.5 rounded-lg cursor-pointer"
+              className="flex items-center gap-1.5 bg-znacka hover:bg-znacka-svetla text-black font-black text-xs px-3.5 py-1.5 rounded-lg cursor-pointer"
             >
               {stav.isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               {stav.isPlaying ? 'Pauza' : 'Přehrát'}

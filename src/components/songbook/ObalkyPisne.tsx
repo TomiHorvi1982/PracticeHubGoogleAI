@@ -41,7 +41,7 @@ export const ObalkyPisne: React.FC<{ song: Song; velikost?: 'radek' | 'detail' }
           alt=""
           loading="lazy"
           title={song.artist}
-          className={`${foto} rounded-full object-cover absolute -bottom-1 -right-1 border-2 border-[#0B0B0E]`}
+          className={`${foto} rounded-full object-cover absolute -bottom-1 -right-1 border-2 border-podklad`}
         />
       )}
     </div>

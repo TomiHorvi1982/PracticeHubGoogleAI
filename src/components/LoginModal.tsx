@@ -232,7 +232,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-znacka hover:bg-[#ffb03a] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
+                className="w-full bg-znacka hover:bg-znacka-svetla text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
                 <span>{isSubmitting ? 'Přihlašuji…' : 'Přihlásit se do studia'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -279,7 +279,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-uspech hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
+                className="w-full bg-uspech hover:bg-uspech-svetla text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
                 <span>{isSubmitting ? 'Ukládám…' : 'Nastavit heslo a vstoupit'}</span>
                 <ArrowRight className="w-4 h-4" />

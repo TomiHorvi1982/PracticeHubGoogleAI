@@ -710,7 +710,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               <button
                 type="submit"
                 disabled={isSearching}
-                className="px-6 py-3 bg-znacka hover:bg-[#ffb038] text-black font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
+                className="px-6 py-3 bg-znacka hover:bg-znacka-svetla text-black font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 {isSearching ? (
                   <>
@@ -884,7 +884,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                               </button>
                               <button
                                 onClick={() => handleImportToSongbook(res)}
-                                className="px-3 py-1.5 bg-uspech hover:bg-[#34e260] text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
+                                className="px-3 py-1.5 bg-uspech hover:bg-uspech-svetla text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
                                 title="Importovat přímo do Song Library"
                               >
                                 <Plus className="w-3.5 h-3.5" /> Do Song Library
@@ -988,7 +988,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                     setStatusMessage({ type: 'error', text: 'Chyba při importu: ' + e?.message });
                   }
                 }}
-                className="px-4 py-2 bg-uspech hover:bg-[#34e260] text-black font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                className="px-4 py-2 bg-uspech hover:bg-uspech-svetla text-black font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
               >
                 <Download className="w-4 h-4" /> Import stránky
               </button>
@@ -1047,7 +1047,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => handleImportToSongbook(previewTab)}
-                  className="px-4 py-2 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                  className="px-4 py-2 bg-uspech hover:bg-uspech-svetla text-black text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
                 >
                   <Plus className="w-4 h-4" /> Uložit do Song Library
                 </button>

@@ -122,7 +122,7 @@ export const SoundshedPresety: React.FC = () => {
       <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
         {skupiny.map(([kategorie, vSkupine]) => (
           <div key={kategorie} className="space-y-1">
-            <p className="text-stitek uppercase tracking-wider text-neutral-500 sticky top-0 bg-[#0d0d0f] py-1">
+            <p className="text-stitek uppercase tracking-wider text-neutral-500 sticky top-0 bg-podklad py-1">
               {kategorie} · {vSkupine.length}
             </p>
             {vSkupine.map((p) => {

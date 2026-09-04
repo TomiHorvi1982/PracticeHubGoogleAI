@@ -320,7 +320,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               <button
                 type="submit"
                 disabled={isDirectSearching || !youtubeQuery.trim()}
-                className="px-6 py-3 bg-chyba hover:bg-[#ff5b52] text-white font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
+                className="px-6 py-3 bg-chyba hover:bg-chyba-svetla text-white font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 {isDirectSearching ? (
                   <>
@@ -388,7 +388,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               <button
                 type="button"
                 onClick={confirmImportSong}
-                className="px-5 py-2 bg-uspech hover:bg-[#34e260] text-black font-bold text-xs uppercase rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
+                className="px-5 py-2 bg-uspech hover:bg-uspech-svetla text-black font-bold text-xs uppercase rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
               >
                 Potvrdit &amp; uložit píseň
               </button>
@@ -440,7 +440,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                           e.stopPropagation();
                           triggerImportPrompt(video);
                         }}
-                        className="px-3 py-1 bg-chyba hover:bg-[#ff5b52] text-white font-bold text-stitek uppercase rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95"
+                        className="px-3 py-1 bg-chyba hover:bg-chyba-svetla text-white font-bold text-stitek uppercase rounded-lg flex items-center gap-1 transition-all shadow-md active:scale-95"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Do Mojich skladeb</span>
@@ -504,7 +504,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             <button
               onClick={handleAutoSearchYouTube}
               disabled={isSearching}
-              className="bg-chyba hover:bg-[#ff5b52] text-white px-4 py-2.5 text-xs font-bold uppercase rounded-2xl flex items-center gap-2 shadow-md transition-all cursor-pointer active:scale-95"
+              className="bg-chyba hover:bg-chyba-svetla text-white px-4 py-2.5 text-xs font-bold uppercase rounded-2xl flex items-center gap-2 shadow-md transition-all cursor-pointer active:scale-95"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isSearching ? 'animate-spin' : ''}`} />
               <span>Stáhnout variace doprovodu</span>
@@ -595,7 +595,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           <div className="flex justify-end gap-2.5 pt-2">
             <button
               type="submit"
-              className="bg-chyba hover:bg-[#ff5b52] text-white font-bold px-5 py-2.5 text-xs uppercase rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
+              className="bg-chyba hover:bg-chyba-svetla text-white font-bold px-5 py-2.5 text-xs uppercase rounded-xl shadow-md cursor-pointer transition-all active:scale-95"
             >
               Uložit k písni
             </button>

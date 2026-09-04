@@ -742,7 +742,7 @@ export const VirtualInstruments: React.FC = () => {
                   <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider block">Zvuk kláves ({ALL_INSTRUMENTS.length} nástrojů)</span>
                   <button
                     onClick={() => setIsSoundLibraryOpen(true)}
-                    className="flex items-center gap-1 text-drobne font-bold text-znacka hover:text-[#FFB340] transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-drobne font-bold text-znacka hover:text-znacka-svetla transition-colors cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Otevřít zvukovou knihovnu</span>
@@ -983,8 +983,8 @@ export const VirtualInstruments: React.FC = () => {
                             : isScaleNote && selectedScaleIndex !== null
                             ? 'bg-[#1C2E20] hover:bg-[#28422E] text-uspech border-uspech/60 shadow-[0_0_8px_rgba(48,209,88,0.2)]'
                             : isDisabledByFilter
-                            ? 'bg-[#0E0E10] text-neutral-700 border-white/5 opacity-20'
-                            : 'bg-plocha-3 hover:bg-[#2C2C2E] text-neutral-300 hover:text-white border-black'
+                            ? 'bg-podklad text-neutral-700 border-white/5 opacity-20'
+                            : 'bg-plocha-3 hover:bg-plocha-nad text-neutral-300 hover:text-white border-black'
                         }`}
                         title={`${fullNoteName} [Klávesa PC: ${keyObj.keyShortcut.toUpperCase()}]`}
                       >
@@ -1535,7 +1535,7 @@ export const VirtualInstruments: React.FC = () => {
                               className={`flex-1 py-1.5 rounded-xl text-drobne font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                                 isSelected
                                   ? 'bg-uspech text-black shadow-sm'
-                                  : 'bg-znacka text-black hover:bg-[#FFB340]'
+                                  : 'bg-znacka text-black hover:bg-znacka-svetla'
                               }`}
                             >
                               {isSelected ? (

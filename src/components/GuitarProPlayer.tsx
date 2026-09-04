@@ -862,7 +862,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               className={`px-4 py-2 font-bold flex items-center gap-1.5 text-xs rounded-xl transition-all cursor-pointer ${
                 isPlaying
                   ? 'bg-chyba text-white shadow-lg shadow-red-500/30 hover:bg-red-600'
-                  : 'bg-znacka hover:bg-[#ffb038] text-black shadow-lg shadow-amber-500/20'
+                  : 'bg-znacka hover:bg-znacka-svetla text-black shadow-lg shadow-amber-500/20'
               }`}
             >
               {isPlaying ? (

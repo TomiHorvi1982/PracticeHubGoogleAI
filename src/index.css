@@ -26,6 +26,12 @@
   --color-plocha-2:   #1A1A20;  /* 26,4 — bezna karta */
   --color-plocha-3:   #222229;  /* 34,5 — zvednuta nad kartu */
   --color-plocha-nad: #2B2B33;  /* 43,7 — nabidky a vyskakovaci okna */
+  /* Vhloubena plocha: pole a nahledy, ktere maji byt zapustene POD
+     podkladem, ne zvednute nad nim. Bez ni si tri komponenty
+     (AttachmentViewer, ChordDetailModal, OnlineSearchModal) drzely
+     vlastni sedou paletu — #050505, #222, #888, #666 — ktera se
+     zbytku aplikace nikdy nepripojila. */
+  --color-vhloubeni:  #08080A;  /*  8,1 — pod podkladem */
 
   /* --- Okraje. Nesou hierarchii místo stínů. --- */
   --color-kresba:        rgba(255, 255, 255, 0.09);
@@ -42,6 +48,16 @@
   --color-znacka:       #FF9F0A;
   --color-znacka-tlum:  rgba(255, 159, 10, 0.13);
   --color-znacka-okraj: rgba(255, 159, 10, 0.42);
+
+  /* --- Světlejší varianty pro najetí myší.
+         Bez nich si každá komponenta odstín vymýšlela sama a u jantarové
+         z toho vzešly tři téměř shodné (#FFB340, #FFB03A, #FFB038) —
+         liší se o jednotky v modrém kanálu, takže je nikdo nerozezná,
+         ale v kódu byly tři různé hodnoty. --- */
+  --color-znacka-svetla:  #FFB340;
+  --color-uspech-svetla:  #34E260;
+  --color-chyba-svetla:   #FF5B52;
+  --color-nastroj-svetla: #C96FF5;
 
   /* --- Významové barvy. Oddělené od značky: „hraje" a „smazat"
          musí jít poznat i tam, kde je jantarová jen ozdoba. --- */

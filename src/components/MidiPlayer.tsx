@@ -507,8 +507,8 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
                   onClick={() => setIsPlaying(!isPlaying)}
                   className={`px-5 py-2.5 font-bold text-xs uppercase flex items-center gap-2 rounded-2xl shadow-lg cursor-pointer transition-all active:scale-95 ${
                     isPlaying
-                      ? 'bg-chyba text-white hover:bg-[#ff5b52]'
-                      : 'bg-uspech text-black hover:bg-[#34e260]'
+                      ? 'bg-chyba text-white hover:bg-chyba-svetla'
+                      : 'bg-uspech text-black hover:bg-uspech-svetla'
                   }`}
                 >
                   {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current" />}

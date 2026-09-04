@@ -175,11 +175,11 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onDoubleClick={handleResetVolume}
-          className="relative w-8 h-48 bg-[#0c0c0e] rounded-xl border border-neutral-800 shadow-inner flex items-center justify-center cursor-ns-resize group"
+          className="relative w-8 h-48 bg-podklad rounded-xl border border-neutral-800 shadow-inner flex items-center justify-center cursor-ns-resize group"
           title="Tažením nahoru/dolů měníte hlasitost (Dvojklik = 0 dB)"
         >
           {/* Center Track Slot Groove */}
-          <div className="absolute top-3 bottom-3 w-1.5 bg-[#050507] rounded-full border-r border-b border-neutral-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]" />
+          <div className="absolute top-3 bottom-3 w-1.5 bg-podklad rounded-full border-r border-b border-neutral-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]" />
 
           {/* 0 dB Center Zero Mark Line */}
           <div
@@ -220,7 +220,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           />
 
           {/* Vertical Multi-segment LED Bar */}
-          <div className="w-2.5 h-44 bg-[#0a0a0d] border border-neutral-800 rounded-sm overflow-hidden relative flex flex-col-reverse shadow-inner">
+          <div className="w-2.5 h-44 bg-podklad border border-neutral-800 rounded-sm overflow-hidden relative flex flex-col-reverse shadow-inner">
             {/* Active meter level bar */}
             <div
               className="w-full transition-all duration-75"

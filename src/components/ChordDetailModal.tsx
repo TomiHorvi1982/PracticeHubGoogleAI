@@ -42,11 +42,11 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#0A0A0A] border-2 border-[#FF3E00] w-full max-w-xl p-4 sm:p-5 space-y-4 font-mono shadow-2xl relative my-auto max-h-[90vh] flex flex-col"
+        className="bg-vhloubeni border-2 border-[#FF3E00] w-full max-w-xl p-4 sm:p-5 space-y-4 font-mono shadow-2xl relative my-auto max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#222] pb-3 shrink-0">
+        <div className="flex items-center justify-between border-b border-kresba pb-3 shrink-0">
           <div className="flex items-center gap-2">
             <span className="bg-[#FF3E00] text-black font-extrabold px-2 py-0.5 text-stitek uppercase">
               DETAIL AKORDU
@@ -57,20 +57,20 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-[#888] hover:text-white hover:bg-[#222] transition-none"
+            className="p-1 text-pismo-tlum hover:text-white hover:bg-kresba transition-none"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Instrument & Variations Switcher Tabs */}
-        <div className="flex items-center bg-[#050505] p-1 border border-[#222] gap-1 shrink-0 overflow-x-auto">
+        <div className="flex items-center bg-vhloubeni p-1 border border-kresba gap-1 shrink-0 overflow-x-auto">
           <button
             onClick={() => setActiveTab('guitar')}
             className={`flex-1 py-1.5 px-2 text-drobne font-extrabold uppercase transition-none flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'guitar'
                 ? 'bg-[#FF3E00] text-black'
-                : 'text-[#888] hover:text-white'
+                : 'text-pismo-tlum hover:text-white'
             }`}
           >
             <Music className="w-3.5 h-3.5" />
@@ -81,7 +81,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
             className={`flex-1 py-1.5 px-2 text-drobne font-extrabold uppercase transition-none flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'variations'
                 ? 'bg-[#FFD700] text-black'
-                : 'text-[#888] hover:text-white'
+                : 'text-pismo-tlum hover:text-white'
             }`}
           >
             <Zap className="w-3.5 h-3.5 text-black" />
@@ -92,7 +92,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
             className={`flex-1 py-1.5 px-2 text-drobne font-extrabold uppercase transition-none flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'piano'
                 ? 'bg-[#00FF41] text-black'
-                : 'text-[#888] hover:text-white'
+                : 'text-pismo-tlum hover:text-white'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -101,29 +101,29 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
         </div>
 
         {/* Tab Contents */}
-        <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-[#333]">
+        <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin scrollbar-thumb-kresba-silna">
           {activeTab === 'guitar' && (
-            <div className="flex flex-col items-center justify-center bg-[#050505] p-4 border border-[#222] space-y-3">
+            <div className="flex flex-col items-center justify-center bg-vhloubeni p-4 border border-kresba space-y-3">
               <GuitarChordDiagram
                 chord={chordDef}
                 size="lg"
                 showTitle={false}
                 showPlayButton={false}
               />
-              <p className="text-stitek text-[#888] text-center uppercase font-bold">
+              <p className="text-stitek text-pismo-tlum text-center uppercase font-bold">
                 ZÁKLADNÍ POLOHA AKORDU NA KYTAROVÉM HMATNÍKU
               </p>
             </div>
           )}
 
           {activeTab === 'variations' && (
-            <div className="space-y-3 bg-[#050505] p-3 border border-[#222]">
-              <div className="border-b border-[#222] pb-2">
+            <div className="space-y-3 bg-vhloubeni p-3 border border-kresba">
+              <div className="border-b border-kresba pb-2">
                 <h4 className="text-xs font-black uppercase text-[#FFD700] flex items-center gap-1.5">
                   <Zap className="w-4 h-4 text-[#FFD700]" />
                   POMŮCKA PRO KYTARISTY: VARIACE &amp; BARRE HMATY PRO {chordDef.name}
                 </h4>
-                <p className="text-stitek text-[#888] mt-0.5">
+                <p className="text-stitek text-pismo-tlum mt-0.5">
                   Vyberte si alternativní pozici na hmatníku kytary, abyste nehráli stále stejné základní akordy.
                 </p>
               </div>
@@ -132,10 +132,10 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                 {variations.map((v) => (
                   <div
                     key={v.id}
-                    className="bg-[#111] border border-[#222] hover:border-[#FFD700] p-2.5 flex flex-col justify-between space-y-2 transition-colors"
+                    className="bg-plocha-1 border border-kresba hover:border-[#FFD700] p-2.5 flex flex-col justify-between space-y-2 transition-colors"
                   >
                     <div>
-                      <div className="flex items-center justify-between border-b border-[#222] pb-1 mb-1.5">
+                      <div className="flex items-center justify-between border-b border-kresba pb-1 mb-1.5">
                         <span className="text-stitek font-black uppercase text-[#FFD700]">
                           {v.label}
                         </span>
@@ -145,7 +145,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className="text-stitek text-[#AAA] mb-2 leading-tight">
+                      <p className="text-stitek text-pismo-tlum mb-2 leading-tight">
                         {v.description}
                       </p>
                       <div className="flex justify-center my-1">
@@ -172,8 +172,8 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
           )}
 
           {activeTab === 'piano' && (
-            <div className="bg-[#050505] p-3 border border-[#222] space-y-2">
-              <div className="flex items-center justify-between text-stitek text-[#AAA] font-bold uppercase border-b border-plocha-2 pb-1">
+            <div className="bg-vhloubeni p-3 border border-kresba space-y-2">
+              <div className="flex items-center justify-between text-stitek text-pismo-tlum font-bold uppercase border-b border-plocha-2 pb-1">
                 <span>KLÁVESNICE PIANA (1.5 OKTÁVY)</span>
                 <span className="text-[#00FF41]">
                   TÓNY: {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(' - ')}
@@ -181,7 +181,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
               </div>
 
               <div className="flex justify-center py-2 overflow-x-auto">
-                <div className="relative flex h-28 bg-[#000] p-1.5 border border-[#333]">
+                <div className="relative flex h-28 bg-[#000] p-1.5 border border-kresba-silna">
                   {Array.from({ length: 16 }).map((_, keyIdx) => {
                     const noteMidi = keyIdx % 12;
                     const noteName = ROOT_NOTES[noteMidi];
@@ -199,7 +199,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                               ? isRoot
                                 ? 'bg-[#FF3E00] text-black font-black'
                                 : 'bg-[#00FF41] text-black font-black'
-                              : 'bg-[#111] text-[#444]'
+                              : 'bg-plocha-1 text-kresba-silna'
                           }`}
                           title={`Tón ${noteName}`}
                         >
@@ -212,7 +212,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                       <button
                         key={keyIdx}
                         onClick={() => handlePlayPianoNote(keyIdx)}
-                        className={`w-7 h-24 border border-[#222] flex flex-col justify-end items-center pb-1 font-mono text-stitek font-bold transition-none active:scale-95 ${
+                        className={`w-7 h-24 border border-kresba flex flex-col justify-end items-center pb-1 font-mono text-stitek font-bold transition-none active:scale-95 ${
                           isHighlighted
                             ? isRoot
                               ? 'bg-[#FF3E00] text-black font-black'
@@ -232,17 +232,17 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
         </div>
 
         {/* Info Details */}
-        <div className="space-y-1 text-xs text-[#AAA] border-t border-[#222] pt-2 shrink-0">
+        <div className="space-y-1 text-xs text-pismo-tlum border-t border-kresba pt-2 shrink-0">
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
-            <span className="text-[#666] uppercase text-stitek">Základní tón:</span>
+            <span className="text-pismo-slaby uppercase text-stitek">Základní tón:</span>
             <span className="text-white font-bold">{chordDef.root}</span>
           </div>
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
-            <span className="text-[#666] uppercase text-stitek">Typ akordu:</span>
+            <span className="text-pismo-slaby uppercase text-stitek">Typ akordu:</span>
             <span className="text-white font-bold">{chordDef.type}</span>
           </div>
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
-            <span className="text-[#666] uppercase text-stitek">Tóny:</span>
+            <span className="text-pismo-slaby uppercase text-stitek">Tóny:</span>
             <span className="text-[#00FF41] font-mono font-bold">
               {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(', ')}
             </span>

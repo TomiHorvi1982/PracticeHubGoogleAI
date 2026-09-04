@@ -108,7 +108,7 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
             <span
               className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-full mb-1
                          hidden group-hover/znacka:block whitespace-nowrap rounded-md
-                         bg-[#0B0B0E] border border-white/15 px-1.5 py-0.5 text-stitek
+                         bg-podklad border border-white/15 px-1.5 py-0.5 text-stitek
                          font-medium text-white shadow-lg z-20"
             >
               {popis}

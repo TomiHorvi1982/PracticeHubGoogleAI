@@ -402,7 +402,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
         }`}
       >
         {isVideoFloatingOpen && (
-          <div className="bg-[#2C2C2E] px-3 py-2 flex items-center justify-between border-b border-white/10 text-xs font-medium text-white">
+          <div className="bg-plocha-nad px-3 py-2 flex items-center justify-between border-b border-white/10 text-xs font-medium text-white">
             <span className="truncate max-w-[220px]">{currentTrack.title}</span>
             <button
               onClick={() => setIsVideoFloatingOpen(false)}

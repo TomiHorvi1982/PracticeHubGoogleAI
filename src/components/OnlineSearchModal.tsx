@@ -90,10 +90,10 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-mono">
-      <div className="bg-[#0F0F0F] border-2 border-[#333] text-[#D1D1D1] max-w-2xl w-full p-5 relative max-h-[90vh] flex flex-col">
+      <div className="bg-podklad border-2 border-kresba-silna text-[#D1D1D1] max-w-2xl w-full p-5 relative max-h-[90vh] flex flex-col">
         
         {/* Header */}
-        <div className="flex items-center justify-between mb-3 border-b border-[#222] pb-2">
+        <div className="flex items-center justify-between mb-3 border-b border-kresba pb-2">
           <div className="flex items-center gap-2">
             <span className="bg-[#00FF41] text-black font-black px-2 py-0.5 text-stitek uppercase">
               ONLINE_API
@@ -105,7 +105,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1 text-[#888] hover:text-white hover:bg-[#222]"
+            className="p-1 text-pismo-tlum hover:text-white hover:bg-kresba"
           >
             <X className="w-5 h-5" />
           </button>
@@ -115,13 +115,13 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
         <form onSubmit={handleSearch} className="space-y-2 mb-3">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-[#666] absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-pismo-slaby absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="ZADEJTE NÁZEV PÍSNĚ NEBO VLOŽTE LINK Z FREETAR.DE / PISNICKY-AKORDY.CZ..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-[#050505] border border-[#222] text-white pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#00FF41] uppercase"
+                className="w-full bg-vhloubeni border border-kresba text-white pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#00FF41] uppercase"
               />
             </div>
             <button
@@ -145,7 +145,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
           {/* Quick Suggestions / Examples */}
           <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-stitek">
-            <span className="text-[#666] uppercase font-bold shrink-0">RYCHLÝ VÝBĚR:</span>
+            <span className="text-pismo-slaby uppercase font-bold shrink-0">RYCHLÝ VÝBĚR:</span>
             {[
               'Oasis - Wonderwall',
               'freetar.de',
@@ -158,7 +158,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                 key={q}
                 type="button"
                 onClick={() => handleQuickSearch(q)}
-                className="px-2 py-0.5 bg-[#141414] hover:bg-[#222] text-[#888] hover:text-white border border-[#222] uppercase whitespace-nowrap"
+                className="px-2 py-0.5 bg-[#141414] hover:bg-kresba text-pismo-tlum hover:text-white border border-kresba uppercase whitespace-nowrap"
               >
                 {q}
               </button>
@@ -176,7 +176,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
         {/* Results / Results Preview */}
         <div className="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[250px]">
           {isLoading && (
-            <div className="p-8 text-center space-y-3 text-[#888]">
+            <div className="p-8 text-center space-y-3 text-pismo-tlum">
               <Loader2 className="w-8 h-8 text-[#00FF41] animate-spin mx-auto" />
               <p className="text-xs font-mono uppercase">
                 PŘIPOJOVÁNÍ K WEBU FREETAR.DE / PISNICKY-AKORDY.CZ A FORMÁTOVÁNÍ AKORDŮ...
@@ -185,9 +185,9 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
           )}
 
           {!isLoading && results.length === 0 && !error && (
-            <div className="p-8 text-center text-[#555] border border-dashed border-[#222] bg-[#050505]">
+            <div className="p-8 text-center text-[#555] border border-dashed border-kresba bg-vhloubeni">
               <Globe className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#00FF41]" />
-              <p className="text-xs uppercase font-bold text-[#888]">
+              <p className="text-xs uppercase font-bold text-pismo-tlum">
                 VYHLEDEJTE PÍSNIČKU NEBO VLOŽTE URL ADRESU S AKORDY
               </p>
               <p className="text-stitek text-[#555] mt-1">
@@ -199,7 +199,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
           {results.map((song, idx) => (
             <div
               key={idx}
-              className="bg-[#050505] border border-[#222] hover:border-[#00FF41] p-4 space-y-3 transition-none"
+              className="bg-vhloubeni border border-kresba hover:border-[#00FF41] p-4 space-y-3 transition-none"
             >
               {/* Song Title & Meta Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-plocha-2 pb-2">
@@ -215,7 +215,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-[#888] uppercase mt-0.5">{song.artist}</p>
+                  <p className="text-xs text-pismo-tlum uppercase mt-0.5">{song.artist}</p>
                 </div>
 
                 {/* Import Action Button */}
@@ -234,7 +234,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
               {/* Source Tag */}
               {song.sourceName && (
-                <div className="flex items-center gap-1 text-stitek text-[#666]">
+                <div className="flex items-center gap-1 text-stitek text-pismo-slaby">
                   <ExternalLink className="w-3 h-3 text-[#00FF41]" />
                   <span>ZDROJ: {song.sourceName}</span>
                   {song.sourceUrl && (
@@ -242,7 +242,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                       href={song.sourceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-[#888] hover:text-[#00FF41] underline ml-1 truncate max-w-xs"
+                      className="text-pismo-tlum hover:text-[#00FF41] underline ml-1 truncate max-w-xs"
                     >
                       {song.sourceUrl}
                     </a>
@@ -251,7 +251,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               )}
 
               {/* Lyrics Preview */}
-              <div className="bg-[#0A0A0A] p-3 border border-plocha-2 max-h-48 overflow-y-auto text-xs font-mono text-[#AAA] whitespace-pre-wrap leading-relaxed">
+              <div className="bg-vhloubeni p-3 border border-plocha-2 max-h-48 overflow-y-auto text-xs font-mono text-pismo-tlum whitespace-pre-wrap leading-relaxed">
                 {song.content}
               </div>
             </div>

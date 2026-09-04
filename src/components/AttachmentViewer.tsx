@@ -118,7 +118,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
       case 'image':
         return <ImageIcon className="w-4 h-4 text-[#FF0055]" />;
       default:
-        return <FileText className="w-4 h-4 text-[#AAA]" />;
+        return <FileText className="w-4 h-4 text-pismo-tlum" />;
     }
   };
 
@@ -141,14 +141,14 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
 
   if (!attachments || attachments.length === 0) {
     return (
-      <div className="bg-[#050505] border border-[#222] p-4 text-center my-3 font-mono">
-        <p className="text-xs text-[#888] uppercase mb-2">
+      <div className="bg-vhloubeni border border-kresba p-4 text-center my-3 font-mono">
+        <p className="text-xs text-pismo-tlum uppercase mb-2">
           K TÉTO SKLADBĚ ZATÍM NEJSOU PŘIPOJENY ŽÁDNÉ SOUBORY (.GP, .PDF, .TXT, .MID, .FOTO)
         </p>
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-3 py-1.5 bg-[#141414] hover:bg-plocha-2 border border-[#333] hover:border-[#FF3E00] text-[#FF3E00] font-bold text-xs uppercase inline-flex items-center gap-1.5"
+            className="px-3 py-1.5 bg-[#141414] hover:bg-plocha-2 border border-kresba-silna hover:border-[#FF3E00] text-[#FF3E00] font-bold text-xs uppercase inline-flex items-center gap-1.5"
           >
             <FileUp className="w-3.5 h-3.5" /> PŘIPOJIT SOUBOR S TABULATUROU NEBO PDF
           </button>
@@ -158,11 +158,11 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
   }
 
   return (
-    <div className="bg-[#0A0A0A] border border-[#333] p-3 my-3 font-mono text-white space-y-3">
+    <div className="bg-vhloubeni border border-kresba-silna p-3 my-3 font-mono text-white space-y-3">
       {/* Attachments List Tabs */}
-      <div className="flex items-center justify-between border-b border-[#222] pb-2 overflow-x-auto gap-2">
+      <div className="flex items-center justify-between border-b border-kresba pb-2 overflow-x-auto gap-2">
         <div className="flex items-center gap-1">
-          <span className="text-stitek font-extrabold text-[#888] uppercase mr-2">PŘÍLOHY:</span>
+          <span className="text-stitek font-extrabold text-pismo-tlum uppercase mr-2">PŘÍLOHY:</span>
           {attachments.map((att) => {
             const isSelected = activeAtt?.id === att.id;
             return (
@@ -172,7 +172,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 className={`px-2.5 py-1 text-xs font-bold uppercase flex items-center gap-1.5 border transition-none shrink-0 ${
                   isSelected
                     ? 'bg-plocha-2 border-[#00FF41] text-[#00FF41]'
-                    : 'bg-[#050505] border-[#222] text-[#888] hover:text-white'
+                    : 'bg-vhloubeni border-kresba text-pismo-tlum hover:text-white'
                 }`}
               >
                 {getTypeIcon(att.type)}
@@ -185,7 +185,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-2 py-1 bg-plocha-2 hover:bg-[#222] border border-[#333] text-stitek font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
+            className="px-2 py-1 bg-plocha-2 hover:bg-kresba border border-kresba-silna text-stitek font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
           >
             <FileUp className="w-3 h-3" /> PŘIDAT SOUBOR
           </button>
@@ -194,13 +194,13 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
 
       {/* Active Attachment View Box */}
       {activeAtt && (
-        <div className="bg-[#050505] border border-[#222] p-3 space-y-3">
+        <div className="bg-vhloubeni border border-kresba p-3 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {getTypeIcon(activeAtt.type)}
               <div>
                 <h4 className="text-xs font-bold text-white uppercase">{activeAtt.name}</h4>
-                <p className="text-stitek text-[#666] uppercase">
+                <p className="text-stitek text-pismo-slaby uppercase">
                   {getTypeName(activeAtt.type)} • {Math.round((activeAtt.size || 0) / 1024)} KB
                 </p>
               </div>
@@ -210,7 +210,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               <a
                 href={activeAtt.dataUrl}
                 download={activeAtt.name}
-                className="px-2.5 py-1 bg-[#141414] hover:bg-plocha-2 border border-[#333] text-[#00FF41] text-stitek font-bold uppercase flex items-center gap-1"
+                className="px-2.5 py-1 bg-[#141414] hover:bg-plocha-2 border border-kresba-silna text-[#00FF41] text-stitek font-bold uppercase flex items-center gap-1"
               >
                 <Download className="w-3 h-3" /> STÁHNOUT SOUBOR
               </a>
@@ -218,7 +218,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               {onDeleteAttachment && (
                 <button
                   onClick={() => onDeleteAttachment(activeAtt.id)}
-                  className="p-1 text-[#666] hover:text-[#FF3E00] border border-[#222] hover:border-[#FF3E00]"
+                  className="p-1 text-pismo-slaby hover:text-[#FF3E00] border border-kresba hover:border-[#FF3E00]"
                   title="Smazat přílohu"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -230,7 +230,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
           {/* Render based on format type */}
           {activeAtt.type === 'pdf' && (
             <div className="space-y-2">
-              <div className="w-full h-[350px] bg-[#111] border border-[#333] overflow-hidden relative">
+              <div className="w-full h-[350px] bg-plocha-1 border border-kresba-silna overflow-hidden relative">
                 <iframe
                   src={activeAtt.dataUrl}
                   className="w-full h-full border-none"
@@ -238,11 +238,11 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 />
               </div>
               {activeAtt.parsedData?.extractedText && (
-                <details className="bg-[#0A0A0A] border border-[#222] p-2 text-drobne text-[#AAA]">
+                <details className="bg-vhloubeni border border-kresba p-2 text-drobne text-pismo-tlum">
                   <summary className="cursor-pointer font-bold uppercase text-[#00FF41]">
                     ZOBRAZIT EXTRACTOVANÝ TEXT Z PDF
                   </summary>
-                  <pre className="mt-2 whitespace-pre-wrap font-mono text-stitek text-[#888]">
+                  <pre className="mt-2 whitespace-pre-wrap font-mono text-stitek text-pismo-tlum">
                     {activeAtt.parsedData.extractedText}
                   </pre>
                 </details>
@@ -287,7 +287,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
 
               {/* Progress bar */}
               <div className="space-y-1">
-                <div className="w-full bg-[#050505] h-2 border border-[#00E5FF]/30 relative overflow-hidden">
+                <div className="w-full bg-vhloubeni h-2 border border-[#00E5FF]/30 relative overflow-hidden">
                   <div
                     className="bg-[#00E5FF] h-full transition-all"
                     style={{
@@ -332,7 +332,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
           )}
 
           {activeAtt.type === 'txt' && (
-            <div className="bg-[#050505] border border-[#222] p-3">
+            <div className="bg-vhloubeni border border-kresba p-3">
               <pre className="whitespace-pre-wrap font-mono text-xs text-[#D1D1D1] max-h-[300px] overflow-y-auto">
                 {activeAtt.parsedData?.extractedText || 'Žádný textový obsah'}
               </pre>
@@ -340,29 +340,29 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
           )}
 
           {activeAtt.type === 'image' && (
-            <div className="bg-[#050505] border border-[#222] p-3 space-y-2">
-              <div className="flex items-center justify-between bg-[#111] p-1.5 border border-[#333]">
+            <div className="bg-vhloubeni border border-kresba p-3 space-y-2">
+              <div className="flex items-center justify-between bg-plocha-1 p-1.5 border border-kresba-silna">
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setImageZoom((prev) => Math.max(0.5, prev - 0.25))}
-                    className="px-2 py-1 bg-plocha-2 hover:bg-[#333] border border-[#444] text-xs font-bold"
+                    className="px-2 py-1 bg-plocha-2 hover:bg-kresba-silna border border-kresba-silna text-xs font-bold"
                     title="Oddálit"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
                   </button>
-                  <span className="text-stitek font-bold px-1.5 text-[#AAA]">
+                  <span className="text-stitek font-bold px-1.5 text-pismo-tlum">
                     {Math.round(imageZoom * 100)}%
                   </span>
                   <button
                     onClick={() => setImageZoom((prev) => Math.min(3, prev + 0.25))}
-                    className="px-2 py-1 bg-plocha-2 hover:bg-[#333] border border-[#444] text-xs font-bold"
+                    className="px-2 py-1 bg-plocha-2 hover:bg-kresba-silna border border-kresba-silna text-xs font-bold"
                     title="Přiblížit"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setImageRotation((prev) => (prev + 90) % 360)}
-                    className="px-2 py-1 bg-plocha-2 hover:bg-[#333] border border-[#444] text-xs font-bold flex items-center gap-1"
+                    className="px-2 py-1 bg-plocha-2 hover:bg-kresba-silna border border-kresba-silna text-xs font-bold flex items-center gap-1"
                     title="Otočit o 90°"
                   >
                     <RotateCw className="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     className={`px-2 py-1 border text-stitek font-bold uppercase transition-none ${
                       invertImage
                         ? 'bg-[#FF0055] text-white border-[#FF0055]'
-                        : 'bg-plocha-2 text-[#AAA] border-[#444]'
+                        : 'bg-plocha-2 text-pismo-tlum border-kresba-silna'
                     }`}
                     title="Vysoký kontrast (Inverze)"
                   >
@@ -389,7 +389,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 </a>
               </div>
 
-              <div className="w-full max-h-[500px] overflow-auto bg-[#000] border border-[#333] flex items-center justify-center p-2">
+              <div className="w-full max-h-[500px] overflow-auto bg-[#000] border border-kresba-silna flex items-center justify-center p-2">
                 <img
                   src={activeAtt.dataUrl}
                   alt={activeAtt.name}

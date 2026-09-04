@@ -108,7 +108,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
           onClick={() => (hraje ? zastav() : spust())}
           disabled={!doby.length}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-            hraje ? 'bg-chyba text-white' : 'bg-znacka text-black hover:bg-[#ffb03a]'
+            hraje ? 'bg-chyba text-white' : 'bg-znacka text-black hover:bg-znacka-svetla'
           }`}
         >
           {hraje ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}

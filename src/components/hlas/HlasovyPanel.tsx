@@ -454,7 +454,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={() => void uloz()}
-                className="flex-1 bg-uspech hover:bg-[#34e260] text-black py-2 text-xs font-bold rounded-xl cursor-pointer"
+                className="flex-1 bg-uspech hover:bg-uspech-svetla text-black py-2 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Uložit příkaz
               </button>
