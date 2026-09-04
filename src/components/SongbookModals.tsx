@@ -48,7 +48,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-      <div className="bg-[#1C1C1E] border border-white/15 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
+      <div className="bg-plocha-3 border border-white/15 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">
             <ListPlus className="w-5 h-5 text-znacka" />
@@ -166,7 +166,7 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-[#1C1C1E] border border-red-500/30 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
+      <div className="bg-plocha-3 border border-red-500/30 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/30">

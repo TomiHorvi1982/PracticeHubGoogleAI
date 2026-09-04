@@ -383,7 +383,7 @@ export const Podium: React.FC<Props> = ({
   }
 
   return (
-    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl gap-4">
+    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl gap-4">
       {zahlavi(false)}
       {seznam}
 

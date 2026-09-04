@@ -278,7 +278,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     <div className="space-y-6 font-sans text-white pb-12">
       
       {/* 1. DIRECT YOUTUBE SEARCH TERMINAL */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-chyba/10 border border-chyba/30 text-chyba rounded-2xl">
@@ -347,7 +347,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
         {/* Modal for Renaming/Editing details during video import */}
         {importingVideo && (
-          <div className="bg-[#16161A] border border-chyba/40 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
+          <div className="bg-plocha-2 border border-chyba/40 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
             <h4 className="text-sm font-bold text-chyba uppercase border-b border-white/5 pb-2 flex items-center gap-2">
               <Type className="w-4 h-4" /> Pojmenujte novou skladbu v Song Library
             </h4>
@@ -455,7 +455,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
       </div>
 
       {/* 2. PLAYER WORKSPACE HEADER */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-chyba/10 border border-chyba/30 text-chyba rounded-2xl">
             <Youtube className="w-6 h-6" />
@@ -539,7 +539,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
       {/* Manual Link Input Form */}
       {isAddFormOpen && activeSong && (
-        <form onSubmit={handleAddManualVideo} className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+        <form onSubmit={handleAddManualVideo} className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <span className="text-sm font-bold text-white flex items-center gap-2">
               <LinkIcon className="w-4 h-4 text-chyba" /> Vložit vlastní odkaz na YouTube
@@ -609,7 +609,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
         {/* Playback Window */}
         <div className="lg:col-span-2 space-y-4">
           {selectedVideo ? (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
               
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -658,7 +658,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               </div>
             </div>
           ) : (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
               <div className="w-16 h-16 rounded-full bg-chyba/10 border border-chyba/20 flex items-center justify-center mx-auto text-chyba">
                 <Youtube className="w-8 h-8" />
               </div>
@@ -672,7 +672,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
         {/* Playlist of Companion Backing Tracks */}
         <div className="space-y-4">
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <span className="text-xs font-bold text-white uppercase flex items-center gap-2">
                 <Youtube className="w-4 h-4 text-chyba" />

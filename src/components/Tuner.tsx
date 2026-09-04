@@ -184,7 +184,7 @@ export const Tuner: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       
       {/* Header & Tuning Selection */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
             <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
@@ -252,7 +252,7 @@ export const Tuner: React.FC = () => {
       </div>
 
       {isCustomMode && (
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-znacka/30 rounded-3xl p-5 text-xs space-y-3 shadow-xl">
+        <div className="bg-plocha-2 border border-znacka/30 rounded-3xl p-5 text-xs space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
             <h4 className="text-white font-semibold flex items-center gap-2">
               <Zap className="w-4 h-4 text-znacka" /> Vlastní ladění jednotlivých strun (6. až 1.)
@@ -312,7 +312,7 @@ export const Tuner: React.FC = () => {
       )}
 
       {/* Main Tuner Display & Gauge */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-8 shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-8 shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
         
         {/* Status Tag */}
         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -415,7 +415,7 @@ export const Tuner: React.FC = () => {
       </div>
 
       {/* Target Guitar Strings Reference Panel */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl">
         <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2.5">
           <h3 className="text-xs font-semibold text-white">
             Referenční tóny strun ({activeTuning.name})
@@ -451,7 +451,7 @@ export const Tuner: React.FC = () => {
       </div>
 
       {/* Metronome Tool Panel */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-znacka" />

@@ -131,7 +131,7 @@ export const SettingsSection: React.FC = () => {
 
   return (
     <div className="w-full space-y-4 font-sans pb-16">
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex items-center gap-2 mb-1">
           <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
             Nastavení
@@ -145,7 +145,7 @@ export const SettingsSection: React.FC = () => {
       {/* Přehled místa se přestěhoval do sekce Soubory — tam se soubory
           přidávají a mažou, takže i důsledek patří tam. Tady zůstal jen
           odkaz, aby to nikdo nehledal na dvou místech. */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-uspech" /> Úložiště
         </h3>
@@ -156,7 +156,7 @@ export const SettingsSection: React.FC = () => {
       </div>
 
       {/* MIDI HARDWARE */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
@@ -179,7 +179,7 @@ export const SettingsSection: React.FC = () => {
           Vestavěný mikrofon slyší kytaru přes vzduch i s ozvěnou
           místnosti; externí karta ji má z kabelu. Je to rozdíl v přesnosti
           rozpoznání i ve zpoždění, takže volba patří sem. */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Mic className="w-4 h-4 text-uspech" /> Zvuková karta
@@ -240,7 +240,7 @@ export const SettingsSection: React.FC = () => {
           Katalog i editor patří sem, a ne do samostatné sekce: příkazy
           se nastavují jednou za čas, kdežto mluví se z celé aplikace —
           proto je mikrofon v horní liště a nastavení až tady. */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
             <Mic className="w-4 h-4 text-znacka" /> Hlasové ovládání
@@ -257,7 +257,7 @@ export const SettingsSection: React.FC = () => {
           na ně nárok. Ukládá se session cookie, ne heslo — to by muselo
           projít naším serverem a zůstat někde v logu. */}
       {jsemSpravce && (
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-znacka" /> Ultimate Guitar Pro

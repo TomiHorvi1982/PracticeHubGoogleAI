@@ -97,7 +97,7 @@ export const AiKapelaSection: React.FC = () => {
   return (
     <div className="space-y-4 font-sans text-white pb-12">
       {/* Hlavička */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex flex-wrap items-center gap-3.5">
           <div className="p-3 bg-nastroj/10 border border-nastroj/30 text-nastroj rounded-2xl">
             <Users className="w-6 h-6" />
@@ -137,7 +137,7 @@ export const AiKapelaSection: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Akordy */}
-        <div className="lg:col-span-2 bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-3">
+        <div className="lg:col-span-2 bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Music4 className="w-4 h-4 text-nastroj" />
             <h3 className="text-sm font-bold text-white">Akordy dokola</h3>
@@ -216,7 +216,7 @@ export const AiKapelaSection: React.FC = () => {
         </div>
 
         {/* Tempo a styl */}
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-4">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
@@ -264,7 +264,7 @@ export const AiKapelaSection: React.FC = () => {
             <div
               key={c.id}
               className={`rounded-2xl border p-4 transition-all ${
-                hraje ? 'bg-[#16161A]/80 border-white/[0.10]' : 'bg-black/30 border-white/[0.05] opacity-60'
+                hraje ? 'bg-plocha-2 border-white/[0.10]' : 'bg-black/30 border-white/[0.05] opacity-60'
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
@@ -300,7 +300,7 @@ export const AiKapelaSection: React.FC = () => {
       {/* AI sólista.
           Běží mimo prohlížeč, protože model potřebuje Apple Silicon.
           Když služba neběží, řekne se to a kapela hraje dál bez něj. */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#FF375F]" />
           <h3 className="text-sm font-bold text-white">AI sólista</h3>
@@ -464,7 +464,7 @@ export const AiKapelaSection: React.FC = () => {
         </p>
       </div>
 
-      <div className="bg-[#16161A]/50 border border-white/[0.06] rounded-2xl px-4 py-3 flex items-start gap-2.5">
+      <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl px-4 py-3 flex items-start gap-2.5">
         <Mic className="w-4 h-4 text-neutral-500 shrink-0 mt-0.5" />
         <p className="text-drobne text-neutral-400 leading-relaxed">
           Kapela zní přes tutéž zvukovou banku jako MIDI přehrávač a tabulatury. Hraj si k ní na

@@ -178,7 +178,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       {/* Nastavení rozpoznávání.
           Přísnost se hodí jinak doma a jinak v hlučné zkušebně, takže
           to nemá být zadrátované číslo. */}
-      <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 space-y-3">
         <h3 className="text-sm font-bold text-znacka">Nastavení</h3>
 
         <div>
@@ -235,7 +235,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       </div>
 
       {/* Katalog — co appka umí a co zatím ne */}
-      <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
         <h3 className="text-sm font-bold text-znacka mb-1">Co hlasem jde</h3>
         <p className="text-drobne text-neutral-400 mb-3">
           Nezapojené akce zná katalog, ale zatím je nikdo neobsluhuje — hlasem nic neudělají.
@@ -270,7 +270,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       </div>
 
       {/* Vlastní příkazy */}
-      <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-znacka">Vlastní příkazy</h3>
           {!navrh && (

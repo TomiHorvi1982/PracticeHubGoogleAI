@@ -178,7 +178,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
     <div className="w-full space-y-4 font-sans pb-16">
       
       {/* Top Header Banner */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5 mb-1.5">
@@ -303,7 +303,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       {/* SEARCH ON YOUTUBE MODAL / DRAWER */}
       {isSearchOpen && (
-        <div className="bg-[#16161A] border border-white/15 rounded-3xl p-5 shadow-2xl space-y-4">
+        <div className="bg-plocha-2 border border-white/15 rounded-3xl p-5 shadow-2xl space-y-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Youtube className="w-4 h-4 text-chyba" />
@@ -384,7 +384,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       {/* MANUAL URL ADD MODAL */}
       {isUrlAddOpen && (
-        <form onSubmit={handleAddManualUrl} className="bg-[#16161A] border border-white/15 rounded-3xl p-5 shadow-2xl space-y-4">
+        <form onSubmit={handleAddManualUrl} className="bg-plocha-2 border border-white/15 rounded-3xl p-5 shadow-2xl space-y-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <LinkIcon className="w-4 h-4 text-znacka" />
@@ -454,7 +454,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       {/* SONGBOOK PICKER */}
       {isSongbookPickerOpen && (
-        <div className="bg-[#16161A] border border-white/15 rounded-3xl p-5 shadow-2xl space-y-3">
+        <div className="bg-plocha-2 border border-white/15 rounded-3xl p-5 shadow-2xl space-y-3">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Music className="w-4 h-4 text-uspech" />
@@ -489,7 +489,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
       )}
 
       {/* PLAYLIST ITEMS TABLE / LIST */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
         
         {/* Table Header */}
         <div className="bg-white/[0.02] border-b border-white/[0.06] px-5 py-3 flex items-center justify-between text-xs font-semibold text-neutral-400">

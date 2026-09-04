@@ -67,7 +67,7 @@ export const SoloRoom: React.FC = () => {
       <UsekZTabulatury />
 
       {/* Kontrola hraní */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <Target className="w-5 h-5 text-uspech" />
           <div className="flex-1 min-w-[200px]">
@@ -158,7 +158,7 @@ export const SoloRoom: React.FC = () => {
         Cvičí se do nahrávky a vlastní kytara musí být slyšet nad ní —
         bez dvou faderů se jedno přebíjí druhým a slyšet není ani jedno.
       */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Sliders className="w-4 h-4 text-znacka" />
           <h3 className="text-sm font-bold text-white">Pult</h3>

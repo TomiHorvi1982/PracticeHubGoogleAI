@@ -66,7 +66,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
   };
 
   return (
-    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-znacka/25 rounded-3xl p-4 shadow-xl space-y-3">
+    <div className="bg-plocha-2 border border-znacka/25 rounded-3xl p-4 shadow-xl space-y-3">
       <button
         onClick={() => setOtevreno((v) => !v)}
         className="w-full flex items-center gap-2 text-left cursor-pointer"

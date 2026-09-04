@@ -78,7 +78,7 @@ export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavr
         height: okno.sbalene ? undefined : okno.vyska,
         zIndex: 10 + okno.poradi,
       }}
-      className="absolute bg-[#16161A]/95 backdrop-blur-xl border border-white/[0.12] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+      className="absolute bg-plocha-2 border border-white/[0.12] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
     >
       <div
         onMouseDown={(e) => start(e, 'posun')}

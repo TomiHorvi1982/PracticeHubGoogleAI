@@ -545,11 +545,11 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-[#16161A] border border-white/15 rounded-3xl w-full max-w-5xl max-h-[94vh] flex flex-col shadow-2xl overflow-hidden my-auto"
+        className="bg-plocha-2 border border-white/15 rounded-3xl w-full max-w-5xl max-h-[94vh] flex flex-col shadow-2xl overflow-hidden my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* MODAL HEADER */}
-        <div className="p-4 sm:p-5 border-b border-white/10 bg-[#1C1C1E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 border-b border-white/10 bg-plocha-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-xl shadow-inner">
               {activeKit?.icon || '🥁'}
@@ -688,7 +688,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
         {/* ACTIVE KIT DETAILS & TAB SWITCHER */}
         {activeKit && (
-          <div className="px-4 py-3 bg-[#1C1C1E]/70 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="px-4 py-3 bg-plocha-3 border-b border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-1">
               <input
                 type="text"
@@ -1052,7 +1052,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       key={tierOpt.tier}
                       className={`p-3.5 rounded-2xl border transition-all ${
                         isSelectedTier
-                          ? 'bg-[#1C1C1E] border-znacka/50 shadow-md'
+                          ? 'bg-plocha-3 border-znacka/50 shadow-md'
                           : 'bg-black/30 border-white/5 hover:border-white/15'
                       }`}
                     >
@@ -1304,7 +1304,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
         </div>
 
         {/* MODAL FOOTER */}
-        <div className="p-4 border-t border-white/10 bg-[#1C1C1E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="p-4 border-t border-white/10 bg-plocha-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-xs text-neutral-400 font-medium">
               Rychlý test padů:

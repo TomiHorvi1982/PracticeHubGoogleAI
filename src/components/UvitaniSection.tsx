@@ -326,7 +326,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
       {KROKY.map((k) => (
         <div
           key={k.cislo}
-          className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-4 space-y-3 shadow-xl flex flex-col"
+          className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 space-y-3 shadow-xl flex flex-col"
         >
           <Nahled druh={k.nahled} />
           <div className="flex items-start gap-2.5 flex-1">
@@ -348,7 +348,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
       ))}
     </div>
 
-    <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-4 sm:p-5 space-y-3 shadow-xl">
+    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 sm:p-5 space-y-3 shadow-xl">
       <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
         A kdykoli po ruce
       </h2>

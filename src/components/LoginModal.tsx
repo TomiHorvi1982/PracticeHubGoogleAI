@@ -114,7 +114,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md font-sans">
-      <div className="bg-[#16161A]/95 border border-white/[0.1] shadow-2xl rounded-3xl w-full max-w-md overflow-hidden relative text-white">
+      <div className="bg-plocha-2 border border-white/[0.1] shadow-2xl rounded-3xl w-full max-w-md overflow-hidden relative text-white">
         
         {/* Top Header */}
         <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between">

@@ -84,7 +84,7 @@ export const TextySection: React.FC = () => {
         napoveda="Přepis vytáhne text z nahrávky i s časy; editor hlídá slabiky a rýmy. Obojí se ukládá rovnou do písně ve zpěvníku."
       />
 
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
 
         <div className="flex flex-wrap gap-1.5">
           <button

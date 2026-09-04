@@ -92,7 +92,7 @@ export const ZalozkySection: React.FC = () => {
         {videt.map((z) => (
           <div
             key={z.id}
-            className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-2 group"
+            className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 flex flex-col gap-2 group"
           >
             {upravovana === z.id ? (
               <UpravaZalozky
@@ -155,7 +155,7 @@ export const ZalozkySection: React.FC = () => {
       {/* Přidání */}
       <form
         onSubmit={pridej}
-        className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-3"
+        className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3"
       >
         <div className="flex items-center gap-2">
           <Plus className="w-4 h-4 text-uspech" />

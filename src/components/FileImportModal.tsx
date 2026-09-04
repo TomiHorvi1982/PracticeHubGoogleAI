@@ -106,7 +106,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 font-sans">
-      <div className="bg-[#16161A]/95 border border-white/[0.1] w-full max-w-xl p-6 rounded-3xl shadow-2xl text-white relative">
+      <div className="bg-plocha-2 border border-white/[0.1] w-full max-w-xl p-6 rounded-3xl shadow-2xl text-white relative">
         {/* Close Button */}
         <button
           onClick={onClose}

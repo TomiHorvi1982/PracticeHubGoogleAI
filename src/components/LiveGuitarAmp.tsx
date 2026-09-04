@@ -102,7 +102,7 @@ export const LiveGuitarAmp: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 space-y-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-5 space-y-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
         <div className="flex flex-wrap items-center gap-3">
           <Guitar className="w-5 h-5 text-nastroj shrink-0" />
           <h1 className="text-xl font-bold text-white">Live Guitar Amp</h1>
@@ -249,7 +249,7 @@ export const LiveGuitarAmp: React.FC = () => {
           Model je nasnímaný skutečný zesilovač a hraje na zvukovém
           vlákně. Zapojuje se do kanálu na místo pro efekt, takže je
           v cestě i do odposlechu a do nahrávky. */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-5 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Guitar className="w-4 h-4 text-nastroj shrink-0" />
           <h2 className="text-sm font-bold text-white">Aparát</h2>

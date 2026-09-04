@@ -1004,7 +1004,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           {/* Složky knihovny. Nahradily řadu tlačítek: ta uměla jen
               plochý výběr typu, kdežto tady je vidět i druhá úroveň,
               počty a kolik co zabírá. */}
-          <div className="bg-[#16161A]/80 backdrop-blur-xl p-2 rounded-2xl border border-white/[0.08] max-h-[38vh] overflow-y-auto">
+          <div className="bg-plocha-2 p-2 rounded-2xl border border-white/[0.08] max-h-[38vh] overflow-y-auto">
             <StromKnihovny
               uzly={uzly}
               vybrana={{ kategorie: kategorieFiltr, podkategorie: podkategorieFiltr }}
@@ -1040,7 +1040,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Vyhledat soubor, interpreta..."
-              className="w-full bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-info outline-none transition-all shadow-sm"
+              className="w-full bg-plocha-2 border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-info outline-none transition-all shadow-sm"
             />
 
             {/* Sbírka je druhá osa: strom říká, CO soubor je, sbírka
@@ -1132,7 +1132,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           </div>
 
           {/* Files List */}
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-3 space-y-1.5 max-h-[600px] overflow-y-auto shadow-lg">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-3 space-y-1.5 max-h-[600px] overflow-y-auto shadow-lg">
             {filteredItems.length === 0 ? (
               <div className="p-8 text-center text-xs text-neutral-500">
                 Žádné soubory neodpovídají zadanému filtru
@@ -1333,7 +1333,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         {/* Right Column: Active Item Viewer / Player & Actions (7 cols) */}
         <div className="lg:col-span-7 space-y-3">
           {activeItem ? (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4 shadow-xl">
               
               {/* Active Item Title & Actions Header */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
@@ -1689,7 +1689,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
             </div>
           ) : (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-16 text-center text-xs space-y-4 shadow-xl">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-16 text-center text-xs space-y-4 shadow-xl">
               <div className="flex justify-center">
                 <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-neutral-500">
                   <FolderArchive className="w-10 h-10" />

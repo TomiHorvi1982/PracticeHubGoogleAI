@@ -94,7 +94,7 @@ export const PrepisPanel: React.FC<{
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <Mic className="w-5 h-5 text-znacka" />
           <div className="flex-1 min-w-[220px]">
@@ -200,7 +200,7 @@ export const PrepisPanel: React.FC<{
       </div>
 
       {stav?.useky && stav.useky.length > 0 && (
-        <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <h4 className="text-sm font-bold text-white flex-1">
               Přepsáno — {stav.useky.length} řádků

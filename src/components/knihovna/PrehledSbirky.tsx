@@ -44,7 +44,7 @@ export const PrehledSbirky: React.FC<{
   };
 
   return (
-    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-4">
+    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
       <div className="flex items-center gap-3">
         <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-xl">
           <Library className="w-5 h-5" />

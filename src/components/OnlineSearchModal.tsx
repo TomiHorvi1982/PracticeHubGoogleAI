@@ -202,7 +202,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               className="bg-[#050505] border border-[#222] hover:border-[#00FF41] p-4 space-y-3 transition-none"
             >
               {/* Song Title & Meta Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1A1A1A] pb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-plocha-2 pb-2">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="text-sm font-black text-white uppercase">{song.title}</h3>
@@ -251,7 +251,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               )}
 
               {/* Lyrics Preview */}
-              <div className="bg-[#0A0A0A] p-3 border border-[#1A1A1A] max-h-48 overflow-y-auto text-xs font-mono text-[#AAA] whitespace-pre-wrap leading-relaxed">
+              <div className="bg-[#0A0A0A] p-3 border border-plocha-2 max-h-48 overflow-y-auto text-xs font-mono text-[#AAA] whitespace-pre-wrap leading-relaxed">
                 {song.content}
               </div>
             </div>

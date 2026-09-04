@@ -442,7 +442,7 @@ export const MidiPlayerPanel: React.FC = () => {
   const znacky = Array.from({ length: Math.ceil(stav.duration / krok) + 1 }, (_, i) => i * krok);
 
   return (
-    <div className="bg-[#16161A]/90 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+    <div className="bg-plocha-2 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
       {/* Knihovna */}
       <div className="border-b border-white/10">
         <button

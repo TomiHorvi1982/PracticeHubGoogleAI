@@ -778,7 +778,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
   const renderContent = () => {
     return (
-      <div className={`font-sans text-white space-y-4 bg-[#16161A]/90 backdrop-blur-2xl p-5 border border-white/[0.1] rounded-3xl shadow-2xl ${isMaximized ? 'shadow-znacka/10' : ''}`}>
+      <div className={`font-sans text-white space-y-4 bg-plocha-2 p-5 border border-white/[0.1] rounded-3xl shadow-2xl ${isMaximized ? 'shadow-znacka/10' : ''}`}>
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
           <div className="flex items-center gap-3">
@@ -1214,7 +1214,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
          * Číslo taktu je v kostičce, takže je vidět, co se zrovna vypíná.
          */}
         {extraOtevrene && pocetTaktu > 0 && tracks.length > 0 && (
-          <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
             <div className="flex items-center justify-between gap-2">
               <span className="text-stitek uppercase tracking-wider text-neutral-500">
                 Takty ({pocetTaktu}) — odškrtni, co hrát nemá
@@ -1283,7 +1283,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
          * by jen zabíral místo nad tabulaturou.
          */}
         {extraOtevrene && usekKeCviceni && usekKeCviceni.noty.length > 0 && (
-          <div className="bg-[#16161A]/70 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
             <div className="text-stitek uppercase tracking-wider text-neutral-500">
               Vybraný úsek na hmatníku
             </div>
@@ -1330,7 +1330,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
     return (
       <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[9999] p-6 overflow-y-auto flex flex-col justify-start">
         <div className="max-w-7xl mx-auto w-full space-y-4">
-          <div className="flex justify-between items-center bg-[#16161A]/90 border border-white/10 rounded-2xl p-4 shadow-xl">
+          <div className="flex justify-between items-center bg-plocha-2 border border-white/10 rounded-2xl p-4 shadow-xl">
             <span className="text-xs font-bold text-white tracking-wide flex items-center gap-2">
               <Sliders className="w-4 h-4 text-uspech" /> Pódium: Celoobrazovkový režim čtení tabulatur
             </span>

@@ -272,7 +272,7 @@ export const PracticeAssistant: React.FC = () => {
     <div className="max-w-[1400px] mx-auto space-y-6 font-sans text-white pb-12">
       
       {/* 🥁 VISUAL METRONOME SECTION */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl">
         
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
@@ -598,7 +598,7 @@ export const PracticeAssistant: React.FC = () => {
       </div>
 
       {/* 🎸 VLASTNÍ AKORDY A PATERNY DOPROVODU (CHORD PROGRESSION & RHYTHM TRAINER) */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
         
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
@@ -650,12 +650,12 @@ export const PracticeAssistant: React.FC = () => {
                    mělo 283px v kontejneru širokém 267 a přetékalo. */
                 className="min-w-0 max-w-full truncate bg-white/5 border border-white/10 text-white text-xs font-semibold px-3 py-1.5 rounded-xl outline-none cursor-pointer"
               >
-                <option value="pop" className="bg-[#16161A]">Pop Classic (C - G - Am - F)</option>
-                <option value="blues" className="bg-[#16161A]">12-Bar Blues (A7 - D7 - A7 - E7)</option>
-                <option value="rock" className="bg-[#16161A]">Hard Rock (E5 - G5 - A5 - C5)</option>
-                <option value="folk" className="bg-[#16161A]">Folk (G - Em - C - D)</option>
-                <option value="jazz" className="bg-[#16161A]">Jazz Turnaround (Dm7 - G7 - Cmaj7 - A7)</option>
-                <option value="custom" className="bg-[#16161A]">✏️ Vlastní posloupnost</option>
+                <option value="pop" className="bg-plocha-2">Pop Classic (C - G - Am - F)</option>
+                <option value="blues" className="bg-plocha-2">12-Bar Blues (A7 - D7 - A7 - E7)</option>
+                <option value="rock" className="bg-plocha-2">Hard Rock (E5 - G5 - A5 - C5)</option>
+                <option value="folk" className="bg-plocha-2">Folk (G - Em - C - D)</option>
+                <option value="jazz" className="bg-plocha-2">Jazz Turnaround (Dm7 - G7 - Cmaj7 - A7)</option>
+                <option value="custom" className="bg-plocha-2">✏️ Vlastní posloupnost</option>
               </select>
             </div>
           </div>

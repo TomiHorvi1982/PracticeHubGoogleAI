@@ -271,7 +271,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-md font-sans animate-in fade-in duration-200">
-      <div className="bg-[#16161A]/95 border border-white/[0.12] rounded-3xl shadow-2xl backdrop-blur-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-plocha-2 border border-white/[0.12] rounded-3xl shadow-2xl w-full max-w-5xl max-h-[92vh] flex flex-col overflow-hidden">
         
         {/* Top Header */}
         <div className="bg-white/[0.03] border-b border-white/[0.08] px-5 py-4 flex items-center justify-between">
@@ -376,7 +376,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             <div className="space-y-4">
               
               {/* Search & Role Filter Bar */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-[#1C1C1E]/80 p-3 rounded-2xl border border-white/[0.08]">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-plocha-3 p-3 rounded-2xl border border-white/[0.08]">
                 <div className="relative flex-1">
                   <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
                   <input
@@ -413,7 +413,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               </div>
 
               {/* Users Table / Grid */}
-              <div className="border border-white/[0.08] bg-[#16161A]/80 rounded-2xl overflow-hidden shadow-sm">
+              <div className="border border-white/[0.08] bg-plocha-2 rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-sans">
                     <thead className="bg-white/[0.03] text-neutral-400 border-b border-white/[0.06] font-medium">
@@ -580,7 +580,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
           {/* EDIT USER PERMISSIONS FORM */}
           {editingUser && editPermissions && (
-            <div className="bg-[#1C1C1E]/80 border border-white/[0.08] rounded-2xl p-5 space-y-5 animate-in fade-in duration-150 shadow-sm">
+            <div className="bg-plocha-3 border border-white/[0.08] rounded-2xl p-5 space-y-5 animate-in fade-in duration-150 shadow-sm">
               <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2.5">
                   <Sliders className="w-4 h-4 text-uspech" />
@@ -732,7 +732,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               
               {/* Left Column: Form */}
-              <div className="lg:col-span-7 space-y-4 bg-[#1C1C1E]/80 p-5 rounded-2xl border border-white/[0.08] shadow-sm">
+              <div className="lg:col-span-7 space-y-4 bg-plocha-3 p-5 rounded-2xl border border-white/[0.08] shadow-sm">
                 <div className="border-b border-white/[0.06] pb-3">
                   <h3 className="text-white font-bold text-sm flex items-center gap-2">
                     <UserPlus className="w-4 h-4 text-uspech" />
@@ -935,7 +935,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               {/* Right Column: Freshly Generated Invite Card & Dispatch */}
               <div className="lg:col-span-5 space-y-4">
                 {lastCreatedInvite ? (
-                  <div className="bg-[#1C1C1E]/90 border border-uspech/40 rounded-2xl p-5 space-y-4 animate-in fade-in duration-200 shadow-xl">
+                  <div className="bg-plocha-3 border border-uspech/40 rounded-2xl p-5 space-y-4 animate-in fade-in duration-200 shadow-xl">
                     <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
                       <div className="flex items-center gap-2 text-uspech font-bold text-xs uppercase">
                         <Sparkles className="w-4 h-4" />
@@ -1038,7 +1038,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                   </div>
                 ) : (
-                  <div className="bg-[#1C1C1E]/80 border border-white/[0.08] rounded-2xl p-8 text-center space-y-3">
+                  <div className="bg-plocha-3 border border-white/[0.08] rounded-2xl p-8 text-center space-y-3">
                     <Mail className="w-8 h-8 text-neutral-500 mx-auto" />
                     <div className="text-white font-semibold text-xs">
                       Žádná nově vygenerovaná pozvánka
@@ -1056,7 +1056,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
           {/* TAB 3: ACTIVE INVITATIONS & PASSWORDS */}
           {activeTab === 'invites' && (
             <div className="space-y-4">
-              <div className="bg-[#1C1C1E]/80 p-4 rounded-2xl border border-white/[0.08] flex items-center justify-between">
+              <div className="bg-plocha-3 p-4 rounded-2xl border border-white/[0.08] flex items-center justify-between">
                 <div>
                   <h3 className="text-white font-bold text-xs flex items-center gap-2">
                     <Key className="w-4 h-4 text-info" />
@@ -1069,7 +1069,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               </div>
 
               {invitations.length === 0 ? (
-                <div className="bg-[#1C1C1E]/40 border border-white/[0.06] rounded-2xl p-10 text-center text-neutral-400 text-xs">
+                <div className="bg-plocha-3 border border-white/[0.06] rounded-2xl p-10 text-center text-neutral-400 text-xs">
                   Zatím nebyly vygenerovány žádné pozvánky.
                 </div>
               ) : (
@@ -1077,7 +1077,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   {invitations.map((inv) => (
                     <div
                       key={inv.id}
-                      className="bg-[#1C1C1E]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3 hover:border-white/20 transition-all shadow-sm"
+                      className="bg-plocha-3 border border-white/[0.08] rounded-2xl p-4 space-y-3 hover:border-white/20 transition-all shadow-sm"
                     >
                       <div className="flex items-start justify-between">
                         <div>

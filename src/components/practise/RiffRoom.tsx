@@ -223,13 +223,13 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
       {/* Cvičení z vloženého textového tabu.
           Nahoře, protože sem se chodí s tabem v schránce — hledat to
           pod uloženými riffy by znamenalo rolovat přes celou stránku. */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4">
         <TextovyTabPanel />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         {/* Uložené */}
-        <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-2">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Music4 className="w-4 h-4 text-znacka" />
             {typ === 'riff' ? 'Moje riffy' : 'Moje sóla'}
@@ -271,7 +271,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
         {/* Přehrávač */}
         <div className="lg:col-span-3 space-y-3">
           {vybiram && (
-            <div className="bg-[#16161A]/80 border border-znacka/30 rounded-2xl p-3">
+            <div className="bg-plocha-2 border border-znacka/30 rounded-2xl p-3">
               <VyberZKnihovny
                 kategorie="stem_mix,recordings,samples,drum_loop,backing_tracks"
                 prazdno="V knihovně zatím žádné nahrávky nejsou."
@@ -289,7 +289,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
             </div>
           )}
 
-          <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
             {stav.chyba && <p className="text-drobne text-chyba">{stav.chyba}</p>}
             {stav.nacita && <p className="text-drobne text-neutral-400">Načítám zvuk…</p>}
 
@@ -451,7 +451,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
           </div>
 
           {/* Tabulatura a uložení */}
-          <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <input
                 value={nazev}

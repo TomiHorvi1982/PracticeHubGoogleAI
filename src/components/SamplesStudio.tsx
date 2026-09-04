@@ -182,7 +182,7 @@ export const SamplesStudio: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 space-y-4">
       {/* SKLÁDAČKA */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Layers className="w-4 h-4 text-znacka shrink-0" />
           <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Skládačka</h2>
@@ -345,7 +345,7 @@ export const SamplesStudio: React.FC = () => {
       </div>
 
       {/* KNIHOVNA SAMPLŮ */}
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {NASTROJE.map((n) => (
             <button

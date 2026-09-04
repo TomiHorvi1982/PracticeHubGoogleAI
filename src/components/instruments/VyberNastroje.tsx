@@ -70,7 +70,7 @@ export const VyberNastroje: React.FC<{
             className={`rounded-3xl border p-3 cursor-pointer transition-all ${
               aktivni
                 ? 'bg-white/[0.07] border-white/25 shadow-lg'
-                : 'bg-[#16161A]/70 border-white/[0.07] hover:border-white/20 hover:bg-white/[0.04]'
+                : 'bg-plocha-2 border-white/[0.07] hover:border-white/20 hover:bg-white/[0.04]'
             }`}
             style={aktivni ? { borderColor: `${n.barva}80`, boxShadow: `0 0 0 1px ${n.barva}30` } : undefined}
           >

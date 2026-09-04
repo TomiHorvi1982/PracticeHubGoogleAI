@@ -78,7 +78,7 @@ export const RozcvickaRoom: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 flex flex-wrap items-center gap-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 flex flex-wrap items-center gap-3">
         <Flame className="w-5 h-5 text-znacka" />
         <div className="flex-1 min-w-[200px]">
           <h3 className="text-sm font-bold text-white">Rozcvička před hraním</h3>
@@ -154,7 +154,7 @@ export const RozcvickaRoom: React.FC = () => {
 
       {/* Program */}
       {ROZCVICKA.map((blok) => (
-        <div key={blok.id} className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
+        <div key={blok.id} className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-2">
           <div>
             <h4 className="text-sm font-bold text-white">{blok.nazev}</h4>
             <p className="text-drobne text-neutral-500">{blok.popis}</p>

@@ -589,7 +589,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         className={`flex flex-wrap items-center justify-between gap-4 ${
           vlozeny
             ? ''
-            : 'bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl'
+            : 'bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl'
         }`}
       >
         {/* Titulek se uvnitř jiné sekce vynechá — nadpis už tam je.
@@ -686,7 +686,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         <div className="space-y-6">
           
           {/* Search Box & Quick Tags */}
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -822,7 +822,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Search Results Table */}
           {filteredResults.length > 0 && (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
@@ -900,7 +900,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Initial State / Placeholder when no search executed yet */}
           {searchResults.length === 0 && !isSearching && !searchError && (
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
               <div className="w-16 h-16 rounded-full bg-znacka/10 border border-znacka/20 flex items-center justify-center mx-auto text-znacka">
                 <Globe className="w-8 h-8" />
               </div>
@@ -923,7 +923,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         <div className="space-y-4">
           
           {/* Browser Address & Control Bar */}
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-3.5 sm:p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-3.5 sm:p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => navigateBrowser('https://freetar.de')}
@@ -1027,7 +1027,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
       {/* TAB PREVIEW / READING MODAL */}
       {previewTab && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="bg-[#16161A] border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-plocha-2 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
             
             {/* Modal Header */}
             <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">

@@ -56,7 +56,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`inline-flex flex-col items-center bg-[#1C1C1E] border border-white/[0.08] rounded-xl p-2 font-sans transition-all select-none shadow-sm ${
+      className={`inline-flex flex-col items-center bg-plocha-3 border border-white/[0.08] rounded-xl p-2 font-sans transition-all select-none shadow-sm ${
         onClick ? 'cursor-pointer hover:border-white/20 hover:bg-[#252528] active:scale-[0.98]' : ''
       } ${className}`}
     >

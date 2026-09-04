@@ -76,7 +76,7 @@ export const PoslechKytaryPanel: React.FC<{
   const ladeni = Math.abs(stav.centy) <= 8;
 
   return (
-    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-4">
+    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => (stav.poslouchá ? poslechKytary.stop() : void poslechKytary.start())}

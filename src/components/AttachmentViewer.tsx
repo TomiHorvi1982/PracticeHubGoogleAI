@@ -148,7 +148,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-3 py-1.5 bg-[#141414] hover:bg-[#1A1A1A] border border-[#333] hover:border-[#FF3E00] text-[#FF3E00] font-bold text-xs uppercase inline-flex items-center gap-1.5"
+            className="px-3 py-1.5 bg-[#141414] hover:bg-plocha-2 border border-[#333] hover:border-[#FF3E00] text-[#FF3E00] font-bold text-xs uppercase inline-flex items-center gap-1.5"
           >
             <FileUp className="w-3.5 h-3.5" /> PŘIPOJIT SOUBOR S TABULATUROU NEBO PDF
           </button>
@@ -171,7 +171,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 onClick={() => setSelectedAttId(att.id)}
                 className={`px-2.5 py-1 text-xs font-bold uppercase flex items-center gap-1.5 border transition-none shrink-0 ${
                   isSelected
-                    ? 'bg-[#1A1A1A] border-[#00FF41] text-[#00FF41]'
+                    ? 'bg-plocha-2 border-[#00FF41] text-[#00FF41]'
                     : 'bg-[#050505] border-[#222] text-[#888] hover:text-white'
                 }`}
               >
@@ -185,7 +185,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#222] border border-[#333] text-stitek font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
+            className="px-2 py-1 bg-plocha-2 hover:bg-[#222] border border-[#333] text-stitek font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
           >
             <FileUp className="w-3 h-3" /> PŘIDAT SOUBOR
           </button>
@@ -210,7 +210,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               <a
                 href={activeAtt.dataUrl}
                 download={activeAtt.name}
-                className="px-2.5 py-1 bg-[#141414] hover:bg-[#1A1A1A] border border-[#333] text-[#00FF41] text-stitek font-bold uppercase flex items-center gap-1"
+                className="px-2.5 py-1 bg-[#141414] hover:bg-plocha-2 border border-[#333] text-[#00FF41] text-stitek font-bold uppercase flex items-center gap-1"
               >
                 <Download className="w-3 h-3" /> STÁHNOUT SOUBOR
               </a>
@@ -345,7 +345,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setImageZoom((prev) => Math.max(0.5, prev - 0.25))}
-                    className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#333] border border-[#444] text-xs font-bold"
+                    className="px-2 py-1 bg-plocha-2 hover:bg-[#333] border border-[#444] text-xs font-bold"
                     title="Oddálit"
                   >
                     <ZoomOut className="w-3.5 h-3.5" />
@@ -355,14 +355,14 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                   </span>
                   <button
                     onClick={() => setImageZoom((prev) => Math.min(3, prev + 0.25))}
-                    className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#333] border border-[#444] text-xs font-bold"
+                    className="px-2 py-1 bg-plocha-2 hover:bg-[#333] border border-[#444] text-xs font-bold"
                     title="Přiblížit"
                   >
                     <ZoomIn className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setImageRotation((prev) => (prev + 90) % 360)}
-                    className="px-2 py-1 bg-[#1A1A1A] hover:bg-[#333] border border-[#444] text-xs font-bold flex items-center gap-1"
+                    className="px-2 py-1 bg-plocha-2 hover:bg-[#333] border border-[#444] text-xs font-bold flex items-center gap-1"
                     title="Otočit o 90°"
                   >
                     <RotateCw className="w-3.5 h-3.5" />
@@ -372,7 +372,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     className={`px-2 py-1 border text-stitek font-bold uppercase transition-none ${
                       invertImage
                         ? 'bg-[#FF0055] text-white border-[#FF0055]'
-                        : 'bg-[#1A1A1A] text-[#AAA] border-[#444]'
+                        : 'bg-plocha-2 text-[#AAA] border-[#444]'
                     }`}
                     title="Vysoký kontrast (Inverze)"
                   >

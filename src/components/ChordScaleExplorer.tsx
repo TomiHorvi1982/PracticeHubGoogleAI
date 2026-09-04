@@ -229,7 +229,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
     <div className={`w-full space-y-4 font-sans ${compact ? "" : "pb-16"}`}>
       
       {/* Control Panel: Header & Mode Selection */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-5">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-5">
         
         <div className={`flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4 ${compact ? "hidden" : "flex"}`}>
           {!compact && (
@@ -356,7 +356,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       </div>
 
       {/* Main Interactive Guitar Fretboard */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight">
@@ -513,7 +513,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       </div>
 
       {/* Piano Keyboard Visualizer */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
             <BookOpen className="w-4 h-4 text-znacka" />
@@ -565,7 +565,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                         ? isRoot
                           ? 'bg-znacka text-black font-extrabold shadow-[0_0_10px_#FF9F0A]'
                           : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#30D158]'
-                        : 'bg-[#1C1C1E] hover:bg-[#2C2C2E] text-neutral-400 hover:text-white'
+                        : 'bg-plocha-3 hover:bg-[#2C2C2E] text-neutral-400 hover:text-white'
                     }`}
                     title={`Přehrát tón ${noteName} na piano`}
                   >
@@ -597,7 +597,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
 
       {/* Scale Info & Practical Usage in Band */}
       {explorerMode === 'scale' && (
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl flex items-start gap-4">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl flex items-start gap-4">
           <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl shrink-0">
             <Zap className="w-5 h-5" />
           </div>

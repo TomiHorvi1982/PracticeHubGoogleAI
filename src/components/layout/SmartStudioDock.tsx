@@ -105,7 +105,7 @@ export const SmartStudioDock: React.FC = () => {
         )}
 
         {activeDockTool === 'metronome' && (
-          <div className="max-w-md mx-auto py-6 bg-[#16161A]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/[0.08] text-center space-y-5 shadow-2xl">
+          <div className="max-w-md mx-auto py-6 bg-plocha-2 p-6 rounded-3xl border border-white/[0.08] text-center space-y-5 shadow-2xl">
             <div className="flex items-center justify-center gap-2">
               <Clock className="w-4 h-4 text-znacka" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-white">Rychlý Metronom</h3>

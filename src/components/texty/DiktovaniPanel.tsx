@@ -96,7 +96,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
 
   if (moznosti && moznosti.cesta === 'zadna') {
     return (
-      <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-5 text-xs text-neutral-400">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 text-xs text-neutral-400">
         {moznosti.duvod}
       </div>
     );
@@ -168,7 +168,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-stitek uppercase tracking-widest text-neutral-500">Česky</span>
             {cesky && (
@@ -189,7 +189,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
           />
         </div>
 
-        <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-stitek uppercase tracking-widest text-neutral-500">Anglicky</span>
             {anglicky && (

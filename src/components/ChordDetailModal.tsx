@@ -173,7 +173,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
 
           {activeTab === 'piano' && (
             <div className="bg-[#050505] p-3 border border-[#222] space-y-2">
-              <div className="flex items-center justify-between text-stitek text-[#AAA] font-bold uppercase border-b border-[#1A1A1A] pb-1">
+              <div className="flex items-center justify-between text-stitek text-[#AAA] font-bold uppercase border-b border-plocha-2 pb-1">
                 <span>KLÁVESNICE PIANA (1.5 OKTÁVY)</span>
                 <span className="text-[#00FF41]">
                   TÓNY: {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(' - ')}
@@ -233,15 +233,15 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
 
         {/* Info Details */}
         <div className="space-y-1 text-xs text-[#AAA] border-t border-[#222] pt-2 shrink-0">
-          <div className="flex justify-between border-b border-[#1A1A1A] py-0.5">
+          <div className="flex justify-between border-b border-plocha-2 py-0.5">
             <span className="text-[#666] uppercase text-stitek">Základní tón:</span>
             <span className="text-white font-bold">{chordDef.root}</span>
           </div>
-          <div className="flex justify-between border-b border-[#1A1A1A] py-0.5">
+          <div className="flex justify-between border-b border-plocha-2 py-0.5">
             <span className="text-[#666] uppercase text-stitek">Typ akordu:</span>
             <span className="text-white font-bold">{chordDef.type}</span>
           </div>
-          <div className="flex justify-between border-b border-[#1A1A1A] py-0.5">
+          <div className="flex justify-between border-b border-plocha-2 py-0.5">
             <span className="text-[#666] uppercase text-stitek">Tóny:</span>
             <span className="text-[#00FF41] font-mono font-bold">
               {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(', ')}

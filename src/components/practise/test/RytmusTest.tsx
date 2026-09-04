@@ -74,7 +74,7 @@ export const RytmusTest: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <Activity className="w-5 h-5 text-info" />
           <div className="flex-1 min-w-[220px]">
@@ -128,7 +128,7 @@ export const RytmusTest: React.FC = () => {
 
       {/* Mřížka dob: co zní, co mlčí a kde jsme. */}
       {(stav.bezi || plan.current.length > 0) && (
-        <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-2">
           <div className="flex items-center gap-2">
             <span className="text-drobne font-bold text-white">
               {stav.ticho ? 'Metronom mlčí — drž tempo sám' : 'Metronom klepe'}
@@ -156,7 +156,7 @@ export const RytmusTest: React.FC = () => {
       )}
 
       {hodnoceni && hodnoceni.uderu > 0 ? (
-        <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-5 space-y-4">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-5 space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Cislo
               hodnota={`± ${hodnoceni.rozptyl} ms`}
@@ -257,7 +257,7 @@ export const RytmusTest: React.FC = () => {
           })()}
         </div>
       ) : hodnoceni ? (
-        <div className="bg-[#16161A]/50 border border-white/[0.06] rounded-2xl p-6 text-center">
+        <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-6 text-center">
           <p className="text-sm text-neutral-400">
             Žádný úder se nezachytil. Zkontroluj, že máš zapnutý vstup a že do nástroje jde slyšet.
           </p>

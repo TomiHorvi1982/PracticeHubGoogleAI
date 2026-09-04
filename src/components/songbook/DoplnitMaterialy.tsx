@@ -198,7 +198,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
 
   return (
     <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
-      <div className="bg-[#16161A] border border-white/[0.1] rounded-3xl w-full max-w-3xl my-8 shadow-2xl">
+      <div className="bg-plocha-2 border border-white/[0.1] rounded-3xl w-full max-w-3xl my-8 shadow-2xl">
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.08]">
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-bold text-white truncate">{song.title}</h3>

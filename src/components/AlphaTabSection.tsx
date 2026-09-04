@@ -85,7 +85,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
           Bydlelo ve vlastní sekci, takže se za každou nalezenou
           tabulaturou muselo přepnout jinam a zpátky. Tady se nález
           otevře rovnou v přehrávači o kus níž. */}
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl overflow-hidden">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl overflow-hidden">
         <button
           onClick={() => setHledaniOtevrene((v) => !v)}
           className="w-full flex items-center gap-2 px-5 py-3 text-left cursor-pointer hover:bg-white/[0.03]"
@@ -122,7 +122,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
         {/* Soubory ve zpěvníku v roletce.
             Rozbalený seznam osmdesáti položek zabral víc místa než
             samotné hledání; jako roletka je po ruce a nepřekáží. */}
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 space-y-2 shadow-lg">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 space-y-2 shadow-lg">
           <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
             <Layers className="w-4 h-4 text-znacka" />
             <span>Soubory ve zpěvníku ({libraryGpFiles.length})</span>
@@ -172,7 +172,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
         {/* Player Rendering or Placeholder empty state */}
         {activeFile ? (
           <div className="space-y-3">
-            <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
+            <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
               <span className="text-neutral-400 font-medium">Aktivní tabulatura:</span>
               <span className="font-bold text-znacka">{activeFile.filename}</span>
             </div>
@@ -184,7 +184,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             />
           </div>
         ) : (
-          <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-12 sm:p-16 text-center text-xs space-y-4 shadow-xl">
+          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-12 sm:p-16 text-center text-xs space-y-4 shadow-xl">
             <div className="flex justify-center">
               <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-neutral-500">
                 <Music className="w-10 h-10" />

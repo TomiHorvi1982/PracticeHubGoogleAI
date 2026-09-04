@@ -68,7 +68,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   };
 
   return (
-    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
+    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
       <div className="flex flex-wrap items-center gap-2">
         {/* Šipka je vlastní tlačítko, ne celá hlavička: ta obsahuje
             výběr setu a „Na Pódium", které se do tlačítka vnořit nedají

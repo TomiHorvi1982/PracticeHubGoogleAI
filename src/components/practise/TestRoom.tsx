@@ -204,7 +204,7 @@ export const TestRoom: React.FC = () => {
 
       {okruh === 'teorie' && (
       <div className="space-y-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <Brain className="w-5 h-5 text-nastroj" />
           <div className="flex-1 min-w-[200px]">
@@ -278,7 +278,7 @@ export const TestRoom: React.FC = () => {
       </div>
 
       {otazka ? (
-        <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-6 space-y-4">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-6 space-y-4">
           <div>
             <h4 className="text-lg font-bold text-white">{otazka.zadani}</h4>
             <p className="text-drobne text-neutral-500 mt-1">{otazka.napoveda}</p>
@@ -310,7 +310,7 @@ export const TestRoom: React.FC = () => {
           </div>
         </div>
       ) : (
-        <div className="bg-[#16161A]/50 border border-white/[0.06] rounded-2xl p-8 text-center">
+        <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-8 text-center">
           <p className="text-sm text-neutral-400">
             Vyber okruhy a spusť zkoušení — na čas, nebo v klidu.
           </p>

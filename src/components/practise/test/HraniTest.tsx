@@ -111,7 +111,7 @@ export const HraniTest: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Zahraj, co ti zadám</h3>
@@ -180,7 +180,7 @@ export const HraniTest: React.FC = () => {
       </div>
 
       {ukol ? (
-        <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-5 space-y-4">
+        <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-5 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[200px]">
               <div className="text-stitek uppercase tracking-wider text-neutral-500">
@@ -269,7 +269,7 @@ export const HraniTest: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="bg-[#16161A]/50 border border-white/[0.06] rounded-2xl p-8 text-center space-y-3">
+        <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-8 text-center space-y-3">
           <p className="text-sm text-neutral-400">
             Zapni si vstup, vyber druh úkolu a spusť zadání.
           </p>

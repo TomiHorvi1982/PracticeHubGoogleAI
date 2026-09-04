@@ -106,7 +106,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
           </button>
 
           {nabidkaOtevrena && (
-            <div className="absolute left-0 top-full mt-1 z-[100] bg-[#16161A] border border-white/[0.12] rounded-2xl shadow-2xl p-1.5 min-w-[200px]">
+            <div className="absolute left-0 top-full mt-1 z-[100] bg-plocha-2 border border-white/[0.12] rounded-2xl shadow-2xl p-1.5 min-w-[200px]">
               {(Object.keys(POPIS_OKEN) as TypOkna[]).map((typ) => (
                 <button
                   key={typ}

@@ -126,7 +126,7 @@ export const UsekZTabulatury: React.FC = () => {
 
   if (!usek) {
     return (
-      <div className="bg-[#16161A]/60 border border-dashed border-white/[0.08] rounded-3xl p-5 text-center">
+      <div className="bg-plocha-2 border border-dashed border-white/[0.08] rounded-3xl p-5 text-center">
         <p className="text-drobne text-neutral-500">
           Žádný úsek k cvičení. V <strong className="text-neutral-300">Guitar Pro</strong> nebo
           na <strong className="text-neutral-300">Pódiu</strong> si vyber takty tažením po liště
@@ -137,7 +137,7 @@ export const UsekZTabulatury: React.FC = () => {
   }
 
   return (
-    <div className="bg-[#16161A]/80 border border-nastroj/30 rounded-3xl p-5 space-y-3">
+    <div className="bg-plocha-2 border border-nastroj/30 rounded-3xl p-5 space-y-3">
       <div className="flex flex-wrap items-center gap-3">
         <Guitar className="w-4 h-4 text-nastroj shrink-0" />
         <div className="min-w-0 flex-1">

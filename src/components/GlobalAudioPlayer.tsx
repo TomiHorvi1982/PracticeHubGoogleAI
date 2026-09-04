@@ -397,7 +397,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
       <div
         className={`fixed z-50 transition-all duration-300 ${
           isVideoFloatingOpen
-            ? 'bottom-24 right-6 w-80 sm:w-96 h-48 sm:h-56 bg-[#1C1C1E] rounded-2xl overflow-hidden border border-white/20 shadow-2xl shadow-black/80 pointer-events-auto'
+            ? 'bottom-24 right-6 w-80 sm:w-96 h-48 sm:h-56 bg-plocha-3 rounded-2xl overflow-hidden border border-white/20 shadow-2xl shadow-black/80 pointer-events-auto'
             : 'pointer-events-none opacity-0 w-1 h-1 bottom-0 left-0 overflow-hidden'
         }`}
       >
@@ -659,7 +659,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
       {playerMode === 'floating' && (
         <div
           style={{ left: `${floatingPos.x}px`, top: `${floatingPos.y}px` }}
-          className="fixed z-50 w-[360px] sm:w-[400px] bg-[#16161A]/95 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] overflow-hidden select-none animate-in fade-in zoom-in-95 duration-200"
+          className="fixed z-50 w-[360px] sm:w-[400px] bg-plocha-2 border border-white/20 rounded-3xl shadow-[0_16px_48px_rgba(0,0,0,0.8)] overflow-hidden select-none animate-in fade-in zoom-in-95 duration-200"
         >
           {/* Header Drag Bar */}
           <div
@@ -783,7 +783,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
       {playerMode === 'minimized' && (
         <div
           style={{ left: `${floatingPos.x}px`, top: `${floatingPos.y}px` }}
-          className="fixed z-50 bg-[#16161A]/95 backdrop-blur-2xl border border-white/20 rounded-full shadow-2xl p-1.5 pl-2 flex items-center gap-3 select-none cursor-move animate-in fade-in zoom-in-90 duration-200"
+          className="fixed z-50 bg-plocha-2 border border-white/20 rounded-full shadow-2xl p-1.5 pl-2 flex items-center gap-3 select-none cursor-move animate-in fade-in zoom-in-90 duration-200"
           onMouseDown={handleMouseDownDrag}
         >
           {/* Track Thumbnail */}

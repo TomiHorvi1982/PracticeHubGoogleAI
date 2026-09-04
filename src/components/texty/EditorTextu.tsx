@@ -57,7 +57,7 @@ export const EditorTextu: React.FC<{
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[1fr_260px] gap-4">
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-sm font-bold text-white flex-1">Text</h3>
           <span className="text-stitek text-neutral-500 tabular-nums">
@@ -116,7 +116,7 @@ export const EditorTextu: React.FC<{
         </p>
       </div>
 
-      <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3 self-start">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3 self-start">
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-nastroj" />
           <h4 className="text-sm font-bold text-white">Rýmy</h4>

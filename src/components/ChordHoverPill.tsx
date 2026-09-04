@@ -95,7 +95,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
             left: `${popupPos.left}px`,
             transform: popupPos.placeAbove ? 'translateY(-100%)' : 'none',
           }}
-          className="bg-[#1C1C1E]/95 backdrop-blur-2xl border border-white/20 p-3 shadow-2xl z-[9999] w-[320px] rounded-2xl animate-fade-in pointer-events-auto"
+          className="bg-plocha-3 border border-white/20 p-3 shadow-2xl z-[9999] w-[320px] rounded-2xl animate-fade-in pointer-events-auto"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           onClick={(e) => e.stopPropagation()}

@@ -360,7 +360,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
   const initialBpm = midiData?.header?.tempos?.[0]?.bpm ? Math.round(midiData.header.tempos[0].bpm) : 120;
 
   return (
-    <div className={`bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 font-sans space-y-4 shadow-xl text-white ${className}`}>
+    <div className={`bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 font-sans space-y-4 shadow-xl text-white ${className}`}>
       
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">

@@ -17,11 +17,15 @@
 @theme {
   /* --- Plochy. Hloubka se dělá odstupňovaným pozadím a kresbou
          okraje, ne stínem — stín se na tmavém podkladu ztrácí. --- */
-  --color-podklad:    #0A0A0C;
-  --color-plocha-1:   #121216;
-  --color-plocha-2:   #17171C;
-  --color-plocha-3:   #1E1E24;
-  --color-plocha-nad: #26262E;
+  /* Hodnoty jsou vybrane podle zmereneho jasu, ne od oka. Podklad ma
+     10,1; karty mely 20,2 — deset jednotek z 255, tedy na hranici
+     rozlisitelnosti, a hranici panelu nesl skoro sam okraj. Plocha-2
+     ma 26,4, tedy pres sestnact nad podkladem. */
+  --color-podklad:    #0A0A0C;  /* jas 10,1 */
+  --color-plocha-1:   #131318;  /* 19,3 — vnorene, splyva zamerne */
+  --color-plocha-2:   #1A1A20;  /* 26,4 — bezna karta */
+  --color-plocha-3:   #222229;  /* 34,5 — zvednuta nad kartu */
+  --color-plocha-nad: #2B2B33;  /* 43,7 — nabidky a vyskakovaci okna */
 
   /* --- Okraje. Nesou hierarchii místo stínů. --- */
   --color-kresba:        rgba(255, 255, 255, 0.09);

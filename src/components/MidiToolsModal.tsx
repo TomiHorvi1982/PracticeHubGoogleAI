@@ -87,7 +87,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-6 font-sans select-none animate-in fade-in duration-200">
-      <div className="bg-[#16161A]/95 backdrop-blur-2xl border border-white/[0.12] rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+      <div className="bg-plocha-2 border border-white/[0.12] rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         
         {/* Modal Header */}
         <div className="bg-white/[0.03] border-b border-white/[0.08] p-5 flex items-center justify-between">
@@ -362,7 +362,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                             onChange={(e) =>
                               handleChannelMappingChange(channel, e.target.value as InstrumentProfile)
                             }
-                            className="bg-[#1C1C1E] text-white font-semibold text-xs p-1.5 rounded-lg border border-white/10 outline-none max-w-[200px]"
+                            className="bg-plocha-3 text-white font-semibold text-xs p-1.5 rounded-lg border border-white/10 outline-none max-w-[200px]"
                           >
                             {INSTRUMENT_PROFILES.map((p) => (
                               <option key={p.id} value={p.id}>
@@ -428,7 +428,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                             onChange={(e) =>
                               handleRoleMappingChange(item.role, e.target.value as InstrumentProfile)
                             }
-                            className="bg-[#1C1C1E] text-white font-semibold text-xs p-2 rounded-xl border border-white/10 outline-none min-w-[220px]"
+                            className="bg-plocha-3 text-white font-semibold text-xs p-2 rounded-xl border border-white/10 outline-none min-w-[220px]"
                           >
                             {INSTRUMENT_PROFILES.map((p) => (
                               <option key={p.id} value={p.id}>

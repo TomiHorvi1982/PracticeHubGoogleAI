@@ -49,7 +49,7 @@ export const PractiseHubSection: React.FC = () => {
         napoveda="Čtyři místnosti podle toho, co zrovna děláš — od rozehřátí po zkoušení teorie."
       />
 
-      <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {MISTNOSTI.map((m) => {

@@ -87,7 +87,7 @@ export const NahravaniSouboru: React.FC<{
         void posli(e.dataTransfer.files);
       }}
       className={`rounded-2xl border-2 border-dashed p-3 space-y-2.5 transition-all ${
-        tahne ? 'border-info bg-info/10' : 'border-white/10 bg-[#16161A]/40'
+        tahne ? 'border-info bg-info/10' : 'border-white/10 bg-plocha-2'
       }`}
     >
       <input
