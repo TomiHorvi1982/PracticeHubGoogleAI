@@ -132,7 +132,10 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             NL
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-sm font-bold tracking-wide text-white leading-tight">NEVERLATE</h1>
+            {/* Logo je značka, ne nadpis stránky. Jako `h1` soupeřilo
+                s nadpisem sekce — stránka měla dva a čtečka i vyhledávač
+                pak nevědí, o čem ta stránka je. */}
+            <span className="text-sm font-bold tracking-wide text-white leading-tight">NEVERLATE</span>
             <p className="text-stitek text-amber-400 font-medium uppercase tracking-widest">Studio Workspace</p>
           </div>
         </div>
