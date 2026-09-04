@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Volume2, VolumeX, Headphones } from 'lucide-react';
 import { stemAudioService, ChannelState } from '../../services/stemAudioService';
-import { casNaX, xNaCas } from '../../services/vlnovka';
+import { casNaX as casNaXVyrez, xNaCas as xNaCasVyrez } from '../../services/mrizkaDob';
 
 /** Šířka levého sloupce s ovládáním. Musí být stejná u osy i u stop. */
 export const SIRKA_OVLADANI = 236;
@@ -16,8 +16,8 @@ export const VYSKA_STOPY = 72;
  * pláten. Takhle se plátno dotkne jen při změně šířky nebo stopy.
  */
 const Vlnovka = React.memo(function Vlnovka({
-  stemId, barva, verze, sirka,
-}: { stemId: string; barva: string; verze: string; sirka: number }) {
+  stemId, barva, verze, sirka, od, doKdy,
+}: { stemId: string; barva: string; verze: string; sirka: number; od: number; doKdy: number }) {
   const platno = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -36,7 +36,9 @@ const Vlnovka = React.memo(function Vlnovka({
     ctx.setTransform(hustota, 0, 0, hustota, 0, 0);
     ctx.clearRect(0, 0, sirka, vyska);
 
-    const v = stemAudioService.vrcholyStopy(stemId, Math.floor(sirka));
+    // Při přiblížení se počítá jen z toho, co je vidět — roztažené
+    // vrcholy celé skladby by daly schodovitou čáru z pár hodnot.
+    const v = stemAudioService.vrcholyUseku(stemId, Math.floor(sirka), od, doKdy);
     const stred = vyska / 2;
 
     if (!v) {
@@ -56,7 +58,7 @@ const Vlnovka = React.memo(function Vlnovka({
       const h = Math.max(1, v[i] * stred);
       ctx.fillRect(i, stred - h, 1, h * 2);
     }
-  }, [stemId, barva, verze, sirka]);
+  }, [stemId, barva, verze, sirka, od, doKdy]);
 
   return <canvas ref={platno} className="block" />;
 });
@@ -70,6 +72,9 @@ interface Props {
   channel: ChannelState;
   delka: number;
   cas: number;
+  /** Kus skladby, který je vidět — mění se přiblížením. */
+  od: number;
+  doKdy: number;
   jeCil: boolean;
   /** Mění se, když se vymění zvuk — plátno podle toho pozná, že má překreslit. */
   verze: string;
@@ -85,7 +90,7 @@ interface Props {
  * jinde a osa by nad ničím neseděla.
  */
 export const StopaVodorovne: React.FC<Props> = ({
-  stemId, popis, naNem, barva, channel, delka, cas, jeCil, verze, onUpdate, onVybrat,
+  stemId, popis, naNem, barva, channel, delka, cas, od, doKdy, jeCil, verze, onUpdate, onVybrat,
 }) => {
   const pas = useRef<HTMLDivElement | null>(null);
   const [sirka, setSirka] = useState(0);
@@ -99,7 +104,7 @@ export const StopaVodorovne: React.FC<Props> = ({
     return () => o.disconnect();
   }, []);
 
-  const x = useMemo(() => casNaX(cas, delka, sirka), [cas, delka, sirka]);
+  const x = useMemo(() => casNaXVyrez(cas, od, doKdy, sirka), [cas, od, doKdy, sirka]);
   const obsazeno = !!naNem;
 
   // Vybrat jde kliknutím kamkoli do stopy, ne jen na její název:
@@ -174,12 +179,12 @@ export const StopaVodorovne: React.FC<Props> = ({
         onClick={(e) => {
           if (!(delka > 0)) return;
           const r = e.currentTarget.getBoundingClientRect();
-          stemAudioService.seek(xNaCas(e.clientX - r.left, delka, r.width));
+          stemAudioService.seek(xNaCasVyrez(e.clientX - r.left, od, doKdy, r.width));
         }}
         className="flex-1 relative min-w-0 cursor-pointer px-0 py-2"
         title={delka > 0 ? 'Klikni, kam chceš skočit' : undefined}
       >
-        <Vlnovka stemId={stemId} barva={barva} verze={verze} sirka={sirka} />
+        <Vlnovka stemId={stemId} barva={barva} verze={verze} sirka={sirka} od={od} doKdy={doKdy} />
         {delka > 0 && (
           <div
             className="absolute top-0 bottom-0 w-px bg-amber-400/80 pointer-events-none"

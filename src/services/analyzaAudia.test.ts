@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   spicka, rms, naDb, dynamickyRozsah, hlasitostLufs,
-  toninaZChroma, stabilitaTempa, zastoupeniStop, vyrezZeStredu,
+  toninaZChroma, stabilitaTempa, zastoupeniStop, vyrezZeStredu, detekujNastupy,
 } from './analyzaAudia.js';
 
 /** Sinus o dané amplitudě a kmitočtu. */
@@ -146,4 +146,34 @@ test('nesmyslná délka výřezu vrátí celou nahrávku', () => {
   const d = new Float32Array(1000);
   assert.equal(vyrezZeStredu(d, 48000, 0).length, 1000);
   assert.equal(vyrezZeStredu(d, 48000, -5).length, 1000);
+});
+
+test('nástupy se najdou tam, kde zvuk prudce zesílí', () => {
+  // Ticho s krátkými údery po půl vteřině.
+  const vz = 8000;
+  const d = new Float32Array(vz * 4);
+  for (const t of [0.5, 1.0, 1.5, 2.0, 2.5]) {
+    const od = Math.floor(t * vz);
+    for (let i = od; i < od + 400; i++) d[i] = Math.sin(i * 0.3) * 0.8;
+  }
+  const n = detekujNastupy(d, vz);
+  assert.ok(n.length >= 4, `naslo ${n.length}`);
+  // Každý úder má mít nástup do 50 ms od svého místa.
+  for (const t of [0.5, 1.0, 1.5, 2.0]) {
+    assert.ok(n.some((x) => Math.abs(x - t) < 0.05), `chybi nastup u ${t}s: ${n.slice(0, 8)}`);
+  }
+});
+
+test('v tichu ani v rovném tónu žádné nástupy nejsou', () => {
+  const vz = 8000;
+  assert.deepEqual(detekujNastupy(new Float32Array(vz * 2), vz), []);
+  const rovny = new Float32Array(vz * 2);
+  for (let i = 0; i < rovny.length; i++) rovny[i] = Math.sin(i * 0.1) * 0.5;
+  assert.ok(detekujNastupy(rovny, vz).length <= 2, 'rovny ton nema nastupy');
+});
+
+test('krátká nebo prázdná data nic nerozbijí', () => {
+  assert.deepEqual(detekujNastupy(new Float32Array(0), 8000), []);
+  assert.deepEqual(detekujNastupy(new Float32Array(100), 8000), []);
+  assert.deepEqual(detekujNastupy(new Float32Array(8000), 0), []);
 });

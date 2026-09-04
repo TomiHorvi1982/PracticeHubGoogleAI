@@ -54,6 +54,13 @@ class StemAudioService {
   private loadingAudio: boolean = false;
   private globalPitch: number = 0;
   private dokola: boolean = false;
+  /**
+   * Úsek, který se má opakovat. `null` = celá skladba.
+   *
+   * Drží se tady, ne v přehrávačích: ty umí opakovat jen celý buffer,
+   * kdežto tohle je kus vybraný myší na časové ose.
+   */
+  private smycka: { od: number; do: number } | null = null;
   private rychlost: number = 1;
   private channels: Record<string, ChannelState> = {};
   private meterLevels: Record<string, number> = {};
@@ -559,6 +566,38 @@ class StemAudioService {
   }
 
   /**
+   * Vrcholy jen pro daný úsek stopy.
+   *
+   * Při přiblížení nestačí roztáhnout vrcholy celé skladby — vyšla by
+   * z toho schodovitá čára z několika hodnot. Tady se počítá znovu
+   * z těch vzorků, které jsou opravdu vidět, takže detail přibývá
+   * s přiblížením.
+   */
+  public vrcholyUseku(
+    stemId: string,
+    sloupcu: number,
+    odVterin: number,
+    doVterin: number,
+  ): Float32Array | null {
+    const buffer = this.players[stemId]?.buffer;
+    if (!buffer?.loaded) return null;
+    const zvuk = buffer.get() as AudioBuffer | undefined;
+    if (!zvuk || sloupcu <= 0 || !(doVterin > odVterin)) return null;
+
+    const od = Math.max(0, Math.floor(odVterin * zvuk.sampleRate));
+    const doKam = Math.min(zvuk.length, Math.ceil(doVterin * zvuk.sampleRate));
+    if (doKam - od < sloupcu) return null;
+
+    const klic = `${stemId}:${sloupcu}:${od}:${doKam}`;
+    const ulozene = this.vrcholyCache.get(klic);
+    if (ulozene) return ulozene;
+
+    const v = spocitejVrcholy(zvuk.getChannelData(0).subarray(od, doKam), sloupcu);
+    this.vrcholyCache.set(klic, v);
+    return v;
+  }
+
+  /**
    * Vzorky načtené stopy, nebo `null`, dokud nedorazí.
    *
    * Bere se první kanál — na rozbor hlasitosti i tóniny je to totéž co
@@ -613,6 +652,12 @@ class StemAudioService {
     this.timeInterval = setInterval(() => {
       if (!this.isPlaying) return;
       const uplynulo = odCasu + ((Date.now() - odKdy) / 1000) * this.rychlost;
+      // Vyznačená smyčka má přednost před koncem skladby: dojede se na
+      // její konec a skočí zpátky na začátek úseku.
+      if (this.smycka && uplynulo >= this.smycka.do) {
+        this.seek(this.smycka.od);
+        return;
+      }
       const { cas, konec } = dalsiCas(uplynulo, this.duration || 60, this.dokola);
       this.currentTime = cas;
       if (konec) this.dohralo();
@@ -633,6 +678,18 @@ class StemAudioService {
     this.stop();
     this.currentTime = konec;
     this.notify();
+  }
+
+  /**
+   * Vyznačený úsek k opakování, nebo `null` pro celou skladbu.
+   *
+   * Když hlava leží mimo úsek, skočí na jeho začátek — jinak by se
+   * po vyznačení nic nestalo, dokud by přehrávání samo nedojelo tam.
+   */
+  public setSmycka(s: { od: number; do: number } | null): void {
+    this.smycka = s;
+    if (s && (this.currentTime < s.od || this.currentTime > s.do)) this.seek(s.od);
+    else this.notify();
   }
 
   /** Přehrávat pořád dokola. Smyčku si drží samy přehrávače. */

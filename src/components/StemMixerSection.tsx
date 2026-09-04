@@ -1,5 +1,7 @@
 import { HlavickaSekce } from './ui/HlavickaSekce';
 import { DawVerticalFader } from './DawVerticalFader';
+import { vyrez as spocitejVyrez, najdiFazi, tempoZNastupu, MIN_ZOOM, MAX_ZOOM } from '../services/mrizkaDob';
+import { CasovaOsa } from './mixer/CasovaOsa';
 import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
@@ -30,6 +32,7 @@ import { RYCHLOSTI } from '../services/prehravani';
 import {
   rozeberStopu, rms, naDb, zastoupeniStop, vyrezZeStredu, stabilitaTempa,
   VTERIN_NA_TONINU, Tonina,
+  detekujNastupy,
 } from '../services/analyzaAudia';
 import { odhadniTempoZUseku } from '../services/detekceUderu';
 import { rolePodleNazvu } from '../services/roleStop';
@@ -92,6 +95,14 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
 
   /** Na který fader se právě přiřazuje a co na nich visí. */
   const [cilovyFader, setCilovyFader] = useState<string>('vocals');
+  /** Přiblížení vlnovky a úsek, který je z něj vidět. */
+  const [zoom, setZoom] = useState(1);
+  /** Smyčka: `null`, dokud si ji člověk nevytáhne. */
+  const [smycka, setSmycka] = useState<{ od: number; do: number } | null>(null);
+  /** Doby odvozené z tempa; `shoda` říká, jestli jim věřit. */
+  const [mrizka, setMrizka] = useState<{ faze: number; shoda: number; bpm: number }>(
+    { faze: 0, shoda: 0, bpm: 0 },
+  );
   /** Ukládání poskládaného mixu jako další skladby. */
   const [nazevMixu, setNazevMixu] = useState('');
   /** Ke které skladbě mix připojit. Prázdné = založit novou. */
@@ -381,6 +392,33 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
         bpm = Math.round(odhadniTempoZUseku(proTempo, 0, doKonce) || 0);
       }
 
+      /*
+       * Fáze mřížky dob — až tady, protože potřebuje hotové tempo.
+       *
+       * Nástupy se berou z bicích, když jsou: mají nejostřejší náběh
+       * a doba se na nich pozná nejlíp. Tempo samo by dalo správné
+       * rozestupy, ale mřížka by ležela kdekoli.
+       */
+      const proMrizku = ['drums', 'bass'].find((id) => stopy.includes(id)) || stopy[0];
+      const vzorkyProMrizku = proMrizku ? stemAudioService.vzorkyStopy(proMrizku) : null;
+      if (vzorkyProMrizku) {
+        const nastupy = detekujNastupy(vzorkyProMrizku.data, vzorkyProMrizku.vzorkovaci);
+        /*
+         * Tempo pro mřížku se bere z nástupů, ne z rozboru.
+         *
+         * U zkoušené skladby vyšlo z rozboru 117 BPM, jenže údery bicích
+         * chodily po 0,44 s, tedy kolem 136. Mřížka postavená na tom
+         * prvním čísle by se nezarovnala nikdy. Když se z nástupů tempo
+         * určit nedá, spadne se zpátky na rozbor.
+         */
+        const bpmMrizky = tempoZNastupu(nastupy) || bpm;
+        const f = najdiFazi(nastupy, bpmMrizky);
+        setMrizka({ ...f, bpm: bpmMrizky });
+      } else {
+        setMrizka({ faze: 0, shoda: 0, bpm: 0 });
+      }
+      await pauza();
+
       if (zruseno) return;
       setRozbor({
         pocita: false,
@@ -399,6 +437,12 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
     return () => { zruseno = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioReady, selectedSong?.id]);
+
+  /** Kus skladby, který je při daném přiblížení vidět. */
+  const pohled = React.useMemo(
+    () => spocitejVyrez(duration || 0, zoom, currentTime),
+    [duration, zoom, currentTime],
+  );
 
   const popiskyCasu = React.useMemo(
     () => popiskyOsy(duration, sirkaOsy),
@@ -555,8 +599,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           řídíš v přehrávači YouTube — hraje vedle stop, ne místo nich. */}
       {(
         <div className="bg-[#121217] border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
-          {/* Kdo hraje. Ovládání je až pod stopami — patří k tomu,
-              co řídí, a při klikání do vlnovky je ruka blíž. */}
+          {/* Kdo hraje. */}
           <div className="flex items-baseline gap-3 flex-wrap">
             <h2 className="text-xl font-bold">{selectedSong?.title || 'Mixážní pult'}</h2>
             <p className="text-xs text-slate-400 truncate">
@@ -632,125 +675,45 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               časové ose, takže se to čte na jeden pohled a dá se kamkoli
               kliknout. Levý sloupec má pevnou šířku, jinak by každý pruh
               začínal jinde a osa by nad ničím neseděla. */}
-          <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40">
-            <div className="flex items-stretch bg-slate-900/60">
-              <div
-                className="shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center text-stitek font-bold uppercase tracking-wider text-slate-500"
-                style={{ width: SIRKA_OVLADANI }}
-              >
-                Mixér
-              </div>
-              <div ref={osa} className="flex-1 relative min-w-0 h-7">
-                {popiskyCasu.map((t) => (
-                  <div
-                    key={t.cas}
-                    className="absolute top-0 bottom-0 border-l border-slate-800/70 pl-1 text-stitek text-slate-500 tabular-nums flex items-center"
-                    style={{ left: t.x }}
-                  >
-                    {casOsy(t.cas)}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {ROLE_FADERU.map((role) => {
-              const stem = selectedSong?.stems.find((x) => x.id === role.id);
-              const naNem = vlastniStopy.find((v) => v.role === role.id);
-              return (
-                <StopaVodorovne
-                  key={role.id}
-                  stemId={role.id}
-                  popis={role.popis}
-                  naNem={naNem?.nazev || stem?.name || null}
-                  barva={(stemColors[role.id] || stemColors['other']).accent}
-                  channel={channels[role.id] || {
-                    volume: 0, pan: 0, isMuted: false, isSolo: false,
-                    pitchSemi: 0, isMono: false, stereoWidth: 1.0,
-                  }}
-                  delka={duration}
-                  cas={currentTime}
-                  jeCil={cilovyFader === role.id}
-                  verze={`${selectedSong?.id || ''}:${audioReady}`}
-                  onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
-                  onVybrat={() => setCilovyFader(role.id)}
-                />
-              );
-            })}
-          </div>
-
-          {/*
-            Fadery ke stopám.
-            Vodorovné stopy nad nimi ukazují, KDE ve skladbě něco je;
-            fader říká, JAK to zní — hlasitost, panorama, výška, sólo,
-            ztlumení a ukazatel úrovně. Obojí je potřeba: podle vlnovky
-            se hledá místo, podle faderu se míchá.
-
-            Je to týž `DawVerticalFader`, jaký má okno mixu na Pódiu —
-            postavit sem druhý, který se chová jinak, by znamenalo dvě
-            místa, která se musí držet v souladu.
-          */}
-          <div className="overflow-x-auto">
-            <div className="flex items-stretch gap-2 min-w-max pb-1">
-              {ROLE_FADERU.map((role) => {
-                const stem = selectedSong?.stems.find((x) => x.id === role.id);
-                const naNem = vlastniStopy.find((v) => v.role === role.id);
-                return (
-                  <div key={role.id} className="flex flex-col w-[168px] shrink-0">
-                    <DawVerticalFader
-                      stemId={role.id}
-                      name={role.popis}
-                      channel={channels[role.id] || {
-                        volume: 0, pan: 0, isMuted: false, isSolo: false,
-                        pitchSemi: 0, isMono: false, stereoWidth: 1.0,
-                      }}
-                      meterLevel={meterLevels?.[role.id] || 0}
-                      isPlaying={isPlaying}
-                      isLoading={loadingAudio}
-                      colorTheme={stemColors[role.id] || stemColors['other']}
-                      vybrany={cilovyFader === role.id}
-                      onVybrat={() => setCilovyFader(role.id)}
-                      onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
-                    />
-
-                    {/* Zdroj u faderu, ke kterému patří. Dřív se soubory
-                        vybíraly nahoře v jednom panelu a fader se k nim
-                        volil zvlášť — u osmi stejných proužků se pak
-                        lehko sáhlo vedle. */}
-                    <ZdrojStopy
-                      naNem={naNem?.nazev || stem?.name || null}
-                      mistni={mistniPloche}
-                      mistniDostupne={mistni.dostupne}
-                      slozka={mistni.slozka}
-                      onZMistnich={(m) => {
-                        setCilovyFader(role.id);
-                        povesNaFader(role.id, { nazev: m.jmeno, url: odkazNaMistni(m.cesta) });
-                      }}
-                      knihovna={(hotovo) => (
-                        <VyberZKnihovny
-                          kategorie="stem_mix,backing_tracks,recordings,samples"
-                          cil={`na ${role.popis}`}
-                          prazdno="V knihovně zatím žádné použitelné stopy nejsou."
-                          onVybrat={(a) => {
-                            povesNaFader(role.id, { nazev: a.name, assetId: a.id });
-                            setCilovyFader(role.id);
-                            hotovo();
-                          }}
-                        />
-                      )}
-                      onOdebrat={naNem ? () => {
-                        const nove = vlastniStopy.filter((v) => v.role !== role.id);
-                        setVlastniStopy(nove);
-                        stemAudioService.pouzijVlastniStopy(nove);
-                      } : undefined}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* TRANSPORT */}
+          {/* Ovládání nad stopami, hned pod jménem skladby: při klikání
+              do vlnovky je ruka u něj a nemusí sjíždět dolů. */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">
+            {/* Přiblížení vlnovky. Přibližuje se kolem přehrávací hlavy,
+                ne kolem začátku — jinak by se po každém přiblížení
+                muselo hledat, kde se to zrovna hraje. */}
+            <div className="flex items-center gap-1.5 shrink-0 order-last sm:order-none">
+              <button
+                onClick={() => setZoom((z) => Math.max(MIN_ZOOM, z / 1.5))}
+                disabled={zoom <= MIN_ZOOM}
+                title="Oddálit"
+                aria-label="Oddálit vlnovku"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                −
+              </button>
+              <span className="text-stitek text-slate-400 tabular-nums w-10 text-center">
+                {zoom < 1.05 ? 'celá' : `${zoom.toFixed(1)}×`}
+              </span>
+              <button
+                onClick={() => setZoom((z) => Math.min(MAX_ZOOM, z * 1.5))}
+                disabled={zoom >= MAX_ZOOM}
+                title="Přiblížit"
+                aria-label="Přiblížit vlnovku"
+                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                +
+              </button>
+              {smycka && (
+                <button
+                  onClick={() => { setSmycka(null); stemAudioService.setSmycka(null); }}
+                  title="Zrušit smyčku"
+                  className="px-2 h-8 rounded-lg bg-znacka/15 border border-znacka/40 text-znacka text-stitek font-bold cursor-pointer"
+                >
+                  smyčka {Math.round(smycka.do - smycka.od)} s ✕
+                </button>
+              )}
+            </div>
+
             <button
               onClick={() => stemAudioService.togglePlay()}
               disabled={!audioReady || loadingAudio}
@@ -832,6 +795,129 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 +
               </button>
             </div>
+
+          <div className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40">
+            <div className="flex items-stretch bg-slate-900/60">
+              <div
+                className="shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center text-stitek font-bold uppercase tracking-wider text-slate-500"
+                style={{ width: SIRKA_OVLADANI }}
+              >
+                Mixér
+              </div>
+              <div ref={osa} className="flex-1 relative min-w-0">
+                <CasovaOsa
+                  delka={duration || 0}
+                  od={pohled.od}
+                  doKdy={pohled.do}
+                  cas={currentTime}
+                  bpm={mrizka.bpm || rozbor?.bpm || 0}
+                  faze={mrizka.faze}
+                  shodaMrizky={mrizka.shoda}
+                  smycka={smycka}
+                  onSmycka={(sm) => { setSmycka(sm); stemAudioService.setSmycka(sm); }}
+                  onSeek={(t) => stemAudioService.seek(t)}
+                />
+              </div>
+            </div>
+
+            {ROLE_FADERU.map((role) => {
+              const stem = selectedSong?.stems.find((x) => x.id === role.id);
+              const naNem = vlastniStopy.find((v) => v.role === role.id);
+              return (
+                <StopaVodorovne
+                  key={role.id}
+                  stemId={role.id}
+                  popis={role.popis}
+                  naNem={naNem?.nazev || stem?.name || null}
+                  barva={(stemColors[role.id] || stemColors['other']).accent}
+                  channel={channels[role.id] || {
+                    volume: 0, pan: 0, isMuted: false, isSolo: false,
+                    pitchSemi: 0, isMono: false, stereoWidth: 1.0,
+                  }}
+                  delka={duration}
+                  cas={currentTime}
+                  od={pohled.od}
+                  doKdy={pohled.do}
+                  jeCil={cilovyFader === role.id}
+                  verze={`${selectedSong?.id || ''}:${audioReady}`}
+                  onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
+                  onVybrat={() => setCilovyFader(role.id)}
+                />
+              );
+            })}
+          </div>
+
+          {/*
+            Fadery ke stopám.
+            Vodorovné stopy nad nimi ukazují, KDE ve skladbě něco je;
+            fader říká, JAK to zní — hlasitost, panorama, výška, sólo,
+            ztlumení a ukazatel úrovně. Obojí je potřeba: podle vlnovky
+            se hledá místo, podle faderu se míchá.
+
+            Je to týž `DawVerticalFader`, jaký má okno mixu na Pódiu —
+            postavit sem druhý, který se chová jinak, by znamenalo dvě
+            místa, která se musí držet v souladu.
+          */}
+          <div className="overflow-x-auto">
+            <div className="flex items-stretch gap-2 min-w-max pb-1">
+              {ROLE_FADERU.map((role) => {
+                const stem = selectedSong?.stems.find((x) => x.id === role.id);
+                const naNem = vlastniStopy.find((v) => v.role === role.id);
+                return (
+                  <div key={role.id} className="flex flex-col w-[168px] shrink-0">
+                    <DawVerticalFader
+                      stemId={role.id}
+                      name={role.popis}
+                      channel={channels[role.id] || {
+                        volume: 0, pan: 0, isMuted: false, isSolo: false,
+                        pitchSemi: 0, isMono: false, stereoWidth: 1.0,
+                      }}
+                      meterLevel={meterLevels?.[role.id] || 0}
+                      isPlaying={isPlaying}
+                      isLoading={loadingAudio}
+                      colorTheme={stemColors[role.id] || stemColors['other']}
+                      vybrany={cilovyFader === role.id}
+                      onVybrat={() => setCilovyFader(role.id)}
+                      onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
+                    />
+
+                    {/* Zdroj u faderu, ke kterému patří. Dřív se soubory
+                        vybíraly nahoře v jednom panelu a fader se k nim
+                        volil zvlášť — u osmi stejných proužků se pak
+                        lehko sáhlo vedle. */}
+                    <ZdrojStopy
+                      naNem={naNem?.nazev || stem?.name || null}
+                      mistni={mistniPloche}
+                      mistniDostupne={mistni.dostupne}
+                      slozka={mistni.slozka}
+                      onZMistnich={(m) => {
+                        setCilovyFader(role.id);
+                        povesNaFader(role.id, { nazev: m.jmeno, url: odkazNaMistni(m.cesta) });
+                      }}
+                      knihovna={(hotovo) => (
+                        <VyberZKnihovny
+                          kategorie="stem_mix,backing_tracks,recordings,samples"
+                          cil={`na ${role.popis}`}
+                          prazdno="V knihovně zatím žádné použitelné stopy nejsou."
+                          onVybrat={(a) => {
+                            povesNaFader(role.id, { nazev: a.name, assetId: a.id });
+                            setCilovyFader(role.id);
+                            hotovo();
+                          }}
+                        />
+                      )}
+                      onOdebrat={naNem ? () => {
+                        const nove = vlastniStopy.filter((v) => v.role !== role.id);
+                        setVlastniStopy(nove);
+                        stemAudioService.pouzijVlastniStopy(nove);
+                      } : undefined}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           </div>
         </div>
       )}

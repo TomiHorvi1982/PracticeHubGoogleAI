@@ -303,3 +303,78 @@ export function rozeberStopu(data: Float32Array, vzorkovaci: number): RozborStop
   }
   return rozbor;
 }
+
+/**
+ * Kde ve stopě začínají tóny.
+ *
+ * Počítá se hlasitost po krátkých oknech a hledá se, kde prudce
+ * stoupne — to je nástup úderu nebo tónu. Pro mřížku dob nestačí znát
+ * tempo: bez nástupů by čáry sice měly správné rozestupy, ale ležely
+ * by kdekoli, a čára uprostřed tónu je horší než žádná.
+ *
+ * Není to plnohodnotná detekce úderů, jen dost dobrá na to, aby se
+ * mřížka zarovnala. Bere se ze začátku skladby, kde bývá počítání
+ * nebo první takty; procházet tři minuty kvůli fázi je zbytečné.
+ */
+export function detekujNastupy(
+  data: Float32Array,
+  vzorkovaci: number,
+  maxVterin = 30,
+): number[] {
+  if (!data?.length || !(vzorkovaci > 0)) return [];
+
+  /*
+   * Okno se počítá z času, ne z počtu vzorků.
+   *
+   * Pevných 1024 vzorků je při 44 kHz 23 ms, ale při 8 kHz už 128 ms —
+   * a to je delší než celý úder, takže se jeho energie rozdělí mezi dvě
+   * okna a ani jedno pak nepřekročí práh. Dvanáct milisekund vyjde na
+   * obou frekvencích stejně.
+   */
+  const OKNO = Math.max(64, Math.round(vzorkovaci * 0.012));
+  const KROK = Math.max(32, Math.floor(OKNO / 2));
+  const konec = Math.min(data.length, Math.floor(maxVterin * vzorkovaci));
+  if (konec < OKNO * 8) return [];
+
+  // Okna se překrývají, aby úder nepadl přesně na jejich rozhraní.
+  const hlasitost: number[] = [];
+  for (let i = 0; i + OKNO <= konec; i += KROK) {
+    let s = 0;
+    for (let j = i; j < i + OKNO; j++) s += data[j] * data[j];
+    hlasitost.push(Math.sqrt(s / OKNO));
+  }
+  if (hlasitost.length < 8) return [];
+
+  // Jen vzestupy: pokles hlasitosti není nástup, ale dozvuk.
+  const vzestup = hlasitost.map((h, i) => (i === 0 ? 0 : Math.max(0, h - hlasitost[i - 1])));
+
+  const prumer = vzestup.reduce((a, b) => a + b, 0) / vzestup.length;
+  const odchylka = Math.sqrt(
+    vzestup.reduce((a, b) => a + (b - prumer) ** 2, 0) / vzestup.length,
+  );
+  /*
+   * Práh má dvě části a rozhoduje ta vyšší.
+   *
+   * Statistická (průměr + odchylka) najde vzestupy vyčnívající z okolí.
+   * Sama ale nestačí: u rovného tónu je odchylka nepatrná, takže projde
+   * i numerický šum a z jednoho drženého akordu vyjde osmdesát nástupů.
+   * Proto ještě absolutní podlaha — vzestup musí být znát i proti
+   * celkové hlasitosti nahrávky.
+   */
+  const celkem = hlasitost.reduce((a, b) => a + b, 0) / hlasitost.length;
+  const prah = Math.max(prumer + odchylka, celkem * 0.15);
+
+  // Dva údery blíž než tohle jsou v hudbě spíš jeden; bez odstupu by
+  // se z jednoho nástupu staly dva sousední vrcholy.
+  const NEJBLIZ = 0.05;
+
+  const nastupy: number[] = [];
+  for (let i = 1; i < vzestup.length - 1; i++) {
+    // Jen místní vrchol, jinak by jeden úder dal tři nástupy za sebou.
+    if (vzestup[i] > prah && vzestup[i] >= vzestup[i - 1] && vzestup[i] > vzestup[i + 1]) {
+      const cas = (i * KROK) / vzorkovaci;
+      if (!nastupy.length || cas - nastupy[nastupy.length - 1] >= NEJBLIZ) nastupy.push(cas);
+    }
+  }
+  return nastupy;
+}
