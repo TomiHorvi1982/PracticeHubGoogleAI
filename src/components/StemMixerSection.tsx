@@ -7,6 +7,9 @@ import {
 import { CasovaOsa } from './mixer/CasovaOsa';
 import { KanalKytary } from './mixer/KanalKytary';
 import { Tone3000Katalog } from './mixer/Tone3000Katalog';
+import { PasSekci, SekceZeSmycky } from './mixer/PasSekci';
+import { Sekce, UlozenyPult, maObsah, prectiPult, srovnejSekce } from '../services/sekceSongu';
+import { nactiVysku, srovnejVysku, ulozVysku } from '../services/rozvrzeniPultu';
 import { KANAL_KYTARY } from '../services/kytaraVMixu';
 import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
 import React, { useState, useEffect, useRef } from 'react';
@@ -113,6 +116,12 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [mrizka, setMrizka] = useState<{ faze: number; shoda: number; bpm: number }>(
     { faze: 0, shoda: 0, bpm: 0 },
   );
+  /** Sekce skladby — sloka, refrén, sólo. Ukládají se k písni. */
+  const [sekce, setSekce] = useState<Sekce[]>([]);
+  const [vyskaStopy, setVyskaStopy] = useState(() => nactiVysku());
+  const [ukladaPult, setUkladaPult] = useState(false);
+  const [pultUlozen, setPultUlozen] = useState(false);
+
   /** Ukládání poskládaného mixu jako další skladby. */
   const [nazevMixu, setNazevMixu] = useState('');
   /** Ke které skladbě mix připojit. Prázdné = založit novou. */
@@ -449,6 +458,64 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   }, [audioReady, selectedSong?.id]);
 
   /**
+   * Načte, co je u písně uložené.
+   *
+   * Běží při výměně skladby a při dopočítání délky — bez délky by se
+   * sekce neměly do čeho srovnat a všechny by vypadly jako neplatné.
+   */
+  useEffect(() => {
+    if (!(duration > 0)) { setSekce([]); return; }
+    const ulozeno = prectiPult((selectedSong as any)?.pult, duration);
+    setSekce(ulozeno.sekce || []);
+    setPultUlozen(false);
+    // Mřížka spočítaná dřív se jen převezme; počítat ji z audia znovu
+    // trvá vteřiny a výsledek je týž.
+    if (ulozeno.mrizka) setMrizka(ulozeno.mrizka);
+    if (ulozeno.mix) {
+      for (const [id, v] of Object.entries(ulozeno.mix)) {
+        stemAudioService.updateChannel(id, v);
+      }
+    }
+  }, [selectedSong?.id, duration]);
+
+  /** Sesbírá, co má smysl uložit. */
+  const sesbirejPult = React.useCallback((): UlozenyPult => {
+    const mix: NonNullable<UlozenyPult['mix']> = {};
+    for (const [id, c] of Object.entries(channels)) {
+      if (!c) continue;
+      mix[id] = {
+        volume: c.volume, pan: c.pan, isMuted: c.isMuted, isSolo: c.isSolo,
+        pitchSemi: c.pitchSemi,
+      };
+    }
+    return {
+      sekce,
+      mrizka: mrizka.bpm > 0 ? mrizka : undefined,
+      mix: Object.keys(mix).length ? mix : undefined,
+    };
+  }, [sekce, mrizka, channels]);
+
+  const ulozPult = async () => {
+    if (!selectedSong?.id) return;
+    setUkladaPult(true);
+    try {
+      const pult = sesbirejPult();
+      const r = await authorizedFetch(`/api/stems/${selectedSong.id}/pult`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pult: maObsah(pult) ? pult : null }),
+      });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Uložení selhalo.');
+      setPultUlozen(true);
+      window.setTimeout(() => setPultUlozen(false), 2500);
+    } catch (e: any) {
+      alert(e?.message || 'Pult se nepodařilo uložit.');
+    } finally {
+      setUkladaPult(false);
+    }
+  };
+
+  /**
    * Kus skladby, který je při daném přiblížení vidět.
    *
    * `posun` je ruční odjetí do strany. Dokud je `null`, drží se obraz
@@ -775,6 +842,31 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               )}
             </div>
 
+            {/* Sekce a uložení. Sedí k ovládání nad stopami, protože se
+                obojí týká celé skladby, ne jedné stopy. */}
+            <div className="flex items-center gap-1.5 shrink-0">
+              <SekceZeSmycky
+                smycka={smycka}
+                sekce={sekce}
+                delka={duration || 0}
+                onZmena={setSekce}
+              />
+              {selectedSong?.id && (
+                <button
+                  onClick={() => void ulozPult()}
+                  disabled={ukladaPult}
+                  title="Uložit sekce, mřížku a nastavení jezdců ke skladbě"
+                  className={`flex items-center gap-1 text-stitek px-2 h-8 rounded-lg cursor-pointer disabled:opacity-50 ${
+                    pultUlozen
+                      ? 'bg-uspech/20 border border-uspech/40 text-uspech'
+                      : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                  }`}
+                >
+                  {pultUlozen ? 'Uloženo' : ukladaPult ? 'Ukládám…' : 'Uložit ke skladbě'}
+                </button>
+              )}
+            </div>
+
             <button
               onClick={() => stemAudioService.togglePlay()}
               disabled={!audioReady || loadingAudio}
@@ -886,6 +978,36 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
               </div>
             </div>
 
+            {/* SEKCE SKLADBY
+
+                Pod osou a nad stopami, protože sekce popisuje čas, ne
+                jednotlivou stopu — refrén platí pro celý pult naráz.
+                Levý sloupec je prázdný, aby pruh začínal přesně tam,
+                kde začínají vlnovky. */}
+            <div className="flex items-stretch">
+              <div
+                className="shrink-0 border-r border-slate-800/70 bg-slate-900/50 border-b border-b-slate-800/70 px-3 flex items-center text-stitek uppercase tracking-wider text-slate-600"
+                style={{ width: SIRKA_OVLADANI }}
+              >
+                Sekce
+              </div>
+              <div className="flex-1 min-w-0">
+                <PasSekci
+                  sekce={sekce}
+                  delka={duration || 0}
+                  od={pohled.od}
+                  doKdy={pohled.do}
+                  onZmena={(v) => setSekce(srovnejSekce(v, duration || 0))}
+                  onSkok={(t) => stemAudioService.seek(t)}
+                  onSmycka={(a2, b2) => {
+                    const sm = { od: a2, do: b2 };
+                    setSmycka(sm);
+                    stemAudioService.setSmycka(sm);
+                  }}
+                />
+              </div>
+            </div>
+
             {ROLE_FADERU.map((role) => {
               const stem = selectedSong?.stems.find((x) => x.id === role.id);
               const naNem = vlastniStopy.find((v) => v.role === role.id);
@@ -906,8 +1028,14 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   doKdy={pohled.do}
                   jeCil={cilovyFader === role.id}
                   verze={`${selectedSong?.id || ''}:${audioReady}`}
+                  vyska={vyskaStopy}
                   onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
                   onVybrat={() => setCilovyFader(role.id)}
+                  onVyska={(v) => {
+                    const srovnana = srovnejVysku(v);
+                    setVyskaStopy(srovnana);
+                    ulozVysku(srovnana);
+                  }}
                 />
               );
             })}

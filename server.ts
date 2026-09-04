@@ -3739,10 +3739,52 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
       // as perpetually "in progress" (see StemMixerSection).
       errorMessage: status === 'failed' ? jobRow?.error || 'Separace selhala z neznámého důvodu.' : undefined,
       stems,
+      // Co si uživatel v pultu rozkreslil a namíchal. Leží u písně,
+      // ne u sady stop: sady se dají přeseparovat, píseň zůstává.
+      pult: songRow?.metadata?.pult || null,
       createdAt: new Date(stemSetRow.created_at).getTime(),
       updatedAt: new Date(stemSetRow.updated_at).getTime(),
     };
   }
+
+  /**
+   * Uloží rozkreslený pult k písni.
+   *
+   * Sekce, mřížka a nastavení jezdců. Zapisuje se do `songs.metadata`,
+   * aby to přežilo i přeseparování stop — sada stop je jen jedna z cest
+   * k téže písni.
+   *
+   * Zapisuje se jen klíč `pult`, zbytek metadat se čte a vrací beze
+   * změny: kdyby se poslal celý objekt, přepsalo by to obaly alba,
+   * odkazy a všechno ostatní, co si píseň nese.
+   */
+  app.put('/api/stems/:id/pult', requireAuth, async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: stemSet } = await admin
+      .from('stem_sets').select('song_id').eq('id', req.params.id).maybeSingle();
+    if (!stemSet?.song_id) return res.status(404).json({ error: 'Sada stop nenalezena.' });
+
+    const pult = req.body?.pult;
+    if (pult !== null && (typeof pult !== 'object' || Array.isArray(pult))) {
+      return res.status(400).json({ error: 'Pult musí být objekt, nebo null.' });
+    }
+    // Obsah přichází z prohlížeče. Do JSONB se uloží, co pošle, takže
+    // se aspoň hlídá velikost — rozkreslený pult má kilobajty, ne megabajty.
+    if (pult && JSON.stringify(pult).length > 256 * 1024) {
+      return res.status(400).json({ error: 'Uložený pult je nečekaně velký.' });
+    }
+
+    const { data: song } = await admin
+      .from('songs').select('metadata').eq('id', stemSet.song_id).maybeSingle();
+    const metadata = { ...(song?.metadata || {}) };
+    if (pult === null) delete metadata.pult;
+    else metadata.pult = pult;
+
+    const { error } = await admin
+      .from('songs').update({ metadata }).eq('id', stemSet.song_id);
+    if (error) return res.status(500).json({ error: 'Pult se nepodařilo uložit.', details: error.message });
+    return res.json({ ulozeno: true });
+  });
 
   // Get list of stem songs (stem sets), newest first
   app.get('/api/stems', requireAuth, async (req, res) => {

@@ -16,8 +16,11 @@ export const VYSKA_STOPY = 72;
  * pláten. Takhle se plátno dotkne jen při změně šířky nebo stopy.
  */
 const Vlnovka = React.memo(function Vlnovka({
-  stemId, barva, verze, sirka, od, doKdy,
-}: { stemId: string; barva: string; verze: string; sirka: number; od: number; doKdy: number }) {
+  stemId, barva, verze, sirka, vyskaPruhu, od, doKdy,
+}: {
+  stemId: string; barva: string; verze: string; sirka: number; vyskaPruhu: number;
+  od: number; doKdy: number;
+}) {
   const platno = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -25,7 +28,7 @@ const Vlnovka = React.memo(function Vlnovka({
     if (!c || sirka <= 0) return;
     // Na retina displeji by plátno v logických pixelech bylo rozmazané.
     const hustota = window.devicePixelRatio || 1;
-    const vyska = VYSKA_STOPY - 16;
+    const vyska = vyskaPruhu - 16;
     c.width = Math.floor(sirka * hustota);
     c.height = Math.floor(vyska * hustota);
     c.style.width = `${sirka}px`;
@@ -58,7 +61,7 @@ const Vlnovka = React.memo(function Vlnovka({
       const h = Math.max(1, v[i] * stred);
       ctx.fillRect(i, stred - h, 1, h * 2);
     }
-  }, [stemId, barva, verze, sirka, od, doKdy]);
+  }, [stemId, barva, verze, sirka, vyskaPruhu, od, doKdy]);
 
   return <canvas ref={platno} className="block" />;
 });
@@ -78,8 +81,12 @@ interface Props {
   jeCil: boolean;
   /** Mění se, když se vymění zvuk — plátno podle toho pozná, že má překreslit. */
   verze: string;
+  /** Výška pruhu. Táhne se za spodní hranu sloupce s názvem. */
+  vyska: number;
   onUpdate: (u: Partial<ChannelState>) => void;
   onVybrat: () => void;
+  /** Průběžně při tažení; nadřazená sekce si výšku drží za všechny stopy. */
+  onVyska: (v: number) => void;
 }
 
 /**
@@ -90,7 +97,8 @@ interface Props {
  * jinde a osa by nad ničím neseděla.
  */
 export const StopaVodorovne: React.FC<Props> = ({
-  stemId, popis, naNem, barva, channel, delka, cas, od, doKdy, jeCil, verze, onUpdate, onVybrat,
+  stemId, popis, naNem, barva, channel, delka, cas, od, doKdy, jeCil, verze, vyska,
+  onUpdate, onVybrat, onVyska,
 }) => {
   const pas = useRef<HTMLDivElement | null>(null);
   const [sirka, setSirka] = useState(0);
@@ -113,11 +121,11 @@ export const StopaVodorovne: React.FC<Props> = ({
     <div
       onPointerDownCapture={onVybrat}
       className="flex items-stretch border-t border-slate-800/70"
-      style={{ height: VYSKA_STOPY }}
+      style={{ height: vyska }}
     >
       {/* OVLÁDÁNÍ */}
       <div
-        className={`shrink-0 px-3 py-2 flex flex-col justify-center gap-1.5 border-r border-slate-800/70 ${
+        className={`relative shrink-0 px-3 py-2 flex flex-col justify-center gap-1.5 overflow-hidden border-r border-slate-800/70 ${
           jeCil ? 'bg-amber-500/[0.07]' : ''
         }`}
         style={{ width: SIRKA_OVLADANI }}
@@ -171,6 +179,35 @@ export const StopaVodorovne: React.FC<Props> = ({
         </div>
 
         <div className="text-stitek text-slate-600 truncate">{naNem || 'prázdný'}</div>
+
+        {/* ÚCHYT VÝŠKY
+
+            Vlnovka na sedmdesáti pixelech ukáže, že tam něco je, ale ne
+            už tvar úderu. Tažením za spodní hranu se pruh roztáhne —
+            u všech stop naráz, jinak by přestaly lícovat s osou.
+
+            Sedí uvnitř sloupce s názvem, kde se nic jiného netáhne:
+            přes vlnovku se posouvá pohled a přes jezdec hlasitost. */}
+        <div
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const zacatekY = e.clientY;
+            const zacatekV = vyska;
+            const tahni = (ev: PointerEvent) => onVyska(zacatekV + (ev.clientY - zacatekY));
+            const pust = () => {
+              window.removeEventListener('pointermove', tahni);
+              window.removeEventListener('pointerup', pust);
+            };
+            window.addEventListener('pointermove', tahni);
+            window.addEventListener('pointerup', pust);
+          }}
+          onDoubleClick={() => onVyska(VYSKA_STOPY)}
+          title="Tažením změníš výšku stop, dvojklikem ji vrátíš"
+          className="absolute left-0 right-0 bottom-0 h-1.5 cursor-ns-resize group"
+        >
+          <div className="absolute inset-x-3 bottom-0 h-px bg-transparent group-hover:bg-amber-400/60 transition-colors" />
+        </div>
       </div>
 
       {/* PRŮBĚH V ČASE */}
@@ -184,7 +221,15 @@ export const StopaVodorovne: React.FC<Props> = ({
         className="flex-1 relative min-w-0 cursor-pointer px-0 py-2"
         title={delka > 0 ? 'Klikni, kam chceš skočit' : undefined}
       >
-        <Vlnovka stemId={stemId} barva={barva} verze={verze} sirka={sirka} od={od} doKdy={doKdy} />
+        <Vlnovka
+          stemId={stemId}
+          barva={barva}
+          verze={verze}
+          sirka={sirka}
+          vyskaPruhu={vyska}
+          od={od}
+          doKdy={doKdy}
+        />
         {delka > 0 && (
           <div
             className="absolute top-0 bottom-0 w-px bg-amber-400/80 pointer-events-none"

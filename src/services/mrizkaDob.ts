@@ -17,7 +17,13 @@
 export const PRAH_MRIZKY = 0.66;
 
 export const MIN_ZOOM = 1;
-export const MAX_ZOOM = 20;
+/**
+ * Nejhlubší přiblížení.
+ *
+ * Padesátkrát znamená u tříminutové skladby zhruba čtyři vteřiny na
+ * obraz — dost na to, aby se dal najít jeden úder.
+ */
+export const MAX_ZOOM = 50;
 
 /**
  * Kus skladby, který je při daném přiblížení vidět.
