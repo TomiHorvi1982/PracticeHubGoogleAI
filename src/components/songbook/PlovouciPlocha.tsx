@@ -91,7 +91,9 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
     // Přepisovat pořadí při každém kliknutí by ukládalo i tehdy, když je
     // okno navrchu už teď.
     if (!okno || okno.poradi === nejvyssi) return;
-    setOkna((p) => p.map((o) => (o.id === id ? { ...o, poradi: nejvyssi + 1 } : o)));
+    // Ukládá se, ne jen mění v paměti: bez toho se okno po návratu
+    // k písni vrátilo zpátky pod ostatní a pořadí se muselo naklikat znovu.
+    uloz(okna.map((o) => (o.id === id ? { ...o, poradi: nejvyssi + 1 } : o)));
   };
 
   return (
@@ -157,6 +159,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
           <PlovouciOkno
             key={o.id}
             okno={o}
+            naVrchu={o.poradi === Math.max(...okna.map((x) => x.poradi))}
             plochaRef={plochaRef}
             onZmena={zmen}
             onZavrit={(id) => uloz(okna.filter((x) => x.id !== id))}

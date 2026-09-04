@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Play, Pause, SkipBack, SkipForward, Maximize2, Minimize2, ListMusic, Check, Music2, X,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, ChevronUp,
 } from 'lucide-react';
 import { Song } from '../../types';
 import { audioSynth } from '../../services/audioSynth';
@@ -26,6 +26,14 @@ interface Props {
   onPridatDoSetu?: (s: Song) => void;
   /** Vyhodí píseň ze setu. Set si vybírá Pódium samo, tak ho posílá s sebou. */
   onOdebratZeSetu?: (setId: string, s: Song) => void;
+  /**
+   * Přesune píseň v pořadí setu.
+   *
+   * Pořadí je to, v jakém se bude hrát, takže se musí dát srovnat i tady
+   * — na zkoušce se set přehazuje na poslední chvíli a chodit kvůli tomu
+   * do knihovny znamená opustit obrazovku, ze které se hraje.
+   */
+  onPresunoutVSetu?: (setId: string, zIndexu: number, naIndex: number) => void;
 }
 
 /** Kolik taktů se napočítá, než se začne hrát. */
@@ -44,7 +52,7 @@ const DOB_V_TAKTU = 4;
  * na zkoušce nikdo nekouká na obrazovku, ale čeká na čtyři klepnutí.
  */
 export const Podium: React.FC<Props> = ({
-  songs, playlists, aktivni, onVybrat, plocha, onPridatDoSetu, onOdebratZeSetu,
+  songs, playlists, aktivni, onVybrat, plocha, onPridatDoSetu, onOdebratZeSetu, onPresunoutVSetu,
 }) => {
   /**
    * Sbalený seznam skladeb.
@@ -282,6 +290,32 @@ export const Podium: React.FC<Props> = ({
                 </span>
               </button>
 
+              {/* Posun v pořadí. Šipky, ne přetahování: na dotykovém
+                  displeji se přetahování pere s posouváním stránky a na
+                  zkoušce se míří palcem, ne myší. */}
+              {onPresunoutVSetu && playlist && vPlaylistu.length > 1 && (
+                <span className="flex flex-col shrink-0">
+                  <button
+                    onClick={() => onPresunoutVSetu(playlist.id, i, i - 1)}
+                    disabled={i === 0}
+                    className="px-1 rounded text-neutral-600 hover:text-white hover:bg-white/10 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    title={`Posunout „${s.title}" výš`}
+                    aria-label={`Posunout ${s.title} výš`}
+                  >
+                    <ChevronUp className="w-3 h-3" />
+                  </button>
+                  <button
+                    onClick={() => onPresunoutVSetu(playlist.id, i, i + 1)}
+                    disabled={i === vPlaylistu.length - 1}
+                    className="px-1 rounded text-neutral-600 hover:text-white hover:bg-white/10 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    title={`Posunout „${s.title}" níž`}
+                    aria-label={`Posunout ${s.title} níž`}
+                  >
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+
               {onOdebratZeSetu && playlist && (
                 <button
                   onClick={() => onOdebratZeSetu(playlist.id, s)}
@@ -376,7 +410,7 @@ export const Podium: React.FC<Props> = ({
           </div>
         </div>
 
-        {seznam}
+        {seznamOtevreny && seznam}
         <div className="flex-1 min-h-0">{plocha}</div>
       </div>
     );
@@ -385,7 +419,7 @@ export const Podium: React.FC<Props> = ({
   return (
     <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 flex flex-col relative min-h-[820px] shadow-xl gap-4">
       {zahlavi(false)}
-      {seznam}
+      {seznamOtevreny && seznam}
 
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
         <div className="flex items-center gap-2.5 min-w-0">

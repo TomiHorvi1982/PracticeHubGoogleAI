@@ -75,6 +75,9 @@ export const PodiumSection: React.FC = () => {
           // kliknutím v knihovně a při hraní není na dialogy čas.
           void setListy.odeber(setId, sk.id);
         }}
+        onPresunoutVSetu={(setId, z, na) => {
+          void setListy.presun(setId, z, na);
+        }}
       />
 
       <ChordDetailModal chordName={akordDetail} onClose={() => setAkordDetail(null)} />

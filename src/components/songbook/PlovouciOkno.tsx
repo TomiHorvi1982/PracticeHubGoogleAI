@@ -8,6 +8,15 @@ interface Props {
   onZmena: (o: Okno) => void;
   onZavrit: (id: string) => void;
   onDopredu: (id: string) => void;
+  /**
+   * Je tohle okno navrchu?
+   *
+   * Když není, položí se přes jeho obsah průhledná vrstva, která chytne
+   * první kliknutí. Bez ní se do okna s videem nebo PDF kliknout nedá:
+   * obsah je `iframe` a kliknutí do něj se do stránky vůbec nedostane,
+   * takže okno zůstalo vzadu, i když na ně člověk klikl.
+   */
+  naVrchu: boolean;
   children: React.ReactNode;
 }
 
@@ -19,7 +28,7 @@ interface Props {
  * by z toho udělal trhaný pohyb. Nadřazené komponentě se ohlásí až konec,
  * takže se ukládá jedna změna místo stovky.
  */
-export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavrit, onDopredu, children }) => {
+export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavrit, onDopredu, naVrchu, children }) => {
   const prvekRef = useRef<HTMLDivElement>(null);
   const tahRef = useRef<{ druh: 'posun' | 'velikost'; x: number; y: number; o: Okno } | null>(null);
 
@@ -110,7 +119,19 @@ export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavr
 
       {!okno.sbalene && (
         <>
-          <div className="flex-1 min-h-0 overflow-auto p-3">{children}</div>
+          <div className="flex-1 min-h-0 overflow-auto p-3 relative">
+            {children}
+            {/* Chytá první kliknutí a jen vytáhne okno dopředu. Mizí
+                ve chvíli, kdy je okno navrchu, takže druhé kliknutí už
+                dojde k obsahu — jako u oken v systému. */}
+            {!naVrchu && (
+              <div
+                onMouseDown={() => onDopredu(okno.id)}
+                className="absolute inset-0 cursor-pointer"
+                aria-hidden="true"
+              />
+            )}
+          </div>
           <div
             onMouseDown={(e) => start(e, 'velikost')}
             className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
