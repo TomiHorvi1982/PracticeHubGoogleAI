@@ -55,14 +55,6 @@ test('všechny sekce jsou vidět, žádná není jen hlasem', () => {
   }
 });
 
-test('sekce s akordovým trenažérem se nejmenuje Metronom', () => {
-  // Vykresluje PracticeAssistant — akordové postupy, rytmické vzory a
-  // výběr nástroje. Metronom je z toho jen část a název schovával zbytek.
-  const p = SKUPINY.flatMap((s) => s.polozky).find((x) => x.id === 'practice')!;
-  assert.notEqual(p.nazev, 'Metronom');
-  assert.match(p.nazev, /[Aa]kord/);
-});
-
 test('v žádné nabídce nezůstane po skrytí prázdno', () => {
   for (const s of SKUPINY) {
     assert.ok(viditelnePolozky(s).length > 0, `${s.nazev} by byla prázdná`);

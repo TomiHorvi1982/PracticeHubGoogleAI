@@ -63,10 +63,7 @@ export const SKUPINY: Skupina[] = [
     polozky: [
       { id: 'practise', nazev: 'Practise Hub', kratky: 'Cvičení' },
       { id: 'instruments', nazev: 'Virtual Instruments', kratky: 'Nástroje' },
-      // Jmenovalo se to „Metronom", ale sekce vykresluje `PracticeAssistant`
-      // — akordové postupy, rytmické vzory a výběr nástroje na 896 řádcích.
-      // Metronom je z toho jedna část a název schovával zbytek.
-      { id: 'practice', nazev: 'Akordový trenažér', kratky: 'Akordy' },
+      { id: 'practice', nazev: 'Metronom' },
       // Ladička je zpátky mezi viditelnými: dolní panel se ukázal jako
       // horší domov — otevíral se v úzkém pruhu dole a nástroje, které
       // v něm byly, má aplikace stejně i jako sekce.

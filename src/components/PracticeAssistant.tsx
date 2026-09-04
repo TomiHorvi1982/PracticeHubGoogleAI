@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { audioSynth } from '../services/audioSynth';
 import { findOrGenerateChord } from '../utils/chordUtils';
-import { MidiPlayer } from './MidiPlayer';
 import {
   Play, Pause, Zap, Music, Volume2, VolumeX, Plus, Trash2, Sliders,
   Check, ChevronRight, Activity, Repeat, Grid
@@ -894,9 +893,6 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
       </div>
-
-      {/* 🎹 MIDI SOUBORY PLAYER SECTION */}
-      <MidiPlayer />
 
     </div>
   );
