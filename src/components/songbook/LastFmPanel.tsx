@@ -1,3 +1,4 @@
+import { DoPlaylistuTlacitko } from './DoPlaylistuTlacitko';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Search, Loader2, Plus, Sparkles, AlertCircle, Users, Play, TrendingUp, Tag, Disc3,
@@ -287,6 +288,11 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
               <Play className="w-3.5 h-3.5 fill-current" />
             )}
           </button>
+          {/* Do playlistu, ne rovnou do knihovny: co člověka zaujme,
+              si nejdřív poslechne, a teprve když se to osvědčí, zařadí
+              si to k sobě natrvalo tlačítkem vedle. */}
+          <DoPlaylistuTlacitko nazev={s.nazev} interpret={s.interpret} obal={(s as any).obal} />
+
           <button
             onClick={() => onPridat(s.interpret, s.nazev)}
             className="p-1.5 rounded-lg bg-uspech/15 hover:bg-uspech/30 text-uspech cursor-pointer shrink-0 transition-all"

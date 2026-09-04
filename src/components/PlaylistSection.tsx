@@ -1,3 +1,4 @@
+import { HlavickaSekce } from './ui/HlavickaSekce';
 import { usePretahovaniPoradi } from './songbook/usePretahovaniPoradi';
 import React, { useState } from 'react';
 import { PlaylistItem, Song, UserAccount } from '../types';
@@ -20,6 +21,8 @@ interface PlaylistSectionProps {
   onAddItem: (item: Partial<PlaylistItem>) => void;
   onRemoveItem: (id: string) => void;
   onReorderItems: (items: PlaylistItem[]) => void;
+  /** Zavře playlist a vrátí se tam, odkud se otevřel. */
+  onZavrit?: () => void;
   songs: Song[];
   currentUser: UserAccount | null;
 }
@@ -37,6 +40,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   onAddItem,
   onRemoveItem,
   onReorderItems,
+  onZavrit,
   songs,
   currentUser,
 }) => {
@@ -195,24 +199,27 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
   return (
     <div className="w-full space-y-4 font-sans pb-16">
       
-      {/* Top Header Banner */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5 mb-1.5">
-              <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
-                Společný Playlist
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              Kapelní Playlist & Přehrávač
-            </h1>
-            <p className="text-xs text-neutral-400 mt-1 max-w-xl">
-              Přehrává se automaticky bez přerušení i při přepínání záložek. Synchronizováno pro celou kapelu.
-            </p>
-          </div>
+      {/* Hlavička místo původního baneru: ten měl odznak, nadpis
+          i odstavec v kartě a zabíral přes dvě stě pixelů nad prvním
+          řádkem seznamu. */}
+      <HlavickaSekce
+        nazev="Playlist"
+        klic="playlist"
+        napoveda="Hraje dál i při přepínání sekcí. Sdílený pro celou kapelu."
+        akce={onZavrit ? (
+          <button
+            onClick={onZavrit}
+            title="Zavřít playlist"
+            aria-label="Zavřít playlist"
+            className="p-1.5 rounded-prvek text-pismo-slaby hover:text-pismo hover:bg-plocha-2 cursor-pointer transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        ) : undefined}
+      />
 
-          {/* Quick Action Buttons */}
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl relative overflow-hidden">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => {
@@ -549,7 +556,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               <div
                 key={item.id}
                 {...tah.vlastnostiPolozky(index)}
-                className={`relative flex items-center justify-between px-4 sm:px-5 py-3 transition-all
+                className={`relative flex items-center justify-between px-3 sm:px-4 py-1.5 transition-all
                   cursor-grab active:cursor-grabbing ${
                   tah.tazene === index ? 'opacity-40' : ''
                 } ${

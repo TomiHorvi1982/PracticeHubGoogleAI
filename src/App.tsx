@@ -46,6 +46,14 @@ function AppContent() {
    * z ní není poznat, kde se má začít. Kdo si ho jednou zavřel, ten už ho
    * nepotřebuje a jde rovnou do knihovny.
    */
+  /**
+   * Odkud se přišlo do playlistu.
+   *
+   * Playlist se otevírá z přehrávače, tedy odkudkoli — zavřít ho proto
+   * znamená vrátit se tam, kde člověk byl, ne na nějakou pevnou sekci.
+   */
+  const [odkudDoPlaylistu, setOdkudDoPlaylistu] = useState<MainTabType>('songbook');
+
   const [activeTab, setActiveTab] = useState<MainTabType>(() => {
     try {
       return localStorage.getItem('neverlate_uvod_videno') ? 'songbook' : 'vitejte';
@@ -252,6 +260,7 @@ function AppContent() {
           onAddItem={(item) => playlistService.addItem(item)}
           onRemoveItem={(id) => playlistService.removeItem(id)}
           onReorderItems={(items) => playlistService.reorderItems(items)}
+          onZavrit={() => setActiveTab(odkudDoPlaylistu)}
           songs={songs}
           currentUser={currentUser}
         />
@@ -273,6 +282,7 @@ function AppContent() {
                 addedByName: currentUser?.displayName,
               });
             }
+            setOdkudDoPlaylistu(activeTab);
             setActiveTab('playlist');
           }}
         />

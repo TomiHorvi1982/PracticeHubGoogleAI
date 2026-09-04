@@ -1,3 +1,4 @@
+import { DoPlaylistuTlacitko } from './DoPlaylistuTlacitko';
 import React, { useEffect, useRef, useState } from 'react';
 import { Search, Loader2, Download, AlertCircle, Check, Archive, ChevronLeft, Play, Pause, RotateCcw, RotateCw } from 'lucide-react';
 import { authService } from '../../services/authService';
@@ -280,6 +281,8 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                   hraje === s.soubor ? 'text-uspech font-semibold' : 'text-white'
                 }`}>{s.nazev}</span>
                 <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{mb(s.velikost)}</span>
+                <DoPlaylistuTlacitko nazev={s.nazev} odkaz={s.soubor} />
+
                 <button
                   onClick={() => void stahni(s)}
                   disabled={stahuje === s.soubor || stazene.has(s.soubor)}

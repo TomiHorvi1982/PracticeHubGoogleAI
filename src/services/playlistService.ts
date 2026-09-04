@@ -225,14 +225,48 @@ class PlaylistService {
       console.warn('[playlistService] Cannot reorder while signed out.');
       return;
     }
+    // Původní pořadí podle `id`, aby se poznalo, co se opravdu hnulo.
+    const drivePozice = new Map(this.items.map((x, idx) => [x.id, idx]));
+
     const itemsWithOrder = reordered.map((item, idx) => ({ ...item, order: idx }));
     this.items = itemsWithOrder;
     this.notify();
 
-    // Persist each new position; RLS covers authorization per-row.
-    await Promise.all(
-      itemsWithOrder.map((item, idx) => supabase.from('playlist_songs').update({ position: idx }).eq('id', item.id))
-    ).catch((e) => console.warn('[playlistService] Failed to persist reorder:', e));
+    /*
+     * Zapisují se jen řádky, které opravdu změnily místo.
+     *
+     * Dřív se posílal update na všechny; u playlistu s šedesáti
+     * skladbami to bylo šedesát souběžných dotazů kvůli přesunu jedné
+     * položky. Přetažení přitom typicky pohne jen tím, co je mezi
+     * výchozím a cílovým místem.
+     */
+    const zmenene = itemsWithOrder
+      .map((item, idx) => ({ item, idx }))
+      .filter(({ item, idx }) => drivePozice.get(item.id) !== idx);
+    if (!zmenene.length) return;
+
+    /*
+     * Chyby se čtou z odpovědi, ne z výjimky.
+     *
+     * Supabase vrací nezdar v poli `error` a slib splní, takže původní
+     * `Promise.all(...).catch(...)` se nespustil ani tehdy, když zápis
+     * neprošel — pořadí pak po načtení stránky sedělo jen zčásti a
+     * nikde to nebylo vidět.
+     */
+    const vysledky = await Promise.all(
+      zmenene.map(({ item, idx }) =>
+        supabase.from('playlist_songs').update({ position: idx }).eq('id', item.id)),
+    );
+    const nezdary = vysledky.filter((r: any) => r?.error);
+    if (nezdary.length) {
+      console.warn(
+        `[playlistService] Pořadí se nepodařilo uložit u ${nezdary.length} z ${zmenene.length} skladeb:`,
+        nezdary[0]?.error?.message,
+      );
+      // Načte se, co je doopravdy v databázi — seznam na obrazovce by
+      // jinak ukazoval pořadí, které nikde neplatí.
+      await this.init();
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+import { DoPlaylistuTlacitko } from './DoPlaylistuTlacitko';
 import React, { useState } from 'react';
 import { Search, Loader2, Play, Pause, Plus, AlertCircle, Gauge, Disc3, X } from 'lucide-react';
 import { authService } from '../../services/authService';
@@ -281,6 +282,13 @@ export const DeezerPanel: React.FC<{
               </span>
             )}
             <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{cas(s.delka)}</span>
+
+            <DoPlaylistuTlacitko
+              nazev={s.nazev}
+              interpret={s.interpret}
+              obal={s.obal}
+              odkaz={s.ukazka}
+            />
 
             <button
               onClick={() => void otevriAlbum(s)}
