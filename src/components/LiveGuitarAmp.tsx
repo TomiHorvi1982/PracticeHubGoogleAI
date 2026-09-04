@@ -5,7 +5,6 @@ import { KytaraFader } from './mixer/KytaraFader';
 import { KytaraJakoNastroj } from './hmatnik/KytaraJakoNastroj';
 import { SoundshedPresety } from './SoundshedPresety';
 import { SoundshedOvladani } from './SoundshedOvladani';
-import { Tone3000Prohlizec } from './Tone3000Prohlizec';
 import { kytaraKanal, StavKanalu } from '../services/kytaraKanal';
 import { namAparat, StavAparatu } from '../services/namAparat';
 import { paryKanalu, maVicParu } from '../services/kanalyVstupu';
@@ -347,9 +346,6 @@ export const LiveGuitarAmp: React.FC = () => {
 
       {/* Přepínání presetů a parametrů v Soundshedu přes MIDI. */}
       <SoundshedOvladani />
-
-      {/* Odkud se berou nové aparáty a bedny. */}
-      <Tone3000Prohlizec />
     </div>
   );
 };

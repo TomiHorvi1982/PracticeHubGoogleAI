@@ -34,10 +34,7 @@ import {
 import {
   jePresetovySoubor, prectiPreset, sloucPresety, aktivniPresetId, SoundshedPreset,
 } from './server/soundshedPresety';
-import {
-  urlHledani, urlModelu, jeBezpecnaAdresa, bezpecneJmeno, typSouboru,
-  normalizujTony, normalizujModely, stranek, celkem, RAZENI, Razeni,
-} from './server/tone3000';
+import { bezpecneJmeno } from './server/tone3000';
 
 dotenv.config();
 
@@ -3872,121 +3869,12 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * na vlastním protokolu `juce://`, takže se do stránky vložit nedá.
    * Presety ale ukládá jako obyčejný JSON, a ten přečteme.
    */
-  /**
-   * Katalog Tone3000.
-   *
-   * Chodí se přes něj ze serveru, ne z prohlížeče: cizí služba nemá
-   * nastavené CORS pro nás a klíč (až bude) nemá co dělat ve stránce.
-   *
-   * Odpověď katalogu je cizí text. Adresy i jména z ní se ověřují
-   * v `server/tone3000.ts`, ne tady.
-   */
-  const TONE3000_CAS = 20_000;
-
-  async function zeptejSe(url: string): Promise<any> {
-    const prerus = new AbortController();
-    const hlidac = setTimeout(() => prerus.abort(), TONE3000_CAS);
-    try {
-      const r = await fetch(url, { signal: prerus.signal });
-      if (!r.ok) throw new Error(`Katalog vrátil ${r.status}`);
-      return await r.json();
-    } finally {
-      clearTimeout(hlidac);
-    }
-  }
-
-  app.get('/api/tone3000/hledat', requireAuth, async (req, res) => {
-    const dotaz = String(req.query.q || '');
-    const razeni = (RAZENI.some((r) => r.id === req.query.razeni)
-      ? req.query.razeni : 'downloads-all-time') as Razeni;
-    const strana = Number(req.query.strana) || 1;
-    try {
-      const d = await zeptejSe(urlHledani(dotaz, razeni, strana, 24));
-      return res.json({
-        tony: normalizujTony(d),
-        strana,
-        stranek: stranek(d),
-        celkem: celkem(d),
-      });
-    } catch (e: any) {
-      return res.status(502).json({
-        error: e?.name === 'AbortError'
-          ? 'Katalog neodpovídá.'
-          : (e?.message || 'Katalog se nepodařilo dotázat.'),
-      });
-    }
-  });
-
-  app.get('/api/tone3000/modely', requireAuth, async (req, res) => {
-    const toneId = Number(req.query.tone_id);
-    if (!Number.isFinite(toneId)) {
-      return res.status(400).json({ error: 'Chybí tone_id.' });
-    }
-    try {
-      const d = await zeptejSe(urlModelu(toneId));
-      return res.json({ modely: normalizujModely(d), celkem: celkem(d) });
-    } catch (e: any) {
-      return res.status(502).json({ error: e?.message || 'Soubory se nepodařilo načíst.' });
-    }
-  });
-
   /** Kam se ukládají stažené impulzy. Modely jdou mezi ostatní aparáty. */
   const SLOZKA_IR = process.env.IR_SLOZKA
     || path.join(os.homedir(), 'Music', 'Stems', '.amp_irs');
 
-  /** Nad tuhle velikost se soubor nestahuje — model ani impulz tolik nemá. */
+  /** Nad tuhle velikost se soubor neukládá — model ani impulz tolik nemá. */
   const STROP_SOUBORU = 64 * 1024 * 1024;
-
-  app.post('/api/tone3000/stahnout', requireAuth, async (req, res) => {
-    if (!mistniDiskJde()) {
-      return res.status(400).json({ error: 'Na serveru není kam ukládat. Spusť appku u sebe.' });
-    }
-    const { odkaz, nazev, id } = req.body || {};
-    // Adresa přišla přes prohlížeč, takže se ověřuje znovu — na to,
-    // co prošlo tam, se tady spolehnout nedá.
-    if (typeof odkaz !== 'string' || !jeBezpecnaAdresa(odkaz)) {
-      return res.status(400).json({ error: 'Odkaz nevede na Tone3000.' });
-    }
-    const typ = typSouboru(odkaz);
-    if (!typ) return res.status(400).json({ error: 'Tenhle typ souboru neumíme.' });
-
-    const slozka = typ === 'nam' ? SLOZKA_APARATU : SLOZKA_IR;
-    const jmeno = bezpecneJmeno(String(nazev || ''), Number(id) || 0, typ);
-    const cil = path.join(slozka, jmeno);
-    // Pojistka: i po očištění se ověří, že cíl opravdu leží ve složce.
-    if (path.dirname(path.resolve(cil)) !== path.resolve(slozka)) {
-      return res.status(400).json({ error: 'Nepřijatelné jméno souboru.' });
-    }
-
-    try {
-      fs.mkdirSync(slozka, { recursive: true });
-      const prerus = new AbortController();
-      const hlidac = setTimeout(() => prerus.abort(), 60_000);
-      let data: Buffer;
-      try {
-        const r = await fetch(odkaz, { signal: prerus.signal });
-        if (!r.ok) throw new Error(`Stahování vrátilo ${r.status}`);
-        const delka = Number(r.headers.get('content-length'));
-        if (Number.isFinite(delka) && delka > STROP_SOUBORU) {
-          throw new Error('Soubor je nečekaně velký, radši ho nestahuju.');
-        }
-        data = Buffer.from(await r.arrayBuffer());
-      } finally {
-        clearTimeout(hlidac);
-      }
-      if (data.length > STROP_SOUBORU) {
-        return res.status(400).json({ error: 'Soubor je nečekaně velký.' });
-      }
-      fs.writeFileSync(cil, data);
-      return res.json({ ulozeno: jmeno, slozka, velikost: data.length, typ });
-    } catch (e: any) {
-      return res.status(502).json({
-        error: e?.name === 'AbortError'
-          ? 'Stahování trvalo moc dlouho.'
-          : (e?.message || 'Soubor se nepodařilo stáhnout.'),
-      });
-    }
-  });
 
   /**
    * Uložení souboru staženého z oficiálního TONE3000 API.
