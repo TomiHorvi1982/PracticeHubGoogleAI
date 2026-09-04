@@ -711,7 +711,7 @@ export const VirtualInstruments: React.FC = () => {
                   <button
                     key={item.label}
                     onClick={() => applySongKeyPreset(item.root, item.idx)}
-                    className={`px-2.5 py-1 rounded-xl font-semibold transition-all cursor-pointer ${
+                    className={`px-2.5 py-1 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 inline-flex items-center justify-center rounded-xl font-semibold transition-all cursor-pointer ${
                       selectedRoot === item.root && selectedScaleIndex === item.idx
                         ? 'bg-[#FF9F0A] text-black shadow-sm'
                         : 'bg-white/[0.04] text-neutral-300 border border-white/[0.06] hover:bg-white/10'
@@ -722,7 +722,7 @@ export const VirtualInstruments: React.FC = () => {
                 ))}
                 <button
                   onClick={() => setSelectedScaleIndex(null)}
-                  className={`px-2.5 py-1 rounded-xl font-semibold transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 inline-flex items-center justify-center rounded-xl font-semibold transition-all cursor-pointer ${
                     selectedScaleIndex === null
                       ? 'bg-white/20 text-white border border-white/20'
                       : 'bg-white/[0.04] text-neutral-400 border border-white/[0.06] hover:bg-white/10'
@@ -822,7 +822,7 @@ export const VirtualInstruments: React.FC = () => {
                     <button
                       key={note}
                       onClick={() => setSelectedRoot(note)}
-                      className={`px-2 py-1 text-stitek font-bold rounded-lg transition-all cursor-pointer ${
+                      className={`px-2 py-1 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 inline-flex items-center justify-center text-stitek font-bold rounded-lg transition-all cursor-pointer ${
                         selectedRoot === note
                           ? 'bg-[#FF9F0A] text-black font-extrabold shadow-sm'
                           : 'bg-white/5 text-neutral-300 hover:bg-white/10 border border-white/5'
@@ -877,7 +877,7 @@ export const VirtualInstruments: React.FC = () => {
                       <button
                         key={shift}
                         onClick={() => setOctaveShift(shift)}
-                        className={`w-6 h-6 text-stitek font-bold rounded-lg transition-all cursor-pointer ${
+                        className={`w-6 h-6 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 lg:w-6 lg:h-6 inline-flex items-center justify-center text-stitek font-bold rounded-lg transition-all cursor-pointer ${
                           octaveShift === shift
                             ? 'bg-[#FF9F0A] text-black font-extrabold shadow-sm'
                             : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
@@ -977,7 +977,7 @@ export const VirtualInstruments: React.FC = () => {
                         key={`${fullNoteName}-${idx}`}
                         onClick={() => handlePlayPianoNote(fullNoteName)}
                         disabled={isDisabledByFilter}
-                        className={`w-8 h-32 -mx-4 z-10 rounded-b-md flex flex-col justify-between items-center py-2 px-0.5 border transition-all active:scale-95 cursor-pointer shadow-md ${
+                        className={`plocha-nastroje w-8 h-32 -mx-4 z-10 rounded-b-md flex flex-col justify-between items-center py-2 px-0.5 border transition-all active:scale-95 cursor-pointer shadow-md ${
                           isActivePressed
                             ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] shadow-[0_0_15px_#FF9F0A]'
                             : isScaleNote && selectedScaleIndex !== null

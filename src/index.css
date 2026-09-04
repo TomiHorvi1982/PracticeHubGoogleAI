@@ -192,3 +192,52 @@
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/**
+ * Dotykové minimum na úzkých oknech.
+ *
+ * Naměřeno bylo 68–98 % ovládacích prvků pod 44px podle sekce, nejhůř
+ * Soubory (376 z 383). Opravit to po jednom ve 111 komponentách není
+ * v lidských silách, tak se to řeší tady.
+ *
+ * Schválně jen výška, ne šířka: širší prvek tlačí sousedy do stran a
+ * působí vodorovné přetečení, kdežto vyšší jen posune obsah dolů, kde
+ * se stránka stejně posouvá. Většina propadlých prvků měla i tak výšku
+ * 16–32px, takže výška je ta vada, která vadí.
+ *
+ * `.plocha-nastroje` je únik pro klaviaturu, hmatník a podobné plochy,
+ * kde rozměr určuje hudba, ne palec — černá klávesa je úzká a vysoká
+ * ze své podstaty a roztažením by přestala být klávesou.
+ */
+@media (width < 64rem) {
+  button,
+  select,
+  summary,
+  a[href],
+  [role="button"] {
+    min-height: var(--spacing-dotyk);
+  }
+
+  /* Zaškrtávátka jmenovitě, ne `input` obecně: posuvník hlasitosti ani
+     textové pole tímhle projít nesmí — posuvník si výšku řeší sám a
+     roztažený by přestal sedět v liště.
+
+     A schválně 24px, ne plných 44: zaškrtávátko se kreslí celé, takže
+     na 44px je z něj nápadný modrý blok vedle drobného popisku. Řádek,
+     ve kterém sedí, má dotykovou výšku sám, takže se palec trefí do
+     něj; tohle jen zvětšuje samotný čtvereček z dvaceti na čtyřiadvacet,
+     aby šel zasáhnout i napřímo. */
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-height: 1.5rem;
+    min-width: 1.5rem;
+  }
+
+  .plocha-nastroje,
+  .plocha-nastroje input[type="checkbox"],
+  .plocha-nastroje button,
+  .plocha-nastroje select,
+  .plocha-nastroje [role="button"] {
+    min-height: 0;
+  }
+}

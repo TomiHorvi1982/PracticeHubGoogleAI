@@ -73,7 +73,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={stupnice}
             onChange={(e) => setStupnice(e.target.value)}
-            className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
           >
             {SCALES_DATABASE.map((s) => (
               <option key={s.name} value={s.name}>{s.czName}</option>
@@ -86,7 +86,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={zaklad}
             onChange={(e) => setZaklad(Number(e.target.value))}
-            className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
           >
             {TONY.map((t, i) => (
               <option key={t} value={60 + i}>{t}</option>
@@ -99,7 +99,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={cviceni}
             onChange={(e) => setCviceni(e.target.value)}
-            className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
           >
             {CVICENI.map((c) => (
               <option key={c.id} value={c.id}>{c.nazev}</option>
@@ -112,7 +112,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={oktav}
             onChange={(e) => setOktav(Number(e.target.value))}
-            className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
           >
             {[1, 2, 3].map((o) => <option key={o} value={o}>{o}</option>)}
           </select>

@@ -528,7 +528,7 @@ export const MidiPlayerPanel: React.FC = () => {
                               return novy;
                             });
                           }}
-                          className="w-full flex items-center gap-1 mb-1 text-left cursor-pointer group"
+                          className="w-full flex items-center gap-1 mb-1 text-left cursor-pointer group min-h-dotyk lg:min-h-0 px-1 lg:px-0"
                         >
                           {otevrena ? (
                             <ChevronDown className="w-3 h-3 text-neutral-500 shrink-0" />
@@ -600,7 +600,7 @@ export const MidiPlayerPanel: React.FC = () => {
                             return novy;
                           })
                         }
-                        className="w-full flex items-center gap-1 mb-1 text-left cursor-pointer group"
+                        className="w-full flex items-center gap-1 mb-1 text-left cursor-pointer group min-h-dotyk lg:min-h-0 px-1 lg:px-0"
                       >
                         {zavrena ? (
                           <ChevronRight className="w-3 h-3 text-neutral-500 shrink-0" />

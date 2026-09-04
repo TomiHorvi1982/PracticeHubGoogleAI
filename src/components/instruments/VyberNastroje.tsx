@@ -106,7 +106,7 @@ export const VyberNastroje: React.FC<{
                   setVstupy((p) => ({ ...p, [n.id]: nova }));
                   if (aktivni && nova !== KLAVESNICE) midiService.setSelectedInput(nova);
                 }}
-                className="w-full mt-0.5 bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-drobne text-white outline-none focus:border-white/30 cursor-pointer"
+                className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-1.5 text-drobne text-white outline-none focus:border-white/30 cursor-pointer"
               >
                 <option value={KLAVESNICE}>Klávesnice počítače</option>
                 {zarizeni.length > 0 && <option value="all">Všechny MIDI vstupy</option>}
