@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useMusicalContext } from '../../context/MusicalContext';
 import { audioBus, CoHraje } from '../../services/audioBus';
 import { posunDoToniny } from '../../services/akordy';
-import { NastrojeDocku } from './NastrojeDocku';
 import { MikrofonTlacitko } from '../hlas/MikrofonTlacitko';
 import { zaregistruj } from '../../services/hlas/vykonavac';
 import { toninaZReci } from '../../services/tonina';
@@ -282,10 +281,10 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
       {/* RIGHT SECTION: Quick Dock Triggers, Live Band Session & Account */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Nástroje dolního panelu. Komentář nad tímhle blokem je sliboval,
-            ale žádná tlačítka tu nebyla — panel se vykresluje jen když je
-            v něm nástroj zapnutý, takže byl bez nich nedosažitelný. */}
-        <NastrojeDocku />
+        {/* Spouštěč dolního panelu tu byl, ale panel se otevíral v úzkém
+            pruhu dole a všechny jeho nástroje — hmatník, akordy, ladička,
+            metronom, klávesy — má aplikace i jako plnohodnotné sekce.
+            Dvě cesty k témuž jen nutily hádat, která je ta lepší. */}
         {/* Hlasové příkazy — v liště, tedy dostupné ze všech sekcí. */}
         <MikrofonTlacitko />
         {/* User Profile / Admin Button */}

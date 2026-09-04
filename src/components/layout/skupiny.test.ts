@@ -47,13 +47,12 @@ test('skupiny nejsou prázdné a stranou jsou jen dvě věci', () => {
   assert.equal(STRANOU.length, 2);
 });
 
-test('ladička se v nabídce neukazuje, ale dosažitelná zůstává', () => {
-  // Vykresluje tutéž komponentu jako dolní panel, kde se spouští z horní
-  // lišty. Kdyby vypadla úplně, přišlo by se o hlasový příkaz i o trasu.
-  const cviceni = SKUPINY.find((s) => s.id === 'cviceni')!;
-  assert.ok(cviceni.polozky.some((p) => p.id === 'tuner'), 'sekce má zůstat');
-  assert.ok(!viditelnePolozky(cviceni).some((p) => p.id === 'tuner'), 'v nabídce být nemá');
-  assert.ok(dosazitelneSekce().includes('tuner'));
+test('všechny sekce jsou vidět, žádná není jen hlasem', () => {
+  // Navigace se vrátila k ploché podobě: schovávat sekci znamená, že
+  // ji uživatel nenajde, i když na ni umí dojet hlasem.
+  for (const s of SKUPINY) {
+    assert.equal(viditelnePolozky(s).length, s.polozky.length, `${s.nazev} něco skrývá`);
+  }
 });
 
 test('sekce s akordovým trenažérem se nejmenuje Metronom', () => {

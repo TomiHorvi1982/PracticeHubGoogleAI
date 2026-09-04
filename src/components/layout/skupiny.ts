@@ -19,6 +19,15 @@ export interface Polozka {
   id: MainTabType;
   nazev: string;
   /**
+   * Zkrácený popisek do lišty.
+   *
+   * Čtrnáct sekcí se dělí o šířku, takže na jednu vyjde kolem sta
+   * pixelů — „Virtual Instruments" se tam nevejde a ořízlo by se to na
+   * „Virtual Ins…". Plný název zůstává v bublině při najetí i v nadpisu
+   * sekce; tohle je jen štítek.
+   */
+  kratky?: string;
+  /**
    * Sekce, která má domov jinde a v nabídce se neukazuje.
    *
    * Zůstává dosažitelná hlasem a přímým přepnutím, takže se o ni
@@ -34,8 +43,8 @@ export interface Skupina {
 }
 
 /** Sekce, do kterých se chodí nejvíc — zůstávají na jeden klik. */
-export const PRIME: { id: MainTabType; nazev: string }[] = [
-  { id: 'songbook', nazev: 'Knihovna skladeb' },
+export const PRIME: Polozka[] = [
+  { id: 'songbook', nazev: 'Knihovna skladeb', kratky: 'Knihovna' },
   { id: 'podium', nazev: 'Pódium' },
 ];
 
@@ -52,24 +61,24 @@ export const SKUPINY: Skupina[] = [
     id: 'cviceni',
     nazev: 'Cvičení',
     polozky: [
-      { id: 'practise', nazev: 'Practise Hub' },
-      { id: 'instruments', nazev: 'Virtual Instruments' },
+      { id: 'practise', nazev: 'Practise Hub', kratky: 'Cvičení' },
+      { id: 'instruments', nazev: 'Virtual Instruments', kratky: 'Nástroje' },
       // Jmenovalo se to „Metronom", ale sekce vykresluje `PracticeAssistant`
       // — akordové postupy, rytmické vzory a výběr nástroje na 896 řádcích.
       // Metronom je z toho jedna část a název schovával zbytek.
-      { id: 'practice', nazev: 'Akordový trenažér' },
-      // Ladička tu byla taky a vykreslovala tutéž komponentu jako dolní
-      // panel. Teď je jen v panelu, kam patří: ladí se během hraní,
-      // ne místo něj. Spouští se z horní lišty.
-      { id: 'tuner', nazev: 'Ladička', jenHlasem: true },
+      { id: 'practice', nazev: 'Akordový trenažér', kratky: 'Akordy' },
+      // Ladička je zpátky mezi viditelnými: dolní panel se ukázal jako
+      // horší domov — otevíral se v úzkém pruhu dole a nástroje, které
+      // v něm byly, má aplikace stejně i jako sekce.
+      { id: 'tuner', nazev: 'Ladička' },
     ],
   },
   {
     id: 'zvuk',
     nazev: 'Zvuk',
     polozky: [
-      { id: 'stemmixer', nazev: 'Mixážní pult' },
-      { id: 'liveamp', nazev: 'Live Guitar Amp' },
+      { id: 'stemmixer', nazev: 'Mixážní pult', kratky: 'Mixpult' },
+      { id: 'liveamp', nazev: 'Live Guitar Amp', kratky: 'Aparát' },
     ],
   },
   {
