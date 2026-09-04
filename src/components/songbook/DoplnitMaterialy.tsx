@@ -12,6 +12,15 @@ interface Props {
   song: Song | null;
   onZavrit: () => void;
   onUlozit: (s: Song) => void;
+  /**
+   * Vykreslit rovnou v řádku seznamu, ne jako překryv přes obrazovku.
+   *
+   * Překryv zakryl seznam, takže se ztratilo, u které písně se to
+   * vlastně doplňuje, a po zavření se člověk vracel očima zpátky.
+   * V řádku zůstane skladba na očích a okolní řádky se jen odsunou —
+   * stejně jako u alba.
+   */
+  vRadku?: boolean;
 }
 
 /** Které moduly jde naplnit souborem. Nástroje jako ladička sem nepatří. */
@@ -60,7 +69,7 @@ function typZAssetu(a: LibraryAsset): SongAttachment['type'] {
  * Tři cesty ke stejnému cíli: nechat appku dohledat, vzít z naší knihovny,
  * nebo nahrát z počítače. První je nejrychlejší a je proto nahoře.
  */
-export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) => {
+export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vRadku }) => {
   const [otevrenyModul, setOtevrenyModul] = useState<string | null>(null);
   const [zdroj, setZdroj] = useState<'knihovna' | 'pocitac'>('knihovna');
   const [dotaz, setDotaz] = useState('');
@@ -197,12 +206,24 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-start justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
-      <div className="bg-plocha-2 border border-white/[0.1] rounded-3xl w-full max-w-3xl my-8 shadow-2xl">
+    <div className={vRadku
+      ? ''
+      : 'fixed inset-0 z-[110] flex items-start justify-center p-4 bg-black/70 backdrop-blur-md overflow-y-auto'}>
+      <div className={vRadku
+        ? 'bg-plocha-1 border border-kresba rounded-panel w-full'
+        : 'bg-plocha-2 border border-white/[0.1] rounded-3xl w-full max-w-3xl my-8 shadow-2xl'}>
         <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.08]">
           <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-bold text-white truncate">{song.title}</h3>
-            <p className="text-drobne text-neutral-500 truncate">{song.artist}</p>
+            {/* V řádku je jméno písně hned nad tím, tak se neopakuje. */}
+            {!vRadku && (
+              <>
+                <h3 className="text-sm font-bold text-white truncate">{song.title}</h3>
+                <p className="text-drobne text-neutral-500 truncate">{song.artist}</p>
+              </>
+            )}
+            {vRadku && (
+              <p className="text-drobne font-semibold text-white">Doplnit materiály</p>
+            )}
           </div>
           <button
             onClick={onZavrit}

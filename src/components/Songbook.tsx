@@ -629,6 +629,10 @@ export const Songbook: React.FC<SongbookProps> = ({
                 if (e) e.stopPropagation();
                 setDoplnovana(sk);
               }}
+              onUlozitSkladbu={(sk) => {
+                void songDatabaseService.saveSong(sk);
+                if (activeSong?.id === sk.id) setActiveSong(sk);
+              }}
             />
         </div>
         ) : (

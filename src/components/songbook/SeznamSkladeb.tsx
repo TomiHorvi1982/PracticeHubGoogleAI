@@ -1,4 +1,5 @@
 import { AlbumSkladby } from './AlbumSkladby';
+import { DoplnitMaterialy } from './DoplnitMaterialy';
 import { sdilenyVyraz, vyrazZeSkladby } from '../../services/sdilenyVyraz';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ObalkyPisne } from './ObalkyPisne';
@@ -26,6 +27,13 @@ interface Props {
    */
   onNahratAudio?: (s: Song, soubor: File) => void | Promise<void>;
   onDoPlaylistu: (s: Song, e?: React.MouseEvent) => void;
+  /**
+   * Uloží skladbu po doplnění materiálů.
+   *
+   * Když chybí, tužka se chová po staru a jen ohlásí `onUpravit`
+   * ven — doplňování se pak otevře jako překryv.
+   */
+  onUlozitSkladbu?: (s: Song) => void;
   /** Přidá víc skladeb do playlistu naráz. */
   onDoPlaylistuHromadne?: (skladby: Song[]) => void | Promise<void>;
   /** Sety na pódium, do kterých jde hromadně zařadit. */
@@ -124,8 +132,11 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
 
 export const SeznamSkladeb: React.FC<Props> = ({
   songs, aktivniId, onVybrat, onSmazat, onNahratAudio, onDoPlaylistu, onDoPlaylistuHromadne,
-  sety = [], onDoSetuHromadne, onSmazatHromadne, onUpravit,
+  sety = [], onDoSetuHromadne, onSmazatHromadne, onUpravit, onUlozitSkladbu,
 }) => {
+  /** U které skladby je otevřené doplňování materiálů. */
+  const [doplnovana, setDoplnovana] = useState<string | null>(null);
+
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
     try {
       const u = JSON.parse(localStorage.getItem('neverlate_sloupce') || 'null');
@@ -581,8 +592,19 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     {otevreny ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
                   </button>
                   <button
-                    onClick={(e) => onUpravit(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-uspech cursor-pointer transition-all"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // S ukládáním se rozbaluje rovnou v řádku; bez něj
+                      // se drží původní chování a otevře se překryv.
+                      if (onUlozitSkladbu) setDoplnovana((x) => (x === s.id ? null : s.id));
+                      else onUpravit(s, e);
+                    }}
+                    aria-expanded={onUlozitSkladbu ? doplnovana === s.id : undefined}
+                    className={`p-1.5 rounded-lg cursor-pointer transition-all ${
+                      doplnovana === s.id
+                        ? 'bg-uspech/15 text-uspech'
+                        : 'hover:bg-white/10 text-neutral-500 hover:text-uspech'
+                    }`}
                     title="Doplnit materiály — tabulatury, text, MIDI, stopy…"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -638,6 +660,20 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   </button>
                 </div>
               </div>
+
+              {/* Doplňování materiálů rovnou pod skladbou. Dřív to byl
+                  překryv přes celou obrazovku, takže se ztratilo, u které
+                  písně se to vlastně doplňuje. */}
+              {onUlozitSkladbu && doplnovana === s.id && (
+                <div className="px-3 pb-3">
+                  <DoplnitMaterialy
+                    vRadku
+                    song={s}
+                    onZavrit={() => setDoplnovana(null)}
+                    onUlozit={onUlozitSkladbu}
+                  />
+                </div>
+              )}
 
               {/* Video se rozehraje přímo v náhledu — na tom samém místě
                   a ve stejné velikosti, kde do té chvíle byl obrázek.
