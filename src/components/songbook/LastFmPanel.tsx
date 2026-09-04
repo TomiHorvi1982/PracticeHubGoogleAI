@@ -1,4 +1,6 @@
 import { DoPlaylistuTlacitko } from './DoPlaylistuTlacitko';
+import { useSdilenyVyraz } from '../../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../../services/sdilenyVyraz';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Search, Loader2, Plus, Sparkles, AlertCircle, Users, Play, TrendingUp, Tag, Disc3,
@@ -126,9 +128,14 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
     });
   }, []);
 
-  const hledej = useCallback(async () => {
-    const q = dotaz.trim();
+  /**
+   * Hledá. `vlastni` obchází stav, protože sdílený výraz přichází
+   * zvenčí a čekat na překreslení by hledalo to předchozí.
+   */
+  const hledej = useCallback(async (vlastni?: string) => {
+    const q = (vlastni ?? dotaz).trim();
     if (!q) return;
+    if (!vlastni) sdilenyVyraz.nastav(q);
     setRezim('hledani');
     setHledam(true);
     setChyba(null);
@@ -147,6 +154,9 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
       setHledam(false);
     }
   }, [dotaz]);
+
+  // Výraz napsaný jinde: pole se vyplní a hledá se při vstupu do sekce.
+  useSdilenyVyraz((v) => { setDotaz(v); void hledej(v); });
 
   const ukazPodobne = async (s: Skladba) => {
     setVybrana(s);

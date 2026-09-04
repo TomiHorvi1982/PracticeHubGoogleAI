@@ -1,4 +1,5 @@
 import { AlbumSkladby } from './AlbumSkladby';
+import { sdilenyVyraz, vyrazZeSkladby } from '../../services/sdilenyVyraz';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ObalkyPisne } from './ObalkyPisne';
 import { stahniPrilohyPisne, souboru } from '../../services/stahovaniPriloh';
@@ -484,7 +485,12 @@ export const SeznamSkladeb: React.FC<Props> = ({
           return (
             <div key={s.id} className={`border-b border-white/[0.04] ${aktivni ? 'bg-znacka/15' : ''}`}>
               <div
-                onClick={() => onVybrat(s)}
+                onClick={() => {
+                  // Kliknutá skladba se stane tím, co hledají ostatní
+                  // sekce — až do některé přijdeš, máš ji tam vyplněnou.
+                  sdilenyVyraz.nastav(vyrazZeSkladby(s.artist, s.title));
+                  onVybrat(s);
+                }}
                 style={mrizka}
                 className={`grid gap-2 items-center px-3 py-2 cursor-pointer transition-all ${
                   aktivni ? '' : 'hover:bg-white/[0.04]'

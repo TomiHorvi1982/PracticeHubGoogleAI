@@ -1,3 +1,5 @@
+import { useSdilenyVyraz } from '../../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../../services/sdilenyVyraz';
 import React, { useEffect, useState } from 'react';
 import { Library, Search, X, ChevronRight, Download } from 'lucide-react';
 import { tabLibraryService, TabLibraryEntry } from '../../services/tabLibraryService';
@@ -39,6 +41,10 @@ export const PrehledSbirky: React.FC<{
     return () => { zruseno = true; };
   }, [pismeno]);
 
+  // Výraz napsaný jinde. Stačí ho vložit do pole — hledání na něm
+  // už visí a samo se spustí s obvyklou prodlevou.
+  useSdilenyVyraz(setHledani);
+
   /**
    * Hledá se při psaní, ale ne po každém písmenu.
    *
@@ -54,6 +60,7 @@ export const PrehledSbirky: React.FC<{
       setHledam(false);
       return;
     }
+    sdilenyVyraz.nastav(q);
     setHledam(true);
     let platne = true;
     const casovac = setTimeout(() => {

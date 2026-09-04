@@ -1,3 +1,5 @@
+import { useSdilenyVyraz } from '../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../services/sdilenyVyraz';
 import React, { useState, useEffect, useRef } from 'react';
 import { TipyKapel } from './youtube/TipyKapel';
 import {
@@ -127,7 +129,11 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
   // Quick initial popular searches
   // Run native search against /api/freetar-search
+  // Výraz napsaný jinde: pole se vyplní a hledá se při vstupu do sekce.
+  useSdilenyVyraz((v) => { setSearchQuery(v); void handleExecuteSearch(v); });
+
   const handleExecuteSearch = async (term: string) => {
+    sdilenyVyraz.nastav(term);
     if (!term.trim()) return;
     setIsSearching(true);
     setSearchError(null);

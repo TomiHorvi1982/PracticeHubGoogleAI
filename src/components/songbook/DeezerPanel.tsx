@@ -1,4 +1,6 @@
 import { DoPlaylistuTlacitko } from './DoPlaylistuTlacitko';
+import { useSdilenyVyraz } from '../../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../../services/sdilenyVyraz';
 import React, { useState } from 'react';
 import { Search, Loader2, Play, Pause, Plus, AlertCircle, Gauge, Disc3, X } from 'lucide-react';
 import { authService } from '../../services/authService';
@@ -101,14 +103,23 @@ export const DeezerPanel: React.FC<{
     }
   };
 
-  const hledej = async (e?: React.FormEvent) => {
+  /**
+   * Hledá. `vlastni` obchází stav, protože sdílený výraz přichází
+   * zvenčí a čekat na překreslení by hledalo to předchozí.
+   */
+  // Výraz napsaný jinde: pole se vyplní a hledá se při vstupu do sekce.
+  useSdilenyVyraz((v) => { setDotaz(v); void hledej(undefined, v); });
+
+  const hledej = async (e?: React.FormEvent, vlastni?: string) => {
     e?.preventDefault();
-    if (!dotaz.trim()) return;
+    const zadani = (vlastni ?? dotaz).trim();
+    if (!zadani) return;
+    if (!vlastni) sdilenyVyraz.nastav(zadani);
     setHledam(true);
     setChyba(null);
     try {
       const token = authService.getCurrentSession()?.token;
-      const r = await fetch(`/api/deezer/hledat?q=${encodeURIComponent(dotaz.trim())}`, {
+      const r = await fetch(`/api/deezer/hledat?q=${encodeURIComponent(zadani)}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       const d = await r.json();
