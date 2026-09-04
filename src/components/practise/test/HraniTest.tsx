@@ -121,16 +121,16 @@ export const HraniTest: React.FC = () => {
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>
-              <div className="text-lg font-bold text-[#30D158] tabular-nums">{splneno}</div>
+              <div className="text-lg font-bold text-uspech tabular-nums">{splneno}</div>
               <div className="text-stitek text-neutral-500">splněno</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-[#FF453A] tabular-nums">{chyby}</div>
+              <div className="text-lg font-bold text-chyba tabular-nums">{chyby}</div>
               <div className="text-stitek text-neutral-500">chyb</div>
             </div>
             {centy !== null && (
               <div>
-                <div className="text-lg font-bold text-[#FF9F0A] tabular-nums">{centy}¢</div>
+                <div className="text-lg font-bold text-znacka tabular-nums">{centy}¢</div>
                 <div className="text-stitek text-neutral-500">intonace</div>
               </div>
             )}
@@ -146,7 +146,7 @@ export const HraniTest: React.FC = () => {
               onClick={() => { setDruh(d.id); zadej(d.id, zpusob); }}
               title={d.popis}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                druh === d.id ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                druh === d.id ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
               {d.nazev}
@@ -215,14 +215,14 @@ export const HraniTest: React.FC = () => {
             )}
             <button
               onClick={() => zadej()}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#FF9F0A] text-black cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-znacka text-black cursor-pointer flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Další
             </button>
           </div>
 
           {hotovo && (
-            <div className="flex items-center gap-2 text-[#30D158] text-sm font-bold">
+            <div className="flex items-center gap-2 text-uspech text-sm font-bold">
               <Check className="w-4 h-4" /> Sedí — {ukol.nazev}
               {chyby > 0 && <span className="text-neutral-500 font-normal">({chyby}× vedle)</span>}
             </div>
@@ -254,9 +254,9 @@ export const HraniTest: React.FC = () => {
                   key={i}
                   className={`text-stitek px-1.5 py-0.5 rounded font-bold ${
                     t.spravne
-                      ? 'bg-[#30D158]/20 text-[#30D158]'
+                      ? 'bg-uspech/20 text-uspech'
                       : t.minulO > 0
-                        ? 'bg-[#FF453A]/20 text-[#FF453A]'
+                        ? 'bg-chyba/20 text-chyba'
                         : 'bg-white/[0.06] text-neutral-500'
                   }`}
                   title={t.minulO > 0 ? `vedle o ${t.minulO} půltónů` : t.ton}
@@ -275,7 +275,7 @@ export const HraniTest: React.FC = () => {
           </p>
           <button
             onClick={() => zadej()}
-            className="px-4 py-2 rounded-xl bg-[#BF5AF2] text-white text-sm font-bold cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-nastroj text-white text-sm font-bold cursor-pointer"
           >
             Zadej úkol
           </button>

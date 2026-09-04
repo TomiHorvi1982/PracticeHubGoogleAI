@@ -96,7 +96,7 @@ export const PrepisPanel: React.FC<{
     <div className="space-y-4">
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Mic className="w-5 h-5 text-[#FF9F0A]" />
+          <Mic className="w-5 h-5 text-znacka" />
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Přepis z nahrávky</h3>
             <p className="text-drobne text-neutral-400">
@@ -106,7 +106,7 @@ export const PrepisPanel: React.FC<{
         </div>
 
         {pripraveno && !pripraveno.ok && (
-          <p className="text-drobne text-[#FF453A] flex items-start gap-1.5">
+          <p className="text-drobne text-chyba flex items-start gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             Přepis není připravený — chybí {pripraveno.chybi.join(', ')}.
           </p>
@@ -116,7 +116,7 @@ export const PrepisPanel: React.FC<{
           <button
             onClick={() => setOddelit(!oddelit)}
             className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer ${
-              oddelit ? 'bg-[#30D158] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              oddelit ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
             }`}
             title="Přes celou kapelu si přepis hodně domýšlí. Nad čistým zpěvem píše, co tam opravdu je."
           >
@@ -125,7 +125,7 @@ export const PrepisPanel: React.FC<{
           <select
             value={jazyk}
             onChange={(e) => setJazyk(e.target.value)}
-            className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-drobne text-white outline-none focus:border-[#FF9F0A]"
+            className="bg-black/40 border border-white/10 rounded-xl px-2.5 py-1.5 text-drobne text-white outline-none focus:border-znacka"
             title="U rozpoznání sám se občas splete a přepíše češtinu jako polštinu; když víš, co to je, řekni to."
           >
             {JAZYKY.map((j) => (
@@ -141,11 +141,11 @@ export const PrepisPanel: React.FC<{
 
         {nahravka ? (
           <div className="flex flex-wrap items-center gap-2 bg-black/25 rounded-xl px-3 py-2">
-            <Music4 className="w-4 h-4 text-[#0A84FF] shrink-0" />
+            <Music4 className="w-4 h-4 text-info shrink-0" />
             <span className="text-drobne text-white truncate flex-1 min-w-[140px]">
               {nahravka.name}
               {/vocal|zpev|zpěv/i.test(nahravka.name) && (
-                <span className="text-stitek text-[#30D158] ml-2">už je to vokálová stopa</span>
+                <span className="text-stitek text-uspech ml-2">už je to vokálová stopa</span>
               )}
             </span>
             <button
@@ -158,7 +158,7 @@ export const PrepisPanel: React.FC<{
             <button
               onClick={() => void spust()}
               disabled={bezi || !pripraveno?.ok}
-              className="px-3 py-1.5 rounded-xl bg-[#FF9F0A] text-black text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-znacka text-black text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
             >
               {bezi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mic className="w-3.5 h-3.5" />}
               {bezi ? 'Běží…' : 'Přepsat'}
@@ -174,7 +174,7 @@ export const PrepisPanel: React.FC<{
         )}
 
         {chyba && (
-          <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+          <p className="text-drobne text-chyba flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
           </p>
         )}
@@ -182,7 +182,7 @@ export const PrepisPanel: React.FC<{
         {stav && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-drobne">
-              <span className={stav.faze === 'chyba' ? 'text-[#FF453A]' : 'text-neutral-300'}>
+              <span className={stav.faze === 'chyba' ? 'text-chyba' : 'text-neutral-300'}>
                 {stav.chyba || stav.zprava}
               </span>
               <span className="text-neutral-500 tabular-nums">{stav.postup} %</span>
@@ -190,7 +190,7 @@ export const PrepisPanel: React.FC<{
             <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
               <div
                 className={`h-full transition-[width] duration-500 ${
-                  stav.faze === 'chyba' ? 'bg-[#FF453A]' : 'bg-[#FF9F0A]'
+                  stav.faze === 'chyba' ? 'bg-chyba' : 'bg-znacka'
                 }`}
                 style={{ width: `${stav.faze === 'chyba' ? 100 : stav.postup}%` }}
               />
@@ -207,7 +207,7 @@ export const PrepisPanel: React.FC<{
             </h4>
             <button
               onClick={() => onVlozit(stav.useky)}
-              className="px-3 py-1.5 rounded-xl bg-[#BF5AF2] text-white text-drobne font-bold cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-nastroj text-white text-drobne font-bold cursor-pointer flex items-center gap-1.5"
             >
               Do editoru <ArrowRight className="w-3.5 h-3.5" />
             </button>

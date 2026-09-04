@@ -119,7 +119,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Top Header */}
         <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+            <div className="p-2 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
               <Shield className="w-5 h-5" />
             </div>
             <div>
@@ -157,7 +157,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               onClick={() => { setMode('invite'); setErrorMsg(null); }}
               className={`py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 mode === 'invite'
-                  ? 'bg-[#30D158]/20 text-[#30D158] border border-[#30D158]/30 shadow-sm'
+                  ? 'bg-uspech/20 text-uspech border border-uspech/30 shadow-sm'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -179,8 +179,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           )}
 
           {successMsg && (
-            <div className="bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] p-3 rounded-2xl text-xs flex items-start gap-2.5">
-              <CheckCircle2 className="w-4 h-4 text-[#30D158] shrink-0 mt-0.5" />
+            <div className="bg-uspech/10 border border-uspech/30 text-uspech p-3 rounded-2xl text-xs flex items-start gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-uspech shrink-0 mt-0.5" />
               <span>{successMsg}</span>
             </div>
           )}
@@ -191,7 +191,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               {/* Email / Username */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-neutral-300 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                  <Mail className="w-3.5 h-3.5 text-znacka" />
                   <span>E-mail nebo přihlašovací jméno</span>
                 </label>
                 <input
@@ -200,14 +200,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="např. no.cavalera@no.sepultura.brasil"
                   autoFocus
-                  className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#FF9F0A] transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 text-xs focus:outline-none focus:border-znacka transition-colors"
                 />
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                  <Lock className="w-3.5 h-3.5 text-znacka" />
                   <span>Heslo</span>
                 </label>
                 <div className="relative">
@@ -216,7 +216,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Zadejte heslo..."
-                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 pr-10 text-xs focus:outline-none focus:border-[#FF9F0A] transition-colors"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 pr-10 text-xs focus:outline-none focus:border-znacka transition-colors"
                   />
                   <button
                     type="button"
@@ -232,7 +232,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#FF9F0A] hover:bg-[#ffb03a] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
+                className="w-full bg-znacka hover:bg-[#ffb03a] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
                 <span>{isSubmitting ? 'Přihlašuji…' : 'Přihlásit se do studia'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -240,8 +240,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </form>
           ) : (
             <form onSubmit={handleSetInvitePassword} className="space-y-4">
-              <div className="bg-[#30D158]/10 border border-[#30D158]/20 rounded-2xl p-3.5 text-xs text-neutral-300 space-y-1">
-                <div className="text-[#30D158] font-bold flex items-center gap-1.5">
+              <div className="bg-uspech/10 border border-uspech/20 rounded-2xl p-3.5 text-xs text-neutral-300 space-y-1">
+                <div className="text-uspech font-bold flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" />
                   <span>Obdrželi jste pozvánku od správce?</span>
                 </div>
@@ -253,7 +253,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               {/* New Password */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-neutral-300 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-[#30D158]" />
+                  <Lock className="w-3.5 h-3.5 text-uspech" />
                   <span>Nové heslo</span>
                 </label>
                 <div className="relative">
@@ -263,7 +263,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     onChange={(e) => setInvitePassword(e.target.value)}
                     placeholder="Alespoň 6 znaků"
                     autoFocus
-                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 pr-10 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2.5 pr-10 text-xs focus:outline-none focus:border-uspech transition-colors"
                   />
                   <button
                     type="button"
@@ -279,7 +279,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#30D158] hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
+                className="w-full bg-uspech hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
                 <span>{isSubmitting ? 'Ukládám…' : 'Nastavit heslo a vstoupit'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -292,8 +292,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         {/* Footer info */}
         <div className="border-t border-white/5 px-6 py-3 flex items-center justify-between text-xs text-neutral-500">
           <span>NeverLate Studio // Zabezpečená autentizace</span>
-          <span className="text-[#30D158] flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#30D158]"></span>
+          <span className="text-uspech flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-uspech"></span>
             Online
           </span>
         </div>

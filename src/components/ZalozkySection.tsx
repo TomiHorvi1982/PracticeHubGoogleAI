@@ -66,7 +66,7 @@ export const ZalozkySection: React.FC = () => {
         <button
           onClick={() => setFiltr('vse')}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-            filtr === 'vse' ? 'bg-[#30D158] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+            filtr === 'vse' ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
           }`}
         >
           Vše ({zalozky.length})
@@ -78,7 +78,7 @@ export const ZalozkySection: React.FC = () => {
               key={k.id}
               onClick={() => setFiltr(k.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-                filtr === k.id ? 'bg-[#30D158] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                filtr === k.id ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
               {k.ikona} {k.nazev} {pocet > 0 && <span className="opacity-60">({pocet})</span>}
@@ -134,7 +134,7 @@ export const ZalozkySection: React.FC = () => {
                       const ch = await zalozkyService.smaz(z.id);
                       if (ch) setChyba(ch);
                     }}
-                    className="p-1.5 rounded-xl text-neutral-600 hover:text-[#FF453A] cursor-pointer opacity-0 group-hover:opacity-100"
+                    className="p-1.5 rounded-xl text-neutral-600 hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100"
                     title="Smazat"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export const ZalozkySection: React.FC = () => {
         className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-3"
       >
         <div className="flex items-center gap-2">
-          <Plus className="w-4 h-4 text-[#30D158]" />
+          <Plus className="w-4 h-4 text-uspech" />
           <h3 className="text-sm font-bold text-white">Přidat odkaz</h3>
           <span className="text-drobne text-neutral-500">uvidí ho celá kapela</span>
         </div>
@@ -168,13 +168,13 @@ export const ZalozkySection: React.FC = () => {
             value={nazev}
             onChange={(e) => setNazev(e.target.value)}
             placeholder="Název"
-            className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#30D158]"
+            className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-uspech"
           />
           <input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="adresa.cz"
-            className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-[#30D158]"
+            className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono focus:outline-none focus:border-uspech"
           />
           <select
             value={kategorie}
@@ -191,13 +191,13 @@ export const ZalozkySection: React.FC = () => {
           value={popis}
           onChange={(e) => setPopis(e.target.value)}
           placeholder="K čemu to je — ať to ostatní poznají bez klikání"
-          className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#30D158]"
+          className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-uspech"
         />
 
         <button
           type="submit"
           disabled={!nazev.trim() || !url.trim() || uklada}
-          className="px-4 py-2 rounded-xl bg-[#30D158] text-black text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+          className="px-4 py-2 rounded-xl bg-uspech text-black text-xs font-bold cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
         >
           <Check className="w-3.5 h-3.5" /> {uklada ? 'Ukládám…' : 'Přidat'}
         </button>
@@ -240,7 +240,7 @@ const UpravaZalozky: React.FC<{
             onChyba(ch);
             if (!ch) onHotovo();
           }}
-          className="flex-1 text-drobne font-bold px-2 py-1.5 rounded-lg bg-[#30D158] text-black cursor-pointer"
+          className="flex-1 text-drobne font-bold px-2 py-1.5 rounded-lg bg-uspech text-black cursor-pointer"
         >
           Uložit
         </button>

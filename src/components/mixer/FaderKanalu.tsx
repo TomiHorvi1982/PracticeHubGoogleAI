@@ -57,7 +57,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
           <button
             onClick={onZtlumit}
             className={`px-1.5 py-0.5 rounded text-stitek font-bold cursor-pointer ${
-              ztlumeno ? 'bg-[#FF453A] text-white' : 'bg-white/[0.08] text-neutral-400 hover:text-white'
+              ztlumeno ? 'bg-chyba text-white' : 'bg-white/[0.08] text-neutral-400 hover:text-white'
             }`}
             title="Ztlumit"
           >
@@ -70,7 +70,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
         {maMerak && (
           <div className="relative w-3 h-28 bg-black/50 rounded-sm overflow-hidden shrink-0">
             {/* Hranice, kde signál začíná řezat — červené pásmo nahoře. */}
-            <div className="absolute inset-x-0 top-0 h-[12%] bg-[#FF453A]/20" />
+            <div className="absolute inset-x-0 top-0 h-[12%] bg-chyba/20" />
             <div
               className="absolute inset-x-0 bottom-0 transition-[height] duration-75"
               style={{
@@ -95,7 +95,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
             max={140}
             value={Math.round(hlasitost * 100)}
             onChange={(e) => onHlasitost(Number(e.target.value) / 100)}
-            className="w-28 accent-[#FF9F0A] cursor-pointer"
+            className="w-28 accent-znacka cursor-pointer"
             style={{ writingMode: 'vertical-lr', direction: 'rtl', height: '112px', width: '20px' }}
             title={`Hlasitost ${Math.round(hlasitost * 100)} %`}
           />
@@ -113,7 +113,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
               <span className="text-neutral-500">Špička</span>
               <div
                 className={`font-mono tabular-nums ${
-                  preburacene ? 'text-[#FF453A] font-bold' : 'text-neutral-300'
+                  preburacene ? 'text-chyba font-bold' : 'text-neutral-300'
                 }`}
               >
                 {dB(spicka || 0)}
@@ -132,7 +132,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
           <input
             type="range" min={10} max={800} value={Math.round(gain * 100)}
             onChange={(e) => onGain(Number(e.target.value) / 100)}
-            className="w-full accent-[#30D158] cursor-pointer"
+            className="w-full accent-uspech cursor-pointer"
           />
         </label>
       )}
@@ -148,7 +148,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
           <input
             type="range" min={-100} max={100} value={Math.round(panorama * 100)}
             onChange={(e) => onPanorama(Number(e.target.value) / 100)}
-            className="w-full accent-[#0A84FF] cursor-pointer"
+            className="w-full accent-info cursor-pointer"
           />
         </label>
       )}
@@ -162,7 +162,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
           <input
             type="range" min={0} max={100} value={Math.round(sirka * 100)}
             onChange={(e) => onSirka(Number(e.target.value) / 100)}
-            className="w-full accent-[#BF5AF2] cursor-pointer"
+            className="w-full accent-nastroj cursor-pointer"
           />
         </label>
       )}

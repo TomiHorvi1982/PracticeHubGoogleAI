@@ -133,12 +133,12 @@ export const SettingsSection: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+          <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
             Nastavení
           </span>
         </div>
         <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <Settings className="w-5 h-5 text-[#FF9F0A]" /> Nastavení aplikace
+          <Settings className="w-5 h-5 text-znacka" /> Nastavení aplikace
         </h2>
       </div>
 
@@ -147,7 +147,7 @@ export const SettingsSection: React.FC = () => {
           odkaz, aby to nikdo nehledal na dvou místech. */}
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-          <HardDrive className="w-4 h-4 text-[#30D158]" /> Úložiště
+          <HardDrive className="w-4 h-4 text-uspech" /> Úložiště
         </h3>
         <p className="text-drobne text-neutral-400 mt-1">
           Kolik místa co zabírá, najdete v sekci <strong className="text-neutral-200">Soubory</strong> —
@@ -160,7 +160,7 @@ export const SettingsSection: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Laptop className="w-4 h-4 text-[#0A84FF]" /> MIDI hardware a mapování zvuků
+              <Laptop className="w-4 h-4 text-info" /> MIDI hardware a mapování zvuků
             </h3>
             <p className="text-drobne text-neutral-400">
               Připojené klávesy, kanály a přiřazení zvuků kapele.
@@ -168,7 +168,7 @@ export const SettingsSection: React.FC = () => {
           </div>
           <button
             onClick={() => setMidiOtevrene(true)}
-            className="px-3.5 py-2 bg-[#0A84FF]/15 hover:bg-[#0A84FF]/25 border border-[#0A84FF]/40 text-[#0A84FF] rounded-2xl text-xs font-bold cursor-pointer transition-all"
+            className="px-3.5 py-2 bg-info/15 hover:bg-info/25 border border-info/40 text-info rounded-2xl text-xs font-bold cursor-pointer transition-all"
           >
             Otevřít nastavení MIDI
           </button>
@@ -182,7 +182,7 @@ export const SettingsSection: React.FC = () => {
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <Mic className="w-4 h-4 text-[#30D158]" /> Zvuková karta
+            <Mic className="w-4 h-4 text-uspech" /> Zvuková karta
           </h3>
           <p className="text-drobne text-neutral-400">
             Odkud se poslouchá kytara a kam se hraje. Týká se poslechu v Hmatníku a ladičky.
@@ -192,12 +192,12 @@ export const SettingsSection: React.FC = () => {
         {!karta.nazvyZname && (
           <button
             onClick={() => void zvukovaKarta.povolitANacist()}
-            className="px-3 py-1.5 rounded-xl bg-[#30D158]/15 border border-[#30D158]/40 text-[#30D158] text-drobne font-bold cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-uspech/15 border border-uspech/40 text-uspech text-drobne font-bold cursor-pointer"
           >
             Zobrazit názvy zařízení (povolí mikrofon)
           </button>
         )}
-        {karta.chyba && <div className="text-drobne text-[#FF453A]">{karta.chyba}</div>}
+        {karta.chyba && <div className="text-drobne text-chyba">{karta.chyba}</div>}
 
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="space-y-1 block">
@@ -243,7 +243,7 @@ export const SettingsSection: React.FC = () => {
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
         <div>
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-            <Mic className="w-4 h-4 text-[#FF9F0A]" /> Hlasové ovládání
+            <Mic className="w-4 h-4 text-znacka" /> Hlasové ovládání
           </h3>
           <p className="text-drobne text-neutral-400">
             Mikrofon je v horní liště, takže mluvit jde odkudkoli. Tady se nastavuje, na co appka slyší.
@@ -260,7 +260,7 @@ export const SettingsSection: React.FC = () => {
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-[#FF9F0A]" /> Ultimate Guitar Pro
+              <KeyRound className="w-4 h-4 text-znacka" /> Ultimate Guitar Pro
             </h3>
             <p className="text-drobne text-neutral-400">
               Když máš u nich předplatné, stahují se Guitar Pro soubory rovnou do knihovny.
@@ -276,7 +276,7 @@ export const SettingsSection: React.FC = () => {
             <p>4. Klikni na první požadavek v seznamu (jmenuje se jako ta stránka).</p>
             <p>
               5. Vpravo <strong className="text-neutral-300">Headers → Request Headers</strong>, najdi řádek{' '}
-              <code className="text-[#FF9F0A]">cookie:</code> a zkopíruj <em>celou</em> hodnotu za dvojtečkou.
+              <code className="text-znacka">cookie:</code> a zkopíruj <em>celou</em> hodnotu za dvojtečkou.
             </p>
             <p>6. Vlož ji sem a dej Uložit.</p>
             <p className="text-neutral-500 pt-1 border-t border-white/[0.06] mt-1.5">
@@ -301,7 +301,7 @@ export const SettingsSection: React.FC = () => {
             <button
               onClick={() => void ulozUg(ugCookie)}
               disabled={!ugCookie.trim()}
-              className="px-3 py-2 rounded-xl bg-[#FF9F0A] text-black text-xs font-bold cursor-pointer disabled:opacity-40"
+              className="px-3 py-2 rounded-xl bg-znacka text-black text-xs font-bold cursor-pointer disabled:opacity-40"
             >
               Uložit
             </button>
@@ -313,7 +313,7 @@ export const SettingsSection: React.FC = () => {
                 Zapomenout
               </button>
             )}
-            <span className={`text-drobne ${ugUlozeno ? 'text-[#30D158]' : 'text-neutral-500'}`}>
+            <span className={`text-drobne ${ugUlozeno ? 'text-uspech' : 'text-neutral-500'}`}>
               {ugUlozeno ? 'přihlášení uloženo' : 'nepřihlášeno'}
             </span>
           </div>

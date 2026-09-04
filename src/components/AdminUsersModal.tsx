@@ -276,12 +276,12 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
         {/* Top Header */}
         <div className="bg-white/[0.03] border-b border-white/[0.08] px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+            <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
               <Shield className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wider">
+                <span className="bg-znacka text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wider">
                   Správa kapely
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">{users.length} aktivních účtů</span>
@@ -310,7 +310,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Users className="w-4 h-4 text-[#FF9F0A]" />
+              <Users className="w-4 h-4 text-znacka" />
               <span>Seznam uživatelů ({users.length})</span>
             </button>
 
@@ -322,7 +322,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <UserPlus className="w-4 h-4 text-[#30D158]" />
+              <UserPlus className="w-4 h-4 text-uspech" />
               <span>Přidat člena & Pozvánka</span>
             </button>
 
@@ -334,14 +334,14 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
               }`}
             >
-              <Key className="w-4 h-4 text-[#0A84FF]" />
+              <Key className="w-4 h-4 text-info" />
               <span>Aktivní pozvánky ({invitations.length})</span>
             </button>
           </div>
 
           <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400">
             <span>Přihlášen:</span>
-            <span className="text-[#FF9F0A] font-semibold">{currentUser.displayName}</span>
+            <span className="text-znacka font-semibold">{currentUser.displayName}</span>
           </div>
         </div>
 
@@ -350,15 +350,15 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
           <div
             className={`px-4 py-2.5 text-xs flex items-center justify-between border-b ${
               notification.type === 'success'
-                ? 'bg-[#30D158]/10 border-[#30D158]/30 text-[#30D158]'
-                : 'bg-[#FF453A]/10 border-[#FF453A]/30 text-[#FF453A]'
+                ? 'bg-uspech/10 border-uspech/30 text-uspech'
+                : 'bg-chyba/10 border-chyba/30 text-chyba'
             }`}
           >
             <div className="flex items-center gap-2">
               {notification.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 text-[#30D158]" />
+                <CheckCircle2 className="w-4 h-4 text-uspech" />
               ) : (
-                <AlertCircle className="w-4 h-4 text-[#FF453A]" />
+                <AlertCircle className="w-4 h-4 text-chyba" />
               )}
               <span className="font-semibold">{notification.text}</span>
             </div>
@@ -384,7 +384,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Hledat podle jména, e-mailu nebo přezdívky..."
-                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white pl-10 pr-3.5 py-2 text-xs focus:outline-none focus:border-[#FF9F0A] transition-colors"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white pl-10 pr-3.5 py-2 text-xs focus:outline-none focus:border-znacka transition-colors"
                   />
                 </div>
 
@@ -393,7 +393,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
-                    className="bg-black/40 border border-white/10 rounded-xl text-white text-xs px-3 py-2 focus:outline-none focus:border-[#FF9F0A] transition-colors cursor-pointer"
+                    className="bg-black/40 border border-white/10 rounded-xl text-white text-xs px-3 py-2 focus:outline-none focus:border-znacka transition-colors cursor-pointer"
                   >
                     <option value="all">Všechny role ({users.length})</option>
                     <option value="admin">Administrátor</option>
@@ -404,7 +404,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                   <button
                     onClick={() => setActiveTab('add')}
-                    className="bg-[#30D158] hover:bg-[#34e260] text-black font-bold px-3.5 py-2 text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md cursor-pointer shrink-0 active:scale-95"
+                    className="bg-uspech hover:bg-[#34e260] text-black font-bold px-3.5 py-2 text-xs rounded-xl flex items-center gap-1.5 transition-all shadow-md cursor-pointer shrink-0 active:scale-95"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Přidat člena</span>
@@ -448,7 +448,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                   <div className="font-semibold text-white flex items-center gap-2">
                                     <span>{u.displayName}</span>
                                     {isPrimaryAdmin && (
-                                      <span className="text-stitek bg-[#FF453A] text-white font-bold px-1.5 py-0.2 rounded uppercase">
+                                      <span className="text-stitek bg-chyba text-white font-bold px-1.5 py-0.2 rounded uppercase">
                                         Superadmin
                                       </span>
                                     )}
@@ -470,10 +470,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                   {roleMeta.label}
                                 </span>
                                 <div className="flex flex-wrap gap-1 text-stitek text-neutral-400">
-                                  {u.permissions.canEditSongs && <span className="text-[#30D158]">✓Edit</span>}
-                                  {u.permissions.canDeleteSongs && <span className="text-[#FF453A]">✓Mazat</span>}
-                                  {u.permissions.canStartBandSession && <span className="text-[#0A84FF]">✓Zkoušky</span>}
-                                  {u.permissions.canManageUsers && <span className="text-[#FF9F0A]">✓Správa</span>}
+                                  {u.permissions.canEditSongs && <span className="text-uspech">✓Edit</span>}
+                                  {u.permissions.canDeleteSongs && <span className="text-chyba">✓Mazat</span>}
+                                  {u.permissions.canStartBandSession && <span className="text-info">✓Zkoušky</span>}
+                                  {u.permissions.canManageUsers && <span className="text-znacka">✓Správa</span>}
                                 </div>
                               </div>
                             </td>
@@ -486,20 +486,20 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             {/* Status */}
                             <td className="py-3.5 px-4">
                               {u.status === 'active' && (
-                                <span className="text-[#30D158] flex items-center gap-1.5 text-xs font-semibold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#30D158]"></span>
+                                <span className="text-uspech flex items-center gap-1.5 text-xs font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-uspech"></span>
                                   Aktivní
                                 </span>
                               )}
                               {u.status === 'invited' && (
-                                <span className="text-[#FF9F0A] flex items-center gap-1.5 text-xs font-semibold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF9F0A] animate-pulse"></span>
+                                <span className="text-znacka flex items-center gap-1.5 text-xs font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-znacka animate-pulse"></span>
                                   Čeká na přihlášení
                                 </span>
                               )}
                               {u.status === 'disabled' && (
-                                <span className="text-[#FF453A] flex items-center gap-1.5 text-xs font-semibold">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-[#FF453A]"></span>
+                                <span className="text-chyba flex items-center gap-1.5 text-xs font-semibold">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-chyba"></span>
                                   Zablokován
                                 </span>
                               )}
@@ -524,7 +524,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                   className="px-2.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-white border border-white/10 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                                   title="Upravit práva a roli"
                                 >
-                                  <Sliders className="w-3.5 h-3.5 text-[#30D158]" />
+                                  <Sliders className="w-3.5 h-3.5 text-uspech" />
                                   <span className="hidden md:inline">Práva</span>
                                 </button>
 
@@ -534,7 +534,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                   className="px-2.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white border border-white/10 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                                   title="Vygenerovat nové heslo"
                                 >
-                                  <Key className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                                  <Key className="w-3.5 h-3.5 text-znacka" />
                                   <span className="hidden md:inline">Heslo</span>
                                 </button>
 
@@ -544,8 +544,8 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                     onClick={() => handleToggleUserStatus(u)}
                                     className={`p-1.5 rounded-xl border text-xs transition-all cursor-pointer ${
                                       u.status === 'disabled'
-                                        ? 'bg-[#30D158]/10 border-[#30D158]/30 text-[#30D158] hover:bg-[#30D158]/20'
-                                        : 'bg-white/[0.06] border-white/10 text-neutral-400 hover:text-[#FF453A] hover:bg-[#FF453A]/10'
+                                        ? 'bg-uspech/10 border-uspech/30 text-uspech hover:bg-uspech/20'
+                                        : 'bg-white/[0.06] border-white/10 text-neutral-400 hover:text-chyba hover:bg-chyba/10'
                                     }`}
                                     title={u.status === 'disabled' ? 'Odblokovat účet' : 'Zablokovat účet'}
                                   >
@@ -557,7 +557,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                 {!isPrimaryAdmin && (
                                   <button
                                     onClick={() => handleDeleteUser(u)}
-                                    className="p-1.5 bg-white/[0.06] hover:bg-[#FF453A]/15 border border-white/10 hover:border-[#FF453A]/30 text-neutral-400 hover:text-[#FF453A] rounded-xl transition-all cursor-pointer"
+                                    className="p-1.5 bg-white/[0.06] hover:bg-chyba/15 border border-white/10 hover:border-chyba/30 text-neutral-400 hover:text-chyba rounded-xl transition-all cursor-pointer"
                                     title="Smazat uživatele"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -583,7 +583,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             <div className="bg-[#1C1C1E]/80 border border-white/[0.08] rounded-2xl p-5 space-y-5 animate-in fade-in duration-150 shadow-sm">
               <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
                 <div className="flex items-center gap-2.5">
-                  <Sliders className="w-4 h-4 text-[#30D158]" />
+                  <Sliders className="w-4 h-4 text-uspech" />
                   <span className="text-white font-semibold text-sm">
                     Úprava práv & role pro: {editingUser.displayName} ({editingUser.email})
                   </span>
@@ -617,14 +617,14 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           }}
                           className={`p-3.5 text-left rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${
                             isSelected
-                              ? 'bg-white/[0.12] border-[#30D158] text-white shadow-md'
+                              ? 'bg-white/[0.12] border-uspech text-white shadow-md'
                               : 'bg-black/40 border-white/[0.08] text-neutral-400 hover:text-white hover:border-white/20'
                           }`}
                         >
                           <div>
                             <div className="text-xs font-bold flex items-center justify-between mb-1">
                               <span>{meta.label}</span>
-                              {isSelected && <Check className="w-4 h-4 text-[#30D158]" />}
+                              {isSelected && <Check className="w-4 h-4 text-uspech" />}
                             </div>
                             <div className="text-drobne text-neutral-400 leading-relaxed">
                               {meta.desc}
@@ -648,7 +648,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         type="checkbox"
                         checked={editPermissions.canEditSongs}
                         onChange={(e) => setEditPermissions({ ...editPermissions, canEditSongs: e.target.checked })}
-                        className="accent-[#30D158] w-4 h-4 rounded"
+                        className="accent-uspech w-4 h-4 rounded"
                       />
                       <span className="text-neutral-200">Upravovat a vytvářet písně ve zpěvníku</span>
                     </label>
@@ -658,7 +658,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         type="checkbox"
                         checked={editPermissions.canDeleteSongs}
                         onChange={(e) => setEditPermissions({ ...editPermissions, canDeleteSongs: e.target.checked })}
-                        className="accent-[#FF453A] w-4 h-4 rounded"
+                        className="accent-chyba w-4 h-4 rounded"
                       />
                       <span className="text-neutral-200">Mazat písně a nahrávky</span>
                     </label>
@@ -668,7 +668,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         type="checkbox"
                         checked={editPermissions.canImportFiles}
                         onChange={(e) => setEditPermissions({ ...editPermissions, canImportFiles: e.target.checked })}
-                        className="accent-[#30D158] w-4 h-4 rounded"
+                        className="accent-uspech w-4 h-4 rounded"
                       />
                       <span className="text-neutral-200">Importovat taby (Guitar Pro, MIDI, PDF)</span>
                     </label>
@@ -678,7 +678,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         type="checkbox"
                         checked={editPermissions.canStartBandSession}
                         onChange={(e) => setEditPermissions({ ...editPermissions, canStartBandSession: e.target.checked })}
-                        className="accent-[#0A84FF] w-4 h-4 rounded"
+                        className="accent-info w-4 h-4 rounded"
                       />
                       <span className="text-neutral-200">Zakládat a ovládat živou zkušebnu kapely</span>
                     </label>
@@ -688,7 +688,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         type="checkbox"
                         checked={editPermissions.canManageSetlists}
                         onChange={(e) => setEditPermissions({ ...editPermissions, canManageSetlists: e.target.checked })}
-                        className="accent-[#30D158] w-4 h-4 rounded"
+                        className="accent-uspech w-4 h-4 rounded"
                       />
                       <span className="text-neutral-200">Spravovat koncertní setlisty</span>
                     </label>
@@ -698,9 +698,9 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         type="checkbox"
                         checked={editPermissions.canManageUsers}
                         onChange={(e) => setEditPermissions({ ...editPermissions, canManageUsers: e.target.checked })}
-                        className="accent-[#FF9F0A] w-4 h-4 rounded"
+                        className="accent-znacka w-4 h-4 rounded"
                       />
-                      <span className="text-[#FF9F0A] font-semibold">Správa uživatelů a hesel (Admin)</span>
+                      <span className="text-znacka font-semibold">Správa uživatelů a hesel (Admin)</span>
                     </label>
 
                   </div>
@@ -716,7 +716,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-[#30D158] hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    className="px-5 py-2.5 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <Check className="w-4 h-4" />
                     <span>Uložit oprávnění</span>
@@ -735,7 +735,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               <div className="lg:col-span-7 space-y-4 bg-[#1C1C1E]/80 p-5 rounded-2xl border border-white/[0.08] shadow-sm">
                 <div className="border-b border-white/[0.06] pb-3">
                   <h3 className="text-white font-bold text-sm flex items-center gap-2">
-                    <UserPlus className="w-4 h-4 text-[#30D158]" />
+                    <UserPlus className="w-4 h-4 text-uspech" />
                     <span>Nový uživatel a vygenerování pozvánky</span>
                   </h3>
                   <p className="text-xs text-neutral-400 mt-1">
@@ -757,7 +757,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setNewName(e.target.value)}
                         placeholder="např. Honza Novák"
                         required
-                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-uspech transition-colors"
                       />
                     </div>
 
@@ -771,7 +771,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setNewEmail(e.target.value)}
                         placeholder="honzanovak@email.cz"
                         required
-                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-uspech transition-colors"
                       />
                     </div>
                   </div>
@@ -787,7 +787,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         value={newInstrument}
                         onChange={(e) => setNewInstrument(e.target.value)}
                         placeholder="Kytara, Baskytara, Bicí, Klávesy..."
-                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-uspech transition-colors"
                       />
                     </div>
 
@@ -800,7 +800,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         value={newUsername}
                         onChange={(e) => setNewUsername(e.target.value)}
                         placeholder="např. honza88"
-                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-uspech transition-colors"
                       />
                     </div>
                   </div>
@@ -821,7 +821,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             onClick={() => setNewRole(r)}
                             className={`p-3 text-left rounded-xl border transition-all cursor-pointer ${
                               isSelected
-                                ? 'bg-white/[0.12] border-[#30D158] text-white shadow-sm'
+                                ? 'bg-white/[0.12] border-uspech text-white shadow-sm'
                                 : 'bg-black/40 border-white/[0.08] text-neutral-400 hover:text-white'
                             }`}
                           >
@@ -837,7 +837,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   <div className="bg-black/40 p-3.5 rounded-2xl border border-white/[0.08] space-y-2">
                     <div className="text-xs font-semibold text-neutral-300 flex items-center justify-between">
                       <span>Pravidla & Oprávnění pro tuto pozvánku:</span>
-                      <span className="text-drobne text-[#30D158] font-bold">Role: {ROLE_LABELS[newRole].label}</span>
+                      <span className="text-drobne text-uspech font-bold">Role: {ROLE_LABELS[newRole].label}</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 text-xs">
                       <label className="flex items-center gap-2.5 cursor-pointer">
@@ -845,7 +845,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           type="checkbox"
                           checked={customPermissions.canEditSongs}
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canEditSongs: e.target.checked })}
-                          className="accent-[#30D158] rounded"
+                          className="accent-uspech rounded"
                         />
                         <span className="text-neutral-300">Vytvářet & upravovat písně</span>
                       </label>
@@ -854,7 +854,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           type="checkbox"
                           checked={customPermissions.canDeleteSongs}
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canDeleteSongs: e.target.checked })}
-                          className="accent-[#FF453A] rounded"
+                          className="accent-chyba rounded"
                         />
                         <span className="text-neutral-300">Mazat písně a nahrávky</span>
                       </label>
@@ -863,7 +863,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           type="checkbox"
                           checked={customPermissions.canStartBandSession}
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canStartBandSession: e.target.checked })}
-                          className="accent-[#0A84FF] rounded"
+                          className="accent-info rounded"
                         />
                         <span className="text-neutral-300">Řídit zkoušky kapely</span>
                       </label>
@@ -872,9 +872,9 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           type="checkbox"
                           checked={customPermissions.canManageUsers}
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canManageUsers: e.target.checked })}
-                          className="accent-[#FF9F0A] rounded"
+                          className="accent-znacka rounded"
                         />
-                        <span className="text-[#FF9F0A] font-semibold">Správa uživatelů (Admin)</span>
+                        <span className="text-znacka font-semibold">Správa uživatelů (Admin)</span>
                       </label>
                     </div>
                   </div>
@@ -892,7 +892,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             name="passOption"
                             checked={useAutoPassword}
                             onChange={() => setUseAutoPassword(true)}
-                            className="accent-[#30D158]"
+                            className="accent-uspech"
                           />
                           <span>Vygenerovat</span>
                         </label>
@@ -902,7 +902,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             name="passOption"
                             checked={!useAutoPassword}
                             onChange={() => setUseAutoPassword(false)}
-                            className="accent-[#30D158]"
+                            className="accent-uspech"
                           />
                           <span>Vlastní</span>
                         </label>
@@ -915,7 +915,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         value={customPassword}
                         onChange={(e) => setCustomPassword(e.target.value)}
                         placeholder="Zadejte heslo (např. Kapela2026!)..."
-                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-[#30D158] transition-colors"
+                        className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3.5 py-2 text-xs focus:outline-none focus:border-uspech transition-colors"
                       />
                     )}
                   </div>
@@ -923,7 +923,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   {/* Submit Button */}
                   <button
                     type="submit"
-                    className="w-full bg-[#30D158] hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                    className="w-full bg-uspech hover:bg-[#34e260] text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>Vytvořit účet a generovat pozvánku</span>
@@ -935,13 +935,13 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               {/* Right Column: Freshly Generated Invite Card & Dispatch */}
               <div className="lg:col-span-5 space-y-4">
                 {lastCreatedInvite ? (
-                  <div className="bg-[#1C1C1E]/90 border border-[#30D158]/40 rounded-2xl p-5 space-y-4 animate-in fade-in duration-200 shadow-xl">
+                  <div className="bg-[#1C1C1E]/90 border border-uspech/40 rounded-2xl p-5 space-y-4 animate-in fade-in duration-200 shadow-xl">
                     <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                      <div className="flex items-center gap-2 text-[#30D158] font-bold text-xs uppercase">
+                      <div className="flex items-center gap-2 text-uspech font-bold text-xs uppercase">
                         <Sparkles className="w-4 h-4" />
                         <span>Pozvánka připravena</span>
                       </div>
-                      <span className="text-stitek bg-[#30D158] text-black px-2 py-0.5 rounded-md font-bold uppercase">
+                      <span className="text-stitek bg-uspech text-black px-2 py-0.5 rounded-md font-bold uppercase">
                         Aktivní
                       </span>
                     </div>
@@ -958,7 +958,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       </div>
                       <div className="flex justify-between items-center text-neutral-400">
                         <span>Role:</span>
-                        <span className="font-semibold text-[#30D158]">{ROLE_LABELS[lastCreatedInvite.user.role].label}</span>
+                        <span className="font-semibold text-uspech">{ROLE_LABELS[lastCreatedInvite.user.role].label}</span>
                       </div>
                       {/* Odkaz místo hesla: platí jednou a vyprší. Heslo
                           se ukáže jen tehdy, když odkaz nešlo vyrobit —
@@ -970,7 +970,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             readOnly
                             value={lastCreatedInvite.invitation.odkazNaHeslo}
                             onFocus={(e) => e.currentTarget.select()}
-                            className="w-full font-mono text-stitek text-[#30D158] bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
+                            className="w-full font-mono text-stitek text-uspech bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
                           />
                           <span className="text-stitek text-neutral-500">
                             Platí jednou a po čase vyprší. Heslo si pozvaný nastaví sám.
@@ -979,7 +979,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       ) : (
                         <div className="flex justify-between items-center text-neutral-400 pt-1.5 border-t border-white/[0.06]">
                           <span>Dočasné heslo:</span>
-                          <span className="font-mono font-bold text-[#FF9F0A] text-sm bg-white/[0.08] px-2 py-0.5 rounded-lg border border-white/10">
+                          <span className="font-mono font-bold text-znacka text-sm bg-white/[0.08] px-2 py-0.5 rounded-lg border border-white/10">
                             {lastCreatedInvite.invitation.temporaryPassword}
                           </span>
                         </div>
@@ -1011,12 +1011,12 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       >
                         {copiedKey === 'last_invite' ? (
                           <>
-                            <Check className="w-4 h-4 text-[#30D158]" />
-                            <span className="text-[#30D158]">Zkopírováno do schránky!</span>
+                            <Check className="w-4 h-4 text-uspech" />
+                            <span className="text-uspech">Zkopírováno do schránky!</span>
                           </>
                         ) : (
                           <>
-                            <Copy className="w-4 h-4 text-[#30D158]" />
+                            <Copy className="w-4 h-4 text-uspech" />
                             <span>Kopírovat text pozvánky (WhatsApp)</span>
                           </>
                         )}
@@ -1029,7 +1029,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             getInviteFormattedText(lastCreatedInvite.invitation),
                           )
                         }
-                        className="w-full bg-[#30D158] hover:bg-[#34e260] text-black py-2.5 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+                        className="w-full bg-uspech hover:bg-[#34e260] text-black py-2.5 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
                       >
                         <Mail className="w-4 h-4" />
                         <span>Odeslat pozvánku e-mailem</span>
@@ -1059,7 +1059,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               <div className="bg-[#1C1C1E]/80 p-4 rounded-2xl border border-white/[0.08] flex items-center justify-between">
                 <div>
                   <h3 className="text-white font-bold text-xs flex items-center gap-2">
-                    <Key className="w-4 h-4 text-[#0A84FF]" />
+                    <Key className="w-4 h-4 text-info" />
                     <span>Přehled všech vygenerovaných pozvánek a hesel</span>
                   </h3>
                   <p className="text-xs text-neutral-400 mt-0.5">
@@ -1116,8 +1116,8 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         >
                           {copiedKey === `inv_${inv.id}` ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-[#30D158]" />
-                              <span className="text-[#30D158]">Zkopírováno!</span>
+                              <Check className="w-3.5 h-3.5 text-uspech" />
+                              <span className="text-uspech">Zkopírováno!</span>
                             </>
                           ) : (
                             <>
@@ -1132,7 +1132,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             const text = await textSCerstvymOdkazem(inv);
                             if (text) otevriMail(inv, text);
                           }}
-                          className="bg-[#30D158] hover:bg-[#34e260] text-black px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
+                          className="bg-uspech hover:bg-[#34e260] text-black px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer active:scale-95 shadow-sm"
                           title="Odeslat e-mailem"
                         >
                           <Send className="w-3.5 h-3.5" />
@@ -1177,7 +1177,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
         {/* Footer */}
         <div className="bg-white/[0.02] border-t border-white/[0.08] px-6 py-3.5 flex items-center justify-between text-xs text-neutral-400">
           <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#FF9F0A]" />
+            <Shield className="w-4 h-4 text-znacka" />
             <span>Administrátor má oprávnění měnit pravidla a spravovat celou kapelu</span>
           </div>
           <button

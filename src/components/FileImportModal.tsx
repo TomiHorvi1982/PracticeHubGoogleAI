@@ -117,7 +117,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
 
         {/* Modal Title */}
         <div className="flex items-center gap-3.5 mb-5 pb-4 border-b border-white/5">
-          <div className="p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+          <div className="p-3 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
             <FileUp className="w-6 h-6" />
           </div>
           <div>
@@ -141,7 +141,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all cursor-pointer relative ${
               isDragging
-                ? 'border-[#30D158] bg-[#30D158]/10'
+                ? 'border-uspech bg-uspech/10'
                 : 'border-white/10 hover:border-white/20 bg-black/30'
             }`}
           >
@@ -154,19 +154,19 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
 
             {isProcessing ? (
               <div className="py-6 flex flex-col items-center gap-3">
-                <Disc className="w-8 h-8 text-[#30D158] animate-spin" />
-                <span className="text-xs font-bold text-[#30D158] uppercase tracking-wider">
+                <Disc className="w-8 h-8 text-uspech animate-spin" />
+                <span className="text-xs font-bold text-uspech uppercase tracking-wider">
                   Zpracovávám a analyzuji soubor...
                 </span>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
                 <div className="flex items-center justify-center gap-3 text-neutral-400">
-                  <FileSpreadsheet className="w-6 h-6 text-[#FF9F0A]" />
-                  <FileTextIcon className="w-6 h-6 text-[#FF453A]" />
-                  <Layers className="w-6 h-6 text-[#30D158]" />
+                  <FileSpreadsheet className="w-6 h-6 text-znacka" />
+                  <FileTextIcon className="w-6 h-6 text-chyba" />
+                  <Layers className="w-6 h-6 text-uspech" />
                   <ImageIcon className="w-6 h-6 text-[#FF375F]" />
-                  <Music2 className="w-6 h-6 text-[#0A84FF]" />
+                  <Music2 className="w-6 h-6 text-info" />
                 </div>
 
                 <div>
@@ -189,8 +189,8 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
           <div className="space-y-4 bg-black/40 p-5 rounded-2xl border border-white/10">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <div className="flex items-center gap-2">
-                <CheckCircle className="w-4 h-4 text-[#30D158]" />
-                <span className="text-xs font-bold text-[#30D158]">
+                <CheckCircle className="w-4 h-4 text-uspech" />
+                <span className="text-xs font-bold text-uspech">
                   Soubor byl úspěšně načten
                 </span>
               </div>
@@ -212,7 +212,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                       song: { ...importResult.song, title: e.target.value },
                     })
                   }
-                  className="bez-sipek w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-[#30D158] outline-none"
+                  className="bez-sipek w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-uspech outline-none"
                 />
               </div>
 
@@ -227,7 +227,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                       song: { ...importResult.song, artist: e.target.value },
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-[#30D158] outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-uspech outline-none"
                 />
               </div>
 
@@ -242,7 +242,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                       song: { ...importResult.song, key: e.target.value },
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-[#30D158] outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-uspech outline-none"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                       song: { ...importResult.song, bpm: Number(e.target.value) },
                     })
                   }
-                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-[#30D158] outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-white font-medium focus:border-uspech outline-none"
                 />
               </div>
             </div>
@@ -282,7 +282,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
               </button>
               <button
                 onClick={handleConfirmImport}
-                className="flex-1 py-2.5 bg-[#30D158] hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                className="flex-1 py-2.5 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
               >
                 <ArrowRight className="w-4 h-4" /> Uložit a importovat
               </button>

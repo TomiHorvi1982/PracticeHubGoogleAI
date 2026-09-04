@@ -52,7 +52,7 @@ export const KytaraFader: React.FC<{
           <button
             onClick={() => (stav.bezi ? kytaraKanal.stop() : void kytaraKanal.start())}
             className={`flex-1 px-2 py-1.5 rounded-lg text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer ${
-              stav.bezi ? 'bg-[#30D158] text-black' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
+              stav.bezi ? 'bg-uspech text-black' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
             }`}
           >
             {stav.bezi ? <Mic className="w-3 h-3" /> : <MicOff className="w-3 h-3" />}
@@ -63,7 +63,7 @@ export const KytaraFader: React.FC<{
             onClick={() => kytaraKanal.nastav({ odposlech: !stav.odposlech })}
             disabled={!stav.bezi}
             className={`px-2 py-1.5 rounded-lg cursor-pointer disabled:opacity-30 ${
-              stav.odposlech ? 'bg-[#FF9F0A] text-black' : 'bg-white/[0.06] text-neutral-400 hover:text-white'
+              stav.odposlech ? 'bg-znacka text-black' : 'bg-white/[0.06] text-neutral-400 hover:text-white'
             }`}
             title="Poslouchat sám sebe. Jen do sluchátek — z beden se to rozeřve zpětnou vazbou."
           >
@@ -72,7 +72,7 @@ export const KytaraFader: React.FC<{
         </div>
 
         {stav.odposlech && (
-          <p className="text-stitek text-[#FF9F0A] flex items-start gap-1">
+          <p className="text-stitek text-znacka flex items-start gap-1">
             <AlertTriangle className="w-3 h-3 shrink-0 mt-px" />
             Odposlech jen do sluchátek.
           </p>
@@ -91,7 +91,7 @@ export const KytaraFader: React.FC<{
               }}
               disabled={!stav.bezi}
               className={`w-full px-2 py-1.5 rounded-lg text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-30 ${
-                stav.nahrava ? 'bg-[#FF453A] text-white' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
+                stav.nahrava ? 'bg-chyba text-white' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
               }`}
             >
               {stav.nahrava ? <Square className="w-3 h-3 fill-current" /> : <Circle className="w-3 h-3 fill-current" />}
@@ -103,7 +103,7 @@ export const KytaraFader: React.FC<{
                 {onNahravka && (
                   <button
                     onClick={() => vezmiNahravku(onNahravka)}
-                    className="flex-1 px-2 py-1.5 rounded-lg bg-[#0A84FF] text-white text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer"
+                    className="flex-1 px-2 py-1.5 rounded-lg bg-info text-white text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer"
                     title="Načíst do přehrávače a poslechnout si to ve smyčce"
                   >
                     <Play className="w-3 h-3" /> Poslechnout
@@ -132,7 +132,7 @@ export const KytaraFader: React.FC<{
           </>
         )}
 
-        {stav.chyba && <p className="text-stitek text-[#FF453A]">{stav.chyba}</p>}
+        {stav.chyba && <p className="text-stitek text-chyba">{stav.chyba}</p>}
       </div>
     </FaderKanalu>
   );

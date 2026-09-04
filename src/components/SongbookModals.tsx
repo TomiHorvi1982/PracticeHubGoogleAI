@@ -51,7 +51,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
       <div className="bg-[#1C1C1E] border border-white/15 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2">
-            <ListPlus className="w-5 h-5 text-[#FF9F0A]" />
+            <ListPlus className="w-5 h-5 text-znacka" />
             <h3 className="font-bold text-sm text-white">Přidat skladbu do playlistu</h3>
           </div>
           <button onClick={onClose} className="text-neutral-400 hover:text-white">
@@ -67,10 +67,10 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
         {/* Global Player Quick Add */}
         <button
           onClick={handleAddGlobalAudio}
-          className="w-full p-3 bg-[#FF9F0A]/15 hover:bg-[#FF9F0A]/25 border border-[#FF9F0A]/30 text-white rounded-2xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
+          className="w-full p-3 bg-znacka/15 hover:bg-znacka/25 border border-znacka/30 text-white rounded-2xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
         >
           <span>🎵 Hlavní Audio Přehrávač</span>
-          <Plus className="w-4 h-4 text-[#FF9F0A]" />
+          <Plus className="w-4 h-4 text-znacka" />
         </button>
 
         {/* Local Setlists List */}
@@ -97,12 +97,12 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
                     }}
                     className={`w-full p-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                       isIncluded
-                        ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+                        ? 'bg-uspech/15 border-uspech/40 text-uspech'
                         : 'bg-white/[0.04] border-white/[0.08] text-white hover:bg-white/[0.08]'
                     }`}
                   >
                     <span>{pl.name}</span>
-                    {isIncluded ? <Check className="w-4 h-4 text-[#30D158]" /> : <Plus className="w-4 h-4 text-neutral-400" />}
+                    {isIncluded ? <Check className="w-4 h-4 text-uspech" /> : <Plus className="w-4 h-4 text-neutral-400" />}
                   </button>
                 );
               })}
@@ -117,12 +117,12 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
               placeholder="Název nového playlistu..."
               value={newPlName}
               onChange={(e) => setNewPlName(e.target.value)}
-              className="flex-1 bg-black/60 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-[#FF9F0A]"
+              className="flex-1 bg-black/60 border border-white/15 rounded-xl px-3 py-1.5 text-xs text-white outline-none focus:border-znacka"
               autoFocus
             />
             <button
               type="submit"
-              className="px-3 py-1.5 bg-[#FF9F0A] text-black font-bold text-xs rounded-xl cursor-pointer"
+              className="px-3 py-1.5 bg-znacka text-black font-bold text-xs rounded-xl cursor-pointer"
             >
               Vytvořit
             </button>
@@ -132,7 +132,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
             onClick={() => setShowNewInput(true)}
             className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 hover:text-white rounded-xl text-xs font-medium flex items-center justify-center gap-1 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-[#FF9F0A]" /> Vytvořit nový playlist
+            <Plus className="w-3.5 h-3.5 text-znacka" /> Vytvořit nový playlist
           </button>
         )}
 

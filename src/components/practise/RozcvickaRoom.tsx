@@ -79,7 +79,7 @@ export const RozcvickaRoom: React.FC = () => {
   return (
     <div className="space-y-4">
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 flex flex-wrap items-center gap-3">
-        <Flame className="w-5 h-5 text-[#FF9F0A]" />
+        <Flame className="w-5 h-5 text-znacka" />
         <div className="flex-1 min-w-[200px]">
           <h3 className="text-sm font-bold text-white">Rozcvička před hraním</h3>
           <p className="text-drobne text-neutral-400">
@@ -88,7 +88,7 @@ export const RozcvickaRoom: React.FC = () => {
           </p>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-[#30D158] tabular-nums">
+          <div className="text-lg font-bold text-uspech tabular-nums">
             {hotove.size}/{celkem}
           </div>
           <button
@@ -102,9 +102,9 @@ export const RozcvickaRoom: React.FC = () => {
 
       {/* Právě běžící cvik */}
       {bezici && (
-        <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/40 rounded-2xl p-4 space-y-2">
+        <div className="bg-znacka/10 border border-znacka/40 rounded-2xl p-4 space-y-2">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-3xl font-black text-[#FF9F0A] tabular-nums w-16">{zbyva}</span>
+            <span className="text-3xl font-black text-znacka tabular-nums w-16">{zbyva}</span>
             <div className="flex-1 min-w-[180px]">
               <div className="text-sm font-bold text-white">{bezici.nazev}</div>
               <div className="text-drobne text-neutral-300">{bezici.pozor}</div>
@@ -121,9 +121,9 @@ export const RozcvickaRoom: React.FC = () => {
                     setBpm(t);
                     metronomService.start(t);
                   }}
-                  className="w-28 accent-[#FF9F0A] cursor-pointer"
+                  className="w-28 accent-znacka cursor-pointer"
                 />
-                <span className="text-sm font-mono font-bold text-[#FF9F0A] w-14 tabular-nums">
+                <span className="text-sm font-mono font-bold text-znacka w-14 tabular-nums">
                   {bpm}
                 </span>
               </div>
@@ -142,7 +142,7 @@ export const RozcvickaRoom: React.FC = () => {
                 <div
                   key={i}
                   className={`flex-1 h-7 rounded ${
-                    zni ? 'bg-[#FF9F0A]' : 'bg-white/[0.06]'
+                    zni ? 'bg-znacka' : 'bg-white/[0.06]'
                   } ${i % 4 === 0 ? 'ring-1 ring-white/25' : ''}`}
                   title={`${Math.floor(i / 4) + 1}. doba`}
                 />
@@ -167,7 +167,7 @@ export const RozcvickaRoom: React.FC = () => {
                 <div
                   key={c.id}
                   className={`flex flex-wrap items-center gap-2 rounded-xl px-3 py-2 ${
-                    je ? 'bg-[#30D158]/10 border border-[#30D158]/25' : 'bg-white/[0.03]'
+                    je ? 'bg-uspech/10 border border-uspech/25' : 'bg-white/[0.03]'
                   }`}
                 >
                   <button
@@ -177,7 +177,7 @@ export const RozcvickaRoom: React.FC = () => {
                       uloz(n);
                     }}
                     className={`w-5 h-5 rounded-md shrink-0 flex items-center justify-center cursor-pointer ${
-                      je ? 'bg-[#30D158] text-black' : 'border border-white/20'
+                      je ? 'bg-uspech text-black' : 'border border-white/20'
                     }`}
                     title={je ? 'Odškrtnout' : 'Označit jako hotové'}
                   >

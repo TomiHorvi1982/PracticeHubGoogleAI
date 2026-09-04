@@ -109,7 +109,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
           className={`rounded-2xl border p-3 text-drobne flex items-start gap-2 ${
             moznosti.odesilaVen
               ? 'bg-amber-500/[0.08] border-amber-500/30 text-amber-200'
-              : 'bg-[#30D158]/[0.06] border-[#30D158]/30 text-[#30D158]'
+              : 'bg-uspech/[0.06] border-uspech/30 text-uspech'
           }`}
         >
           {moznosti.odesilaVen ? <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" /> : <Check className="w-4 h-4 mt-0.5 shrink-0" />}
@@ -126,7 +126,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
         <button
           onClick={() => (bezi ? zastav() : void zacni())}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer ${
-            bezi ? 'bg-[#FF453A] text-white' : 'bg-[#BF5AF2] text-white hover:bg-[#c96ff5]'
+            bezi ? 'bg-chyba text-white' : 'bg-nastroj text-white hover:bg-[#c96ff5]'
           }`}
         >
           {bezi ? <Square className="w-3.5 h-3.5" /> : <Mic className="w-3.5 h-3.5" />}
@@ -143,7 +143,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
           title="Číst překlad anglicky nahlas"
           className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border cursor-pointer ${
             cistNahlas
-              ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+              ? 'bg-uspech/15 border-uspech/40 text-uspech'
               : 'bg-white/[0.06] border-white/10 text-neutral-300'
           }`}
         >
@@ -164,7 +164,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
       </div>
 
       {chyba && (
-        <p className="text-drobne text-[#FF453A]">{chyba}</p>
+        <p className="text-drobne text-chyba">{chyba}</p>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -174,7 +174,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
             {cesky && (
               <button
                 onClick={() => onVlozit(cesky)}
-                className="text-drobne text-[#BF5AF2] hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-drobne text-nastroj hover:text-white flex items-center gap-1 cursor-pointer"
               >
                 <CornerDownLeft className="w-3 h-3" /> Vložit do textu
               </button>
@@ -185,7 +185,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
             onChange={(e) => setCesky(e.target.value)}
             onBlur={() => void prelozVse(cesky, false)}
             placeholder={bezi ? 'Poslouchám — zpívej nebo mluv…' : 'Zatím nic. Zmáčkni „Začít diktovat".'}
-            className="w-full h-48 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs leading-relaxed resize-none outline-none focus:border-[#BF5AF2]"
+            className="w-full h-48 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs leading-relaxed resize-none outline-none focus:border-nastroj"
           />
         </div>
 
@@ -195,7 +195,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
             {anglicky && (
               <button
                 onClick={() => void prectiAnglicky(anglicky)}
-                className="text-drobne text-[#30D158] hover:text-white flex items-center gap-1 cursor-pointer"
+                className="text-drobne text-uspech hover:text-white flex items-center gap-1 cursor-pointer"
               >
                 <Volume2 className="w-3 h-3" /> Přečíst
               </button>

@@ -197,7 +197,7 @@ export const Podium: React.FC<Props> = ({
         onClick={spust}
         disabled={!aktivni}
         className={`rounded-2xl font-bold flex items-center justify-center cursor-pointer transition-all disabled:opacity-30 ${
-          hraje ? 'bg-[#30D158] text-black' : 'bg-[#FF9F0A] text-black hover:bg-[#FF9F0A]/85'
+          hraje ? 'bg-uspech text-black' : 'bg-znacka text-black hover:bg-znacka/85'
         } ${velke ? 'w-20 h-20' : 'w-11 h-11'}`}
         title={hraje ? 'Zastavit' : `Spustit s odpočtem ${TAKTY_ODPOCTU} taktů`}
       >
@@ -251,7 +251,7 @@ export const Podium: React.FC<Props> = ({
               key={s.id}
               className={`flex items-center rounded-xl border transition-all min-w-0 ${
                 je
-                  ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                  ? 'bg-znacka/20 border-znacka'
                   : 'bg-black/30 border-white/[0.08] hover:border-white/25'
               }`}
             >
@@ -277,7 +277,7 @@ export const Podium: React.FC<Props> = ({
                     {s.bpm ? <span className="font-mono tabular-nums shrink-0">{s.bpm}</span> : null}
                     {/* Fajfka říká, že u téhle písně už je naklikáno, co
                         chceš vidět — před zkouškou je vidět, co ještě chybí. */}
-                    {nastavene.has(s.id) && <Check className="w-2.5 h-2.5 text-[#30D158] shrink-0" />}
+                    {nastavene.has(s.id) && <Check className="w-2.5 h-2.5 text-uspech shrink-0" />}
                   </span>
                 </span>
               </button>
@@ -285,7 +285,7 @@ export const Podium: React.FC<Props> = ({
               {onOdebratZeSetu && playlist && (
                 <button
                   onClick={() => onOdebratZeSetu(playlist.id, s)}
-                  className="p-1.5 rounded-lg text-neutral-600 hover:text-[#FF453A] hover:bg-[#FF453A]/10 cursor-pointer shrink-0 transition-all"
+                  className="p-1.5 rounded-lg text-neutral-600 hover:text-chyba hover:bg-chyba/10 cursor-pointer shrink-0 transition-all"
                   title={`Odebrat „${s.title}" ze setu`}
                   aria-label={`Odebrat ${s.title} ze setu`}
                 >
@@ -309,12 +309,12 @@ export const Podium: React.FC<Props> = ({
         >
           {seznamOtevreny ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
-        <ListMusic className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+        <ListMusic className="w-4 h-4 text-znacka shrink-0" />
         {playlists.length > 1 ? (
           <select
             value={playlistId}
             onChange={(e) => vyberPlaylist(e.target.value)}
-            className="bg-black/50 border border-white/10 text-white text-drobne font-semibold rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer"
+            className="bg-black/50 border border-white/10 text-white text-drobne font-semibold rounded-lg px-2 py-1 outline-none focus:border-znacka cursor-pointer"
           >
             {playlists.map((p) => (
               <option key={p.id} value={p.id}>
@@ -333,7 +333,7 @@ export const Podium: React.FC<Props> = ({
 
       <button
         onClick={() => setNaCelou((v) => !v)}
-        className="px-3 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+        className="px-3 py-1.5 bg-znacka hover:bg-znacka/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
       >
         {naCelou ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
         <span>{naCelou ? 'Zavřít pódiový režim' : 'Pódiový režim'}</span>
@@ -346,7 +346,7 @@ export const Podium: React.FC<Props> = ({
       <div className="fixed inset-0 z-[100] bg-[#0E0E12] text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+            <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
               Pódiový režim
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5 truncate">
@@ -359,7 +359,7 @@ export const Podium: React.FC<Props> = ({
           <div className="flex flex-col items-center gap-2">
             {ovladani(true)}
             {odpocet !== null && (
-              <span className="text-stitek uppercase tracking-widest text-[#FF9F0A]">
+              <span className="text-stitek uppercase tracking-widest text-znacka">
                 Nádech — {Math.ceil((odpocet + 1) / DOB_V_TAKTU)}. takt
               </span>
             )}
@@ -389,7 +389,7 @@ export const Podium: React.FC<Props> = ({
 
       <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-white/[0.08]">
         <div className="flex items-center gap-2.5 min-w-0">
-          <Music2 className="w-5 h-5 text-[#FF9F0A] shrink-0" />
+          <Music2 className="w-5 h-5 text-znacka shrink-0" />
           <div className="min-w-0">
             <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight truncate">
               {aktivni?.title || 'Vyber skladbu z playlistu'}
@@ -399,12 +399,12 @@ export const Podium: React.FC<Props> = ({
 
           {mimoSet && onPridatDoSetu && (
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-stitek font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/12 border border-[#FF9F0A]/30 px-2 py-0.5 rounded-lg">
+              <span className="text-stitek font-bold uppercase tracking-wider text-znacka bg-znacka/12 border border-znacka/30 px-2 py-0.5 rounded-lg">
                 Není v setu
               </span>
               <button
                 onClick={() => aktivni && onPridatDoSetu(aktivni)}
-                className="px-2 py-1 rounded-lg text-stitek font-bold bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
+                className="px-2 py-1 rounded-lg text-stitek font-bold bg-uspech/15 text-uspech hover:bg-uspech/30 cursor-pointer transition-all"
               >
                 Přidat
               </button>

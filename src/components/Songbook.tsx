@@ -450,9 +450,9 @@ export const Songbook: React.FC<SongbookProps> = ({
 
       {/* Success / Toast Banner */}
       {toastMsg && (
-        <div className="bg-[#30D158]/15 border border-[#30D158]/30 rounded-2xl px-4 py-2.5 text-xs text-[#30D158] flex items-center justify-between shadow-md">
+        <div className="bg-uspech/15 border border-uspech/30 rounded-2xl px-4 py-2.5 text-xs text-uspech flex items-center justify-between shadow-md">
           <span>{toastMsg}</span>
-          <button onClick={() => setToastMsg(null)} className="text-white hover:text-[#30D158]">
+          <button onClick={() => setToastMsg(null)} className="text-white hover:text-uspech">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -477,9 +477,9 @@ export const Songbook: React.FC<SongbookProps> = ({
           }`}
         >
         {levaOtevrena ? (
-        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-[#FF9F0A]/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
+        <div className="bg-[#16161A]/60 backdrop-blur-xl border border-znacka/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
           <div className="flex items-center gap-2">
-            <Globe className="w-4 h-4 text-[#FF9F0A]" />
+            <Globe className="w-4 h-4 text-znacka" />
             <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
               Objevit novou skladbu
             </h2>
@@ -540,9 +540,9 @@ export const Songbook: React.FC<SongbookProps> = ({
         ) : (
           <button
             onClick={() => setLevaOtevrena(true)}
-            className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#16161A]/60 border border-[#FF9F0A]/20 rounded-3xl text-left cursor-pointer hover:border-[#FF9F0A]/40 transition-all"
+            className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#16161A]/60 border border-znacka/20 rounded-3xl text-left cursor-pointer hover:border-znacka/40 transition-all"
           >
-            <Globe className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+            <Globe className="w-4 h-4 text-znacka shrink-0" />
             <span className="text-drobne font-bold text-neutral-300 uppercase tracking-wider">
               Objevit novou skladbu
             </span>
@@ -556,7 +556,7 @@ export const Songbook: React.FC<SongbookProps> = ({
           <div className="space-y-3 shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#FF9F0A]" />
+                <BookOpen className="w-4 h-4 text-znacka" />
                 <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
                   Moje skladby ({filteredSongs.length})
                 </h2>
@@ -579,7 +579,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                 placeholder="Hledat ve svých skladbách…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
+                className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-znacka/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
               />
             </div>
 
@@ -636,7 +636,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             onClick={() => setPravaOtevrena(true)}
             className="w-full flex items-center gap-2 px-4 py-2.5 bg-[#16161A]/80 border border-white/[0.08] rounded-3xl text-left cursor-pointer hover:border-white/20 transition-all"
           >
-            <BookOpen className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+            <BookOpen className="w-4 h-4 text-znacka shrink-0" />
             <span className="text-drobne font-bold text-neutral-300 uppercase tracking-wider">
               Moje skladby ({songs.length})
             </span>
@@ -665,7 +665,7 @@ export const Songbook: React.FC<SongbookProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="bg-[#1C1C1E] border border-white/15 text-white max-w-2xl w-full p-6 rounded-3xl shadow-2xl">
             <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-3">
-              <Music className="w-5 h-5 text-[#FF9F0A]" /> Vložit novou skladbu
+              <Music className="w-5 h-5 text-znacka" /> Vložit novou skladbu
             </h3>
 
             <div className="space-y-4 text-xs">
@@ -677,7 +677,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     placeholder="Např. Stánky"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-[#FF9F0A] outline-none"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-znacka outline-none"
                   />
                 </div>
                 <div>
@@ -687,7 +687,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                     value={editArtist}
                     onChange={(e) => setEditArtist(e.target.value)}
                     placeholder="Nedvědi"
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-[#FF9F0A] outline-none"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-znacka outline-none"
                   />
                 </div>
               </div>
@@ -701,7 +701,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                         setEditTuning(e.target.value);
                       }
                     }}
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:border-[#FF9F0A] outline-none"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white text-xs focus:border-znacka outline-none"
                     value={TUNING_PRESETS.some((t) => t.name === editTuning) ? editTuning : ''}
                   >
                     <option value="">-- Vyberte předvolbu --</option>
@@ -717,7 +717,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                     value={editTuning}
                     onChange={(e) => setEditTuning(e.target.value)}
                     placeholder="Např. Standard (EADGBe)..."
-                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-[#FF9F0A] outline-none"
+                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-white focus:border-znacka outline-none"
                   />
                 </div>
               </div>
@@ -730,7 +730,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                   rows={8}
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  className="w-full bg-black/60 border border-white/10 rounded-2xl p-3 text-xs font-mono text-white focus:border-[#FF9F0A] outline-none"
+                  className="w-full bg-black/60 border border-white/10 rounded-2xl p-3 text-xs font-mono text-white focus:border-znacka outline-none"
                 ></textarea>
               </div>
 
@@ -743,7 +743,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                 </button>
                 <button
                   onClick={handleCreateSong}
-                  className="px-4 py-2 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-semibold rounded-xl cursor-pointer shadow-md"
+                  className="px-4 py-2 bg-znacka hover:bg-znacka/90 text-black text-xs font-semibold rounded-xl cursor-pointer shadow-md"
                 >
                   Uložit skladbu
                 </button>

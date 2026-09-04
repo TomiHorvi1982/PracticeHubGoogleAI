@@ -77,8 +77,8 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
         onClick={handleClick}
         className={`inline-block font-semibold px-2.5 py-0.5 mx-0.5 cursor-pointer rounded-lg border transition-all select-none shadow-sm ${
           isActiveLine
-            ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] scale-105 shadow-md z-10 font-bold'
-            : 'bg-white/10 text-white hover:bg-[#FF9F0A] hover:text-black border-white/15'
+            ? 'bg-znacka text-black border-znacka scale-105 shadow-md z-10 font-bold'
+            : 'bg-white/10 text-white hover:bg-znacka hover:text-black border-white/15'
         }`}
         style={{ fontSize: `${Math.max(13, fontSize * 0.92)}px` }}
         title="Najetí nebo kliknutí přehraje zvuk akordu a zobrazí varianty hmatů"
@@ -103,7 +103,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
           {/* Popup Header */}
           <div className="flex items-center justify-between border-b border-white/10 pb-2 mb-2.5">
             <span className="text-xs font-semibold text-white flex items-center gap-1.5">
-              <Music className="w-4 h-4 text-[#FF9F0A]" /> Akord {chordName}
+              <Music className="w-4 h-4 text-znacka" /> Akord {chordName}
             </span>
             <button
               onClick={(e) => {
@@ -113,7 +113,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
               className="text-drobne bg-white/15 hover:bg-white/25 text-white font-medium px-2 py-0.5 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
               title="Přehrát základní hmat"
             >
-              <Volume2 className="w-3 h-3 text-[#FF9F0A]" /> Přehrát
+              <Volume2 className="w-3 h-3 text-znacka" /> Přehrát
             </button>
           </div>
 
@@ -138,7 +138,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                   showTitle={false}
                   showPlayButton={false}
                 />
-                <span className="text-stitek text-neutral-400 group-hover:text-[#FF9F0A] mt-1 font-medium flex items-center gap-0.5">
+                <span className="text-stitek text-neutral-400 group-hover:text-znacka mt-1 font-medium flex items-center gap-0.5">
                   <Volume2 className="w-2.5 h-2.5" /> Hrát
                 </span>
               </div>
@@ -154,7 +154,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
             }}
             className="w-full mt-2.5 py-1.5 bg-white/[0.08] hover:bg-white/[0.14] text-white text-xs font-medium rounded-xl flex items-center justify-center gap-1.5 transition-colors border border-white/10 cursor-pointer"
           >
-            <Zap className="w-3.5 h-3.5 text-[#FF9F0A]" />
+            <Zap className="w-3.5 h-3.5 text-znacka" />
             <span>Všechny varianty a tóny</span>
           </button>
         </div>

@@ -161,7 +161,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
         {onUpdateSong && song && (
           <button
             onClick={() => setPridavam((v) => !v)}
-            className="px-2.5 py-1.5 rounded-xl text-stitek font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all shrink-0"
+            className="px-2.5 py-1.5 rounded-xl text-stitek font-bold flex items-center gap-1.5 bg-uspech/15 text-uspech hover:bg-uspech/30 cursor-pointer transition-all shrink-0"
           >
             <Layers className="w-3 h-3" />
             {pridavam ? 'Zavřít knihovnu' : 'Stopy z knihovny'}
@@ -217,12 +217,12 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                 onClick={() => setCilovyFader(r.id)}
                 className={`px-2 py-1 rounded-lg text-stitek font-bold cursor-pointer transition-all ${
                   cilovyFader === r.id
-                    ? 'bg-[#FF9F0A] text-black'
+                    ? 'bg-znacka text-black'
                     : 'bg-white/[0.05] text-neutral-400 hover:text-white'
                 }`}
               >
                 {r.popis}
-                {vlastni.some((v) => v.role === r.id) && <span className="ml-1 text-[#30D158]">•</span>}
+                {vlastni.some((v) => v.role === r.id) && <span className="ml-1 text-uspech">•</span>}
               </button>
             ))}
           </div>
@@ -257,7 +257,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
               <div className="text-stitek uppercase tracking-wider text-neutral-500">Na faderech</div>
               {vlastni.map((v) => (
                 <div key={v.role} className="flex items-center gap-2 text-drobne text-neutral-300">
-                  <span className="text-stitek font-bold text-[#FF9F0A] w-14 shrink-0 uppercase">
+                  <span className="text-stitek font-bold text-znacka w-14 shrink-0 uppercase">
                     {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
                   </span>
                   <span className="truncate flex-1">{v.nazev}</span>
@@ -267,7 +267,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                       setVlastni(nove);
                       stemAudioService.pouzijVlastniStopy(nove);
                     }}
-                    className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer"
+                    className="p-1 rounded text-neutral-600 hover:text-chyba cursor-pointer"
                     title="Sundat z faderu"
                   >
                     ×

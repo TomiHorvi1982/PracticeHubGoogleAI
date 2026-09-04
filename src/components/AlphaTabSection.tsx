@@ -93,7 +93,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
           {hledaniOtevrene
             ? <ChevronDown className="w-4 h-4 text-neutral-400" />
             : <ChevronRight className="w-4 h-4 text-neutral-400" />}
-          <Search className="w-4 h-4 text-[#FF9F0A]" />
+          <Search className="w-4 h-4 text-znacka" />
           <span className="text-sm font-bold text-white">Najít tabulaturu</span>
           <span className="text-drobne text-neutral-500">
             naše sbírka, Ultimate Guitar a Freetar — nález se otevře rovnou tady
@@ -124,7 +124,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             samotné hledání; jako roletka je po ruce a nepřekáží. */}
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 space-y-2 shadow-lg">
           <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
-            <Layers className="w-4 h-4 text-[#FF9F0A]" />
+            <Layers className="w-4 h-4 text-znacka" />
             <span>Soubory ve zpěvníku ({libraryGpFiles.length})</span>
           </label>
 
@@ -140,7 +140,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
                 const vybrany = libraryGpFiles[Number(e.target.value)];
                 if (vybrany) loadLibraryGp(vybrany);
               }}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-znacka cursor-pointer"
             >
               <option value="">— vyber soubor a otevře se v přehrávači —</option>
               {libraryGpFiles.map((fileItem, idx) => (
@@ -156,7 +156,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
 
         {/* Status feedback alerts */}
         {successMsg && (
-          <div className="bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
+          <div className="bg-uspech/10 border border-uspech/30 text-uspech px-4 py-3 rounded-2xl text-xs font-semibold flex items-center gap-2">
             <CheckCircle className="w-4 h-4 shrink-0" />
             <span>{successMsg}</span>
           </div>
@@ -174,7 +174,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
           <div className="space-y-3">
             <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
               <span className="text-neutral-400 font-medium">Aktivní tabulatura:</span>
-              <span className="font-bold text-[#FF9F0A]">{activeFile.filename}</span>
+              <span className="font-bold text-znacka">{activeFile.filename}</span>
             </div>
             <GuitarProPlayer
               dataUrl={activeFile.dataUrl}
@@ -195,7 +195,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
                 Žádný Guitar Pro soubor nebyl načten
               </p>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Chcete-li zobrazit interaktivní tabulaturu a spustit doprovod, nahrajte soubor s příponou <strong className="text-[#FF9F0A]">.gp</strong>, <strong className="text-[#FF9F0A]">.gp5</strong>, nebo vyberte z existujících souborů ve vaší knihovně.
+                Chcete-li zobrazit interaktivní tabulaturu a spustit doprovod, nahrajte soubor s příponou <strong className="text-znacka">.gp</strong>, <strong className="text-znacka">.gp5</strong>, nebo vyberte z existujících souborů ve vaší knihovně.
               </p>
             </div>
             <div className="pt-2">

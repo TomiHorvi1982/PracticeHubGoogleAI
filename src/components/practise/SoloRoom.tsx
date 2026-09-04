@@ -69,7 +69,7 @@ export const SoloRoom: React.FC = () => {
       {/* Kontrola hraní */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Target className="w-5 h-5 text-[#30D158]" />
+          <Target className="w-5 h-5 text-uspech" />
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-bold text-white">Hraju v tónině?</h3>
             <p className="text-drobne text-neutral-400">
@@ -80,7 +80,7 @@ export const SoloRoom: React.FC = () => {
           <button
             onClick={() => (stav.poslouchá ? poslechKytary.stop() : void poslechKytary.start())}
             className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer ${
-              stav.poslouchá ? 'bg-[#FF453A] text-white' : 'bg-white text-black'
+              stav.poslouchá ? 'bg-chyba text-white' : 'bg-white text-black'
             }`}
           >
             {stav.poslouchá ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -106,9 +106,9 @@ export const SoloRoom: React.FC = () => {
           {procent !== null && (
             <span
               className={`text-sm font-bold tabular-nums px-3 py-1.5 rounded-xl ${
-                procent >= 85 ? 'bg-[#30D158]/20 text-[#30D158]'
-                : procent >= 60 ? 'bg-[#FF9F0A]/20 text-[#FF9F0A]'
-                : 'bg-[#FF453A]/20 text-[#FF453A]'
+                procent >= 85 ? 'bg-uspech/20 text-uspech'
+                : procent >= 60 ? 'bg-znacka/20 text-znacka'
+                : 'bg-chyba/20 text-chyba'
               }`}
             >
               {procent} % v tónině
@@ -123,7 +123,7 @@ export const SoloRoom: React.FC = () => {
               key={n}
               className={`px-2 py-1 rounded-lg text-xs font-mono font-bold ${
                 Note.pitchClass(stav.ton || '') === n
-                  ? 'bg-[#30D158] text-black'
+                  ? 'bg-uspech text-black'
                   : 'bg-white/[0.06] text-neutral-300'
               }`}
             >
@@ -142,7 +142,7 @@ export const SoloRoom: React.FC = () => {
               <span
                 key={i}
                 className={`px-2 py-0.5 rounded-lg text-drobne font-mono ${
-                  h.sedi ? 'bg-[#30D158]/15 text-[#30D158]' : 'bg-[#FF453A]/15 text-[#FF453A]'
+                  h.sedi ? 'bg-uspech/15 text-uspech' : 'bg-chyba/15 text-chyba'
                 }`}
                 style={{ opacity: 1 - i * 0.03 }}
               >
@@ -160,7 +160,7 @@ export const SoloRoom: React.FC = () => {
       */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex items-center gap-2">
-          <Sliders className="w-4 h-4 text-[#FF9F0A]" />
+          <Sliders className="w-4 h-4 text-znacka" />
           <h3 className="text-sm font-bold text-white">Pult</h3>
           <span className="text-drobne text-neutral-500">
             stopa proti kytaře — a je vidět, jak silný signál ze zvukovky chodí

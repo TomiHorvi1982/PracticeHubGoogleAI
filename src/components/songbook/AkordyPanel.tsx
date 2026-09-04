@@ -161,7 +161,7 @@ export const AkordyPanel: React.FC<Props> = ({
       <div
         key={nazev}
         className={`bg-white/[0.04] border p-2 rounded-2xl flex flex-col items-center gap-1 transition-all shadow-sm ${
-          jeVlastni ? 'border-[#30D158]/40' : 'border-white/[0.08]'
+          jeVlastni ? 'border-uspech/40' : 'border-white/[0.08]'
         }`}
       >
         {zobrazeni !== 'klavir' && (
@@ -176,17 +176,17 @@ export const AkordyPanel: React.FC<Props> = ({
         {zobrazeni !== 'hmatnik' && <KlavirDiagram tony={midi} sirka={112} oktavy={2} />}
 
         <div className="flex items-center gap-1">
-          <span className="text-xs font-bold text-[#FF9F0A] font-mono">{nazev}</span>
+          <span className="text-xs font-bold text-znacka font-mono">{nazev}</span>
           <button
             onClick={() => zahraj(midi, true)}
-            className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-[#FF9F0A] cursor-pointer"
+            className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-znacka cursor-pointer"
             title="Zahrát na kytaru"
           >
             <Guitar className="w-3 h-3" />
           </button>
           <button
             onClick={() => zahraj(midi, false)}
-            className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-[#FF9F0A] cursor-pointer"
+            className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-znacka cursor-pointer"
             title="Zahrát na klavír"
           >
             <Piano className="w-3 h-3" />
@@ -194,7 +194,7 @@ export const AkordyPanel: React.FC<Props> = ({
           {jeVlastni && (
             <button
               onClick={() => smaz(nazev)}
-              className="p-1 rounded-md hover:bg-[#FF453A]/20 text-neutral-600 hover:text-[#FF453A] cursor-pointer"
+              className="p-1 rounded-md hover:bg-chyba/20 text-neutral-600 hover:text-chyba cursor-pointer"
               title="Odebrat vlastní akord"
             >
               <Trash2 className="w-3 h-3" />
@@ -220,7 +220,7 @@ export const AkordyPanel: React.FC<Props> = ({
               onClick={() => nastavZobrazeni(z.id)}
               className={`px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 cursor-pointer transition-all ${
                 zobrazeni === z.id
-                  ? 'bg-[#FF9F0A] text-black'
+                  ? 'bg-znacka text-black'
                   : 'bg-white/[0.04] text-neutral-400 hover:text-white'
               }`}
             >
@@ -231,7 +231,7 @@ export const AkordyPanel: React.FC<Props> = ({
 
         <button
           onClick={() => setPridavam((v) => !v)}
-          className="ml-auto px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
+          className="ml-auto px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 bg-uspech/15 text-uspech hover:bg-uspech/30 cursor-pointer transition-all"
         >
           {pridavam ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
           {pridavam ? 'Zrušit' : 'Přidat akord'}
@@ -263,7 +263,7 @@ export const AkordyPanel: React.FC<Props> = ({
               <select
                 value={ladeni}
                 onChange={(e) => setLadeni(e.target.value)}
-                className="bg-black/50 border border-white/10 text-white text-drobne rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer max-w-[220px]"
+                className="bg-black/50 border border-white/10 text-white text-drobne rounded-lg px-2 py-1 outline-none focus:border-znacka cursor-pointer max-w-[220px]"
               >
                 {TUNING_PRESETS.map((t) => (
                   <option key={t.name} value={t.name}>
@@ -335,7 +335,7 @@ export const AkordyPanel: React.FC<Props> = ({
                 <div className="flex items-baseline gap-1.5">
                   <span
                     className={`text-sm font-bold font-mono ${
-                      rozpoznany.jistota === 'presne' ? 'text-[#30D158]' : 'text-[#FF9F0A]'
+                      rozpoznany.jistota === 'presne' ? 'text-uspech' : 'text-znacka'
                     }`}
                   >
                     {rozpoznany.nazev}
@@ -361,13 +361,13 @@ export const AkordyPanel: React.FC<Props> = ({
               value={nazevRucne}
               onChange={(e) => setNazevRucne(e.target.value)}
               placeholder={rozpoznany?.nazev || 'Vlastní název'}
-              className="w-28 bg-black/50 border border-white/10 rounded-lg px-2 py-1 text-drobne text-white outline-none focus:border-[#FF9F0A] font-mono"
+              className="w-28 bg-black/50 border border-white/10 rounded-lg px-2 py-1 text-drobne text-white outline-none focus:border-znacka font-mono"
             />
 
             <button
               onClick={() => uloz(nazevRucne || rozpoznany?.nazev || '')}
               disabled={!rozpoznany && !nazevRucne.trim()}
-              className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-[#30D158] text-black cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-uspech text-black cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Uložit k písni
             </button>

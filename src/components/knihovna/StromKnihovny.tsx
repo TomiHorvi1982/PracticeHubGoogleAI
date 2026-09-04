@@ -93,7 +93,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
         onClick={() => onVybrat(null, null)}
         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-drobne cursor-pointer transition-all ${
           vybrana.kategorie === null && !vybrana.podkategorie
-            ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'
+            ? 'bg-znacka/15 text-znacka font-bold'
             : 'text-neutral-300 hover:bg-white/[0.05]'
         }`}
       >
@@ -109,7 +109,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
           onClick={() => onVybrat(null, '__bez__')}
           className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-drobne cursor-pointer transition-all ${
             vybrana.podkategorie === '__bez__' && vybrana.kategorie === null
-              ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'
+              ? 'bg-znacka/15 text-znacka font-bold'
               : 'text-neutral-400 hover:bg-white/[0.05]'
           }`}
           title="Soubory, které ještě nikdo nezařadil"
@@ -135,9 +135,9 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
             <div
               {...cileni(k.id, null)}
               className={`flex items-center rounded-xl transition-all ${
-                jeCil ? 'ring-1 ring-[#30D158] bg-[#30D158]/10' : ''
+                jeCil ? 'ring-1 ring-uspech bg-uspech/10' : ''
               } ${
-                vybrana.kategorie === k.id && !vybrana.podkategorie ? 'bg-[#FF9F0A]/15' : 'hover:bg-white/[0.05]'
+                vybrana.kategorie === k.id && !vybrana.podkategorie ? 'bg-znacka/15' : 'hover:bg-white/[0.05]'
               }`}
             >
               <button
@@ -160,7 +160,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                 title={`Otevřít složku ${nazevKategorie(k.id)}`}
                 className={`flex-1 flex items-center gap-2 py-1.5 pr-2.5 text-drobne cursor-pointer text-left ${
                   vybrana.kategorie === k.id && !vybrana.podkategorie
-                    ? 'text-[#FF9F0A] font-bold'
+                    ? 'text-znacka font-bold'
                     : 'text-neutral-300'
                 }`}
               >
@@ -184,7 +184,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                       key={d.podkategorie}
                       {...cileni(k.id, d.podkategorie)}
                       className={`rounded-lg ${
-                        nadKym === klic(k.id, d.podkategorie) ? 'ring-1 ring-[#30D158] bg-[#30D158]/10' : ''
+                        nadKym === klic(k.id, d.podkategorie) ? 'ring-1 ring-uspech bg-uspech/10' : ''
                       }`}
                     >
                       <button
@@ -192,7 +192,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                         aria-label={`Podsložka ${d.podkategorie} ve složce ${nazevKategorie(k.id)}`}
                         className={`w-full flex items-center gap-2 px-2 py-1 text-drobne rounded-lg cursor-pointer ${
                           vybrana.kategorie === k.id && vybrana.podkategorie === d.podkategorie
-                            ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] font-bold'
+                            ? 'bg-znacka/15 text-znacka font-bold'
                             : 'text-neutral-400 hover:bg-white/[0.05]'
                         }`}
                       >
@@ -215,7 +215,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                         {...cileni(k.id, p)}
                         className={`px-2 py-1 text-drobne rounded-lg ${
                           nadKym === klic(k.id, p)
-                            ? 'ring-1 ring-[#30D158] bg-[#30D158]/10 text-[#30D158]'
+                            ? 'ring-1 ring-uspech bg-uspech/10 text-uspech'
                             : 'text-neutral-600 italic'
                         }`}
                         title="Zatím prázdné — přetáhni sem soubor"

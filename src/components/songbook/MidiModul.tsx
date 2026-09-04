@@ -77,7 +77,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
           <select
             value={vybrana}
             onChange={(e) => setVybrana(parseInt(e.target.value, 10))}
-            className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-drobne text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
+            className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-drobne text-white outline-none focus:border-znacka cursor-pointer"
           >
             {prilohy.map((p, i) => (
               <option key={p.id} value={i}>{p.name}</option>
@@ -92,7 +92,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
           onClick={() => void prehraj()}
           disabled={stav.loading}
           className={`p-2.5 rounded-xl transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-            stav.isPlaying ? 'bg-red-500 text-white' : 'bg-[#30D158] text-black'
+            stav.isPlaying ? 'bg-red-500 text-white' : 'bg-uspech text-black'
           }`}
           title={stav.isPlaying ? 'Zastavit' : 'Přehrát'}
         >
@@ -125,7 +125,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
               setHlasitost(v);
               audioSynth.setMasterVolume(v);
             }}
-            className="w-16 h-1 cursor-pointer accent-[#FF9F0A]"
+            className="w-16 h-1 cursor-pointer accent-znacka"
             title={`Hlasitost ${Math.round(hlasitost * 100)} %`}
           />
         </div>
@@ -134,14 +134,14 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
       {nactene && stav.duration > 0 && (
         <div className="h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
           <div
-            className="h-full bg-[#FF9F0A] rounded-full"
+            className="h-full bg-znacka rounded-full"
             style={{ width: `${(stav.position / stav.duration) * 100}%`, transition: 'width 100ms linear' }}
           />
         </div>
       )}
 
       {stav.error && nactene && (
-        <p className="text-stitek text-[#FF453A] flex items-center gap-1 shrink-0">
+        <p className="text-stitek text-chyba flex items-center gap-1 shrink-0">
           <AlertCircle className="w-3 h-3 shrink-0" /> {stav.error}
         </p>
       )}
@@ -157,7 +157,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
               className={`px-2 py-0.5 rounded-lg text-stitek font-medium border transition-all cursor-pointer ${
                 t.muted
                   ? 'bg-transparent border-white/10 text-neutral-600 line-through'
-                  : 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+                  : 'bg-uspech/15 border-uspech/40 text-uspech'
               }`}
             >
               {t.name}

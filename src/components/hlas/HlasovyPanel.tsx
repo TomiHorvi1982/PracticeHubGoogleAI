@@ -159,7 +159,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           className={`rounded-2xl border p-3 text-xs flex items-start gap-2 ${
             moznosti.odesilaVen
               ? 'bg-amber-500/[0.08] border-amber-500/30 text-amber-200'
-              : 'bg-[#30D158]/[0.06] border-[#30D158]/30 text-[#30D158]'
+              : 'bg-uspech/[0.06] border-uspech/30 text-uspech'
           }`}
         >
           {moznosti.odesilaVen ? <ShieldAlert className="w-4 h-4 mt-0.5 shrink-0" /> : <Check className="w-4 h-4 mt-0.5 shrink-0" />}
@@ -169,7 +169,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
 
       {hlaseni && (
         <div className={`rounded-2xl border p-3 text-xs ${
-          hlaseni.dobre ? 'bg-[#30D158]/10 border-[#30D158]/30 text-[#30D158]' : 'bg-[#FF453A]/10 border-[#FF453A]/30 text-[#FF453A]'
+          hlaseni.dobre ? 'bg-uspech/10 border-uspech/30 text-uspech' : 'bg-chyba/10 border-chyba/30 text-chyba'
         }`}>
           {hlaseni.text}
         </div>
@@ -179,12 +179,12 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           Přísnost se hodí jinak doma a jinak v hlučné zkušebně, takže
           to nemá být zadrátované číslo. */}
       <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4 space-y-3">
-        <h3 className="text-sm font-bold text-[#FF9F0A]">Nastavení</h3>
+        <h3 className="text-sm font-bold text-znacka">Nastavení</h3>
 
         <div>
           <div className="flex items-center justify-between text-drobne mb-1">
             <span className="text-neutral-300">Přísnost rozpoznávání</span>
-            <span className="font-mono text-[#FF9F0A] tabular-nums">
+            <span className="font-mono text-znacka tabular-nums">
               {Math.round(nastaveni.prah * 100)} %
             </span>
           </div>
@@ -194,7 +194,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             max={95}
             value={Math.round(nastaveni.prah * 100)}
             onChange={(e) => zmen({ prah: Number(e.target.value) / 100 })}
-            className="w-full accent-[#FF9F0A] cursor-pointer"
+            className="w-full accent-znacka cursor-pointer"
           />
           <p className="text-stitek text-neutral-500 leading-relaxed mt-1">
             Níž znamená ochotnější rozpoznávání za cenu občasného omylu, výš naopak.
@@ -236,7 +236,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
 
       {/* Katalog — co appka umí a co zatím ne */}
       <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">
-        <h3 className="text-sm font-bold text-[#FF9F0A] mb-1">Co hlasem jde</h3>
+        <h3 className="text-sm font-bold text-znacka mb-1">Co hlasem jde</h3>
         <p className="text-drobne text-neutral-400 mb-3">
           Nezapojené akce zná katalog, ale zatím je nikdo neobsluhuje — hlasem nic neudělají.
         </p>
@@ -250,7 +250,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                   return (
                     <div key={a.id} className="flex items-start gap-2 text-xs">
                       {zapojena
-                        ? <CircleDot className="w-3.5 h-3.5 text-[#30D158] mt-0.5 shrink-0" />
+                        ? <CircleDot className="w-3.5 h-3.5 text-uspech mt-0.5 shrink-0" />
                         : <Circle className="w-3.5 h-3.5 text-neutral-600 mt-0.5 shrink-0" />}
                       <div className="min-w-0">
                         <span className={zapojena ? 'text-white' : 'text-neutral-500'}>{a.nazev}</span>
@@ -272,7 +272,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       {/* Vlastní příkazy */}
       <div className="bg-[#16161A]/60 border border-white/[0.08] rounded-3xl p-4">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-bold text-[#FF9F0A]">Vlastní příkazy</h3>
+          <h3 className="text-sm font-bold text-znacka">Vlastní příkazy</h3>
           {!navrh && (
             <button
               onClick={() => setNavrh(prazdny())}
@@ -295,7 +295,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
               </div>
               <button
                 onClick={() => void smaz(p)}
-                className="p-1.5 rounded-lg text-neutral-500 hover:text-[#FF453A] cursor-pointer shrink-0"
+                className="p-1.5 rounded-lg text-neutral-500 hover:text-chyba cursor-pointer shrink-0"
                 title="Smazat příkaz"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -338,7 +338,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                   {navrh.fraze.length > 1 && (
                     <button
                       onClick={() => setNavrh({ ...navrh, fraze: navrh.fraze.filter((_, x) => x !== i) })}
-                      className="p-2 rounded-xl text-neutral-500 hover:text-[#FF453A] cursor-pointer"
+                      className="p-2 rounded-xl text-neutral-500 hover:text-chyba cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -388,7 +388,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                       value={k.akce}
                       onChange={(e) => upravKrok(i, { akce: e.target.value, hodnoty: {} })}
                       className={`flex-1 bg-white/[0.06] border rounded-xl px-2 py-2 text-xs ${
-                        k.akce ? 'border-white/10' : 'border-[#FF9F0A]/50 text-[#FF9F0A]'
+                        k.akce ? 'border-white/10' : 'border-znacka/50 text-znacka'
                       }`}
                     >
                       <option value="">— vyber, co se má stát —</option>
@@ -424,7 +424,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                     {navrh.kroky.length > 1 && (
                       <button
                         onClick={() => setNavrh({ ...navrh, kroky: navrh.kroky.filter((_, x) => x !== i) })}
-                        className="p-2 rounded-xl text-neutral-500 hover:text-[#FF453A] cursor-pointer"
+                        className="p-2 rounded-xl text-neutral-500 hover:text-chyba cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -454,7 +454,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             <div className="flex items-center gap-2 pt-1">
               <button
                 onClick={() => void uloz()}
-                className="flex-1 bg-[#30D158] hover:bg-[#34e260] text-black py-2 text-xs font-bold rounded-xl cursor-pointer"
+                className="flex-1 bg-uspech hover:bg-[#34e260] text-black py-2 text-xs font-bold rounded-xl cursor-pointer"
               >
                 Uložit příkaz
               </button>

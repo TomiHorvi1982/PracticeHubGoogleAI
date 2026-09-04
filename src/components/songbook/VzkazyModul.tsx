@@ -70,7 +70,7 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
 
   return (
     <div className="flex-1 flex flex-col gap-2 min-h-0">
-      {chyba && <p className="text-drobne text-[#FF453A] shrink-0">{chyba}</p>}
+      {chyba && <p className="text-drobne text-chyba shrink-0">{chyba}</p>}
 
       <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0 pr-1">
         {nacitam && (
@@ -102,7 +102,7 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
                     onClick={() => {
                       void vzkazyService.smaz(v.id).then(nacti);
                     }}
-                    className="ml-auto p-0.5 rounded text-neutral-700 hover:text-[#FF453A] cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="ml-auto p-0.5 rounded text-neutral-700 hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                     title="Smazat vzkaz"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -127,12 +127,12 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
             }
           }}
           placeholder="Napiš vzkaz ke skladbě…"
-          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 text-drobne text-white placeholder-neutral-600 outline-none focus:border-[#FF9F0A]"
+          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 text-drobne text-white placeholder-neutral-600 outline-none focus:border-znacka"
         />
         <button
           onClick={() => void posli()}
           disabled={!text.trim()}
-          className="px-2.5 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/85 text-black rounded-xl cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+          className="px-2.5 py-1.5 bg-znacka hover:bg-znacka/85 text-black rounded-xl cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
           title="Odeslat"
         >
           <Send className="w-3.5 h-3.5" />

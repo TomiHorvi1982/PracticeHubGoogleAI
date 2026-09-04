@@ -265,14 +265,14 @@ export const SeznamSkladeb: React.FC<Props> = ({
   };
 
   const sipka = (k: KlicRazeni) =>
-    razeni === k ? <span className="text-[#FF9F0A]">{sestupne ? '↓' : '↑'}</span> : null;
+    razeni === k ? <span className="text-znacka">{sestupne ? '↓' : '↑'}</span> : null;
 
   return (
     <div className="flex flex-col gap-2 min-h-0">
       {/* Jak stahování dopadlo. Prohlížeč o uloženém souboru sám nic
           neřekne, takže bez tohohle by kliknutí vypadalo bez odezvy. */}
       {stahovaniHlaska && (
-        <p className="text-drobne text-[#0A84FF] bg-[#0A84FF]/10 border border-[#0A84FF]/25 rounded-xl px-3 py-1.5">
+        <p className="text-drobne text-info bg-info/10 border border-info/25 rounded-xl px-3 py-1.5">
           {stahovaniHlaska}
         </p>
       )}
@@ -289,7 +289,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
             }}
             className={`px-2.5 py-1 rounded-lg text-stitek font-semibold border cursor-pointer transition-all ${
               vyberRezim
-                ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] border-[#FF9F0A]/40'
+                ? 'bg-znacka/15 text-znacka border-znacka/40'
                 : 'bg-white/[0.04] text-neutral-400 border-white/10 hover:text-white'
             }`}
           >
@@ -317,7 +317,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   }
                 }}
                 disabled={!oznacene.size || pridavaSe}
-                className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/30 cursor-pointer disabled:opacity-40"
+                className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-uspech/15 text-uspech border border-uspech/30 cursor-pointer disabled:opacity-40"
               >
                 {pridavaSe ? 'přidávám…' : 'Přidat do playlistu'}
               </button>
@@ -355,7 +355,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       }
                     }}
                     disabled={!oznacene.size || !cilovySet || pridavaSe}
-                    className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-[#FF9F0A]/15 text-[#FF9F0A] border border-[#FF9F0A]/30 cursor-pointer disabled:opacity-40"
+                    className="px-2.5 py-1 rounded-lg text-stitek font-bold bg-znacka/15 text-znacka border border-znacka/30 cursor-pointer disabled:opacity-40"
                   >
                     Do setu
                   </button>
@@ -388,8 +388,8 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   disabled={!oznacene.size || pridavaSe}
                   className={`px-2.5 py-1 rounded-lg text-stitek font-bold border cursor-pointer disabled:opacity-40 ${
                     potvrditMazani
-                      ? 'bg-[#FF453A] text-white border-[#FF453A]'
-                      : 'bg-[#FF453A]/15 text-[#FF453A] border-[#FF453A]/30'
+                      ? 'bg-chyba text-white border-chyba'
+                      : 'bg-chyba/15 text-chyba border-chyba/30'
                   }`}
                 >
                   {potvrditMazani ? `Opravdu smazat ${oznacene.size}?` : 'Smazat'}
@@ -411,14 +411,14 @@ export const SeznamSkladeb: React.FC<Props> = ({
               onClick={() => prepni(m.klic)}
               className={`px-2 py-1 rounded-lg text-stitek font-semibold border cursor-pointer transition-all flex items-center gap-1.5 ${
                 zap
-                  ? 'bg-[#FF9F0A]/15 text-[#FF9F0A] border-[#FF9F0A]/40'
+                  ? 'bg-znacka/15 text-znacka border-znacka/40'
                   : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
               }`}
               title={zap ? `Skrýt sloupec ${m.popis}` : `Ukázat sloupec ${m.popis}`}
             >
               <span
                 className={`w-2.5 h-2.5 rounded-[3px] border shrink-0 ${
-                  zap ? 'bg-[#FF9F0A] border-[#FF9F0A]' : 'border-neutral-600'
+                  zap ? 'bg-znacka border-znacka' : 'border-neutral-600'
                 }`}
               />
               {m.popis}
@@ -481,7 +481,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
           const prehrava = hraje === s.id && v;
 
           return (
-            <div key={s.id} className={`border-b border-white/[0.04] ${aktivni ? 'bg-[#FF9F0A]/15' : ''}`}>
+            <div key={s.id} className={`border-b border-white/[0.04] ${aktivni ? 'bg-znacka/15' : ''}`}>
               <div
                 onClick={() => onVybrat(s)}
                 style={mrizka}
@@ -501,7 +501,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       });
                     }}
                     className={`text-drobne cursor-pointer ${
-                      oznacene.has(s.id) ? 'text-[#FF9F0A]' : 'text-neutral-600 hover:text-white'
+                      oznacene.has(s.id) ? 'text-znacka' : 'text-neutral-600 hover:text-white'
                     }`}
                   >
                     {oznacene.has(s.id) ? '☑' : '☐'}
@@ -517,8 +517,8 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     }}
                     className={`p-1.5 rounded-lg cursor-pointer transition-all justify-self-start ${
                       prehrava
-                        ? 'bg-[#FF453A] text-white'
-                        : 'bg-[#FF453A]/15 hover:bg-[#FF453A]/30 text-[#FF453A]'
+                        ? 'bg-chyba text-white'
+                        : 'bg-chyba/15 hover:bg-chyba/30 text-chyba'
                     }`}
                     title={prehrava ? 'Zavřít ukázku' : 'Přehrát ukázku'}
                   >
@@ -533,7 +533,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   <div className="min-w-0">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span
-                      className={`text-drobne font-semibold truncate ${aktivni ? 'text-[#FF9F0A]' : 'text-white'}`}
+                      className={`text-drobne font-semibold truncate ${aktivni ? 'text-znacka' : 'text-white'}`}
                     >
                       {s.title}
                     </span>
@@ -565,7 +565,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       rozbal(s.id);
                     }}
                     className={`p-1.5 rounded-lg hover:bg-white/10 cursor-pointer transition-all ${
-                      otevreny ? 'text-[#FF9F0A]' : 'text-neutral-500 hover:text-white'
+                      otevreny ? 'text-znacka' : 'text-neutral-500 hover:text-white'
                     }`}
                     title={otevreny ? 'Skrýt detail' : 'Ukázat detail'}
                   >
@@ -573,7 +573,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   </button>
                   <button
                     onClick={(e) => onUpravit(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#30D158] cursor-pointer transition-all"
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-uspech cursor-pointer transition-all"
                     title="Doplnit materiály — tabulatury, text, MIDI, stopy…"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -582,7 +582,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     <button
                       onClick={(e) => void stahni(s, e)}
                       disabled={stahujeSe === s.id}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#0A84FF] cursor-pointer transition-all disabled:opacity-40"
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-info cursor-pointer transition-all disabled:opacity-40"
                       title={`Stáhnout do počítače (${souboru(s.attachments!.length)})`}
                     >
                       <Download className={`w-3.5 h-3.5 ${stahujeSe === s.id ? 'animate-pulse' : ''}`} />
@@ -591,7 +591,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   {onNahratAudio && (
                     <label
                       onClick={(e) => e.stopPropagation()}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#BF5AF2] cursor-pointer transition-all inline-flex"
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-nastroj cursor-pointer transition-all inline-flex"
                       title="Přidat k písni zvuk z počítače — uloží se i do knihovny"
                     >
                       <Music className="w-3.5 h-3.5" />
@@ -609,14 +609,14 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   )}
                   <button
                     onClick={(e) => onDoPlaylistu(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-[#FF9F0A] cursor-pointer transition-all"
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-znacka cursor-pointer transition-all"
                     title="Přidat do playlistu"
                   >
                     <ListPlus className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => onSmazat(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-[#FF453A]/20 text-neutral-500 hover:text-[#FF453A] cursor-pointer transition-all"
+                    className="p-1.5 rounded-lg hover:bg-chyba/20 text-neutral-500 hover:text-chyba cursor-pointer transition-all"
                     title="Smazat"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

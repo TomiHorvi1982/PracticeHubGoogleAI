@@ -143,13 +143,13 @@ export const DeezerPanel: React.FC<{
             value={dotaz}
             onChange={(e) => setDotaz(e.target.value)}
             placeholder="Interpret a název — třeba „Sepultura Refuse Resist“"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-[#FF9F0A]"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-znacka"
           />
         </div>
         <button
           type="submit"
           disabled={hledam || !dotaz.trim()}
-          className="px-4 py-2 rounded-xl bg-[#FF9F0A] text-black text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+          className="px-4 py-2 rounded-xl bg-znacka text-black text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
         >
           {hledam ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
           Hledat
@@ -157,7 +157,7 @@ export const DeezerPanel: React.FC<{
       </form>
 
       {chyba && (
-        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-chyba flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}
@@ -170,7 +170,7 @@ export const DeezerPanel: React.FC<{
       )}
 
       {album && (
-        <div className="bg-black/40 border border-[#FF9F0A]/30 rounded-2xl p-3 space-y-2">
+        <div className="bg-black/40 border border-znacka/30 rounded-2xl p-3 space-y-2">
           <div className="flex items-center gap-2.5">
             {album.info.obal && (
               <img src={album.info.obal} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
@@ -197,7 +197,7 @@ export const DeezerPanel: React.FC<{
                   }
                 }
               }}
-              className="px-2.5 py-1.5 rounded-lg bg-[#30D158]/15 text-[#30D158] text-stitek font-bold cursor-pointer flex items-center gap-1 shrink-0"
+              className="px-2.5 py-1.5 rounded-lg bg-uspech/15 text-uspech text-stitek font-bold cursor-pointer flex items-center gap-1 shrink-0"
             >
               <Plus className="w-3 h-3" /> celé album
             </button>
@@ -228,7 +228,7 @@ export const DeezerPanel: React.FC<{
                     }
                   }}
                   disabled={pridane.has(`al_${t.id}`)}
-                  className="px-1.5 py-0.5 rounded bg-[#30D158]/15 text-[#30D158] text-stitek font-bold cursor-pointer disabled:opacity-40 shrink-0"
+                  className="px-1.5 py-0.5 rounded bg-uspech/15 text-uspech text-stitek font-bold cursor-pointer disabled:opacity-40 shrink-0"
                 >
                   {pridane.has(`al_${t.id}`) ? '✓' : '+'}
                 </button>
@@ -274,7 +274,7 @@ export const DeezerPanel: React.FC<{
 
             {s.bpm > 0 && (
               <span
-                className="text-stitek px-1.5 py-0.5 rounded bg-[#30D158]/15 text-[#30D158] shrink-0 flex items-center gap-1"
+                className="text-stitek px-1.5 py-0.5 rounded bg-uspech/15 text-uspech shrink-0 flex items-center gap-1"
                 title="Tempo podle Deezeru — přenese se do písně"
               >
                 <Gauge className="w-3 h-3" /> {s.bpm}
@@ -306,7 +306,7 @@ export const DeezerPanel: React.FC<{
                 }
               }}
               disabled={pridane.has(s.id)}
-              className="px-2 py-1 rounded-lg bg-[#30D158]/15 text-[#30D158] text-stitek font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1 shrink-0"
+              className="px-2 py-1 rounded-lg bg-uspech/15 text-uspech text-stitek font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1 shrink-0"
             >
               <Plus className="w-3 h-3" /> {pridane.has(s.id) ? 'přidáno' : 'do knihovny'}
             </button>

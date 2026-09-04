@@ -66,7 +66,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
   };
 
   return (
-    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-[#FF9F0A]/25 rounded-3xl p-4 shadow-xl space-y-3">
+    <div className="bg-[#16161A]/80 backdrop-blur-xl border border-znacka/25 rounded-3xl p-4 shadow-xl space-y-3">
       <button
         onClick={() => setOtevreno((v) => !v)}
         className="w-full flex items-center gap-2 text-left cursor-pointer"
@@ -76,7 +76,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
         ) : (
           <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0" />
         )}
-        <Sparkles className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+        <Sparkles className="w-4 h-4 text-znacka shrink-0" />
         <span className="text-sm font-bold text-white">
           Appka našla ještě {navrhy.length} {navrhy.length < 5 ? 'věci' : 'věcí'}, ale není si jistá
         </span>
@@ -95,7 +95,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
               key={`${n.nazev}-${i}`}
               className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-2xl px-3 py-2"
             >
-              <span className="text-stitek font-bold uppercase tracking-wider text-[#FF9F0A] bg-[#FF9F0A]/10 px-1.5 py-0.5 rounded shrink-0">
+              <span className="text-stitek font-bold uppercase tracking-wider text-znacka bg-znacka/10 px-1.5 py-0.5 rounded shrink-0">
                 {POPIS_DRUHU[n.druh] || n.druh}
               </span>
               <div className="min-w-0 flex-1">
@@ -105,19 +105,19 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
                 </div>
               </div>
               {pracuji === i ? (
-                <Loader2 className="w-4 h-4 animate-spin text-[#FF9F0A] shrink-0" />
+                <Loader2 className="w-4 h-4 animate-spin text-znacka shrink-0" />
               ) : (
                 <>
                   <button
                     onClick={() => void vyres(i, 'prijmout')}
-                    className="p-1.5 rounded-lg bg-[#30D158]/15 hover:bg-[#30D158]/30 text-[#30D158] cursor-pointer transition-all shrink-0"
+                    className="p-1.5 rounded-lg bg-uspech/15 hover:bg-uspech/30 text-uspech cursor-pointer transition-all shrink-0"
                     title="Připojit k písni"
                   >
                     <Check className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => void vyres(i, 'odmitnout')}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-[#FF453A]/25 text-neutral-400 hover:text-[#FF453A] cursor-pointer transition-all shrink-0"
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-chyba/25 text-neutral-400 hover:text-chyba cursor-pointer transition-all shrink-0"
                     title="Nepatří k písni"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -129,7 +129,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
         </div>
       )}
 
-      {hlaska && <p className="text-drobne text-[#30D158] pl-6">{hlaska}</p>}
+      {hlaska && <p className="text-drobne text-uspech pl-6">{hlaska}</p>}
     </div>
   );
 };

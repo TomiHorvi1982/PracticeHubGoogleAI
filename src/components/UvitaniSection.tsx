@@ -302,8 +302,8 @@ const KDYKOLI: { nadpis: string; popis: string; kam: MainTabType }[] = [
  */
 export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
   <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6">
-    <div className="bg-gradient-to-br from-[#FF9F0A]/15 to-transparent border border-[#FF9F0A]/25 rounded-3xl p-6 sm:p-8">
-      <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+    <div className="bg-gradient-to-br from-znacka/15 to-transparent border border-znacka/25 rounded-3xl p-6 sm:p-8">
+      <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
         NeverLate Studio
       </span>
       <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mt-3">
@@ -330,7 +330,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
         >
           <Nahled druh={k.nahled} />
           <div className="flex items-start gap-2.5 flex-1">
-            <span className="w-6 h-6 rounded-lg bg-[#FF9F0A] text-black text-xs font-extrabold flex items-center justify-center shrink-0">
+            <span className="w-6 h-6 rounded-lg bg-znacka text-black text-xs font-extrabold flex items-center justify-center shrink-0">
               {k.cislo}
             </span>
             <div className="min-w-0">
@@ -340,7 +340,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
           </div>
           <button
             onClick={() => onJit(k.kam)}
-            className="w-full py-2 bg-white/[0.06] hover:bg-[#FF9F0A] hover:text-black border border-white/[0.1] text-white text-xs font-bold rounded-xl cursor-pointer transition-all"
+            className="w-full py-2 bg-white/[0.06] hover:bg-znacka hover:text-black border border-white/[0.1] text-white text-xs font-bold rounded-xl cursor-pointer transition-all"
           >
             {k.tlacitko}
           </button>
@@ -357,7 +357,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
           <button
             key={v.nadpis}
             onClick={() => onJit(v.kam)}
-            className="text-left px-3 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-[#FF9F0A]/50 cursor-pointer transition-all"
+            className="text-left px-3 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-znacka/50 cursor-pointer transition-all"
           >
             <div className="text-drobne font-bold text-white">{v.nadpis}</div>
             <div className="text-stitek text-neutral-500 leading-snug mt-0.5">{v.popis}</div>

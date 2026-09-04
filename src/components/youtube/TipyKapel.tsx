@@ -128,7 +128,7 @@ export const TipyKapel: React.FC<{
             onClick={() => setDekada(d.rok)}
             className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
               dekada === d.rok
-                ? 'bg-[#FF9F0A] text-black'
+                ? 'bg-znacka text-black'
                 : 'bg-white/5 hover:bg-white/10 text-neutral-400 border border-white/10'
             }`}
           >
@@ -173,7 +173,7 @@ export const TipyKapel: React.FC<{
                 </span>
               )}
               {!s.nacita && s.chyba && (
-                <span className="text-[#FF453A] shrink-0 px-2">{s.chyba}</span>
+                <span className="text-chyba shrink-0 px-2">{s.chyba}</span>
               )}
               {!s.nacita && !s.chyba && s.tipy.length > 0 && !jeVic && (
                 <span className="text-neutral-600 shrink-0 px-2">to je z téhle dekády vše</span>

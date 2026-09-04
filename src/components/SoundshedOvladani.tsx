@@ -66,7 +66,7 @@ export const SoundshedOvladani: React.FC = () => {
     <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
-          <Sliders className="w-3.5 h-3.5 text-[#30D158]" />
+          <Sliders className="w-3.5 h-3.5 text-uspech" />
           Ovládání Soundshedu
         </h3>
         {midi.pripojeno && midi.porty.length > 0 && (
@@ -74,7 +74,7 @@ export const SoundshedOvladani: React.FC = () => {
             onClick={() => setUceni((u) => !u)}
             className={`text-stitek px-2 py-1 rounded-lg border transition-colors cursor-pointer flex items-center gap-1 ${
               uceni
-                ? 'bg-[#FFD60A]/15 border-[#FFD60A]/50 text-[#FFD60A]'
+                ? 'bg-pozor/15 border-pozor/50 text-pozor'
                 : 'bg-black/30 border-white/[0.08] text-neutral-400 hover:border-white/25'
             }`}
           >
@@ -94,7 +94,7 @@ export const SoundshedOvladani: React.FC = () => {
           <button
             onClick={() => void midiVystup.pripoj()}
             disabled={midi.cekaNaPovoleni}
-            className="text-drobne px-3 py-2 rounded-xl bg-[#30D158]/15 border border-[#30D158]/40 text-[#30D158] hover:bg-[#30D158]/25 transition-colors cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+            className="text-drobne px-3 py-2 rounded-xl bg-uspech/15 border border-uspech/40 text-uspech hover:bg-uspech/25 transition-colors cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
           >
             <Plug className="w-3.5 h-3.5" />
             {midi.cekaNaPovoleni ? 'Čekám na povolení…' : 'Připojit MIDI'}
@@ -130,20 +130,20 @@ export const SoundshedOvladani: React.FC = () => {
       )}
 
       {midi.chyba && (
-        <p className="text-drobne text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-start gap-1.5">
+        <p className="text-drobne text-znacka bg-znacka/10 border border-znacka/30 rounded-xl px-3 py-2 flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />
           {midi.chyba}
         </p>
       )}
 
       {kolize.map((k) => (
-        <p key={k} className="text-drobne text-[#FF9F0A] flex items-center gap-1.5">
+        <p key={k} className="text-drobne text-znacka flex items-center gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0" />{k}
         </p>
       ))}
 
       {uceni && (
-        <p className="text-drobne text-[#FFD60A] bg-[#FFD60A]/10 border border-[#FFD60A]/30 rounded-xl px-3 py-2 leading-relaxed">
+        <p className="text-drobne text-pozor bg-pozor/10 border border-pozor/30 rounded-xl px-3 py-2 leading-relaxed">
           V Soundshedu otevři <strong>MIDI</strong> dole v liště, u slotu klikni na
           učení a pak tady zmáčkni ten samý ovladač. U každého je napsané,
           na jakou adresu v Soundshedu míří.
@@ -171,7 +171,7 @@ export const SoundshedOvladani: React.FC = () => {
                           <input
                             type="range" min={0} max={127} value={v}
                             onChange={(e) => posliHodnotu(o, Number(e.target.value))}
-                            className="w-full accent-[#30D158] cursor-pointer"
+                            className="w-full accent-uspech cursor-pointer"
                           />
                           {uceni && (
                             <p className="text-stitek text-neutral-600 mt-1 truncate">
@@ -188,12 +188,12 @@ export const SoundshedOvladani: React.FC = () => {
                         title={o.poznamka || o.adresa}
                         className={`text-left px-3 py-2 rounded-xl border transition-all cursor-pointer ${
                           naposled === o.id
-                            ? 'bg-[#30D158]/15 border-[#30D158]/60'
+                            ? 'bg-uspech/15 border-uspech/60'
                             : 'bg-black/20 border-white/[0.06] hover:border-white/25'
                         }`}
                       >
                         <span className="text-drobne text-neutral-200 flex items-center gap-1 truncate">
-                          {naposled === o.id && <Check className="w-3 h-3 text-[#30D158] shrink-0" />}
+                          {naposled === o.id && <Check className="w-3 h-3 text-uspech shrink-0" />}
                           {o.nazev}
                         </span>
                         <span className="block text-stitek text-neutral-600 truncate">

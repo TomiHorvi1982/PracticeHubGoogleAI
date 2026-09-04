@@ -99,11 +99,11 @@ export const AiKapelaSection: React.FC = () => {
       {/* Hlavička */}
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex flex-wrap items-center gap-3.5">
-          <div className="p-3 bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 text-[#BF5AF2] rounded-2xl">
+          <div className="p-3 bg-nastroj/10 border border-nastroj/30 text-nastroj rounded-2xl">
             <Users className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-[240px]">
-            <span className="bg-[#BF5AF2] text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+            <span className="bg-nastroj text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Jam Room
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
@@ -119,7 +119,7 @@ export const AiKapelaSection: React.FC = () => {
             onClick={() => aiKapela.prepni()}
             disabled={engine.nacita}
             className={`px-5 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 ${
-              stav.hraje ? 'bg-[#FF453A] text-white' : 'bg-white text-black hover:bg-neutral-200'
+              stav.hraje ? 'bg-chyba text-white' : 'bg-white text-black hover:bg-neutral-200'
             }`}
           >
             {stav.hraje ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
@@ -128,10 +128,10 @@ export const AiKapelaSection: React.FC = () => {
         </div>
 
         {engine.nacita && (
-          <p className="text-drobne text-[#FF9F0A] mt-3">Stahuji zvukovou banku (40 MB)…</p>
+          <p className="text-drobne text-znacka mt-3">Stahuji zvukovou banku (40 MB)…</p>
         )}
         {(engine.chyba || stav.chyba) && (
-          <p className="text-drobne text-[#FF453A] mt-3">{engine.chyba || stav.chyba}</p>
+          <p className="text-drobne text-chyba mt-3">{engine.chyba || stav.chyba}</p>
         )}
       </div>
 
@@ -139,7 +139,7 @@ export const AiKapelaSection: React.FC = () => {
         {/* Akordy */}
         <div className="lg:col-span-2 bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Music4 className="w-4 h-4 text-[#BF5AF2]" />
+            <Music4 className="w-4 h-4 text-nastroj" />
             <h3 className="text-sm font-bold text-white">Akordy dokola</h3>
             <span className="text-drobne text-neutral-500">
               každý akord jeden takt — klikni pro odebrání
@@ -163,7 +163,7 @@ export const AiKapelaSection: React.FC = () => {
                 onClick={() => aiKapela.nastavPostup(stav.postup.filter((_, j) => j !== i))}
                 className={`px-3.5 py-2 rounded-xl font-bold text-sm cursor-pointer transition-all flex items-center gap-1.5 ${
                   stav.hraje && stav.akordIndex === i
-                    ? 'bg-[#BF5AF2] text-white scale-105'
+                    ? 'bg-nastroj text-white scale-105'
                     : 'bg-white/[0.06] text-neutral-200 hover:bg-white/[0.12]'
                 }`}
               >
@@ -186,7 +186,7 @@ export const AiKapelaSection: React.FC = () => {
                 value={novyAkord}
                 onChange={(e) => setNovyAkord(e.target.value)}
                 placeholder="Am7, F, G…"
-                className="w-28 bg-black/40 border border-white/10 rounded-xl px-2.5 py-2 text-sm focus:outline-none focus:border-[#BF5AF2]"
+                className="w-28 bg-black/40 border border-white/10 rounded-xl px-2.5 py-2 text-sm focus:outline-none focus:border-nastroj"
               />
               <button
                 type="submit"
@@ -205,7 +205,7 @@ export const AiKapelaSection: React.FC = () => {
                 key={k}
                 className={`flex-1 h-1.5 rounded-full transition-colors ${
                   stav.hraje && stav.krok === k
-                    ? 'bg-[#BF5AF2]'
+                    ? 'bg-nastroj'
                     : k % 4 === 0
                     ? 'bg-white/20'
                     : 'bg-white/[0.06]'
@@ -220,7 +220,7 @@ export const AiKapelaSection: React.FC = () => {
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
-              <span className="text-sm font-mono font-bold text-[#BF5AF2] tabular-nums">
+              <span className="text-sm font-mono font-bold text-nastroj tabular-nums">
                 {stav.bpm} BPM
               </span>
             </div>
@@ -230,7 +230,7 @@ export const AiKapelaSection: React.FC = () => {
               max={220}
               value={stav.bpm}
               onChange={(e) => aiKapela.nastavBpm(Number(e.target.value))}
-              className="w-full accent-[#BF5AF2] cursor-pointer"
+              className="w-full accent-nastroj cursor-pointer"
             />
           </div>
 
@@ -243,7 +243,7 @@ export const AiKapelaSection: React.FC = () => {
                   onClick={() => aiKapela.nastavStyl(s.id)}
                   className={`px-2.5 py-2 rounded-xl text-xs font-bold cursor-pointer transition-all ${
                     stav.styl === s.id
-                      ? 'bg-[#BF5AF2] text-white'
+                      ? 'bg-nastroj text-white'
                       : 'bg-white/[0.05] text-neutral-400 hover:text-white'
                   }`}
                 >
@@ -276,7 +276,7 @@ export const AiKapelaSection: React.FC = () => {
                 <button
                   onClick={() => aiKapela.prepniClena(c.id)}
                   className={`text-stitek px-2 py-1 rounded-lg font-bold cursor-pointer ${
-                    hraje ? 'bg-white/[0.08] text-neutral-300' : 'bg-[#FF453A]/20 text-[#FF453A]'
+                    hraje ? 'bg-white/[0.08] text-neutral-300' : 'bg-chyba/20 text-chyba'
                   }`}
                 >
                   {hraje ? 'hraje' : 'mlčí'}
@@ -290,7 +290,7 @@ export const AiKapelaSection: React.FC = () => {
                 value={Math.round(stav.hlasitosti[c.id] * 100)}
                 onChange={(e) => aiKapela.nastavHlasitost(c.id, Number(e.target.value) / 100)}
                 disabled={!hraje}
-                className="w-full accent-[#BF5AF2] cursor-pointer disabled:opacity-40"
+                className="w-full accent-nastroj cursor-pointer disabled:opacity-40"
               />
             </div>
           );
@@ -310,9 +310,9 @@ export const AiKapelaSection: React.FC = () => {
           <span
             className={`ml-auto text-stitek font-bold px-2 py-1 rounded-lg ${
               solista.stav === 'hraje'
-                ? 'bg-[#30D158]/20 text-[#30D158]'
+                ? 'bg-uspech/20 text-uspech'
                 : solista.stav === 'chyba'
-                ? 'bg-[#FF453A]/20 text-[#FF453A]'
+                ? 'bg-chyba/20 text-chyba'
                 : 'bg-white/[0.06] text-neutral-400'
             }`}
           >
@@ -344,7 +344,7 @@ export const AiKapelaSection: React.FC = () => {
                 : void aiSolista.start(stylSolisty)
             }
             className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 ${
-              solista.stav === 'hraje' ? 'bg-[#FF453A] text-white' : 'bg-[#FF375F] text-white hover:bg-[#FF375F]/85'
+              solista.stav === 'hraje' ? 'bg-chyba text-white' : 'bg-[#FF375F] text-white hover:bg-[#FF375F]/85'
             }`}
           >
             {solista.stav === 'pripojuji' ? (
@@ -363,7 +363,7 @@ export const AiKapelaSection: React.FC = () => {
           takt, ne dopředu na blok, který zrovna počítá.
         */}
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
-          <FileMusic className="w-3.5 h-3.5 text-[#BF5AF2]" />
+          <FileMusic className="w-3.5 h-3.5 text-nastroj" />
           <span className="text-drobne text-neutral-400 flex-1 min-w-[180px]">
             Nechat sólo vyrenderovat větším modelem — zní líp, ale musíš počkat.
           </span>
@@ -380,7 +380,7 @@ export const AiKapelaSection: React.FC = () => {
           <button
             onClick={() => void renderuj()}
             disabled={!!solista.render}
-            className="px-3 py-1.5 rounded-xl bg-[#BF5AF2] text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl bg-nastroj text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
             title="Vyrenderovat sólo přes celý postup větším modelem"
           >
             {solista.render ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileMusic className="w-3.5 h-3.5" />}
@@ -393,14 +393,14 @@ export const AiKapelaSection: React.FC = () => {
         {solista.render && (
           <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#BF5AF2] transition-[width] duration-300"
+              className="h-full bg-nastroj transition-[width] duration-300"
               style={{ width: `${(solista.render.hotovo / Math.max(1, solista.render.celkem)) * 100}%` }}
             />
           </div>
         )}
 
         {hotoveSolo && (
-          <div className="flex flex-wrap items-center gap-2 bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 rounded-xl px-3 py-2">
+          <div className="flex flex-wrap items-center gap-2 bg-nastroj/10 border border-nastroj/30 rounded-xl px-3 py-2">
             <span className="text-drobne text-white flex-1">
               Sólo hotové — {hotoveSolo.vterin.toFixed(1)} s
             </span>
@@ -408,7 +408,7 @@ export const AiKapelaSection: React.FC = () => {
             <button
               onClick={() => void ulozSolo()}
               disabled={uklada}
-              className="px-2.5 py-1.5 rounded-lg bg-[#30D158] text-black text-drobne font-bold cursor-pointer disabled:opacity-40"
+              className="px-2.5 py-1.5 rounded-lg bg-uspech text-black text-drobne font-bold cursor-pointer disabled:opacity-40"
             >
               {uklada ? 'Ukládám…' : 'Do knihovny'}
             </button>
@@ -423,7 +423,7 @@ export const AiKapelaSection: React.FC = () => {
         )}
 
         {solista.chyba && (
-          <div className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/25 rounded-xl px-3 py-2">
+          <div className="text-drobne text-chyba bg-chyba/10 border border-chyba/25 rounded-xl px-3 py-2">
             {solista.chyba}
             <div className="text-neutral-400 mt-1">
               Poprvé to stáhne váhy modelu — pár gigabajtů, jednorázově.

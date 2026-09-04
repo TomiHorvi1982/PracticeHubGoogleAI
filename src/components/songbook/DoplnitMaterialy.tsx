@@ -214,8 +214,8 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
 
         <div className="p-5 space-y-3">
           {/* Nejrychlejší cesta je nahoře: nechat to dohledat samo. */}
-          <div className="flex flex-wrap items-center gap-2 bg-[#FF9F0A]/10 border border-[#FF9F0A]/25 rounded-2xl px-3 py-2.5">
-            <Sparkles className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+          <div className="flex flex-wrap items-center gap-2 bg-znacka/10 border border-znacka/25 rounded-2xl px-3 py-2.5">
+            <Sparkles className="w-4 h-4 text-znacka shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="text-drobne font-semibold text-white">Dohledat samo</div>
               <div className="text-stitek text-neutral-400">
@@ -230,7 +230,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                 setTimeout(() => setDohledavam(false), 2500);
               }}
               disabled={dohledavam}
-              className="px-3 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/85 text-black text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 shrink-0 flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-znacka hover:bg-znacka/85 text-black text-xs font-bold rounded-xl cursor-pointer disabled:opacity-50 shrink-0 flex items-center gap-1.5"
             >
               {dohledavam ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               Spustit
@@ -240,7 +240,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
           <NavrhyPanel song={song} onZmena={() => onUlozit({ ...song })} />
 
           {hlaska && (
-            <div className="text-drobne text-[#30D158] bg-[#30D158]/10 border border-[#30D158]/25 rounded-xl px-3 py-1.5 flex items-center gap-1.5">
+            <div className="text-drobne text-uspech bg-uspech/10 border border-uspech/25 rounded-xl px-3 py-1.5 flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5 shrink-0" /> {hlaska}
             </div>
           )}
@@ -259,9 +259,9 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                   }}
                   className={`text-left px-2.5 py-2 rounded-xl border cursor-pointer transition-all ${
                     otevreny
-                      ? 'bg-[#FF9F0A]/15 border-[#FF9F0A]/50'
+                      ? 'bg-znacka/15 border-znacka/50'
                       : d.jsouData
-                        ? 'bg-[#30D158]/[0.07] border-[#30D158]/25 hover:border-[#30D158]/50'
+                        ? 'bg-uspech/[0.07] border-uspech/25 hover:border-uspech/50'
                         : 'bg-white/[0.03] border-white/[0.08] hover:border-white/25'
                   }`}
                 >
@@ -269,7 +269,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                     <span>{m.icon}</span>
                     <span className="truncate">{m.title}</span>
                   </div>
-                  <div className={`text-stitek truncate ${d.jsouData ? 'text-[#30D158]' : 'text-neutral-500'}`}>
+                  <div className={`text-stitek truncate ${d.jsouData ? 'text-uspech' : 'text-neutral-500'}`}>
                     {d.souhrn}
                   </div>
                 </button>
@@ -284,18 +284,18 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
               }}
               className={`text-left px-2.5 py-2 rounded-xl border cursor-pointer transition-all ${
                 otevrenyModul === 'youtube'
-                  ? 'bg-[#FF9F0A]/15 border-[#FF9F0A]/50'
+                  ? 'bg-znacka/15 border-znacka/50'
                   : (song.youtubeVideos?.length || 0) > 0
-                    ? 'bg-[#30D158]/[0.07] border-[#30D158]/25 hover:border-[#30D158]/50'
+                    ? 'bg-uspech/[0.07] border-uspech/25 hover:border-uspech/50'
                     : 'bg-white/[0.03] border-white/[0.08] hover:border-white/25'
               }`}
             >
               <div className="text-drobne font-semibold text-white flex items-center gap-1.5">
-                <Youtube className="w-3 h-3 text-[#FF453A]" /> YouTube
+                <Youtube className="w-3 h-3 text-chyba" /> YouTube
               </div>
               <div
                 className={`text-stitek truncate ${
-                  (song.youtubeVideos?.length || 0) > 0 ? 'text-[#30D158]' : 'text-neutral-500'
+                  (song.youtubeVideos?.length || 0) > 0 ? 'text-uspech' : 'text-neutral-500'
                 }`}
               >
                 {(song.youtubeVideos?.length || 0) > 0
@@ -313,11 +313,11 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                   onChange={(e) => setYtOdkaz(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && pridejVideo()}
                   placeholder="Vlož odkaz na YouTube…"
-                  className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-drobne text-white outline-none focus:border-[#FF9F0A]"
+                  className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-drobne text-white outline-none focus:border-znacka"
                 />
                 <button
                   onClick={pridejVideo}
-                  className="px-3 py-2 bg-[#FF453A] hover:bg-[#FF453A]/85 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-2 bg-chyba hover:bg-chyba/85 text-white text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" /> Připojit
                 </button>
@@ -334,7 +334,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                         updatedAt: Date.now(),
                       })
                     }
-                    className="p-1 rounded-md hover:bg-[#FF453A]/20 text-neutral-500 hover:text-[#FF453A] cursor-pointer"
+                    className="p-1 rounded-md hover:bg-chyba/20 text-neutral-500 hover:text-chyba cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -376,7 +376,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                       value={dotaz}
                       onChange={(e) => setDotaz(e.target.value)}
                       placeholder="Hledat v knihovně…"
-                      className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-drobne text-white outline-none focus:border-[#FF9F0A]"
+                      className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-drobne text-white outline-none focus:border-znacka"
                     />
                   </div>
                   <div className="max-h-52 overflow-y-auto space-y-1">
@@ -398,14 +398,14 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                       >
                         <span className="text-drobne text-white truncate flex-1">{a.name}</span>
                         <span className="text-stitek text-neutral-600 shrink-0">{a.asset_type}</span>
-                        <Plus className="w-3.5 h-3.5 text-[#30D158] shrink-0" />
+                        <Plus className="w-3.5 h-3.5 text-uspech shrink-0" />
                       </button>
                     ))}
                   </div>
                 </>
               ) : (
                 <label
-                  className={`flex flex-col items-center justify-center gap-1.5 border border-dashed border-white/[0.14] rounded-2xl py-6 cursor-pointer hover:border-[#FF9F0A]/50 transition-all ${
+                  className={`flex flex-col items-center justify-center gap-1.5 border border-dashed border-white/[0.14] rounded-2xl py-6 cursor-pointer hover:border-znacka/50 transition-all ${
                     nahravam ? 'opacity-50 cursor-wait' : ''
                   }`}
                 >
@@ -418,9 +418,9 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                     className="hidden"
                   />
                   {nahravam ? (
-                    <Loader2 className="w-5 h-5 text-[#FF9F0A] animate-spin" />
+                    <Loader2 className="w-5 h-5 text-znacka animate-spin" />
                   ) : (
-                    <Upload className="w-5 h-5 text-[#FF9F0A]" />
+                    <Upload className="w-5 h-5 text-znacka" />
                   )}
                   <span className="text-drobne text-neutral-300">
                     {nahravam ? 'Nahrávám…' : 'Vyber soubory z počítače'}
@@ -436,11 +436,11 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit }) 
                 <div className="space-y-1 border-t border-white/[0.06] pt-2">
                   {dataModulu(song, modul.id).prilohy.map((a) => (
                     <div key={a.id} className="flex items-center gap-2 text-drobne text-neutral-300">
-                      <Check className="w-3 h-3 text-[#30D158] shrink-0" />
+                      <Check className="w-3 h-3 text-uspech shrink-0" />
                       <span className="truncate flex-1">{a.name}</span>
                       <button
                         onClick={() => odeber(a.id)}
-                        className="p-1 rounded-md hover:bg-[#FF453A]/20 text-neutral-600 hover:text-[#FF453A] cursor-pointer"
+                        className="p-1 rounded-md hover:bg-chyba/20 text-neutral-600 hover:text-chyba cursor-pointer"
                         title="Odpojit od písně"
                       >
                         <Trash2 className="w-3 h-3" />

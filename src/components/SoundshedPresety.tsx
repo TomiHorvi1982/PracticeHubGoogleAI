@@ -27,12 +27,12 @@ interface Preset {
 
 /** Barva podle role článku, ať je řetězec čitelný na první pohled. */
 const BARVA: Record<string, string> = {
-  amp: 'text-[#FF9F0A] border-[#FF9F0A]/30 bg-[#FF9F0A]/10',
+  amp: 'text-znacka border-znacka/30 bg-znacka/10',
   cab: 'text-[#FF375F] border-[#FF375F]/30 bg-[#FF375F]/10',
-  reverb: 'text-[#0A84FF] border-[#0A84FF]/30 bg-[#0A84FF]/10',
+  reverb: 'text-info border-info/30 bg-info/10',
   delay: 'text-[#5E5CE6] border-[#5E5CE6]/30 bg-[#5E5CE6]/10',
-  dynamics: 'text-[#30D158] border-[#30D158]/30 bg-[#30D158]/10',
-  modulation: 'text-[#BF5AF2] border-[#BF5AF2]/30 bg-[#BF5AF2]/10',
+  dynamics: 'text-uspech border-uspech/30 bg-uspech/10',
+  modulation: 'text-nastroj border-nastroj/30 bg-nastroj/10',
 };
 const barvaClanku = (k: string) => BARVA[k] || 'text-neutral-400 border-white/10 bg-white/5';
 
@@ -97,7 +97,7 @@ export const SoundshedPresety: React.FC = () => {
     <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5 text-[#BF5AF2]" />
+          <Layers className="w-3.5 h-3.5 text-nastroj" />
           Presety ze Soundshedu
         </h3>
         <span className="text-stitek text-neutral-500 shrink-0">
@@ -139,7 +139,7 @@ export const SoundshedPresety: React.FC = () => {
                     <span className="text-drobne text-neutral-200 truncate flex-1">{p.nazev}</span>
                     {/* Který preset má Soundshed zrovna nahraný. */}
                     {p.id === aktivni && (
-                      <Star className="w-3 h-3 text-[#FFD60A] shrink-0" aria-label="Právě vybraný v Soundshedu" />
+                      <Star className="w-3 h-3 text-pozor shrink-0" aria-label="Právě vybraný v Soundshedu" />
                     )}
                     <span className="text-stitek text-neutral-600 shrink-0">
                       {p.sceny.length > 1 ? `${p.sceny.length} scény` : ''}

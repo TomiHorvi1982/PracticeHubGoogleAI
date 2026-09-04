@@ -184,7 +184,7 @@ export const SamplesStudio: React.FC = () => {
       {/* SKLÁDAČKA */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Layers className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+          <Layers className="w-4 h-4 text-znacka shrink-0" />
           <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Skládačka</h2>
           <span className="text-stitek text-neutral-500">stopy pod sebou, části za sebou</span>
 
@@ -221,7 +221,7 @@ export const SamplesStudio: React.FC = () => {
               onClick={() => (stav.hraje ? skladackaService.stop() : void skladackaService.prehraj())}
               disabled={stav.nacita}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-50 ${
-                stav.hraje ? 'bg-[#FF453A] text-white' : 'bg-[#FF9F0A] text-black hover:bg-[#FF9F0A]/85'
+                stav.hraje ? 'bg-chyba text-white' : 'bg-znacka text-black hover:bg-znacka/85'
               }`}
             >
               {stav.nacita ? (
@@ -237,7 +237,7 @@ export const SamplesStudio: React.FC = () => {
         </div>
 
         {stav.chyba && (
-          <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+          <p className="text-drobne text-chyba flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {stav.chyba}
           </p>
         )}
@@ -256,7 +256,7 @@ export const SamplesStudio: React.FC = () => {
                   onClick={() => skladackaService.vyberCast(c.id)}
                   className={`px-1.5 py-1 rounded-lg text-stitek font-bold cursor-pointer transition-all ${
                     stav.aktivniCast === c.id
-                      ? 'bg-[#FF9F0A] text-black'
+                      ? 'bg-znacka text-black'
                       : 'bg-white/[0.05] text-neutral-400 hover:text-white'
                   }`}
                   title={`${c.nazev} — ${c.opakovani}×`}
@@ -282,7 +282,7 @@ export const SamplesStudio: React.FC = () => {
                     <button
                       onClick={() => skladackaService.nastavStopu(stopa.id, { ztlumena: !stopa.ztlumena })}
                       className={`p-1 rounded cursor-pointer ${
-                        stopa.ztlumena ? 'text-[#FF453A]' : 'text-neutral-500 hover:text-white'
+                        stopa.ztlumena ? 'text-chyba' : 'text-neutral-500 hover:text-white'
                       }`}
                       title={stopa.ztlumena ? 'Zapnout stopu' : 'Ztlumit stopu'}
                     >
@@ -291,7 +291,7 @@ export const SamplesStudio: React.FC = () => {
                     <span className="text-drobne font-semibold text-white truncate flex-1">{stopa.nazev}</span>
                     <button
                       onClick={() => skladackaService.smazStopu(stopa.id)}
-                      className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer"
+                      className="p-1 rounded text-neutral-600 hover:text-chyba cursor-pointer"
                       title="Smazat stopu"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -312,11 +312,11 @@ export const SamplesStudio: React.FC = () => {
                         style={pozadiPolicka(!!s, stav.hraje && stav.aktivniCast === c.id, stav.postup)}
                         className={`px-1.5 py-1.5 rounded-lg text-stitek truncate border cursor-pointer transition-all ${
                           s
-                            ? `border-[#30D158]/40 text-[#30D158] ${
-                                stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-[#30D158]/15'
+                            ? `border-uspech/40 text-uspech ${
+                                stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-uspech/15'
                               }`
                             : vybrane
-                              ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-[#FF9F0A]'
+                              ? 'bg-znacka/20 border-znacka text-znacka'
                               : 'bg-white/[0.03] border-white/[0.08] text-neutral-600 hover:border-white/25'
                         }`}
                         title={s ? `${s.nazev} — kliknutím vyprázdníš` : 'Klikni a pak vyber sampl níž'}
@@ -353,7 +353,7 @@ export const SamplesStudio: React.FC = () => {
               onClick={() => setNastroj(n.id)}
               className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
                 nastroj === n.id
-                  ? 'bg-[#FF9F0A] text-black'
+                  ? 'bg-znacka text-black'
                   : 'bg-white/[0.04] text-neutral-400 hover:text-white'
               }`}
             >
@@ -383,18 +383,18 @@ export const SamplesStudio: React.FC = () => {
             value={hledat}
             onChange={(e) => setHledat(e.target.value)}
             placeholder="Hledat sampl…"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-[#FF9F0A]"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-znacka"
           />
         </div>
 
         {cil && (
-          <p className="text-drobne text-[#FF9F0A]">
+          <p className="text-drobne text-znacka">
             Vyber sampl — vloží se do označeného políčka.
           </p>
         )}
 
         {chyba && (
-          <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+          <p className="text-drobne text-chyba flex items-center gap-1.5">
             <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
           </p>
         )}
@@ -419,16 +419,16 @@ export const SamplesStudio: React.FC = () => {
                 key={s.id}
                 className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all ${
                   nahled
-                    ? 'bg-white/[0.05] border-[#30D158]/40'
+                    ? 'bg-white/[0.05] border-uspech/40'
                     : cil
-                      ? 'bg-white/[0.03] border-white/[0.08] hover:border-[#FF9F0A]/60'
+                      ? 'bg-white/[0.03] border-white/[0.08] hover:border-znacka/60'
                       : 'bg-white/[0.02] border-white/[0.05]'
                 }`}
               >
                 <button
                   onClick={() => void skladackaService.nahledPust(s)}
                   className={`p-1 rounded-lg shrink-0 cursor-pointer ${
-                    nahled ? 'text-[#30D158]' : 'text-neutral-500 hover:text-white'
+                    nahled ? 'text-uspech' : 'text-neutral-500 hover:text-white'
                   }`}
                   title={nahled ? 'Zastavit ukázku' : 'Poslechnout sampl'}
                 >
@@ -467,7 +467,7 @@ export const SamplesStudio: React.FC = () => {
                     className="p-0.5 shrink-0 cursor-pointer"
                     title="Vložit do označeného políčka"
                   >
-                    <Plus className="w-3.5 h-3.5 text-[#30D158]" />
+                    <Plus className="w-3.5 h-3.5 text-uspech" />
                   </button>
                 )}
               </div>

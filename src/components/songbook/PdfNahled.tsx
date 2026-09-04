@@ -103,16 +103,16 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
 
   if (chyba) {
     return (
-      <div className="bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-2xl p-4 flex items-start gap-2">
-        <AlertCircle className="w-4 h-4 text-[#FF453A] shrink-0 mt-0.5" />
+      <div className="bg-chyba/10 border border-chyba/30 rounded-2xl p-4 flex items-start gap-2">
+        <AlertCircle className="w-4 h-4 text-chyba shrink-0 mt-0.5" />
         <div>
-          <p className="text-drobne text-[#FF453A] font-semibold">PDF se nepodařilo zobrazit</p>
+          <p className="text-drobne text-chyba font-semibold">PDF se nepodařilo zobrazit</p>
           <p className="text-drobne text-neutral-400 mt-0.5">{chyba}</p>
           <a
             href={url}
             target="_blank"
             rel="noreferrer"
-            className="text-drobne text-[#FF9F0A] hover:underline inline-flex items-center gap-1 mt-1.5"
+            className="text-drobne text-znacka hover:underline inline-flex items-center gap-1 mt-1.5"
           >
             <ExternalLink className="w-3 h-3" /> Otevřít v novém okně
           </a>

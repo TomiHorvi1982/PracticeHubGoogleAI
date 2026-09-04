@@ -610,7 +610,7 @@ export const VirtualInstruments: React.FC = () => {
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+            <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Workstation
             </span>
             <span className="text-xs text-neutral-400 font-medium">Virtuální nástroje & MIDI</span>
@@ -627,7 +627,7 @@ export const VirtualInstruments: React.FC = () => {
           {/* MIDI Tools Modal Trigger */}
           <button
             onClick={() => setIsMidiModalOpen(true)}
-            className="px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-[#30D158] hover:text-[#30D158] font-semibold text-xs rounded-2xl border border-[#30D158]/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+            className="px-3.5 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-uspech hover:text-uspech font-semibold text-xs rounded-2xl border border-uspech/30 flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
             title="Otevřít nastavení MIDI klávesnice a mapování zvuků"
           >
             <Laptop className="w-4 h-4" />
@@ -653,7 +653,7 @@ export const VirtualInstruments: React.FC = () => {
               být vidět a jít vypnout — jinak by se klávesy „samy" ztmavily
               a nebylo by zřejmé proč. */}
           {midiStav.tonina && midiStav.tracks.length > 0 && (
-            <div className="bg-[#BF5AF2]/10 border border-[#BF5AF2]/30 rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-drobne">
+            <div className="bg-nastroj/10 border border-nastroj/30 rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-drobne">
               <span className="text-stitek uppercase tracking-wider text-neutral-500">Ze skladby</span>
               <span className="text-white font-bold">
                 {midiStav.tonina.nazev}
@@ -672,7 +672,7 @@ export const VirtualInstruments: React.FC = () => {
                   type="checkbox"
                   checked={ridiSeMidi}
                   onChange={(e) => setRidiSeMidi(e.target.checked)}
-                  className="accent-[#BF5AF2] cursor-pointer"
+                  className="accent-nastroj cursor-pointer"
                 />
                 Nastavit klavír i hmatník podle skladby
               </label>
@@ -691,7 +691,7 @@ export const VirtualInstruments: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
               {/* Scale Title */}
               <div className="flex items-center gap-2">
-                <Filter className="w-4 h-4 text-[#FF9F0A]" />
+                <Filter className="w-4 h-4 text-znacka" />
                 <span className="text-xs font-bold uppercase text-white tracking-wider">
                   Filtr stupnice písničky (zobrazení not na klávesách)
                 </span>
@@ -713,7 +713,7 @@ export const VirtualInstruments: React.FC = () => {
                     onClick={() => applySongKeyPreset(item.root, item.idx)}
                     className={`px-2.5 py-1 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 inline-flex items-center justify-center rounded-xl font-semibold transition-all cursor-pointer ${
                       selectedRoot === item.root && selectedScaleIndex === item.idx
-                        ? 'bg-[#FF9F0A] text-black shadow-sm'
+                        ? 'bg-znacka text-black shadow-sm'
                         : 'bg-white/[0.04] text-neutral-300 border border-white/[0.06] hover:bg-white/10'
                     }`}
                   >
@@ -742,7 +742,7 @@ export const VirtualInstruments: React.FC = () => {
                   <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider block">Zvuk kláves ({ALL_INSTRUMENTS.length} nástrojů)</span>
                   <button
                     onClick={() => setIsSoundLibraryOpen(true)}
-                    className="flex items-center gap-1 text-drobne font-bold text-[#FF9F0A] hover:text-[#FFB340] transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-drobne font-bold text-znacka hover:text-[#FFB340] transition-colors cursor-pointer"
                   >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Otevřít zvukovou knihovnu</span>
@@ -752,7 +752,7 @@ export const VirtualInstruments: React.FC = () => {
                 <select
                   value={pianoSoundProfile}
                   onChange={(e) => setPianoSoundProfile(e.target.value as InstrumentProfile)}
-                  className="w-full bg-[#1C1C1E] text-white font-semibold text-xs p-2.5 rounded-xl border border-white/10 outline-none cursor-pointer focus:border-[#FF9F0A]"
+                  className="w-full bg-[#1C1C1E] text-white font-semibold text-xs p-2.5 rounded-xl border border-white/10 outline-none cursor-pointer focus:border-znacka"
                 >
                   {INSTRUMENT_CATEGORIES.map((category) => {
                     const categoryInstruments = ALL_INSTRUMENTS.filter(
@@ -773,10 +773,10 @@ export const VirtualInstruments: React.FC = () => {
 
                 {/* Piano Loading State Indicator (Asynchronous Multisample Fetch & IndexedDB Status) */}
                 {sfProgress !== null ? (
-                  <div className="mt-2 p-2 bg-[#30D158]/10 rounded-xl border border-[#30D158]/30 space-y-1.5 animate-in fade-in duration-150">
-                    <div className="flex items-center justify-between text-stitek text-[#30D158] font-bold">
+                  <div className="mt-2 p-2 bg-uspech/10 rounded-xl border border-uspech/30 space-y-1.5 animate-in fade-in duration-150">
+                    <div className="flex items-center justify-between text-stitek text-uspech font-bold">
                       <span className="flex items-center gap-1.5">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin text-[#30D158]" />
+                        <Loader2 className="w-3.5 h-3.5 animate-spin text-uspech" />
                         <span>
                           {isPianoCached
                             ? 'Bleskové načítání z IndexedDB paměti...'
@@ -784,26 +784,26 @@ export const VirtualInstruments: React.FC = () => {
                         </span>
                       </span>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-stitek bg-[#30D158]/20 text-[#30D158] px-1.5 py-0.5 rounded font-mono border border-[#30D158]/30">
+                        <span className="text-stitek bg-uspech/20 text-uspech px-1.5 py-0.5 rounded font-mono border border-uspech/30">
                           {isPianoCached ? 'IndexedDB Cache' : 'CDN Stream'}
                         </span>
                         <span className="font-mono">{sfProgress}%</span>
                       </div>
                     </div>
-                    <div className="w-full bg-black/50 h-1.5 rounded-full overflow-hidden p-0.5 border border-[#30D158]/20">
+                    <div className="w-full bg-black/50 h-1.5 rounded-full overflow-hidden p-0.5 border border-uspech/20">
                       <div 
-                        className="bg-gradient-to-r from-[#30D158] to-[#00F5A0] h-full transition-all duration-200 rounded-full shadow-[0_0_8px_#30D158]"
+                        className="bg-gradient-to-r from-uspech to-[#00F5A0] h-full transition-all duration-200 rounded-full shadow-[0_0_8px_#30D158]"
                         style={{ width: `${sfProgress}%` }}
                       />
                     </div>
                   </div>
                 ) : (
                   <div className="mt-1 flex items-center justify-between text-stitek text-neutral-400">
-                    <span className="flex items-center gap-1 text-[#30D158]">
+                    <span className="flex items-center gap-1 text-uspech">
                       <Zap className="w-3 h-3" /> Zvukový profil připraven
                     </span>
                     <span className="flex items-center gap-1 font-mono text-stitek text-neutral-500">
-                      <Database className="w-3 h-3 text-[#30D158]" /> Uloženo v IndexedDB
+                      <Database className="w-3 h-3 text-uspech" /> Uloženo v IndexedDB
                     </span>
                   </div>
                 )}
@@ -824,7 +824,7 @@ export const VirtualInstruments: React.FC = () => {
                       onClick={() => setSelectedRoot(note)}
                       className={`px-2 py-1 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 inline-flex items-center justify-center text-stitek font-bold rounded-lg transition-all cursor-pointer ${
                         selectedRoot === note
-                          ? 'bg-[#FF9F0A] text-black font-extrabold shadow-sm'
+                          ? 'bg-znacka text-black font-extrabold shadow-sm'
                           : 'bg-white/5 text-neutral-300 hover:bg-white/10 border border-white/5'
                       }`}
                     >
@@ -858,7 +858,7 @@ export const VirtualInstruments: React.FC = () => {
               <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider">Posun oktáv</span>
-                  <span className="text-stitek font-mono font-bold text-[#30D158] bg-[#30D158]/10 px-2 py-0.5 rounded-md border border-[#30D158]/30">
+                  <span className="text-stitek font-mono font-bold text-uspech bg-uspech/10 px-2 py-0.5 rounded-md border border-uspech/30">
                     C{baseOctaveNumber} – C{baseOctaveNumber + 2}
                   </span>
                 </div>
@@ -879,7 +879,7 @@ export const VirtualInstruments: React.FC = () => {
                         onClick={() => setOctaveShift(shift)}
                         className={`w-6 h-6 min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 lg:w-6 lg:h-6 inline-flex items-center justify-center text-stitek font-bold rounded-lg transition-all cursor-pointer ${
                           octaveShift === shift
-                            ? 'bg-[#FF9F0A] text-black font-extrabold shadow-sm'
+                            ? 'bg-znacka text-black font-extrabold shadow-sm'
                             : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
                         }`}
                         title={`Oktáva C${4 + shift}`}
@@ -903,9 +903,9 @@ export const VirtualInstruments: React.FC = () => {
 
             {/* Active Scale Info Banner */}
             {selectedScaleIndex !== null && activeScaleDefinition && (
-              <div className="bg-[#30D158]/10 border border-[#30D158]/30 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="bg-uspech/10 border border-uspech/30 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="bg-[#30D158] text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase">
+                  <span className="bg-uspech text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase">
                     Aktivní stupnice
                   </span>
                   <span className="font-bold text-white">
@@ -915,7 +915,7 @@ export const VirtualInstruments: React.FC = () => {
                     ({activeScaleNotes.join(' - ')})
                   </span>
                   {onlyScaleKeysMode && (
-                    <span className="bg-black/30 text-[#30D158] border border-[#30D158]/40 text-stitek font-semibold px-2 py-0.5 rounded-lg flex items-center gap-1">
+                    <span className="bg-black/30 text-uspech border border-uspech/40 text-stitek font-semibold px-2 py-0.5 rounded-lg flex items-center gap-1">
                       <Zap className="w-3 h-3" /> Filtr aktivní (PC klávesnice + MIDI)
                     </span>
                   )}
@@ -927,7 +927,7 @@ export const VirtualInstruments: React.FC = () => {
                       type="checkbox"
                       checked={onlyScaleKeysMode}
                       onChange={(e) => setOnlyScaleKeysMode(e.target.checked)}
-                      className="accent-[#30D158] rounded"
+                      className="accent-uspech rounded"
                     />
                     <span>Ztmavit nezařazené klávesy &amp; mútovat (PC klávesnice + MIDI)</span>
                   </label>
@@ -943,19 +943,19 @@ export const VirtualInstruments: React.FC = () => {
             {/* PC Keyboard Mapping Legend Bar */}
             <div className="bg-black/50 border border-white/10 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-left">
               <div className="flex items-center gap-2">
-                <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2.5 py-1 rounded-lg uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
+                <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-1 rounded-lg uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
                   <Laptop className="w-3.5 h-3.5" /> PC Klávesnice
                 </span>
                 <span className="text-white font-medium text-xs">
-                  Aktivní nástroj: <strong className="text-[#30D158] font-bold">{ALL_INSTRUMENTS.find(i => i.id === pianoSoundProfile)?.czName || pianoSoundProfile}</strong>
+                  Aktivní nástroj: <strong className="text-uspech font-bold">{ALL_INSTRUMENTS.find(i => i.id === pianoSoundProfile)?.czName || pianoSoundProfile}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-3 text-drobne text-neutral-300 font-mono flex-wrap">
                 <span className="bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
-                  <span className="text-[#FF9F0A] font-bold">A S D F G H J K L Z X C V B N</span> = Bílé klávesy
+                  <span className="text-znacka font-bold">A S D F G H J K L Z X C V B N</span> = Bílé klávesy
                 </span>
                 <span className="bg-white/5 px-2 py-0.5 rounded-md border border-white/10">
-                  <span className="text-[#FF9F0A] font-bold">W E T Y U O P 1 2 3</span> = Černé klávesy
+                  <span className="text-znacka font-bold">W E T Y U O P 1 2 3</span> = Černé klávesy
                 </span>
               </div>
             </div>
@@ -979,9 +979,9 @@ export const VirtualInstruments: React.FC = () => {
                         disabled={isDisabledByFilter}
                         className={`plocha-nastroje w-8 h-32 -mx-4 z-10 rounded-b-md flex flex-col justify-between items-center py-2 px-0.5 border transition-all active:scale-95 cursor-pointer shadow-md ${
                           isActivePressed
-                            ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] shadow-[0_0_15px_#FF9F0A]'
+                            ? 'bg-znacka text-black border-znacka shadow-[0_0_15px_#FF9F0A]'
                             : isScaleNote && selectedScaleIndex !== null
-                            ? 'bg-[#1C2E20] hover:bg-[#28422E] text-[#30D158] border-[#30D158]/60 shadow-[0_0_8px_rgba(48,209,88,0.2)]'
+                            ? 'bg-[#1C2E20] hover:bg-[#28422E] text-uspech border-uspech/60 shadow-[0_0_8px_rgba(48,209,88,0.2)]'
                             : isDisabledByFilter
                             ? 'bg-[#0E0E10] text-neutral-700 border-white/5 opacity-20'
                             : 'bg-[#1C1C1E] hover:bg-[#2C2C2E] text-neutral-300 hover:text-white border-black'
@@ -989,7 +989,7 @@ export const VirtualInstruments: React.FC = () => {
                         title={`${fullNoteName} [Klávesa PC: ${keyObj.keyShortcut.toUpperCase()}]`}
                       >
                         {isScaleNote && selectedScaleIndex !== null ? (
-                          <span className="text-stitek font-extrabold bg-[#30D158] text-black px-1 rounded-full">
+                          <span className="text-stitek font-extrabold bg-uspech text-black px-1 rounded-full">
                             {scaleDegree}.
                           </span>
                         ) : (
@@ -999,7 +999,7 @@ export const VirtualInstruments: React.FC = () => {
                         <span className="text-stitek font-bold font-mono uppercase tracking-tighter">{keyObj.root}</span>
 
                         {/* Graphical PC Keycap Badge */}
-                        <span className="px-1 py-0.5 rounded bg-black/90 text-[#FF9F0A] font-mono text-stitek font-black border border-[#FF9F0A]/40 uppercase shadow-xs flex items-center justify-center min-w-[18px]">
+                        <span className="px-1 py-0.5 rounded bg-black/90 text-znacka font-mono text-stitek font-black border border-znacka/40 uppercase shadow-xs flex items-center justify-center min-w-[18px]">
                           {keyObj.keyShortcut.toUpperCase()}
                         </span>
                       </button>
@@ -1015,9 +1015,9 @@ export const VirtualInstruments: React.FC = () => {
                       disabled={isDisabledByFilter}
                       className={`w-11 h-46 rounded-b-xl flex flex-col justify-between items-center py-3 px-1 border transition-all active:scale-95 cursor-pointer shadow-sm ${
                         isActivePressed
-                          ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] shadow-[0_0_15px_#FF9F0A]'
+                          ? 'bg-znacka text-black border-znacka shadow-[0_0_15px_#FF9F0A]'
                           : isScaleNote && selectedScaleIndex !== null
-                          ? 'bg-[#EDFDF0] hover:bg-white text-black border-2 border-[#30D158] shadow-[0_0_10px_rgba(48,209,88,0.3)]'
+                          ? 'bg-[#EDFDF0] hover:bg-white text-black border-2 border-uspech shadow-[0_0_10px_rgba(48,209,88,0.3)]'
                           : isDisabledByFilter
                           ? 'bg-neutral-800/40 text-neutral-600 border-white/5 opacity-20'
                           : 'bg-neutral-200 hover:bg-white text-black border-neutral-700/50'
@@ -1025,7 +1025,7 @@ export const VirtualInstruments: React.FC = () => {
                       title={`${fullNoteName} [Klávesa PC: ${keyObj.keyShortcut.toUpperCase()}]`}
                     >
                       {isScaleNote && selectedScaleIndex !== null ? (
-                        <span className="text-stitek font-extrabold bg-[#30D158] text-black px-1.5 py-0.5 rounded-md shadow-xs">
+                        <span className="text-stitek font-extrabold bg-uspech text-black px-1.5 py-0.5 rounded-md shadow-xs">
                           {scaleDegree}. stupeň
                         </span>
                       ) : (
@@ -1038,7 +1038,7 @@ export const VirtualInstruments: React.FC = () => {
                       <div className="flex flex-col items-center gap-0.5">
                         <span className="text-stitek text-neutral-500 uppercase font-bold tracking-tighter">PC Klávesa</span>
                         <span className="px-2 py-0.5 rounded-lg bg-[#1C1C1E] text-white font-mono text-stitek font-extrabold border border-white/20 shadow-md flex items-center justify-center min-w-[22px]">
-                          <span className="text-[#FF9F0A] font-black">{keyObj.keyShortcut.toUpperCase()}</span>
+                          <span className="text-znacka font-black">{keyObj.keyShortcut.toUpperCase()}</span>
                         </span>
                       </div>
                     </button>
@@ -1067,7 +1067,7 @@ export const VirtualInstruments: React.FC = () => {
           <AkordovyPrekladac sirka={340} />
           <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-4 shadow-xl flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+              <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
                 <Compass className="w-5 h-5" />
               </div>
               <div>
@@ -1158,7 +1158,7 @@ export const VirtualInstruments: React.FC = () => {
           {/* Information & Controller bar */}
           <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+              <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
                 <Globe className="w-5 h-5" />
               </div>
               <div>
@@ -1282,7 +1282,7 @@ export const VirtualInstruments: React.FC = () => {
 
             {/* Read-Only Address display to replicate real browser address bar */}
             <div className="flex-1 min-w-[280px] flex items-center bg-black/40 border border-white/10 px-3 py-1.5 rounded-xl">
-              <Globe className="w-3.5 h-3.5 text-[#30D158] mr-2" />
+              <Globe className="w-3.5 h-3.5 text-uspech mr-2" />
               <span className="text-xs text-neutral-200 font-mono truncate">
                 {guitarCurrentUrl}
               </span>
@@ -1313,7 +1313,7 @@ export const VirtualInstruments: React.FC = () => {
             {isGuitarNavigating && (
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
                 <div className="bg-[#1C1C1E] border border-white/10 p-5 rounded-2xl text-center shadow-2xl">
-                  <span className="text-xs font-semibold text-[#30D158] animate-pulse">
+                  <span className="text-xs font-semibold text-uspech animate-pulse">
                     Načítání kytarové databáze...
                   </span>
                 </div>
@@ -1345,10 +1345,10 @@ export const VirtualInstruments: React.FC = () => {
             <div className="p-5 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#1C1C1E]">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  <span className="bg-znacka text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
                     Knihovna Zvuků
                   </span>
-                  <span className="text-xs text-[#30D158] font-mono font-bold">
+                  <span className="text-xs text-uspech font-mono font-bold">
                     {ALL_INSTRUMENTS.length} dostupných nástrojů
                   </span>
                 </div>
@@ -1375,7 +1375,7 @@ export const VirtualInstruments: React.FC = () => {
                   placeholder="Hledat nástroj (např. saxofon, varhany, basa, flétna, housle, synth...)"
                   value={soundLibSearch}
                   onChange={(e) => setSoundLibSearch(e.target.value)}
-                  className="w-full bg-[#1C1C1E] text-white pl-10 pr-4 py-2.5 rounded-xl border border-white/10 text-xs sm:text-sm outline-none focus:border-[#FF9F0A] transition-all placeholder:text-neutral-500"
+                  className="w-full bg-[#1C1C1E] text-white pl-10 pr-4 py-2.5 rounded-xl border border-white/10 text-xs sm:text-sm outline-none focus:border-znacka transition-all placeholder:text-neutral-500"
                 />
                 {soundLibSearch && (
                   <button
@@ -1393,7 +1393,7 @@ export const VirtualInstruments: React.FC = () => {
                   onClick={() => setSoundLibCategory('all')}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                     soundLibCategory === 'all'
-                      ? 'bg-[#FF9F0A] text-black font-bold shadow-md'
+                      ? 'bg-znacka text-black font-bold shadow-md'
                       : 'bg-white/5 text-neutral-300 hover:bg-white/10 border border-white/5'
                   }`}
                 >
@@ -1407,7 +1407,7 @@ export const VirtualInstruments: React.FC = () => {
                       onClick={() => setSoundLibCategory(cat.id)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                         soundLibCategory === cat.id
-                          ? 'bg-[#FF9F0A] text-black font-bold shadow-md'
+                          ? 'bg-znacka text-black font-bold shadow-md'
                           : 'bg-white/5 text-neutral-300 hover:bg-white/10 border border-white/5'
                       }`}
                     >
@@ -1442,7 +1442,7 @@ export const VirtualInstruments: React.FC = () => {
                           setSoundLibSearch('');
                           setSoundLibCategory('all');
                         }}
-                        className="text-xs text-[#FF9F0A] hover:underline"
+                        className="text-xs text-znacka hover:underline"
                       >
                         Zobrazit všechny nástroje
                       </button>
@@ -1463,7 +1463,7 @@ export const VirtualInstruments: React.FC = () => {
                           key={inst.id}
                           className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
                             isSelected
-                              ? 'bg-[#FF9F0A]/10 border-[#FF9F0A] shadow-[0_0_15px_rgba(255,159,10,0.2)]'
+                              ? 'bg-znacka/10 border-znacka shadow-[0_0_15px_rgba(255,159,10,0.2)]'
                               : 'bg-black/30 hover:bg-white/[0.04] border-white/10 hover:border-white/20'
                           }`}
                         >
@@ -1482,13 +1482,13 @@ export const VirtualInstruments: React.FC = () => {
                               </div>
 
                               {isLoading ? (
-                                <span className="text-stitek font-bold text-[#FF9F0A] bg-[#FF9F0A]/10 px-2 py-0.5 rounded-md border border-[#FF9F0A]/30 flex items-center gap-1 animate-pulse whitespace-nowrap">
-                                  <Loader2 className="w-3 h-3 animate-spin text-[#FF9F0A]" />
+                                <span className="text-stitek font-bold text-znacka bg-znacka/10 px-2 py-0.5 rounded-md border border-znacka/30 flex items-center gap-1 animate-pulse whitespace-nowrap">
+                                  <Loader2 className="w-3 h-3 animate-spin text-znacka" />
                                   <span>{progress ? `${progress}%` : 'Načítání...'}</span>
                                 </span>
                               ) : isLoaded ? (
-                                <span className="text-stitek font-bold text-[#30D158] bg-[#30D158]/10 px-2 py-0.5 rounded-md border border-[#30D158]/30 flex items-center gap-1 whitespace-nowrap">
-                                  <Zap className="w-3 h-3 text-[#30D158]" />
+                                <span className="text-stitek font-bold text-uspech bg-uspech/10 px-2 py-0.5 rounded-md border border-uspech/30 flex items-center gap-1 whitespace-nowrap">
+                                  <Zap className="w-3 h-3 text-uspech" />
                                   <span>V keši</span>
                                 </span>
                               ) : usesRealSamples(inst) ? (
@@ -1496,7 +1496,7 @@ export const VirtualInstruments: React.FC = () => {
                                   HQ Vzorky
                                 </span>
                               ) : (
-                                <span className="text-stitek font-bold text-[#FF9F0A] bg-[#FF9F0A]/10 px-2 py-0.5 rounded-md border border-[#FF9F0A]/20 whitespace-nowrap">
+                                <span className="text-stitek font-bold text-znacka bg-znacka/10 px-2 py-0.5 rounded-md border border-znacka/20 whitespace-nowrap">
                                   Synth
                                 </span>
                               )}
@@ -1518,9 +1518,9 @@ export const VirtualInstruments: React.FC = () => {
                               title="Přehrát zkušební tón C4"
                             >
                               {isLoading ? (
-                                <Loader2 className="w-3 h-3 text-[#FF9F0A] animate-spin" />
+                                <Loader2 className="w-3 h-3 text-znacka animate-spin" />
                               ) : (
-                                <Play className="w-3 h-3 text-[#30D158]" />
+                                <Play className="w-3 h-3 text-uspech" />
                               )}
                               <span>Zkouška</span>
                             </button>
@@ -1534,8 +1534,8 @@ export const VirtualInstruments: React.FC = () => {
                               }}
                               className={`flex-1 py-1.5 rounded-xl text-drobne font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
                                 isSelected
-                                  ? 'bg-[#30D158] text-black shadow-sm'
-                                  : 'bg-[#FF9F0A] text-black hover:bg-[#FFB340]'
+                                  ? 'bg-uspech text-black shadow-sm'
+                                  : 'bg-znacka text-black hover:bg-[#FFB340]'
                               }`}
                             >
                               {isSelected ? (
@@ -1559,7 +1559,7 @@ export const VirtualInstruments: React.FC = () => {
             {/* Modal Footer */}
             <div className="p-4 border-t border-white/10 bg-[#1C1C1E] flex items-center justify-between text-xs text-neutral-400">
               <span className="flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                <Sparkles className="w-3.5 h-3.5 text-znacka" />
                 Všechny zvuky jsou okamžitě připraveny k živému hraní na klávesnici i MIDI.
               </span>
               <button

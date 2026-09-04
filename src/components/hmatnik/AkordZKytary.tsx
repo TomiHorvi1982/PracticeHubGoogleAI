@@ -105,7 +105,7 @@ export const AkordZKytary: React.FC = () => {
           onClick={() => void prepni()}
           disabled={zapina}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-            poslouchá ? 'bg-[#FF453A] text-white' : 'bg-[#BF5AF2] text-white hover:bg-[#c96ff5]'
+            poslouchá ? 'bg-chyba text-white' : 'bg-nastroj text-white hover:bg-[#c96ff5]'
           }`}
         >
           {zapina ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -131,15 +131,15 @@ export const AkordZKytary: React.FC = () => {
       </p>
 
       {chyba && (
-        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-chyba flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}
 
       {/* Co se právě sbírá — bez toho není poznat, jestli appka vůbec slyší. */}
       {poslouchá && rozpracovane.length > 0 && (
-        <div className="flex items-center gap-1.5 text-drobne text-[#BF5AF2]">
-          <span className="w-2 h-2 rounded-full bg-[#BF5AF2] animate-pulse" />
+        <div className="flex items-center gap-1.5 text-drobne text-nastroj">
+          <span className="w-2 h-2 rounded-full bg-nastroj animate-pulse" />
           slyším: {rozpracovane.map(nazevTonu).join(' · ')}
         </div>
       )}
@@ -179,7 +179,7 @@ export const AkordZKytary: React.FC = () => {
                   <div
                     key={i}
                     className={`flex-1 border border-black/40 rounded-b-md flex items-end justify-center pb-1 text-stitek font-bold ${
-                      svit ? 'bg-[#BF5AF2] text-white' : 'bg-neutral-100 text-neutral-400'
+                      svit ? 'bg-nastroj text-white' : 'bg-neutral-100 text-neutral-400'
                     }`}
                   >
                     {svit ? TONY[midi % 12] : ''}
@@ -198,7 +198,7 @@ export const AkordZKytary: React.FC = () => {
                       key={`${o}-${b}`}
                       style={{ left: `calc(${levo}% - ${sirkaBile * 0.3}%)`, width: `${sirkaBile * 0.6}%` }}
                       className={`absolute top-0 h-14 rounded-b-md border border-black/60 flex items-end justify-center pb-1 text-stitek font-bold ${
-                        svit ? 'bg-[#BF5AF2] text-white' : 'bg-neutral-900 text-transparent'
+                        svit ? 'bg-nastroj text-white' : 'bg-neutral-900 text-transparent'
                       }`}
                     >
                       {svit ? TONY[midi % 12] : ''}

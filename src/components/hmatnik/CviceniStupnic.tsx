@@ -73,7 +73,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={stupnice}
             onChange={(e) => setStupnice(e.target.value)}
-            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
           >
             {SCALES_DATABASE.map((s) => (
               <option key={s.name} value={s.name}>{s.czName}</option>
@@ -86,7 +86,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={zaklad}
             onChange={(e) => setZaklad(Number(e.target.value))}
-            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
           >
             {TONY.map((t, i) => (
               <option key={t} value={60 + i}>{t}</option>
@@ -99,7 +99,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={cviceni}
             onChange={(e) => setCviceni(e.target.value)}
-            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
           >
             {CVICENI.map((c) => (
               <option key={c.id} value={c.id}>{c.nazev}</option>
@@ -112,7 +112,7 @@ export const CviceniStupnic: React.FC = () => {
           <select
             value={oktav}
             onChange={(e) => setOktav(Number(e.target.value))}
-            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+            className="w-full mt-0.5 min-h-dotyk lg:min-h-0 bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
           >
             {[1, 2, 3].map((o) => <option key={o} value={o}>{o}</option>)}
           </select>
@@ -127,7 +127,7 @@ export const CviceniStupnic: React.FC = () => {
           onClick={() => (hraje ? zastav() : spust())}
           disabled={!tony.length}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-            hraje ? 'bg-[#FF453A] text-white' : 'bg-[#BF5AF2] text-white hover:bg-[#c96ff5]'
+            hraje ? 'bg-chyba text-white' : 'bg-nastroj text-white hover:bg-[#c96ff5]'
           }`}
         >
           {hraje ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
@@ -142,16 +142,16 @@ export const CviceniStupnic: React.FC = () => {
             max={200}
             value={tempo}
             onChange={(e) => setTempo(Number(e.target.value))}
-            className="w-28 accent-[#BF5AF2] cursor-pointer"
+            className="w-28 accent-nastroj cursor-pointer"
           />
-          <span className="text-xs font-mono text-[#BF5AF2] tabular-nums w-14">{tempo} BPM</span>
+          <span className="text-xs font-mono text-nastroj tabular-nums w-14">{tempo} BPM</span>
         </div>
 
         <button
           onClick={() => setDokola((d) => !d)}
           className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
             dokola
-              ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+              ? 'bg-uspech/15 border-uspech/40 text-uspech'
               : 'bg-white/[0.06] border-white/10 text-neutral-400'
           }`}
         >
@@ -183,7 +183,7 @@ export const CviceniStupnic: React.FC = () => {
             <span
               key={i}
               className={`px-1.5 py-0.5 rounded text-stitek font-bold tabular-nums ${
-                i === kde ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.06] text-neutral-400'
+                i === kde ? 'bg-nastroj text-white' : 'bg-white/[0.06] text-neutral-400'
               }`}
             >
               {nazevTonu(m)}

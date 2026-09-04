@@ -61,13 +61,13 @@ export const AparatOvladani: React.FC = () => {
     <div className="bg-black/40 border border-white/10 rounded-2xl p-3 space-y-2.5">
       <div className="flex items-center justify-between gap-2">
         <span className="text-stitek uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-[#FF9F0A]" /> Aparát
+          <Zap className="w-3.5 h-3.5 text-znacka" /> Aparát
         </span>
         <button
           onClick={prepni}
           className={`px-2.5 py-1 rounded-lg text-stitek font-bold border cursor-pointer ${
             zapnuty
-              ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]/50 text-[#FF9F0A]'
+              ? 'bg-znacka/20 border-znacka/50 text-znacka'
               : 'bg-white/[0.06] border-white/10 text-neutral-400'
           }`}
         >
@@ -90,9 +90,9 @@ export const AparatOvladani: React.FC = () => {
               max={100}
               value={Math.round(n[r.klic] * 100)}
               onChange={(e) => zmen(r.klic, Number(e.target.value) / 100)}
-              className="flex-1 accent-[#FF9F0A] cursor-pointer"
+              className="flex-1 accent-znacka cursor-pointer"
             />
-            <span className="text-stitek font-mono text-[#FF9F0A] tabular-nums w-8">
+            <span className="text-stitek font-mono text-znacka tabular-nums w-8">
               {Math.round(n[r.klic] * 100)}
             </span>
           </div>

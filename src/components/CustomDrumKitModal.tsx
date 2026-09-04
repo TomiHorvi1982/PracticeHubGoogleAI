@@ -551,12 +551,12 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
         {/* MODAL HEADER */}
         <div className="p-4 sm:p-5 border-b border-white/10 bg-[#1C1C1E] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#FF9F0A]/20 border border-[#FF9F0A]/40 flex items-center justify-center text-xl shadow-inner">
+            <div className="w-10 h-10 rounded-2xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-xl shadow-inner">
               {activeKit?.icon || '🥁'}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#FF9F0A] text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
+                <span className="bg-znacka text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
                   Sampled Drum Engine Pro
                 </span>
                 <span className="text-xs text-neutral-400 font-medium hidden sm:inline">
@@ -572,7 +572,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
           <div className="flex items-center gap-2 self-end sm:self-auto">
             <button
               onClick={handleCreateNewKit}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#30D158]/20 hover:bg-[#30D158]/30 text-[#30D158] border border-[#30D158]/40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-uspech/20 hover:bg-uspech/30 text-uspech border border-uspech/40 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Nová sada</span>
@@ -592,10 +592,10 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
           <div
             className={`px-4 py-2 text-xs font-semibold flex items-center justify-between transition-all ${
               statusMessage.type === 'success'
-                ? 'bg-[#30D158]/20 text-[#30D158] border-b border-[#30D158]/30'
+                ? 'bg-uspech/20 text-uspech border-b border-uspech/30'
                 : statusMessage.type === 'error'
-                ? 'bg-[#FF453A]/20 text-[#FF453A] border-b border-[#FF453A]/30'
-                : 'bg-[#0A84FF]/20 text-[#0A84FF] border-b border-[#0A84FF]/30'
+                ? 'bg-chyba/20 text-chyba border-b border-chyba/30'
+                : 'bg-info/20 text-info border-b border-info/30'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -625,7 +625,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                   onClick={() => setActiveKit(kit)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#FF9F0A] text-black shadow-md'
+                      ? 'bg-znacka text-black shadow-md'
                       : 'bg-white/5 text-neutral-300 hover:bg-white/10 border border-white/5'
                   }`}
                 >
@@ -677,7 +677,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
               <button
                 onClick={handleDeleteKit}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FF453A]/10 hover:bg-[#FF453A]/20 text-[#FF453A] rounded-xl text-xs font-medium border border-[#FF453A]/20 transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-chyba/10 hover:bg-chyba/20 text-chyba rounded-xl text-xs font-medium border border-chyba/20 transition-all cursor-pointer"
                 title="Smazat sadu"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -695,7 +695,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 value={activeKit.name}
                 onChange={(e) => setActiveKit({ ...activeKit, name: e.target.value, czName: e.target.value })}
                 placeholder="Název sady bicích"
-                className="bg-black/50 text-white font-bold text-sm px-3 py-1.5 rounded-xl border border-white/15 focus:border-[#FF9F0A] outline-none max-w-xs"
+                className="bg-black/50 text-white font-bold text-sm px-3 py-1.5 rounded-xl border border-white/15 focus:border-znacka outline-none max-w-xs"
               />
               <select
                 value={activeKit.icon || '🥁'}
@@ -716,7 +716,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 onClick={() => setActiveTab('pads')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'pads'
-                    ? 'bg-[#FF9F0A] text-black shadow-sm'
+                    ? 'bg-znacka text-black shadow-sm'
                     : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -728,7 +728,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 onClick={() => setActiveTab('multilayer')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'multilayer'
-                    ? 'bg-[#FF9F0A] text-black shadow-sm'
+                    ? 'bg-znacka text-black shadow-sm'
                     : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -740,7 +740,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 onClick={() => setActiveTab('batch')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                   activeTab === 'batch'
-                    ? 'bg-[#FF9F0A] text-black shadow-sm'
+                    ? 'bg-znacka text-black shadow-sm'
                     : 'text-neutral-400 hover:text-white'
                 }`}
               >
@@ -761,7 +761,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                    <Disc className="w-4 h-4 text-[#FF9F0A]" />
+                    <Disc className="w-4 h-4 text-znacka" />
                     Pady Bicí Soustavy (Kick, Snare, Toms, Cymbals, Percussion)
                   </h3>
                   <p className="text-drobne text-neutral-400 mt-0.5">
@@ -797,11 +797,11 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       }}
                       className={`p-3.5 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
                         isRecording
-                          ? 'bg-[#FF453A]/15 border-[#FF453A] animate-pulse'
+                          ? 'bg-chyba/15 border-chyba animate-pulse'
                           : isDragOver
-                          ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] scale-[1.01]'
+                          ? 'bg-znacka/20 border-znacka scale-[1.01]'
                           : hasCustomSample
-                          ? 'bg-black/40 border-[#30D158]/40 hover:border-[#30D158]'
+                          ? 'bg-black/40 border-uspech/40 hover:border-uspech'
                           : 'bg-black/30 border-white/10 hover:border-white/20'
                       }`}
                     >
@@ -813,7 +813,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                           </div>
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-mono font-bold text-[#FF9F0A] bg-black/60 px-1.5 py-0.5 rounded border border-white/10">
+                              <span className="text-xs font-mono font-bold text-znacka bg-black/60 px-1.5 py-0.5 rounded border border-white/10">
                                 [{padDef.keyLabel}]
                               </span>
                               <h4 className="text-xs sm:text-sm font-bold text-white leading-tight">
@@ -828,12 +828,12 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
                         {/* Status badge */}
                         {multiLayerCount > 0 ? (
-                          <span className="text-stitek font-mono font-bold text-[#FF9F0A] bg-[#FF9F0A]/10 px-2 py-0.5 rounded-md border border-[#FF9F0A]/30 flex items-center gap-1 whitespace-nowrap">
+                          <span className="text-stitek font-mono font-bold text-znacka bg-znacka/10 px-2 py-0.5 rounded-md border border-znacka/30 flex items-center gap-1 whitespace-nowrap">
                             <Layers className="w-3 h-3" />
                             <span>{multiLayerCount} Multi-vrstev</span>
                           </span>
                         ) : hasCustomSample ? (
-                          <span className="text-stitek font-mono font-bold text-[#30D158] bg-[#30D158]/10 px-2 py-0.5 rounded-md border border-[#30D158]/20 flex items-center gap-1 whitespace-nowrap">
+                          <span className="text-stitek font-mono font-bold text-uspech bg-uspech/10 px-2 py-0.5 rounded-md border border-uspech/20 flex items-center gap-1 whitespace-nowrap">
                             <Check className="w-3 h-3" />
                             <span>WAV ({sample?.duration}s)</span>
                           </span>
@@ -848,7 +848,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       {hasCustomSample && (
                         <div className="px-2.5 py-1.5 bg-white/[0.03] rounded-xl border border-white/5 flex items-center justify-between text-drobne text-neutral-300">
                           <div className="flex items-center gap-1.5 truncate mr-2">
-                            <FileAudio className="w-3.5 h-3.5 text-[#30D158] shrink-0" />
+                            <FileAudio className="w-3.5 h-3.5 text-uspech shrink-0" />
                             <span className="truncate font-semibold">{sample?.name || 'Vlastní WAV vzorek'}</span>
                           </div>
                           <button
@@ -856,7 +856,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               setSelectedPadId(padDef.id);
                               setActiveTab('multilayer');
                             }}
-                            className="text-stitek font-bold text-[#FF9F0A] hover:underline whitespace-nowrap cursor-pointer"
+                            className="text-stitek font-bold text-znacka hover:underline whitespace-nowrap cursor-pointer"
                           >
                             Upravit vrstvy &rarr;
                           </button>
@@ -865,14 +865,14 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
                       {/* Recording Live Indicator */}
                       {isRecording && (
-                        <div className="px-3 py-2 bg-[#FF453A]/20 border border-[#FF453A]/40 rounded-xl flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-xs font-bold text-[#FF453A]">
-                            <span className="w-2.5 h-2.5 rounded-full bg-[#FF453A] animate-ping" />
+                        <div className="px-3 py-2 bg-chyba/20 border border-chyba/40 rounded-xl flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs font-bold text-chyba">
+                            <span className="w-2.5 h-2.5 rounded-full bg-chyba animate-ping" />
                             <span>Nahrávám z mikrofonu... {recordingTime.toFixed(1)}s</span>
                           </div>
                           <button
                             onClick={stopRecording}
-                            className="px-2.5 py-1 bg-[#FF453A] text-white rounded-lg text-xs font-bold hover:bg-[#FF453A]/80 cursor-pointer flex items-center gap-1"
+                            className="px-2.5 py-1 bg-chyba text-white rounded-lg text-xs font-bold hover:bg-chyba/80 cursor-pointer flex items-center gap-1"
                           >
                             <Square className="w-3 h-3 fill-white" />
                             <span>Zastavit</span>
@@ -887,7 +887,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                           className="px-2.5 py-1.5 bg-white/5 hover:bg-white/15 text-neutral-200 hover:text-white rounded-xl text-xs font-semibold border border-white/10 flex items-center gap-1 transition-all cursor-pointer active:scale-95"
                           title="Přehrát zvuk tohoto padu"
                         >
-                          <Play className="w-3.5 h-3.5 text-[#30D158] fill-[#30D158]" />
+                          <Play className="w-3.5 h-3.5 text-uspech fill-uspech" />
                           <span>Přehrát</span>
                         </button>
 
@@ -908,7 +908,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                         />
                         <button
                           onClick={() => fileInputRefs.current[padDef.id]?.click()}
-                          className="px-2.5 py-1.5 bg-white/5 hover:bg-[#FF9F0A]/20 hover:text-[#FF9F0A] hover:border-[#FF9F0A]/30 text-neutral-300 rounded-xl text-xs font-semibold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
+                          className="px-2.5 py-1.5 bg-white/5 hover:bg-znacka/20 hover:text-znacka hover:border-znacka/30 text-neutral-300 rounded-xl text-xs font-semibold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
                           title="Nahrát vlastní WAV soubor"
                         >
                           <Upload className="w-3.5 h-3.5" />
@@ -918,7 +918,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                         {!isRecording ? (
                           <button
                             onClick={() => startRecording(padDef.id)}
-                            className="px-2.5 py-1.5 bg-white/5 hover:bg-[#FF453A]/20 hover:text-[#FF453A] hover:border-[#FF453A]/30 text-neutral-300 rounded-xl text-xs font-semibold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
+                            className="px-2.5 py-1.5 bg-white/5 hover:bg-chyba/20 hover:text-chyba hover:border-chyba/30 text-neutral-300 rounded-xl text-xs font-semibold border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
                             title="Nahrát živý zvuk z mikrofonu"
                           >
                             <Mic className="w-3.5 h-3.5" />
@@ -927,7 +927,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                         ) : (
                           <button
                             onClick={stopRecording}
-                            className="px-2.5 py-1.5 bg-[#FF453A] text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-chyba text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
                           >
                             <Square className="w-3.5 h-3.5 fill-white" />
                             <span>Stop</span>
@@ -937,7 +937,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                         {hasCustomSample && (
                           <button
                             onClick={() => handleRemoveSample(padDef.id)}
-                            className="ml-auto p-1.5 text-neutral-400 hover:text-[#FF453A] hover:bg-[#FF453A]/10 rounded-lg transition-all cursor-pointer"
+                            className="ml-auto p-1.5 text-neutral-400 hover:text-chyba hover:bg-chyba/10 rounded-lg transition-all cursor-pointer"
                             title="Resetovat na výchozí zvuk"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -972,7 +972,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       onClick={() => setSelectedPadId(pad.id)}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
                         isSel
-                          ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] shadow-md'
+                          ? 'bg-znacka text-black border-znacka shadow-md'
                           : 'bg-white/5 text-neutral-300 border-white/5 hover:bg-white/10'
                       }`}
                     >
@@ -981,7 +981,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       {layerCount > 0 && (
                         <span
                           className={`text-stitek px-1.5 py-0.2 rounded-md ${
-                            isSel ? 'bg-black/30 text-white' : 'bg-[#30D158]/20 text-[#30D158]'
+                            isSel ? 'bg-black/30 text-white' : 'bg-uspech/20 text-uspech'
                           }`}
                         >
                           {layerCount}
@@ -995,7 +995,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
               {/* Pad Detail Banner & Test Controller */}
               <div className="p-4 bg-black/50 rounded-2xl border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-[#FF9F0A]/20 border border-[#FF9F0A]/40 flex items-center justify-center text-2xl">
+                  <div className="w-12 h-12 rounded-2xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-2xl">
                     {EXTENDED_PAD_DEFINITIONS.find((p) => p.id === selectedPadId)?.icon || '🥁'}
                   </div>
                   <div>
@@ -1013,7 +1013,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                   <div className="flex flex-col">
                     <div className="flex items-center justify-between text-drobne text-neutral-300 font-bold mb-1">
                       <span>Testovací Velocity:</span>
-                      <span className="font-mono text-[#FF9F0A]">{testVelocity} (1-127)</span>
+                      <span className="font-mono text-znacka">{testVelocity} (1-127)</span>
                     </div>
                     <input
                       type="range"
@@ -1021,13 +1021,13 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       max={127}
                       value={testVelocity}
                       onChange={(e) => setTestVelocity(parseInt(e.target.value, 10))}
-                      className="w-32 accent-[#FF9F0A] cursor-pointer"
+                      className="w-32 accent-znacka cursor-pointer"
                     />
                   </div>
 
                   <button
                     onClick={() => handleTestPlay(selectedPadId, testVelocity)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-[#30D158] hover:bg-[#30D158]/90 text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-uspech hover:bg-uspech/90 text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md active:scale-95"
                   >
                     <Play className="w-3.5 h-3.5 fill-black" />
                     <span>Otestovat</span>
@@ -1035,7 +1035,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
                   <div className="flex flex-col items-center">
                     <span className="text-stitek text-neutral-400 uppercase font-bold">Poslední RR</span>
-                    <span className="text-xs font-mono font-extrabold px-2 py-0.5 bg-[#FF9F0A]/20 text-[#FF9F0A] rounded-md border border-[#FF9F0A]/30">
+                    <span className="text-xs font-mono font-extrabold px-2 py-0.5 bg-znacka/20 text-znacka rounded-md border border-znacka/30">
                       RR{lastHitRR}
                     </span>
                   </div>
@@ -1052,13 +1052,13 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       key={tierOpt.tier}
                       className={`p-3.5 rounded-2xl border transition-all ${
                         isSelectedTier
-                          ? 'bg-[#1C1C1E] border-[#FF9F0A]/50 shadow-md'
+                          ? 'bg-[#1C1C1E] border-znacka/50 shadow-md'
                           : 'bg-black/30 border-white/5 hover:border-white/15'
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-extrabold text-[#FF9F0A] font-mono bg-black/60 px-2 py-0.5 rounded border border-white/10">
+                          <span className="text-xs font-extrabold text-znacka font-mono bg-black/60 px-2 py-0.5 rounded border border-white/10">
                             {tierOpt.label}
                           </span>
                           <span className="text-xs font-bold text-white">
@@ -1078,7 +1078,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                             }}
                             className="px-2.5 py-1 bg-white/5 hover:bg-white/15 text-neutral-200 text-drobne font-semibold rounded-lg border border-white/10 flex items-center gap-1 transition-all cursor-pointer"
                           >
-                            <Play className="w-3 h-3 text-[#30D158] fill-[#30D158]" />
+                            <Play className="w-3 h-3 text-uspech fill-uspech" />
                             <span>Zahrát {tierOpt.tier}</span>
                           </button>
                         </div>
@@ -1097,19 +1097,19 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               key={rrIndex}
                               className={`p-2.5 rounded-xl border flex flex-col justify-between space-y-2 transition-all ${
                                 isLastHit
-                                  ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                                  ? 'bg-znacka/20 border-znacka'
                                   : hasLayer
-                                  ? 'bg-black/60 border-[#30D158]/40'
+                                  ? 'bg-black/60 border-uspech/40'
                                   : 'bg-black/40 border-white/5'
                               }`}
                             >
                               <div className="flex items-center justify-between">
                                 <span className="text-drobne font-mono font-bold text-white flex items-center gap-1">
-                                  <Zap className="w-3 h-3 text-[#FF9F0A]" />
+                                  <Zap className="w-3 h-3 text-znacka" />
                                   RR {rrIndex}
                                 </span>
                                 {hasLayer ? (
-                                  <span className="text-stitek font-bold text-[#30D158] bg-[#30D158]/10 px-1.5 py-0.2 rounded border border-[#30D158]/20">
+                                  <span className="text-stitek font-bold text-uspech bg-uspech/10 px-1.5 py-0.2 rounded border border-uspech/20">
                                     Vlastní WAV
                                   </span>
                                 ) : (
@@ -1124,7 +1124,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               </div>
 
                               <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                                <label className="text-stitek text-[#FF9F0A] hover:underline font-bold cursor-pointer flex items-center gap-1">
+                                <label className="text-stitek text-znacka hover:underline font-bold cursor-pointer flex items-center gap-1">
                                   <Upload className="w-2.5 h-2.5" />
                                   <span>{hasLayer ? 'Změnit' : 'Nahrát WAV'}</span>
                                   <input
@@ -1144,7 +1144,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                                 {hasLayer && (
                                   <button
                                     onClick={() => handleRemoveSample(selectedPadId, tierOpt.tier, rrIndex)}
-                                    className="p-1 text-neutral-400 hover:text-[#FF453A] cursor-pointer"
+                                    className="p-1 text-neutral-400 hover:text-chyba cursor-pointer"
                                     title="Odstranit tuto vrstvu"
                                   >
                                     <Trash2 className="w-3 h-3" />
@@ -1181,11 +1181,11 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 }}
                 className={`p-8 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center text-center space-y-3 transition-all ${
                   isBatchDragOver
-                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] scale-[1.01]'
+                    ? 'bg-znacka/20 border-znacka scale-[1.01]'
                     : 'bg-black/40 border-white/20 hover:border-white/40'
                 }`}
               >
-                <div className="w-14 h-14 rounded-2xl bg-[#FF9F0A]/20 border border-[#FF9F0A]/40 flex items-center justify-center text-2xl text-[#FF9F0A]">
+                <div className="w-14 h-14 rounded-2xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-2xl text-znacka">
                   <FolderUp className="w-7 h-7" />
                 </div>
                 <div>
@@ -1207,7 +1207,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 />
                 <button
                   onClick={() => batchFileInputRef.current?.click()}
-                  className="px-4 py-2 bg-[#FF9F0A] hover:bg-[#FFB340] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  className="px-4 py-2 bg-znacka hover:bg-[#FFB340] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
                 >
                   Vybrat soubory ze složky
                 </button>
@@ -1222,7 +1222,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                     </h4>
                     <button
                       onClick={handleExecuteBatchImport}
-                      className="flex items-center gap-1.5 px-4 py-1.5 bg-[#30D158] hover:bg-[#30D158]/90 text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                      className="flex items-center gap-1.5 px-4 py-1.5 bg-uspech hover:bg-uspech/90 text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
                     >
                       <Check className="w-3.5 h-3.5" />
                       <span>Spustit Import všech souborů</span>
@@ -1233,7 +1233,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                     {batchParsedFiles.map((item, idx) => (
                       <div key={idx} className="p-3 flex items-center justify-between gap-3 text-xs">
                         <div className="flex items-center gap-2 truncate flex-1">
-                          <FileAudio className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+                          <FileAudio className="w-4 h-4 text-znacka shrink-0" />
                           <span className="font-semibold text-white truncate">{item.name}</span>
                         </div>
 
@@ -1262,7 +1262,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               item.parsed.tier = e.target.value as VelocityTier;
                               setBatchParsedFiles([...batchParsedFiles]);
                             }}
-                            className="bg-black/60 text-[#FF9F0A] font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
+                            className="bg-black/60 text-znacka font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
                           >
                             {VELOCITY_TIER_OPTIONS.map((v) => (
                               <option key={v.tier} value={v.tier}>
@@ -1278,7 +1278,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                               item.parsed.roundRobin = parseInt(e.target.value, 10);
                               setBatchParsedFiles([...batchParsedFiles]);
                             }}
-                            className="bg-black/60 text-[#30D158] font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
+                            className="bg-black/60 text-uspech font-bold text-drobne px-2 py-1 rounded-lg border border-white/15 outline-none"
                           >
                             {[1, 2, 3, 4].map((rr) => (
                               <option key={rr} value={rr}>
@@ -1288,7 +1288,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                           </select>
 
                           {item.status === 'imported' && (
-                            <span className="text-stitek font-bold text-[#30D158] flex items-center gap-1">
+                            <span className="text-stitek font-bold text-uspech flex items-center gap-1">
                               <Check className="w-3 h-3" />
                               Hotovo
                             </span>
@@ -1314,7 +1314,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 <button
                   key={pad.id}
                   onClick={() => handleTestPlay(pad.id)}
-                  className="px-2 py-1 bg-black/40 hover:bg-[#FF9F0A]/20 text-neutral-300 hover:text-[#FF9F0A] border border-white/10 rounded-lg text-stitek font-mono font-bold transition-all cursor-pointer active:scale-95"
+                  className="px-2 py-1 bg-black/40 hover:bg-znacka/20 text-neutral-300 hover:text-znacka border border-white/10 rounded-lg text-stitek font-mono font-bold transition-all cursor-pointer active:scale-95"
                 >
                   {pad.keyLabel}: {pad.czName.split(' ')[0]}
                 </button>
@@ -1332,7 +1332,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
 
             <button
               onClick={handleSaveActiveKit}
-              className="flex items-center gap-1.5 px-5 py-2 bg-[#FF9F0A] hover:bg-[#FFB340] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg"
+              className="flex items-center gap-1.5 px-5 py-2 bg-znacka hover:bg-[#FFB340] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg"
             >
               <Check className="w-4 h-4" />
               <span>Použít tuto sadu v bicích</span>

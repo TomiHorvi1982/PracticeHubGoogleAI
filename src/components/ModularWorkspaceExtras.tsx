@@ -120,7 +120,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
       {/* Top Selector Bar */}
       <div className="flex items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
         <div className="flex items-center gap-2">
-          <Radio className="w-3.5 h-3.5 text-[#FF9F0A]" />
+          <Radio className="w-3.5 h-3.5 text-znacka" />
           <select
             value={selectedPresetIndex}
             onChange={(e) => handleSelectTuning(parseInt(e.target.value, 10))}
@@ -138,7 +138,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
           onClick={toggleListening}
           className={`px-3 py-1 rounded-xl font-bold flex items-center gap-1.5 cursor-pointer text-xs transition-all ${
             isListening
-              ? 'bg-[#30D158] text-black shadow-lg shadow-[#30D158]/20 animate-pulse'
+              ? 'bg-uspech text-black shadow-lg shadow-uspech/20 animate-pulse'
               : 'bg-white/10 hover:bg-white/20 text-white'
           }`}
         >
@@ -164,7 +164,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
               <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/40 -translate-x-1/2" />
               <div
                 className={`absolute top-0 bottom-0 w-3 rounded-full transition-all ${
-                  inTune ? 'bg-[#30D158]' : 'bg-[#FF9F0A]'
+                  inTune ? 'bg-uspech' : 'bg-znacka'
                 }`}
                 style={{
                   left: `calc(50% + ${Math.max(-45, Math.min(45, cents)) * 0.9}%)`,
@@ -172,7 +172,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
                 }}
               />
             </div>
-            <p className={`text-stitek font-bold uppercase mt-1 ${inTune ? 'text-[#30D158]' : 'text-[#FF9F0A]'}`}>
+            <p className={`text-stitek font-bold uppercase mt-1 ${inTune ? 'text-uspech' : 'text-znacka'}`}>
               {inTune ? '✓ Naladěno' : cents > 0 ? `+${cents} centů (Příliš vysoko)` : `${cents} centů (Příliš nízko)`}
             </p>
           </div>
@@ -198,13 +198,13 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
               onClick={() => playReferenceTone(freq, idx)}
               className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                 isAct
-                  ? 'bg-[#FF9F0A] text-black border-[#FF9F0A] font-bold scale-105 shadow-md'
+                  ? 'bg-znacka text-black border-znacka font-bold scale-105 shadow-md'
                   : 'bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.08] text-white'
               }`}
               title={`Přehrát referenční tón ${noteName}`}
             >
               <div className="text-stitek text-neutral-400">{idx + 1}. struna</div>
-              <div className="text-sm font-bold font-mono text-[#FF9F0A]">{noteName}</div>
+              <div className="text-sm font-bold font-mono text-znacka">{noteName}</div>
             </button>
           );
         })}
@@ -213,9 +213,9 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
       {/* Mini Metronome Widget */}
       <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl flex items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <Activity className="w-3.5 h-3.5 text-[#FF9F0A]" />
+          <Activity className="w-3.5 h-3.5 text-znacka" />
           <span className="font-semibold text-white">Metronom:</span>
-          <span className="font-mono font-bold text-[#FF9F0A]">{bpm} BPM</span>
+          <span className="font-mono font-bold text-znacka">{bpm} BPM</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -225,12 +225,12 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
             max={240}
             value={bpm}
             onChange={(e) => musicalCtx?.setBpm ? musicalCtx.setBpm(parseInt(e.target.value, 10)) : undefined}
-            className="w-24 accent-[#FF9F0A] cursor-pointer"
+            className="w-24 accent-znacka cursor-pointer"
           />
           <button
             onClick={() => musicalCtx?.toggleMetronome ? musicalCtx.toggleMetronome() : undefined}
             className={`px-2.5 py-1 rounded-xl font-bold flex items-center gap-1 cursor-pointer transition-all ${
-              isMetroRunning ? 'bg-[#FF453A] text-white' : 'bg-[#30D158] text-black'
+              isMetroRunning ? 'bg-chyba text-white' : 'bg-uspech text-black'
             }`}
           >
             {isMetroRunning ? <Pause className="w-3 h-3 fill-current" /> : <Play className="w-3 h-3 fill-current" />}
@@ -297,7 +297,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
               onClick={() => handleChooseChord(ch)}
               className={`px-2 py-0.5 rounded-lg font-mono font-bold text-xs transition-all cursor-pointer ${
                 selectedChordName === ch
-                  ? 'bg-[#FF9F0A] text-black shadow-sm'
+                  ? 'bg-znacka text-black shadow-sm'
                   : 'bg-white/5 hover:bg-white/15 text-white'
               }`}
             >
@@ -315,7 +315,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
                   audioSynth.playGuitarChord(chordDef.frets);
                 }
               }}
-              className="px-2.5 py-1 bg-[#30D158] text-black font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer"
+              className="px-2.5 py-1 bg-uspech text-black font-bold rounded-lg text-xs flex items-center gap-1 cursor-pointer"
             >
               <Volume2 className="w-3.5 h-3.5" /> Přehrát
             </button>
@@ -346,7 +346,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
               key={i}
               className={`flex-1 ${
                 i + 1 === 3 || i + 1 === 5 || i + 1 === 7 || i + 1 === 9 || i + 1 === 12
-                  ? 'text-[#FF9F0A] font-extrabold'
+                  ? 'text-znacka font-extrabold'
                   : ''
               }`}
             >
@@ -389,7 +389,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
                         audioSynth.playNote(freq, 'electric_guitar', 1.8, 0.7);
                       }}
                       className={`h-7 sm:h-8 border-r border-white/10 flex items-center justify-center relative cursor-pointer hover:bg-white/[0.06] transition-colors ${
-                        fret === 0 ? 'w-10 bg-white/[0.04] border-r-2 border-[#FF9F0A]' : 'flex-1'
+                        fret === 0 ? 'w-10 bg-white/[0.04] border-r-2 border-znacka' : 'flex-1'
                       }`}
                     >
                       {/* String Line Background */}
@@ -398,7 +398,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
                       {/* Note Marker */}
                       {isChordFret && (
                         <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md bg-[#FF9F0A] text-black shadow-[0_0_10px_#FF9F0A]"
+                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md bg-znacka text-black shadow-[0_0_10px_#FF9F0A]"
                           title={`Tón ${noteName} na ${fret}. pražci`}
                         >
                           {noteName}

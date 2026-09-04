@@ -81,7 +81,7 @@ export const PoslechKytaryPanel: React.FC<{
         <button
           onClick={() => (stav.poslouchá ? poslechKytary.stop() : void poslechKytary.start())}
           className={`px-4 py-2 rounded-2xl font-bold text-xs flex items-center gap-2 cursor-pointer transition-all ${
-            stav.poslouchá ? 'bg-[#FF453A] text-white' : 'bg-white text-black hover:bg-neutral-200'
+            stav.poslouchá ? 'bg-chyba text-white' : 'bg-white text-black hover:bg-neutral-200'
           }`}
         >
           {stav.poslouchá ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
@@ -105,7 +105,7 @@ export const PoslechKytaryPanel: React.FC<{
             type="checkbox"
             checked={stav.ozvena}
             onChange={(e) => poslechKytary.nastavOzvenu(e.target.checked, nastroj)}
-            className="accent-[#30D158] cursor-pointer"
+            className="accent-uspech cursor-pointer"
           />
           Přehrávat, co slyším
         </label>
@@ -140,7 +140,7 @@ export const PoslechKytaryPanel: React.FC<{
         )}
       </div>
 
-      {stav.chyba && <div className="text-drobne text-[#FF453A]">{stav.chyba}</div>}
+      {stav.chyba && <div className="text-drobne text-chyba">{stav.chyba}</div>}
 
       {/* Kanál vstupu. Když detekce mlčí, je odsud vidět proč: buď ze
           zvukovky nechodí nic, nebo je signál tak slabý, že se ztratí
@@ -170,14 +170,14 @@ export const PoslechKytaryPanel: React.FC<{
             <div className="absolute left-1/2 top-0 w-px h-full bg-white/40" />
             {stav.ton && (
               <div
-                className={`absolute top-0 h-full w-1.5 rounded-full ${ladeni ? 'bg-[#30D158]' : 'bg-[#FF9F0A]'}`}
+                className={`absolute top-0 h-full w-1.5 rounded-full ${ladeni ? 'bg-uspech' : 'bg-znacka'}`}
                 style={{ left: `calc(${50 + Math.max(-50, Math.min(50, stav.centy))}% - 3px)` }}
               />
             )}
           </div>
           <div className="flex justify-between text-stitek text-neutral-600 mt-1">
             <span>-50 c</span>
-            <span className={ladeni ? 'text-[#30D158]' : 'text-neutral-400'}>
+            <span className={ladeni ? 'text-uspech' : 'text-neutral-400'}>
               {stav.ton ? `${stav.centy > 0 ? '+' : ''}${stav.centy} centů` : ''}
             </span>
             <span>+50 c</span>
@@ -208,7 +208,7 @@ export const PoslechKytaryPanel: React.FC<{
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Akord</span>
               {stav.akord.map((a) => (
-                <span key={a} className="px-2 py-1 rounded-lg bg-[#0A84FF]/15 text-[#0A84FF] text-xs font-bold">
+                <span key={a} className="px-2 py-1 rounded-lg bg-info/15 text-info text-xs font-bold">
                   {a}
                 </span>
               ))}
@@ -227,7 +227,7 @@ export const PoslechKytaryPanel: React.FC<{
                   }}
                   className={`px-2 py-1 rounded-lg text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
                     i === 0
-                      ? 'bg-[#FF9F0A]/20 text-[#FF9F0A] hover:bg-[#FF9F0A]/30'
+                      ? 'bg-znacka/20 text-znacka hover:bg-znacka/30'
                       : 'bg-white/[0.05] text-neutral-400 hover:text-white'
                   }`}
                   title="Ukázat na hmatníku"

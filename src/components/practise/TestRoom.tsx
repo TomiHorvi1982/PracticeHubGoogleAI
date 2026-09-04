@@ -190,7 +190,7 @@ export const TestRoom: React.FC = () => {
               onClick={() => setOkruh(o.id)}
               title={o.popis}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
-                okruh === o.id ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                okruh === o.id ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
               <Ikona className="w-3.5 h-3.5" /> {o.nazev}
@@ -206,7 +206,7 @@ export const TestRoom: React.FC = () => {
       <div className="space-y-4">
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Brain className="w-5 h-5 text-[#BF5AF2]" />
+          <Brain className="w-5 h-5 text-nastroj" />
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-bold text-white">Zkoušení</h3>
             <p className="text-drobne text-neutral-400">
@@ -215,16 +215,16 @@ export const TestRoom: React.FC = () => {
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>
-              <div className="text-lg font-bold text-[#30D158] tabular-nums">{skore}</div>
+              <div className="text-lg font-bold text-uspech tabular-nums">{skore}</div>
               <div className="text-stitek text-neutral-500">správně</div>
             </div>
             <div>
-              <div className="text-lg font-bold text-[#FF453A] tabular-nums">{chyb}</div>
+              <div className="text-lg font-bold text-chyba tabular-nums">{chyb}</div>
               <div className="text-stitek text-neutral-500">chyb</div>
             </div>
             {rekord > 0 && (
               <div>
-                <div className="text-lg font-bold text-[#FF9F0A] tabular-nums flex items-center gap-1">
+                <div className="text-lg font-bold text-znacka tabular-nums flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5" /> {rekord}
                 </div>
                 <div className="text-stitek text-neutral-500">rekord</div>
@@ -243,7 +243,7 @@ export const TestRoom: React.FC = () => {
                   setVybrane((v) => (je ? v.filter((x) => x !== d.id) : [...v, d.id]))
                 }
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                  je ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                  je ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
                 }`}
               >
                 {d.nazev}
@@ -255,7 +255,7 @@ export const TestRoom: React.FC = () => {
             onClick={() => {
               setSkore(0); setChyb(0); setZbyva(60); setNaCas(true); dalsi();
             }}
-            className="ml-auto px-3 py-1.5 rounded-xl bg-[#FF9F0A] text-black text-xs font-bold cursor-pointer flex items-center gap-1.5"
+            className="ml-auto px-3 py-1.5 rounded-xl bg-znacka text-black text-xs font-bold cursor-pointer flex items-center gap-1.5"
           >
             <Timer className="w-3.5 h-3.5" /> Minuta na čas
           </button>
@@ -270,7 +270,7 @@ export const TestRoom: React.FC = () => {
         {naCas && (
           <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#FF9F0A] transition-[width] duration-1000 ease-linear"
+              className="h-full bg-znacka transition-[width] duration-1000 ease-linear"
               style={{ width: `${(zbyva / 60) * 100}%` }}
             />
           </div>
@@ -295,9 +295,9 @@ export const TestRoom: React.FC = () => {
                   disabled={!!odpoved}
                   className={`px-4 py-3 rounded-xl text-sm font-semibold text-left cursor-pointer transition-all flex items-center gap-2 ${
                     odpoved && spravna
-                      ? 'bg-[#30D158]/20 border border-[#30D158] text-[#30D158]'
+                      ? 'bg-uspech/20 border border-uspech text-uspech'
                       : je
-                      ? 'bg-[#FF453A]/20 border border-[#FF453A] text-[#FF453A]'
+                      ? 'bg-chyba/20 border border-chyba text-chyba'
                       : 'bg-white/[0.05] text-neutral-200 hover:bg-white/[0.10] disabled:opacity-50'
                   }`}
                 >

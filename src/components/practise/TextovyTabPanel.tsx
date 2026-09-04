@@ -80,7 +80,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-bold text-white flex items-center gap-1.5">
-          <FileText className="w-4 h-4 text-[#FF9F0A]" /> Textový tab
+          <FileText className="w-4 h-4 text-znacka" /> Textový tab
         </span>
 
         <label className="flex items-center gap-1.5">
@@ -138,7 +138,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         onChange={(e) => setText(e.target.value)}
         spellCheck={false}
         placeholder={'Vlož sem tabulaturu, šest řádků pod sebou:\n\ne|-----------5--|\nB|--------4-----|\nG|-----3--------|\nD|--2-----------|\nA|-0------------|\nE|--------------|'}
-        className="w-full h-44 bg-black/40 border border-white/10 rounded-2xl px-3 py-2 text-drobne font-mono leading-snug text-white placeholder-neutral-700 outline-none focus:border-[#FF9F0A] resize-y"
+        className="w-full h-44 bg-black/40 border border-white/10 rounded-2xl px-3 py-2 text-drobne font-mono leading-snug text-white placeholder-neutral-700 outline-none focus:border-znacka resize-y"
       />
 
       {/* Rytmus v ASCII tabulatuře není. Kdo to neví, bude se divit,
@@ -150,7 +150,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
       </p>
 
       {chybaPdf && (
-        <p className="text-drobne text-[#FF453A] flex items-start gap-1.5">
+        <p className="text-drobne text-chyba flex items-start gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {chybaPdf}
         </p>
       )}
@@ -159,7 +159,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
           podezřívavější než z textové vrstvy. */}
       {zPdf && (
         <p className={`text-drobne flex items-start gap-1.5 leading-relaxed ${
-          zPdf.zpusob === 'ocr' ? 'text-amber-500/90' : 'text-[#30D158]'
+          zPdf.zpusob === 'ocr' ? 'text-amber-500/90' : 'text-uspech'
         }`}>
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           {zPdf.zpusob === 'text'
@@ -169,7 +169,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
       )}
 
       {text.trim() && !usek && (
-        <p className="text-drobne text-[#FF453A]">
+        <p className="text-drobne text-chyba">
           V tomhle textu žádnou tabulaturu nevidím. Čekám šest řádků s pomlčkami a čísly.
         </p>
       )}

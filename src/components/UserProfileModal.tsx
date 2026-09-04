@@ -69,7 +69,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         {/* Header */}
         <div className="border-b border-white/5 px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#0A84FF]/10 border border-[#0A84FF]/30 text-[#0A84FF] rounded-2xl">
+            <div className="p-2 bg-info/10 border border-info/30 text-info rounded-2xl">
               <User className="w-5 h-5" />
             </div>
             <div>
@@ -105,7 +105,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   {roleMeta.label}
                 </span>
                 {isSuperAdmin && (
-                  <span className="text-stitek bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30 font-bold px-1.5 py-0.5 rounded-md uppercase">
+                  <span className="text-stitek bg-znacka/20 text-znacka border border-znacka/30 font-bold px-1.5 py-0.5 rounded-md uppercase">
                     Superadmin
                   </span>
                 )}
@@ -114,7 +114,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <div className="text-xs text-neutral-300 flex items-center gap-2 pt-1">
                 <span>Nástroj: <strong>{user.instrument || 'Kytara'}</strong></span>
                 <span>•</span>
-                <span>Stav: <strong className="text-[#30D158]">Aktivní</strong></span>
+                <span>Stav: <strong className="text-uspech">Aktivní</strong></span>
               </div>
             </div>
           </div>
@@ -125,7 +125,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               Přidělená práva v aplikaci:
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className={`flex items-center gap-2 ${user.permissions.canEditSongs ? 'text-[#30D158]' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canEditSongs ? 'text-uspech' : 'text-neutral-500'}`}>
                 <span className="font-bold">{user.permissions.canEditSongs ? '✓' : '✕'}</span>
                 <span>Editace & tvorba písní</span>
               </div>
@@ -133,11 +133,11 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 <span className="font-bold">{user.permissions.canDeleteSongs ? '✓' : '✕'}</span>
                 <span>Mazání písní</span>
               </div>
-              <div className={`flex items-center gap-2 ${user.permissions.canStartBandSession ? 'text-[#0A84FF]' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canStartBandSession ? 'text-info' : 'text-neutral-500'}`}>
                 <span className="font-bold">{user.permissions.canStartBandSession ? '✓' : '✕'}</span>
                 <span>Zkouška kapely (Room)</span>
               </div>
-              <div className={`flex items-center gap-2 ${user.permissions.canManageUsers ? 'text-[#FF9F0A]' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canManageUsers ? 'text-znacka' : 'text-neutral-500'}`}>
                 <span className="font-bold">{user.permissions.canManageUsers ? '✓' : '✕'}</span>
                 <span>Správa uživatelů & pozvánky</span>
               </div>
@@ -151,7 +151,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 onClose();
                 onOpenAdminModal();
               }}
-              className="w-full bg-[#FF9F0A]/10 hover:bg-[#FF9F0A]/20 text-[#FF9F0A] border border-[#FF9F0A]/30 py-2.5 rounded-xl text-xs font-bold uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="w-full bg-znacka/10 hover:bg-znacka/20 text-znacka border border-znacka/30 py-2.5 rounded-xl text-xs font-bold uppercase flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
               <Shield className="w-4 h-4" />
               <span>Otevřít správu uživatelů &amp; pozvánek (Admin)</span>
@@ -170,7 +170,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               className="w-full px-4 py-3 text-xs font-semibold text-neutral-300 hover:text-white flex items-center justify-between transition-colors cursor-pointer"
             >
               <span className="flex items-center gap-2.5">
-                <Key className="w-4 h-4 text-[#FF9F0A]" />
+                <Key className="w-4 h-4 text-znacka" />
                 <span>Změnit přístupové heslo</span>
               </span>
               <span className="text-neutral-400">{showPasswordChange ? '▲' : '▼'}</span>
@@ -186,8 +186,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 )}
 
                 {successMsg && (
-                  <div className="bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] p-2.5 rounded-xl text-xs flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#30D158] shrink-0" />
+                  <div className="bg-uspech/10 border border-uspech/30 text-uspech p-2.5 rounded-xl text-xs flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-uspech shrink-0" />
                     <span>{successMsg}</span>
                   </div>
                 )}
@@ -201,7 +201,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     value={oldPassword}
                     onChange={(e) => setOldPassword(e.target.value)}
                     placeholder="Zadejte dosavadní heslo..."
-                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]"
+                    className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3 py-2 text-xs focus:outline-none focus:border-znacka"
                   />
                 </div>
 
@@ -215,7 +215,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Nové heslo..."
-                      className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3 py-2 text-xs focus:outline-none focus:border-znacka"
                     />
                   </div>
                   <div className="space-y-1">
@@ -227,14 +227,14 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Znovu nové heslo..."
-                      className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3 py-2 text-xs focus:outline-none focus:border-[#FF9F0A]"
+                      className="w-full bg-black/40 border border-white/10 rounded-xl text-white px-3 py-2 text-xs focus:outline-none focus:border-znacka"
                     />
                   </div>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-[#FF9F0A] hover:bg-[#ffb03a] text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
+                  className="w-full bg-znacka hover:bg-[#ffb03a] text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
                 >
                   <Check className="w-4 h-4" />
                   <span>Uložit nové heslo</span>

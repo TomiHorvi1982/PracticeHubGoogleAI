@@ -187,7 +187,7 @@ export const Tuner: React.FC = () => {
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+            <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
               Přesná Ladička
             </span>
             <span className="text-xs text-neutral-400 font-medium">Autodetekce frekvence</span>
@@ -210,7 +210,7 @@ export const Tuner: React.FC = () => {
             step={1}
             value={referenceA}
             onChange={(e) => setReferenceA(parseInt(e.target.value, 10))}
-            className="w-24 accent-[#FF9F0A] cursor-pointer"
+            className="w-24 accent-znacka cursor-pointer"
             title={`${referenceA} Hz`}
           />
           <span className="text-xs font-mono font-bold text-white w-14 text-right">{referenceA} Hz</span>
@@ -252,10 +252,10 @@ export const Tuner: React.FC = () => {
       </div>
 
       {isCustomMode && (
-        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-[#FF9F0A]/30 rounded-3xl p-5 text-xs space-y-3 shadow-xl">
+        <div className="bg-[#16161A]/80 backdrop-blur-xl border border-znacka/30 rounded-3xl p-5 text-xs space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
             <h4 className="text-white font-semibold flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#FF9F0A]" /> Vlastní ladění jednotlivých strun (6. až 1.)
+              <Zap className="w-4 h-4 text-znacka" /> Vlastní ladění jednotlivých strun (6. až 1.)
             </h4>
             <button
               onClick={() => setCustomMidis([40, 45, 50, 55, 59, 64])}
@@ -272,7 +272,7 @@ export const Tuner: React.FC = () => {
               return (
                 <div key={idx} className="bg-black/40 border border-white/10 p-3 rounded-2xl flex flex-col items-center">
                   <span className="text-stitek text-neutral-400 mb-1">{stringNum}. struna</span>
-                  <span className="text-base font-bold text-[#FF9F0A]">{noteInfo.name}</span>
+                  <span className="text-base font-bold text-znacka">{noteInfo.name}</span>
                   <span className="text-stitek text-neutral-400 font-mono mb-2">{noteInfo.frequency} Hz</span>
                   
                   <div className="flex gap-1 w-full">
@@ -318,7 +318,7 @@ export const Tuner: React.FC = () => {
         <div className="absolute top-4 right-4 flex items-center gap-2">
           <span className={`text-stitek font-medium px-2.5 py-1 rounded-lg border ${
             isListening 
-              ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/30' 
+              ? 'bg-uspech/10 text-uspech border-uspech/30' 
               : 'bg-white/[0.04] text-neutral-400 border-white/[0.06]'
           }`}>
             {isListening ? (pitch ? 'PŘIJÍMÁM SIGNÁL' : 'POSLOUCHÁM...') : 'MIKROFON VYPNUT'}
@@ -332,7 +332,7 @@ export const Tuner: React.FC = () => {
           <div className="absolute inset-x-0 top-3 flex justify-between px-6 text-drobne font-mono text-neutral-400">
             <span>-50c</span>
             <span>-25c</span>
-            <span className="text-[#30D158] font-bold">0</span>
+            <span className="text-uspech font-bold">0</span>
             <span>+25c</span>
             <span>+50c</span>
           </div>
@@ -341,9 +341,9 @@ export const Tuner: React.FC = () => {
           <div
             className={`w-1 h-28 origin-bottom transition-transform duration-100 rounded-full shadow-lg ${
               isInTune
-                ? 'bg-[#30D158] shadow-[0_0_12px_#30D158]'
+                ? 'bg-uspech shadow-[0_0_12px_#30D158]'
                 : pitch
-                ? 'bg-[#FF9F0A] shadow-[0_0_12px_#FF9F0A]'
+                ? 'bg-znacka shadow-[0_0_12px_#FF9F0A]'
                 : 'bg-white/20'
             }`}
             style={{
@@ -359,19 +359,19 @@ export const Tuner: React.FC = () => {
           {pitch ? (
             <div className="flex flex-col items-center bg-black/40 border border-white/10 p-5 rounded-2xl shadow-inner">
               <div className="flex items-baseline justify-center gap-1.5">
-                <span className={`text-6xl font-bold font-mono tracking-tight ${isInTune ? 'text-[#30D158]' : 'text-white'}`}>
+                <span className={`text-6xl font-bold font-mono tracking-tight ${isInTune ? 'text-uspech' : 'text-white'}`}>
                   {pitch.note}
                 </span>
-                <span className="text-2xl font-semibold text-[#FF9F0A]">{pitch.octave}</span>
+                <span className="text-2xl font-semibold text-znacka">{pitch.octave}</span>
               </div>
 
               <div className="mt-2 text-xs">
                 {isInTune ? (
-                  <span className="text-[#30D158] bg-[#30D158]/10 px-3 py-1 rounded-lg font-semibold border border-[#30D158]/30">
+                  <span className="text-uspech bg-uspech/10 px-3 py-1 rounded-lg font-semibold border border-uspech/30">
                     PERFEKTNĚ NALADĚNO
                   </span>
                 ) : (
-                  <span className="text-[#FF9F0A] bg-[#FF9F0A]/10 px-3 py-1 rounded-lg font-semibold border border-[#FF9F0A]/30">
+                  <span className="text-znacka bg-znacka/10 px-3 py-1 rounded-lg font-semibold border border-znacka/30">
                     {pitch.cents > 0 ? `+${pitch.cents} centů (vysoko)` : `${pitch.cents} centů (nízko)`}
                   </span>
                 )}
@@ -395,8 +395,8 @@ export const Tuner: React.FC = () => {
           onClick={toggleListening}
           className={`flex items-center gap-2 px-6 py-3 font-semibold text-xs rounded-2xl transition-all cursor-pointer shadow-md ${
             isListening
-              ? 'bg-[#FF453A] hover:bg-[#FF453A]/90 text-white'
-              : 'bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black'
+              ? 'bg-chyba hover:bg-chyba/90 text-white'
+              : 'bg-znacka hover:bg-znacka/90 text-black'
           }`}
         >
           {isListening ? (
@@ -437,7 +437,7 @@ export const Tuner: React.FC = () => {
                 onClick={() => playReferencePitch(freq)}
                 className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer ${
                   isMatched
-                    ? 'bg-[#30D158]/20 border-[#30D158] text-white shadow-lg shadow-green-500/10'
+                    ? 'bg-uspech/20 border-uspech text-white shadow-lg shadow-green-500/10'
                     : 'bg-white/[0.03] hover:bg-white/[0.08] border-white/[0.06] text-neutral-300'
                 }`}
               >
@@ -454,7 +454,7 @@ export const Tuner: React.FC = () => {
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#FF9F0A]" />
+            <Activity className="w-4 h-4 text-znacka" />
             <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
               Metronom & Tap Tempo
             </h3>
@@ -488,7 +488,7 @@ export const Tuner: React.FC = () => {
             </button>
 
             {tapFeedback && (
-              <span className="text-xs text-[#FF9F0A] font-semibold animate-pulse">
+              <span className="text-xs text-znacka font-semibold animate-pulse">
                 {tapFeedback}
               </span>
             )}
@@ -502,7 +502,7 @@ export const Tuner: React.FC = () => {
               max="240"
               value={metroBpm}
               onChange={(e) => setMetroBpm(parseInt(e.target.value, 10))}
-              className="w-full accent-[#FF9F0A] cursor-pointer"
+              className="w-full accent-znacka cursor-pointer"
             />
           </div>
 
@@ -511,8 +511,8 @@ export const Tuner: React.FC = () => {
             onClick={() => setIsMetroPlaying(!isMetroPlaying)}
             className={`px-5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
               isMetroPlaying
-                ? 'bg-[#FF453A] text-white'
-                : 'bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black'
+                ? 'bg-chyba text-white'
+                : 'bg-znacka hover:bg-znacka/90 text-black'
             }`}
           >
             {isMetroPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -533,8 +533,8 @@ export const Tuner: React.FC = () => {
                 className={`w-4 h-4 rounded-full transition-all duration-100 ${
                   isCurrent
                     ? isFirst
-                      ? 'bg-[#FF453A] scale-125 shadow-[0_0_10px_#FF453A]'
-                      : 'bg-[#FF9F0A] scale-110 shadow-[0_0_8px_#FF9F0A]'
+                      ? 'bg-chyba scale-125 shadow-[0_0_10px_#FF453A]'
+                      : 'bg-znacka scale-110 shadow-[0_0_8px_#FF9F0A]'
                     : 'bg-white/10'
                 }`}
               />

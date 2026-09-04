@@ -92,7 +92,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
   return (
     <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-4 space-y-3">
       <div className="flex flex-wrap items-baseline gap-2">
-        <HardDrive className="w-4 h-4 text-[#FF9F0A] shrink-0 self-center" />
+        <HardDrive className="w-4 h-4 text-znacka shrink-0 self-center" />
         <span className="text-lg font-bold text-white tabular-nums">{velikost(stav.celkem)}</span>
         <span className="text-drobne text-neutral-500">z {velikost(stav.limit)}</span>
         <span className="ml-auto text-drobne text-neutral-500">
@@ -155,7 +155,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
           na ně nepřišlo — v seznamu vypadají jako dva různé soubory. */}
       {duplicity && (
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/[0.06]">
-          <Copy className="w-3.5 h-3.5 text-[#FFD60A] shrink-0" />
+          <Copy className="w-3.5 h-3.5 text-pozor shrink-0" />
           <span className="text-drobne text-neutral-300">
             {duplicity.smazatelnych.toLocaleString('cs')} souborů leží v knihovně víckrát,
             jen pod jiným názvem — zabírají {velikost(duplicity.bajtuNavic)} navíc.
@@ -190,14 +190,14 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
               {uklizim ? 'Uklízím…' : 'Uklidit kopie'}
             </button>
           )}
-          {vysledek && <span className="text-drobne text-[#30D158]">{vysledek}</span>}
+          {vysledek && <span className="text-drobne text-uspech">{vysledek}</span>}
         </div>
       )}
       </>
       )}
 
       {procent > 85 && (
-        <p className="text-drobne text-[#FF453A]">
+        <p className="text-drobne text-chyba">
           Přes {Math.round(procent)} % limitu. Nad deset gigabajtů se za úložiště platí.
         </p>
       )}

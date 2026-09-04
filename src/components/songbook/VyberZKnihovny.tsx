@@ -93,7 +93,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
           value={dotaz}
           onChange={(e) => setDotaz(e.target.value)}
           placeholder="Hledat v knihovně…"
-          className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-drobne text-white outline-none focus:border-[#FF9F0A]"
+          className="w-full bg-black/50 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-drobne text-white outline-none focus:border-znacka"
         />
       </div>
 
@@ -119,7 +119,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
             key={a.id}
             className={`rounded-xl border transition-all ${
               nahlizeny?.id === a.id
-                ? 'bg-white/[0.06] border-[#FF9F0A]/50'
+                ? 'bg-white/[0.06] border-znacka/50'
                 : 'bg-white/[0.03] border-white/[0.06] hover:border-white/25'
             }`}
           >
@@ -130,7 +130,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
               <button
                 onClick={() => sNahledem && setNahlizeny(nahlizeny?.id === a.id ? null : a)}
                 className={`text-drobne text-white truncate flex-1 text-left ${
-                  sNahledem ? 'cursor-pointer hover:text-[#FF9F0A]' : 'cursor-default'
+                  sNahledem ? 'cursor-pointer hover:text-znacka' : 'cursor-default'
                 }`}
                 title={sNahledem ? 'Prohlédnout' : a.name}
               >
@@ -147,7 +147,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
               )}
               <button
                 onClick={() => onVybrat(a)}
-                className="px-1.5 py-1 rounded flex items-center text-[#30D158] hover:bg-[#30D158]/20 cursor-pointer shrink-0"
+                className="px-1.5 py-1 rounded flex items-center text-uspech hover:bg-uspech/20 cursor-pointer shrink-0"
                 title={cil ? `Vložit ${cil}` : 'Vložit'}
               >
                 <Plus className="w-3.5 h-3.5" />

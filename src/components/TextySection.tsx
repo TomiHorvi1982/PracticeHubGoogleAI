@@ -90,7 +90,7 @@ export const TextySection: React.FC = () => {
           <button
             onClick={() => setZalozka('psani')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              zalozka === 'psani' ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              zalozka === 'psani' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
             }`}
           >
             <PenLine className="w-3.5 h-3.5" /> Psaní
@@ -98,7 +98,7 @@ export const TextySection: React.FC = () => {
           <button
             onClick={() => setZalozka('prepis')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              zalozka === 'prepis' ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              zalozka === 'prepis' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
             }`}
           >
             <Mic className="w-3.5 h-3.5" /> Přepis z nahrávky
@@ -106,7 +106,7 @@ export const TextySection: React.FC = () => {
           <button
             onClick={() => setZalozka('diktovani')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              zalozka === 'diktovani' ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              zalozka === 'diktovani' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
             }`}
           >
             <Languages className="w-3.5 h-3.5" /> Diktování & překlad
@@ -116,7 +116,7 @@ export const TextySection: React.FC = () => {
             <select
               value={vybrana}
               onChange={(e) => otevri(e.target.value)}
-              className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#BF5AF2] max-w-[240px]"
+              className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-nastroj max-w-[240px]"
             >
               <option value="">— vyber píseň —</option>
               {pisne.map((p) => (
@@ -131,7 +131,7 @@ export const TextySection: React.FC = () => {
         {hlaska && (
           <p
             className={`text-drobne mt-2 flex items-center gap-1.5 ${
-              hlaska.chyba ? 'text-[#FF453A]' : 'text-[#30D158]'
+              hlaska.chyba ? 'text-chyba' : 'text-uspech'
             }`}
           >
             {hlaska.chyba ? <AlertCircle className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
@@ -165,7 +165,7 @@ export const TextySection: React.FC = () => {
               type="checkbox"
               checked={sCasy}
               onChange={(e) => setSCasy(e.target.checked)}
-              className="accent-[#BF5AF2]"
+              className="accent-nastroj"
             />
             Vložit i časy ve složených závorkách — text pak jde na Pódiu rolovat podle přehrávače.
           </label>

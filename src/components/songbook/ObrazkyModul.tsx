@@ -80,7 +80,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
     <div className="flex-1 flex flex-col gap-2 min-h-0">
       <button
         onClick={() => setPridavam((v) => !v)}
-        className="shrink-0 self-start px-2.5 py-1 rounded-lg text-stitek font-bold flex items-center gap-1.5 bg-[#30D158]/15 text-[#30D158] hover:bg-[#30D158]/30 cursor-pointer transition-all"
+        className="shrink-0 self-start px-2.5 py-1 rounded-lg text-stitek font-bold flex items-center gap-1.5 bg-uspech/15 text-uspech hover:bg-uspech/30 cursor-pointer transition-all"
       >
         {pridavam ? <X className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
         {pridavam ? 'Zrušit' : 'Přidat z knihovny'}
@@ -125,7 +125,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
                 )}
                 <button
                   onClick={() => odeber(p.id)}
-                  className="absolute top-1 right-1 p-1 rounded-lg bg-black/70 text-neutral-400 hover:text-[#FF453A] cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 p-1 rounded-lg bg-black/70 text-neutral-400 hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Odpojit od písně"
                 >
                   <X className="w-3 h-3" />

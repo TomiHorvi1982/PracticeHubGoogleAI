@@ -130,16 +130,16 @@ export const UsekZTabulatury: React.FC = () => {
         <p className="text-drobne text-neutral-500">
           Žádný úsek k cvičení. V <strong className="text-neutral-300">Guitar Pro</strong> nebo
           na <strong className="text-neutral-300">Pódiu</strong> si vyber takty tažením po liště
-          pozice a klikni na <strong className="text-[#BF5AF2]">do Solo Practise</strong>.
+          pozice a klikni na <strong className="text-nastroj">do Solo Practise</strong>.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#16161A]/80 border border-[#BF5AF2]/30 rounded-3xl p-5 space-y-3">
+    <div className="bg-[#16161A]/80 border border-nastroj/30 rounded-3xl p-5 space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <Guitar className="w-4 h-4 text-[#BF5AF2] shrink-0" />
+        <Guitar className="w-4 h-4 text-nastroj shrink-0" />
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-bold text-white truncate">{usek.nazevSkladby}</h3>
           <p className="text-drobne text-neutral-500">
@@ -150,7 +150,7 @@ export const UsekZTabulatury: React.FC = () => {
         </div>
         <button
           onClick={() => zapomenUsek()}
-          className="p-1.5 rounded-lg text-neutral-600 hover:text-[#FF453A] cursor-pointer shrink-0"
+          className="p-1.5 rounded-lg text-neutral-600 hover:text-chyba cursor-pointer shrink-0"
           title="Odložit úsek"
         >
           <X className="w-4 h-4" />
@@ -158,7 +158,7 @@ export const UsekZTabulatury: React.FC = () => {
       </div>
 
       {chyba ? (
-        <p className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+        <p className="text-drobne text-chyba bg-chyba/10 border border-chyba/30 rounded-xl px-3 py-2">
           {chyba}
         </p>
       ) : (
@@ -167,7 +167,7 @@ export const UsekZTabulatury: React.FC = () => {
             <button
               onClick={() => api.current?.playPause()}
               disabled={nacita}
-              className="w-10 h-10 rounded-xl bg-[#BF5AF2] hover:bg-[#CE7BF5] text-white flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              className="w-10 h-10 rounded-xl bg-nastroj hover:bg-[#CE7BF5] text-white flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
               title={hraje ? 'Pauza' : 'Přehrát dokola'}
             >
               {nacita ? <Loader2 className="w-4 h-4 animate-spin" />
@@ -183,7 +183,7 @@ export const UsekZTabulatury: React.FC = () => {
                   key={r}
                   onClick={() => setRychlost(r)}
                   className={`px-2 py-1 rounded-lg text-drobne font-mono cursor-pointer ${
-                    rychlost === r ? 'bg-[#BF5AF2] text-white font-bold' : 'text-neutral-400 hover:text-white'
+                    rychlost === r ? 'bg-nastroj text-white font-bold' : 'text-neutral-400 hover:text-white'
                   }`}
                 >
                   {r}×

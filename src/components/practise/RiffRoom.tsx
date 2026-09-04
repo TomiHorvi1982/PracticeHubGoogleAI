@@ -231,7 +231,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
         {/* Uložené */}
         <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-2">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Music4 className="w-4 h-4 text-[#FF9F0A]" />
+            <Music4 className="w-4 h-4 text-znacka" />
             {typ === 'riff' ? 'Moje riffy' : 'Moje sóla'}
             <span className="text-drobne text-neutral-500">({seznam.length})</span>
           </h3>
@@ -242,7 +242,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 key={c.id}
                 onClick={() => void otevri(c)}
                 className={`w-full text-left px-2.5 py-2 rounded-xl cursor-pointer group ${
-                  vybrane?.id === c.id ? 'bg-[#FF9F0A]/15 border border-[#FF9F0A]/40' : 'bg-white/[0.03] hover:bg-white/[0.07]'
+                  vybrane?.id === c.id ? 'bg-znacka/15 border border-znacka/40' : 'bg-white/[0.03] hover:bg-white/[0.07]'
                 }`}
               >
                 <div className="text-xs font-semibold text-white truncate">{c.nazev}</div>
@@ -271,7 +271,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
         {/* Přehrávač */}
         <div className="lg:col-span-3 space-y-3">
           {vybiram && (
-            <div className="bg-[#16161A]/80 border border-[#FF9F0A]/30 rounded-2xl p-3">
+            <div className="bg-[#16161A]/80 border border-znacka/30 rounded-2xl p-3">
               <VyberZKnihovny
                 kategorie="stem_mix,recordings,samples,drum_loop,backing_tracks"
                 prazdno="V knihovně zatím žádné nahrávky nejsou."
@@ -290,7 +290,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
           )}
 
           <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
-            {stav.chyba && <p className="text-drobne text-[#FF453A]">{stav.chyba}</p>}
+            {stav.chyba && <p className="text-drobne text-chyba">{stav.chyba}</p>}
             {stav.nacita && <p className="text-drobne text-neutral-400">Načítám zvuk…</p>}
 
             {/* Vlna */}
@@ -320,10 +320,10 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                     step={0.5}
                     value={zoom}
                     onChange={(e) => setZoom(Number(e.target.value))}
-                    className="w-28 accent-[#0A84FF] cursor-pointer"
+                    className="w-28 accent-info cursor-pointer"
                     title="Přiblížení vlny"
                   />
-                  <span className="text-drobne font-mono text-[#0A84FF] tabular-nums w-10">
+                  <span className="text-drobne font-mono text-info tabular-nums w-10">
                     {zoom.toFixed(0)}×
                   </span>
                 </div>
@@ -361,7 +361,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 onClick={() => (stav.hraje ? prehravacCviceni.stop() : prehravacCviceni.prehraj())}
                 disabled={stav.delka === 0}
                 className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-                  stav.hraje ? 'bg-[#FF453A] text-white' : 'bg-white text-black'
+                  stav.hraje ? 'bg-chyba text-white' : 'bg-white text-black'
                 }`}
               >
                 {stav.hraje ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -373,9 +373,9 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 <input
                   type="range" min={25} max={150} value={Math.round(stav.rychlost * 100)}
                   onChange={(e) => prehravacCviceni.nastavRychlost(Number(e.target.value) / 100)}
-                  className="w-28 accent-[#FF9F0A] cursor-pointer"
+                  className="w-28 accent-znacka cursor-pointer"
                 />
-                <span className="text-xs font-mono font-bold text-[#FF9F0A] w-12 tabular-nums">
+                <span className="text-xs font-mono font-bold text-znacka w-12 tabular-nums">
                   {Math.round(stav.rychlost * 100)} %
                 </span>
               </div>
@@ -386,10 +386,10 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 <input
                   type="range" min={-12} max={12} step={1} value={stav.posun}
                   onChange={(e) => prehravacCviceni.nastavPosun(Number(e.target.value))}
-                  className="w-28 accent-[#BF5AF2] cursor-pointer"
+                  className="w-28 accent-nastroj cursor-pointer"
                   title="Přeladit nahrávku o půltóny — ať nemusíš přelaďovat kytaru"
                 />
-                <span className="text-xs font-mono font-bold text-[#BF5AF2] w-10 tabular-nums">
+                <span className="text-xs font-mono font-bold text-nastroj w-10 tabular-nums">
                   {stav.posun > 0 ? `+${stav.posun}` : stav.posun}
                 </span>
                 {stav.posun !== 0 && (
@@ -407,7 +407,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 onClick={() => prehravacCviceni.prepniDrzeniLadeni()}
                 className={`px-2.5 py-1.5 text-drobne font-semibold rounded-xl border cursor-pointer ${
                   stav.drzetLadeni
-                    ? 'bg-[#BF5AF2]/15 border-[#BF5AF2]/50 text-[#BF5AF2]'
+                    ? 'bg-nastroj/15 border-nastroj/50 text-nastroj'
                     : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
                 }`}
                 title="Při zpomalení držet původní výšku tónů. Vypnuto zní pomalejší nahrávka níž, jako na pásku."
@@ -430,7 +430,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 <input
                   type="checkbox" checked={stav.klik}
                   onChange={() => prehravacCviceni.prepniKlik()}
-                  className="accent-[#FF9F0A] cursor-pointer"
+                  className="accent-znacka cursor-pointer"
                 />
                 Klik
               </label>
@@ -474,7 +474,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                   }
                 }}
                 disabled={!nazev.trim() || (!vybrane && !asset)}
-                className="px-3 py-2 rounded-xl bg-[#30D158] text-black text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+                className="px-3 py-2 rounded-xl bg-uspech text-black text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
               >
                 <Save className="w-3.5 h-3.5" /> {vybrane ? 'Uložit změny' : 'Uložit'}
               </button>
@@ -493,7 +493,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                       await cviceniService.smaz(vybrane.id);
                       setVybrane(null);
                     }}
-                    className="p-2 rounded-xl text-neutral-600 hover:text-[#FF453A] cursor-pointer"
+                    className="p-2 rounded-xl text-neutral-600 hover:text-chyba cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -506,7 +506,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
               onChange={(e) => setTabText(e.target.value)}
               placeholder={"Tabulatura nebo akordy — uvidíš je při hraní.\ne|---------------|\nB|---------------|"}
               rows={8}
-              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-drobne font-mono leading-relaxed resize-y focus:outline-none focus:border-[#FF9F0A]"
+              className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-drobne font-mono leading-relaxed resize-y focus:outline-none focus:border-znacka"
             />
           </div>
         </div>

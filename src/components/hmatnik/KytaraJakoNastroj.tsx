@@ -85,7 +85,7 @@ export const KytaraJakoNastroj: React.FC = () => {
           onClick={() => void prepni()}
           disabled={zapina}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-            hraje ? 'bg-[#FF453A] text-white' : 'bg-[#BF5AF2] text-white hover:bg-[#c96ff5]'
+            hraje ? 'bg-chyba text-white' : 'bg-nastroj text-white hover:bg-[#c96ff5]'
           }`}
         >
           {zapina ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -97,7 +97,7 @@ export const KytaraJakoNastroj: React.FC = () => {
         <select
           value={nastroj}
           onChange={(e) => setNastroj(e.target.value as InstrumentProfile)}
-          className="flex-1 min-w-[200px] bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-[#BF5AF2] cursor-pointer"
+          className="flex-1 min-w-[200px] bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white outline-none focus:border-nastroj cursor-pointer"
         >
           {INSTRUMENT_PROFILES.map((n) => (
             <option key={n.id} value={n.id}>{n.name}</option>
@@ -115,9 +115,9 @@ export const KytaraJakoNastroj: React.FC = () => {
           max={100}
           value={Math.round(hlasitost * 100)}
           onChange={(e) => setHlasitost(Number(e.target.value) / 100)}
-          className="flex-1 max-w-[220px] accent-[#BF5AF2] cursor-pointer"
+          className="flex-1 max-w-[220px] accent-nastroj cursor-pointer"
         />
-        <span className="text-xs font-mono text-[#BF5AF2] tabular-nums w-10">
+        <span className="text-xs font-mono text-nastroj tabular-nums w-10">
           {Math.round(hlasitost * 100)} %
         </span>
       </div>
@@ -133,7 +133,7 @@ export const KytaraJakoNastroj: React.FC = () => {
       </p>
 
       {chyba && (
-        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-chyba flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}
@@ -151,7 +151,7 @@ export const KytaraJakoNastroj: React.FC = () => {
                 <span
                   key={`${t}-${i}`}
                   className={`px-2 py-1 rounded-lg text-drobne font-bold tabular-nums ${
-                    i === 0 ? 'bg-[#BF5AF2] text-white' : 'bg-white/[0.06] text-neutral-400'
+                    i === 0 ? 'bg-nastroj text-white' : 'bg-white/[0.06] text-neutral-400'
                   }`}
                 >
                   {t}

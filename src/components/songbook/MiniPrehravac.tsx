@@ -158,7 +158,7 @@ export const MiniPrehravac: React.FC<Props> = ({
         <button
           onClick={prepni}
           disabled={!pripraveno || Boolean(chyba)}
-          className="p-1.5 rounded-lg bg-[#FF9F0A] hover:bg-[#FF9F0A]/85 text-black cursor-pointer shrink-0 transition-all disabled:opacity-40 disabled:cursor-wait"
+          className="p-1.5 rounded-lg bg-znacka hover:bg-znacka/85 text-black cursor-pointer shrink-0 transition-all disabled:opacity-40 disabled:cursor-wait"
           title={hraje ? 'Pozastavit' : 'Přehrát'}
         >
           {!pripraveno && !chyba ? (
@@ -193,7 +193,7 @@ export const MiniPrehravac: React.FC<Props> = ({
       </div>
 
       {chyba ? (
-        <p className="text-stitek text-[#FF453A] px-1">{chyba}</p>
+        <p className="text-stitek text-chyba px-1">{chyba}</p>
       ) : (
         <div className="flex items-center gap-2 px-0.5">
           <span className="text-stitek font-mono text-neutral-500 tabular-nums w-8 shrink-0">{cas(kde)}</span>
@@ -207,7 +207,7 @@ export const MiniPrehravac: React.FC<Props> = ({
             onPointerDown={() => (tahnuSe.current = true)}
             onPointerUp={() => (tahnuSe.current = false)}
             onChange={(e) => skoc(Number(e.target.value))}
-            className="flex-1 h-1 accent-[#FF9F0A] cursor-pointer disabled:cursor-default"
+            className="flex-1 h-1 accent-znacka cursor-pointer disabled:cursor-default"
           />
           <span className="text-stitek font-mono text-neutral-500 tabular-nums w-8 shrink-0 text-right">
             {cas(delka)}

@@ -912,26 +912,26 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const getItemIcon = (type: LibraryItem['type']) => {
     switch (type) {
       case 'guitarpro':
-        return <FileSpreadsheet className="w-4 h-4 text-[#FF9F0A]" />;
+        return <FileSpreadsheet className="w-4 h-4 text-znacka" />;
       case 'pdf':
-        return <FileText className="w-4 h-4 text-[#FF453A]" />;
+        return <FileText className="w-4 h-4 text-chyba" />;
       case 'txt':
-        return <Layers className="w-4 h-4 text-[#30D158]" />;
+        return <Layers className="w-4 h-4 text-uspech" />;
       case 'image':
-        return <ImageIcon className="w-4 h-4 text-[#BF5AF2]" />;
+        return <ImageIcon className="w-4 h-4 text-nastroj" />;
       case 'midi':
-        return <Music className="w-4 h-4 text-[#0A84FF]" />;
+        return <Music className="w-4 h-4 text-info" />;
     }
   };
 
   const getItemTypeBadge = (type: LibraryItem['type']) => {
     switch (type) {
       case 'guitarpro':
-        return <span className="bg-[#FF9F0A]/15 text-[#FF9F0A] border border-[#FF9F0A]/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Guitar Pro</span>;
+        return <span className="bg-znacka/15 text-znacka border border-znacka/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Guitar Pro</span>;
       case 'pdf':
         return <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">PDF Noty</span>;
       case 'txt':
-        return <span className="bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Text / Akordy</span>;
+        return <span className="bg-uspech/15 text-uspech border border-uspech/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Text / Akordy</span>;
       case 'image':
         return <span className="bg-purple-500/15 text-purple-400 border border-purple-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Obrázek</span>;
       case 'midi':
@@ -970,7 +970,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         <div
           className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-between border ${
             statusMessage.type === 'success'
-              ? 'bg-[#30D158]/10 border-[#30D158]/30 text-[#30D158]'
+              ? 'bg-uspech/10 border-uspech/30 text-uspech'
               : 'bg-red-500/10 border-red-500/30 text-red-400'
           }`}
         >
@@ -1026,8 +1026,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               se jen u vybrané složky — obecná rada u celé knihovny by
               platila pro všechno a tím pádem pro nic. */}
           {kategorieFiltr && PODLE_ID[kategorieFiltr]?.napoveda && (
-            <div className="bg-[#FF9F0A]/[0.07] border border-[#FF9F0A]/25 rounded-2xl px-3 py-2 text-drobne text-neutral-300">
-              <span className="text-[#FF9F0A] font-bold">Pojmenování: </span>
+            <div className="bg-znacka/[0.07] border border-znacka/25 rounded-2xl px-3 py-2 text-drobne text-neutral-300">
+              <span className="text-znacka font-bold">Pojmenování: </span>
               <span className="font-mono">{PODLE_ID[kategorieFiltr].napoveda}</span>
             </div>
           )}
@@ -1040,7 +1040,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Vyhledat soubor, interpreta..."
-              className="w-full bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-[#0A84FF] outline-none transition-all shadow-sm"
+              className="w-full bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-info outline-none transition-all shadow-sm"
             />
 
             {/* Sbírka je druhá osa: strom říká, CO soubor je, sbírka
@@ -1050,7 +1050,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               <select
                 value={sbirkaFiltr || ''}
                 onChange={(e) => setSbirkaFiltr(e.target.value || null)}
-                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-[#0A84FF] shrink-0"
+                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-info shrink-0"
                 title="Filtrovat podle sbírky — odkud soubory přišly"
               >
                 <option value="">Všechny sbírky</option>
@@ -1087,7 +1087,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   setPrevadetZvuk(e.target.checked);
                   localStorage.setItem('neverlate_prevod_mp3', e.target.checked ? 'ano' : 'ne');
                 }}
-                className="accent-[#0A84FF] cursor-pointer"
+                className="accent-info cursor-pointer"
               />
               Zmenšit zvuk na MP3
               <select
@@ -1158,7 +1158,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         tazeny === item.id ? 'opacity-40' : ''
                       } ${
                         isSelected
-                          ? 'bg-[#0A84FF]/20 border border-[#0A84FF]/40 text-white shadow-sm font-semibold'
+                          ? 'bg-info/20 border border-info/40 text-white shadow-sm font-semibold'
                           : 'bg-black/30 border border-white/5 hover:bg-white/5 hover:border-white/10 text-neutral-300'
                       }`}
                     >
@@ -1175,7 +1175,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                               return n;
                             })
                           }
-                          className="accent-[#30D158] cursor-pointer shrink-0"
+                          className="accent-uspech cursor-pointer shrink-0"
                           title="Označit pro hromadnou akci"
                         />
                       )}
@@ -1195,7 +1195,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                                 if (e.key === 'Escape') setPrejmenovavany(null);
                               }}
                               onBlur={() => void prejmenuj(item.id, prejmenovavany.nazev)}
-                              className="bg-black/60 border border-[#FF9F0A] rounded px-1.5 py-0.5 text-xs text-white outline-none min-w-[180px]"
+                              className="bg-black/60 border border-znacka rounded px-1.5 py-0.5 text-xs text-white outline-none min-w-[180px]"
                             />
                           ) : (
                             <span className="font-bold text-white truncate">{item.name}</span>
@@ -1224,7 +1224,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         )}
                         {getItemTypeBadge(item.type)}
                         {item.songId && (
-                          <span className="text-stitek bg-[#30D158]/20 text-[#30D158] px-1.5 py-0.5 rounded font-medium">
+                          <span className="text-stitek bg-uspech/20 text-uspech px-1.5 py-0.5 rounded font-medium">
                             Song Library
                           </span>
                         )}
@@ -1259,7 +1259,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                             return n;
                           })
                         }
-                        className="accent-[#30D158] cursor-pointer shrink-0 mr-1"
+                        className="accent-uspech cursor-pointer shrink-0 mr-1"
                         title="Označit pro hromadnou akci"
                       />
                     )}
@@ -1268,7 +1268,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         {getItemIcon(item.type)}
                       </div>
                       <div className="min-w-0">
-                        <h4 className="text-xs font-bold text-white truncate group-hover:text-[#0A84FF] transition-colors">
+                        <h4 className="text-xs font-bold text-white truncate group-hover:text-info transition-colors">
                           {item.name}
                         </h4>
                         {/* Zalamuje se: interpret, název, tempo, tónina, takt i velikost
@@ -1282,12 +1282,12 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                               se nevypisuje, jinak by řádek nesl samé
                               pomlčky. */}
                           {(item as any).bpm > 0 && (
-                            <span className="text-[#0A84FF] font-mono tabular-nums">
+                            <span className="text-info font-mono tabular-nums">
                               {(item as any).bpm} BPM
                             </span>
                           )}
                           {(item as any).tonina && (
-                            <span className="text-[#BF5AF2] font-mono">{(item as any).tonina}</span>
+                            <span className="text-nastroj font-mono">{(item as any).tonina}</span>
                           )}
                           {(item as any).takt && (
                             <span className="text-neutral-500 font-mono">{(item as any).takt}</span>
@@ -1300,7 +1300,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <div className="flex flex-col items-end gap-1 shrink-0">
                       {getItemTypeBadge(item.type)}
                       {item.songId && (
-                        <span className="text-stitek text-[#30D158] font-semibold">
+                        <span className="text-stitek text-uspech font-semibold">
                           Ve zpěvníku
                         </span>
                       )}
@@ -1356,7 +1356,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   {/* Create Song from Item */}
                   <button
                     onClick={() => handleCreateSongFromItem(activeItem)}
-                    className="px-3.5 py-2 bg-[#30D158] hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
+                    className="px-3.5 py-2 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
                     title="Vytvořit novou skladbu v Song Library z tohoto souboru"
                   >
                     <Plus className="w-4 h-4" /> <span>Přidat do zpěvníku</span>
@@ -1388,12 +1388,12 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   úplně stejně jako soubor, který se ještě načítá. */}
               {shanimOdkaz && (
                 <div className="flex items-center gap-2 text-drobne text-neutral-400 bg-white/[0.03] border border-white/10 rounded-2xl px-3 py-2">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0A84FF]" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-info" />
                   Sháním soubor z úložiště…
                 </div>
               )}
               {chybaOdkazu && (
-                <div className="flex items-start gap-2 text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-2xl px-3 py-2">
+                <div className="flex items-start gap-2 text-drobne text-chyba bg-chyba/10 border border-chyba/30 rounded-2xl px-3 py-2">
                   <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>{chybaOdkazu}</span>
                 </div>
@@ -1421,7 +1421,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       key={n.id}
                       className={`rounded-2xl border p-1 ${
                         activeItem?.id === n.id
-                          ? 'border-[#0A84FF]/40 bg-[#0A84FF]/[0.06]'
+                          ? 'border-info/40 bg-info/[0.06]'
                           : 'border-white/[0.06]'
                       }`}
                     >
@@ -1429,14 +1429,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         <span className="text-drobne text-neutral-300 truncate flex-1">{n.name}</span>
                         <button
                           onClick={() => void doPlaylistu(n)}
-                          className="p-1 rounded text-neutral-500 hover:text-[#30D158] cursor-pointer shrink-0"
+                          className="p-1 rounded text-neutral-500 hover:text-uspech cursor-pointer shrink-0"
                           title="Zařadit do playlistu"
                         >
                           <ListPlus className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setZvukoveNahledy((p) => p.filter((x) => x.id !== n.id))}
-                          className="p-1 rounded text-neutral-600 hover:text-[#FF453A] cursor-pointer shrink-0"
+                          className="p-1 rounded text-neutral-600 hover:text-chyba cursor-pointer shrink-0"
                           title="Zavřít tenhle náhled"
                         >
                           <X className="w-3 h-3" />
@@ -1464,8 +1464,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     />
                   ) : (
                     <div className="bg-black/30 border border-white/10 rounded-2xl p-8 text-center space-y-3">
-                      <FileSpreadsheet className="w-8 h-8 text-[#FF9F0A] mx-auto animate-pulse" />
-                      <p className="text-xs font-bold text-[#FF9F0A] uppercase">
+                      <FileSpreadsheet className="w-8 h-8 text-znacka mx-auto animate-pulse" />
+                      <p className="text-xs font-bold text-znacka uppercase">
                         Guitar Pro tabulatura připravena
                       </p>
                       <p className="text-xs text-neutral-400 max-w-md mx-auto">
@@ -1483,7 +1483,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <PdfNahled url={activeItem.dataUrl} nazev={activeItem.name} />
                   ) : (
                     <div className="bg-black/30 border border-white/10 rounded-2xl p-6 text-center space-y-2">
-                      <FileText className="w-8 h-8 text-[#FF453A] mx-auto" />
+                      <FileText className="w-8 h-8 text-chyba mx-auto" />
                       <p className="text-xs font-bold text-white">{activeItem.name}</p>
                       <p className="text-xs text-neutral-400">
                         Náhled PDF dokumentu nebo textového výpisu
@@ -1493,7 +1493,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
                   {activeItem.extractedText && (
                     <div className="bg-black/40 border border-white/10 rounded-2xl p-4">
-                      <span className="text-xs font-bold text-[#30D158] block mb-2">
+                      <span className="text-xs font-bold text-uspech block mb-2">
                         Extrahovaný text z PDF dokumentu:
                       </span>
                       <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-300 max-h-[200px] overflow-y-auto">
@@ -1516,7 +1516,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       >
                         -1
                       </button>
-                      <span className="font-bold text-[#30D158] px-1">
+                      <span className="font-bold text-uspech px-1">
                         {txtTranspose > 0 ? `+${txtTranspose}` : txtTranspose}
                       </span>
                       <button
@@ -1588,7 +1588,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         href={activeItem.dataUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-xs text-[#30D158] hover:underline flex items-center gap-1 font-semibold"
+                        className="text-xs text-uspech hover:underline flex items-center gap-1 font-semibold"
                       >
                         <ExternalLink className="w-3.5 h-3.5" /> Otevřít v novém okně
                       </a>
@@ -1614,10 +1614,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
               {/* 🎹 MIDI PLAYER */}
               {activeItem.type === 'midi' && (
-                <div className="bg-[#0A84FF]/10 border border-[#0A84FF]/30 rounded-2xl p-5 space-y-4">
+                <div className="bg-info/10 border border-info/30 rounded-2xl p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-[#0A84FF]/20 text-[#0A84FF] rounded-xl">
+                      <div className="p-2 bg-info/20 text-info rounded-xl">
                         <Volume2 className="w-6 h-6" />
                       </div>
                       <div>
@@ -1634,8 +1634,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       onClick={handleToggleMidi}
                       className={`px-4 py-2.5 text-xs font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer shadow-lg ${
                         isPlayingMidi
-                          ? 'bg-[#FF453A] text-white shadow-red-500/30'
-                          : 'bg-[#0A84FF] hover:bg-blue-600 text-white shadow-blue-500/30'
+                          ? 'bg-chyba text-white shadow-red-500/30'
+                          : 'bg-info hover:bg-blue-600 text-white shadow-blue-500/30'
                       }`}
                     >
                       {isPlayingMidi ? (
@@ -1654,7 +1654,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   <div className="space-y-1.5">
                     <div className="w-full bg-black/50 h-2 rounded-full border border-white/10 relative overflow-hidden">
                       <div
-                        className="bg-[#0A84FF] h-full transition-all rounded-full"
+                        className="bg-info h-full transition-all rounded-full"
                         style={{
                           width: `${midiDuration > 0 ? (midiProgress / midiDuration) * 100 : 0}%`,
                         }}

@@ -100,7 +100,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
         <div className="relative">
           <button
             onClick={() => setNabidkaOtevrena((v) => !v)}
-            className="px-3.5 py-2 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
+            className="px-3.5 py-2 bg-znacka hover:bg-znacka/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" /> Přidat okno
           </button>

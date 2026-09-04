@@ -49,9 +49,9 @@ export const KlavesyTestu: React.FC<{
               <button
                 onClick={() => onKlik?.(ton)}
                 className={`w-full h-24 rounded-b-md border text-stitek font-bold flex flex-col justify-end items-center pb-1 cursor-pointer transition-colors ${
-                  stav === 'chyba' ? 'bg-[#FF453A] border-[#FF453A] text-white'
-                    : stav === 'trefeny' ? 'bg-[#30D158] border-[#30D158] text-black'
-                    : stav === 'cil' ? 'bg-[#30D158]/25 border-[#30D158] text-[#30D158]'
+                  stav === 'chyba' ? 'bg-chyba border-chyba text-white'
+                    : stav === 'trefeny' ? 'bg-uspech border-uspech text-black'
+                    : stav === 'cil' ? 'bg-uspech/25 border-uspech text-uspech'
                     : stav === 'zni' ? 'bg-white border-white text-black'
                     : 'bg-neutral-200 border-neutral-400 text-neutral-500 hover:bg-white'
                 }`}
@@ -67,9 +67,9 @@ export const KlavesyTestu: React.FC<{
                     onKlik?.(`${cerna.root}${oktava + cerna.relOctave}`);
                   }}
                   className={`absolute top-0 -right-[7px] w-[14px] h-14 rounded-b-sm z-10 text-stitek font-bold text-center cursor-pointer border ${
-                    stavCerne === 'chyba' ? 'bg-[#FF453A] border-[#FF453A] text-white'
-                      : stavCerne === 'trefeny' ? 'bg-[#30D158] border-[#30D158] text-black'
-                      : stavCerne === 'cil' ? 'bg-[#0d5a25] border-[#30D158] text-[#30D158]'
+                    stavCerne === 'chyba' ? 'bg-chyba border-chyba text-white'
+                      : stavCerne === 'trefeny' ? 'bg-uspech border-uspech text-black'
+                      : stavCerne === 'cil' ? 'bg-[#0d5a25] border-uspech text-uspech'
                       : stavCerne === 'zni' ? 'bg-white border-white text-black'
                       : 'bg-neutral-900 border-black text-neutral-500'
                   }`}

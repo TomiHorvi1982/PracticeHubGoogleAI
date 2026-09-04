@@ -69,7 +69,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
           {showPlayButton && (
             <button
               onClick={handlePlaySound}
-              className="p-1 text-neutral-400 hover:text-[#FF9F0A] hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+              className="p-1 text-neutral-400 hover:text-znacka hover:bg-white/10 rounded-md transition-colors cursor-pointer"
               title="Přehrát akord"
             >
               <Volume2 className="w-3.5 h-3.5" />

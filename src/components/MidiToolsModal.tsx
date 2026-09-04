@@ -92,12 +92,12 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
         {/* Modal Header */}
         <div className="bg-white/[0.03] border-b border-white/[0.08] p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-[#30D158]/10 border border-[#30D158]/30 text-[#30D158] rounded-xl">
+            <div className="p-2 bg-uspech/10 border border-uspech/30 text-uspech rounded-xl">
               <Laptop className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-[#30D158] text-black font-bold px-1.5 py-0.5 text-stitek rounded uppercase tracking-wider">
+                <span className="bg-uspech text-black font-bold px-1.5 py-0.5 text-stitek rounded uppercase tracking-wider">
                   MIDI Tools
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">Hardware & mapování</span>
@@ -166,7 +166,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
               <div className="bg-black/30 border border-white/10 rounded-2xl p-4 space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-3">
                   <div className="flex items-center gap-2">
-                    <Radio className="w-4 h-4 text-[#30D158] animate-pulse" />
+                    <Radio className="w-4 h-4 text-uspech animate-pulse" />
                     <span className="text-xs font-bold text-white uppercase tracking-wider">
                       Připojené MIDI klávesy & kontroléry ({devices.length})
                     </span>
@@ -174,7 +174,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
                   <button
                     onClick={refreshDevices}
-                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-[#30D158] text-xs font-semibold rounded-xl border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-uspech text-xs font-semibold rounded-xl border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <RefreshCw className="w-3.5 h-3.5" />
                     <span>Obnovit hledání</span>
@@ -194,7 +194,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                             Výrobce: {dev.manufacturer || 'Standardní MIDI controller'}
                           </span>
                         </div>
-                        <span className="bg-[#30D158] text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase flex items-center gap-1">
+                        <span className="bg-uspech text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-black" /> Aktivní
                         </span>
                       </div>
@@ -202,7 +202,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   </div>
                 ) : (
                   <div className="bg-black/40 p-4 rounded-xl border border-white/5 text-center space-y-1.5">
-                    <AlertCircle className="w-6 h-6 text-[#FF9F0A] mx-auto" />
+                    <AlertCircle className="w-6 h-6 text-znacka mx-auto" />
                     <p className="text-xs font-bold text-white">Žádný hardware MIDI kontrolér není připojen</p>
                     <p className="text-drobne text-neutral-400 max-w-md mx-auto">
                       Připojte USB/MIDI klávesnici k počítači a stiskněte „Obnovit hledání“. Můžete také hrát na virtuální klávesnici v aplikaci.
@@ -211,15 +211,15 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                 )}
 
                 {/* Hardware Scale Filter Status Box */}
-                <div className="bg-[#30D158]/10 p-3.5 rounded-xl border border-[#30D158]/30 space-y-1.5">
+                <div className="bg-uspech/10 p-3.5 rounded-xl border border-uspech/30 space-y-1.5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <Zap className="w-4 h-4 text-[#30D158]" />
+                      <Zap className="w-4 h-4 text-uspech" />
                       <span className="text-xs font-bold text-white">
                         Hardware MIDI filtr ztmavených tónů stupnice
                       </span>
                     </div>
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#30D158]">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-uspech">
                       <input
                         type="checkbox"
                         checked={scaleFilterState.enabled}
@@ -231,7 +231,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                           midiService.setScaleFilter(newConfig);
                           setScaleFilterState(newConfig);
                         }}
-                        className="accent-[#30D158] rounded w-4 h-4"
+                        className="accent-uspech rounded w-4 h-4"
                       />
                       <span>{scaleFilterState.enabled ? 'Filtr zapnut' : 'Filtr vypnut'}</span>
                     </label>
@@ -239,7 +239,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   <p className="text-xs text-neutral-300">
                     {scaleFilterState.enabled ? (
                       <>
-                        <span className="text-[#30D158] font-semibold">Aktivní blokování: </span>
+                        <span className="text-uspech font-semibold">Aktivní blokování: </span>
                         Při stisku klávesy na vašem fyzickém MIDI nástroji, která patří mezi ztmavené tóny mimo stupnici ({scaleFilterState.allowedNoteRoots.length > 0 ? `Povoleno: ${scaleFilterState.allowedNoteRoots.join(', ')}` : 'Vše zakázáno'}),
                         nebude tón přehrán.
                       </>
@@ -261,18 +261,18 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                         setIsAutoSynth(e.target.checked);
                         midiService.setAutoSynthEnabled(e.target.checked);
                       }}
-                      className="accent-[#30D158] rounded w-4 h-4"
+                      className="accent-uspech rounded w-4 h-4"
                     />
                     <span>Automaticky přehrávat zvuk z hardware MIDI klávesnice</span>
                   </label>
-                  <span className="text-drobne text-[#30D158] font-mono">Polyfonní syntéza povolena</span>
+                  <span className="text-drobne text-uspech font-mono">Polyfonní syntéza povolena</span>
                 </div>
               </div>
 
               {/* Active Playing Notes Visualizer */}
               <div className="bg-black/30 border border-white/10 rounded-2xl p-4 space-y-2">
                 <span className="text-xs font-bold text-white uppercase tracking-wider block border-b border-white/5 pb-2 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[#FF9F0A]" />
+                  <Activity className="w-4 h-4 text-znacka" />
                   <span>Živý displej reálně stisknutých not (MIDI Visualizer)</span>
                 </span>
 
@@ -284,7 +284,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                       return (
                         <div
                           key={noteNum}
-                          className="bg-[#30D158] text-black border border-black p-2 rounded-xl shadow-[0_0_15px_rgba(48,209,88,0.4)] animate-bounce flex flex-col items-center min-w-[50px]"
+                          className="bg-uspech text-black border border-black p-2 rounded-xl shadow-[0_0_15px_rgba(48,209,88,0.4)] animate-bounce flex flex-col items-center min-w-[50px]"
                         >
                           <span className="font-extrabold text-xs">{name}</span>
                           <span className="text-stitek font-mono">Vel: {Math.round(vel * 127)}</span>
@@ -309,9 +309,9 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   {recentEvents.length > 0 ? (
                     recentEvents.map((evt, idx) => (
                       <div key={idx} className="flex items-center justify-between border-b border-white/5 pb-0.5">
-                        <span className={evt.isFilteredOut ? 'text-[#FF453A] line-through opacity-70' : 'text-[#30D158]'}>
+                        <span className={evt.isFilteredOut ? 'text-chyba line-through opacity-70' : 'text-uspech'}>
                           [{evt.type.toUpperCase()}] Ch: {evt.channel} | Nota: {evt.noteName || evt.note || '-'}
-                          {evt.isFilteredOut && <span className="ml-1 text-stitek no-underline font-bold bg-[#FF453A] text-white px-1 rounded">[Ztmaveno]</span>}
+                          {evt.isFilteredOut && <span className="ml-1 text-stitek no-underline font-bold bg-chyba text-white px-1 rounded">[Ztmaveno]</span>}
                         </span>
                         <span className="text-neutral-400">
                           Vel: {evt.velocity ? Math.round(evt.velocity * 127) : evt.value || 0} | {evt.deviceName}
@@ -351,7 +351,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                         className="bg-black/40 p-3 rounded-xl border border-white/5 flex items-center justify-between gap-2"
                       >
                         <div className="flex items-center gap-2">
-                          <span className="bg-[#FF9F0A] text-black font-bold text-stitek px-2 py-0.5 rounded-md">
+                          <span className="bg-znacka text-black font-bold text-stitek px-2 py-0.5 rounded-md">
                             KANÁL {channel}
                           </span>
                         </div>
@@ -373,7 +373,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
                           <button
                             onClick={() => handleTestNote(60 + (channel % 12), currentProfile)}
-                            className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-[#30D158] font-semibold text-xs rounded-lg border border-white/10 cursor-pointer"
+                            className="px-2.5 py-1.5 bg-white/5 hover:bg-white/10 text-uspech font-semibold text-xs rounded-lg border border-white/10 cursor-pointer"
                             title="Vyzkoušet zvuk"
                           >
                             🔊 Test
@@ -439,7 +439,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
                           <button
                             onClick={() => handleTestNote(60, currentProf)}
-                            className="px-3 py-2 bg-white/5 hover:bg-white/10 text-[#30D158] font-semibold text-xs rounded-xl border border-white/10 cursor-pointer"
+                            className="px-3 py-2 bg-white/5 hover:bg-white/10 text-uspech font-semibold text-xs rounded-xl border border-white/10 cursor-pointer"
                           >
                             🔊 Test zvuku
                           </button>

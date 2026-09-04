@@ -46,7 +46,7 @@ export const PrehledSbirky: React.FC<{
   return (
     <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 space-y-4">
       <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-xl">
+        <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-xl">
           <Library className="w-5 h-5" />
         </div>
         <div>
@@ -65,7 +65,7 @@ export const PrehledSbirky: React.FC<{
             key={p}
             onClick={() => setPismeno(p)}
             className={`w-7 h-7 rounded-lg text-drobne font-bold transition-colors cursor-pointer ${
-              pismeno === p ? 'bg-[#FF9F0A] text-black' : 'bg-white/[0.04] text-neutral-400 hover:text-white'
+              pismeno === p ? 'bg-znacka text-black' : 'bg-white/[0.04] text-neutral-400 hover:text-white'
             }`}
           >
             {p}
@@ -98,7 +98,7 @@ export const PrehledSbirky: React.FC<{
         <div className="space-y-2">
           <button
             onClick={() => { setVybrany(null); setSkladby([]); }}
-            className="text-drobne text-[#FF9F0A] hover:underline cursor-pointer"
+            className="text-drobne text-znacka hover:underline cursor-pointer"
           >
             ← zpět na interprety
           </button>
@@ -124,7 +124,7 @@ export const PrehledSbirky: React.FC<{
                 {s.stored && onImportovat && (
                   <button
                     onClick={() => onImportovat(s)}
-                    className="p-1.5 rounded-lg text-neutral-500 hover:text-[#30D158] cursor-pointer"
+                    className="p-1.5 rounded-lg text-neutral-500 hover:text-uspech cursor-pointer"
                     title="Přidat do zpěvníku"
                   >
                     <Download className="w-3.5 h-3.5" />

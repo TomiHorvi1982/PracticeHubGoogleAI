@@ -54,7 +54,7 @@ export const VstupPanel: React.FC<{
               key={t.id}
               onClick={() => void prepni(t.id)}
               className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
-                je ? 'bg-[#30D158] text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                je ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
               <Ikona className="w-3.5 h-3.5" /> {t.nazev}
@@ -64,7 +64,7 @@ export const VstupPanel: React.FC<{
       </div>
 
       {chyba && zdroje.includes('mikrofon') && (
-        <p className="text-drobne text-[#FF453A] flex items-center gap-1.5">
+        <p className="text-drobne text-chyba flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}
         </p>
       )}

@@ -104,7 +104,7 @@ export const LiveGuitarAmp: React.FC = () => {
     <div className="p-4 sm:p-6 space-y-4">
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-5 space-y-4">
         <div className="flex flex-wrap items-center gap-3">
-          <Guitar className="w-5 h-5 text-[#BF5AF2] shrink-0" />
+          <Guitar className="w-5 h-5 text-nastroj shrink-0" />
           <h1 className="text-xl font-bold text-white">Live Guitar Amp</h1>
           <p className="text-xs text-neutral-400 flex-1 min-w-[240px]">
             Aparát běží vedle jako vlastní aplikace, sem chodí hotový zvuk.
@@ -128,7 +128,7 @@ export const LiveGuitarAmp: React.FC = () => {
         )}
 
         {karta.chyba && (
-          <p className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+          <p className="text-drobne text-chyba bg-chyba/10 border border-chyba/30 rounded-xl px-3 py-2">
             {karta.chyba}
           </p>
         )}
@@ -141,7 +141,7 @@ export const LiveGuitarAmp: React.FC = () => {
             <select
               value={karta.vstup || ''}
               onChange={(e) => zvukovaKarta.nastavVstup(e.target.value || null)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-[#BF5AF2]"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-nastroj"
             >
               <option value="">— výchozí vstup systému —</option>
               {karta.vstupy.map((z) => (
@@ -159,7 +159,7 @@ export const LiveGuitarAmp: React.FC = () => {
             <select
               value={karta.vystup || ''}
               onChange={(e) => zvukovaKarta.nastavVystup(e.target.value || null)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-[#BF5AF2]"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-nastroj"
             >
               <option value="">— výchozí výstup systému —</option>
               {karta.vystupy.map((z) => (
@@ -189,7 +189,7 @@ export const LiveGuitarAmp: React.FC = () => {
                     : 'Nejspíš loopback — co hraje počítač'}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
                     karta.par === par.index
-                      ? 'bg-[#BF5AF2] text-white'
+                      ? 'bg-nastroj text-white'
                       : 'bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10'
                   }`}
                 >
@@ -207,14 +207,14 @@ export const LiveGuitarAmp: React.FC = () => {
 
         {/* Stav propojení. Bez tohohle se hledá naslepo, proč nic nejde. */}
         {maVicParu(karta.kanalu) ? (
-          <div className="flex items-center gap-2 text-[#30D158] text-xs bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl px-4 py-3">
+          <div className="flex items-center gap-2 text-uspech text-xs bg-uspech/10 border border-uspech/30 rounded-2xl px-4 py-3">
             <Check className="w-4 h-4 shrink-0" />
             Zvukovka má loopback ({karta.kanalu} kanálů) — virtuální zařízení
             instalovat nemusíš, stačí vybrat správný pár.
           </div>
         ) : prelevaci.length === 0 ? (
-          <div className="bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-2xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-[#FF9F0A] text-xs font-bold">
+          <div className="bg-znacka/10 border border-znacka/30 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 text-znacka text-xs font-bold">
               <AlertTriangle className="w-4 h-4 shrink-0" />
               Zvuk z aparátu nemá kudy dovnitř
             </div>
@@ -225,7 +225,7 @@ export const LiveGuitarAmp: React.FC = () => {
             </p>
           </div>
         ) : jedeZAparatu ? (
-          <div className="flex items-center gap-2 text-[#30D158] text-xs bg-[#30D158]/10 border border-[#30D158]/30 rounded-2xl px-4 py-3">
+          <div className="flex items-center gap-2 text-uspech text-xs bg-uspech/10 border border-uspech/30 rounded-2xl px-4 py-3">
             <Check className="w-4 h-4 shrink-0" />
             Posloucháš z „{vybranyVstup?.nazev}" — nastav v aparátu tenhle výstup a hraj.
           </div>
@@ -251,7 +251,7 @@ export const LiveGuitarAmp: React.FC = () => {
           v cestě i do odposlechu a do nahrávky. */}
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-3xl p-5 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Guitar className="w-4 h-4 text-[#BF5AF2] shrink-0" />
+          <Guitar className="w-4 h-4 text-nastroj shrink-0" />
           <h2 className="text-sm font-bold text-white">Aparát</h2>
           <span className="text-drobne text-neutral-500 flex-1 min-w-[200px]">
             Modely Neural Amp Modeler z tvé složky — hrají rovnou tady, bez další aplikace.
@@ -280,7 +280,7 @@ export const LiveGuitarAmp: React.FC = () => {
         )}
 
         {aparat.chyba && (
-          <p className="text-drobne text-[#FF453A] bg-[#FF453A]/10 border border-[#FF453A]/30 rounded-xl px-3 py-2">
+          <p className="text-drobne text-chyba bg-chyba/10 border border-chyba/30 rounded-xl px-3 py-2">
             {aparat.chyba}
           </p>
         )}
@@ -288,7 +288,7 @@ export const LiveGuitarAmp: React.FC = () => {
         {/* Model trénovaný na jinou frekvenci nezní jako předloha —
             je posunutý. Není to chyba, ale slyšet to je. */}
         {aparat.neshodaFrekvence && (
-          <p className="text-drobne text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-center gap-1.5">
+          <p className="text-drobne text-znacka bg-znacka/10 border border-znacka/30 rounded-xl px-3 py-2 flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
             Model je natrénovaný na {aparat.neshodaFrekvence} Hz, zvuk běží na jiné
             frekvenci — bude znít posunutě.
@@ -305,7 +305,7 @@ export const LiveGuitarAmp: React.FC = () => {
                 disabled={!kanal.bezi || aparat.nacita}
                 className={`text-left px-3 py-2 rounded-xl border transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
                   zapnuty
-                    ? 'bg-[#BF5AF2]/15 border-[#BF5AF2]/60'
+                    ? 'bg-nastroj/15 border-nastroj/60'
                     : 'bg-black/30 border-white/[0.08] hover:border-white/25'
                 }`}
               >
@@ -328,7 +328,7 @@ export const LiveGuitarAmp: React.FC = () => {
           <p className="text-drobne text-neutral-400">Načítám model…</p>
         )}
         {aparat.model && !aparat.nacita && (
-          <p className="text-drobne text-[#30D158] flex items-center gap-1.5">
+          <p className="text-drobne text-uspech flex items-center gap-1.5">
             <Check className="w-3.5 h-3.5 shrink-0" />
             Hraješ přes „{aparaty.find((x) => x.soubor === aparat.model)?.nazev || aparat.model}"
           </p>

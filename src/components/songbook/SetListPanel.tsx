@@ -80,7 +80,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
         >
           {otevreno ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
-        <ListMusic className="w-4 h-4 text-[#FF9F0A] shrink-0" />
+        <ListMusic className="w-4 h-4 text-znacka shrink-0" />
         <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
           Set list{vSetu.length > 0 ? ` (${vSetu.length})` : ''}
         </h2>
@@ -90,7 +90,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
           <select
             value={set?.id || ''}
             onChange={(e) => setVybrany(e.target.value)}
-            className="bg-black/50 border border-white/10 text-white text-drobne font-semibold rounded-lg px-2 py-1 outline-none focus:border-[#FF9F0A] cursor-pointer"
+            className="bg-black/50 border border-white/10 text-white text-drobne font-semibold rounded-lg px-2 py-1 outline-none focus:border-znacka cursor-pointer"
           >
             {sety.map((s) => (
               <option key={s.id} value={s.id}>
@@ -102,7 +102,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
 
         <button
           onClick={onNaPodium}
-          className="ml-auto px-3 py-1.5 bg-[#FF9F0A] hover:bg-[#FF9F0A]/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+          className="ml-auto px-3 py-1.5 bg-znacka hover:bg-znacka/90 text-black text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
         >
           <Maximize2 className="w-3.5 h-3.5" /> Na Pódium
         </button>
@@ -174,7 +174,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               </button>
               <button
                 onClick={() => set && void setListy.odeber(set.id, s.id)}
-                className="p-1 rounded-md hover:bg-[#FF453A]/20 text-neutral-500 hover:text-[#FF453A] cursor-pointer"
+                className="p-1 rounded-md hover:bg-chyba/20 text-neutral-500 hover:text-chyba cursor-pointer"
                 title="Odebrat ze setu"
               >
                 <X className="w-3.5 h-3.5" />
@@ -185,7 +185,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
       ))}
 
       {chybejici > 0 && (
-        <p className="text-stitek text-[#FF9F0A]">
+        <p className="text-stitek text-znacka">
           {chybejici}× skladba v setu, která už v knihovně není — na Pódiu se přeskočí.
         </p>
       )}

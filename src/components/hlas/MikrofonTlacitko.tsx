@@ -105,7 +105,7 @@ export const MikrofonTlacitko: React.FC = () => {
         title={`Hlasový příkaz — ${moznosti.duvod}`}
         className={`relative w-9 h-9 rounded-xl flex items-center justify-center border transition-colors cursor-pointer ${
           stav === 'poslouchá'
-            ? 'bg-[#FF453A]/20 border-[#FF453A]/50 text-[#FF453A]'
+            ? 'bg-chyba/20 border-chyba/50 text-chyba'
             : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:border-slate-600'
         }`}
       >
@@ -124,9 +124,9 @@ export const MikrofonTlacitko: React.FC = () => {
         <div
           className={`absolute top-11 right-0 z-50 px-3 py-2 rounded-xl text-drobne font-medium whitespace-nowrap max-w-[280px] truncate border shadow-lg ${
             stav === 'poslouchá'
-              ? 'bg-[#FF453A]/15 border-[#FF453A]/40 text-[#FF9F0A]'
+              ? 'bg-chyba/15 border-chyba/40 text-znacka'
               : hlaseni?.dobre
-                ? 'bg-[#30D158]/15 border-[#30D158]/40 text-[#30D158]'
+                ? 'bg-uspech/15 border-uspech/40 text-uspech'
                 : 'bg-slate-900 border-slate-700 text-slate-300'
           }`}
         >

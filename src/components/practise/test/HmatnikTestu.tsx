@@ -46,7 +46,7 @@ export const HmatnikTestu: React.FC<{
             <span
               key={p}
               className={`text-center text-stitek tabular-nums ${
-                ZNACKY.includes(p) ? 'text-[#FF9F0A] font-bold' : 'text-neutral-600'
+                ZNACKY.includes(p) ? 'text-znacka font-bold' : 'text-neutral-600'
               }`}
             >
               {p}
@@ -73,11 +73,11 @@ export const HmatnikTestu: React.FC<{
                   key={prazec}
                   className={`h-6 rounded flex items-center justify-center text-stitek font-bold border ${
                     jeChyba
-                      ? 'bg-[#FF453A] border-[#FF453A] text-white'
+                      ? 'bg-chyba border-chyba text-white'
                       : jeTrefeny
-                        ? 'bg-[#30D158] border-[#30D158] text-black'
+                        ? 'bg-uspech border-uspech text-black'
                         : jeCil
-                          ? 'border-[#30D158] text-[#30D158] bg-[#30D158]/10'
+                          ? 'border-uspech text-uspech bg-uspech/10'
                           : zni
                             ? 'border-white/40 text-white bg-white/10'
                             : 'border-white/[0.06] text-neutral-700 bg-white/[0.02]'
@@ -92,7 +92,7 @@ export const HmatnikTestu: React.FC<{
         ))}
 
         {chyba && chyba.minulO > 0 && (
-          <p className="text-drobne text-[#FF453A] mt-2">
+          <p className="text-drobne text-chyba mt-2">
             {chyba.trida} — vedle o {chyba.minulO}{' '}
             {chyba.minulO === 1 ? 'půltón' : chyba.minulO < 5 ? 'půltóny' : 'půltónů'}
           </p>

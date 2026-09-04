@@ -113,7 +113,7 @@ export const HromadneAkce: React.FC<{
 
         {ids.length > 0 && (
           <>
-            <span className="text-drobne text-[#30D158] font-bold">{ids.length} označeno</span>
+            <span className="text-drobne text-uspech font-bold">{ids.length} označeno</span>
 
             <select
               value={kam}
@@ -128,7 +128,7 @@ export const HromadneAkce: React.FC<{
             <button
               onClick={() => void presun()}
               disabled={!kam || pracuju}
-              className="px-2.5 py-1.5 rounded-lg bg-[#0A84FF] text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg bg-info text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
             >
               <FolderInput className="w-3.5 h-3.5" /> Přesunout
             </button>
@@ -142,7 +142,7 @@ export const HromadneAkce: React.FC<{
             <button
               onClick={() => void oznackuj()}
               disabled={!novyTag.trim() || pracuju}
-              className="px-2.5 py-1.5 rounded-lg bg-[#BF5AF2] text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg bg-nastroj text-white text-drobne font-bold cursor-pointer disabled:opacity-30 flex items-center gap-1.5"
             >
               <Tag className="w-3.5 h-3.5" /> Štítek
             </button>
@@ -150,7 +150,7 @@ export const HromadneAkce: React.FC<{
             <button
               onClick={() => void smaz()}
               disabled={pracuju}
-              className="px-2.5 py-1.5 rounded-lg bg-[#FF453A] text-white text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+              className="px-2.5 py-1.5 rounded-lg bg-chyba text-white text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
             >
               {pracuju ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
               Smazat ({ids.length})
@@ -167,7 +167,7 @@ export const HromadneAkce: React.FC<{
       </div>
 
       {hlaska && (
-        <p className={`text-drobne ${hlaska.chyba ? 'text-[#FF453A]' : 'text-[#30D158]'}`}>{hlaska.text}</p>
+        <p className={`text-drobne ${hlaska.chyba ? 'text-chyba' : 'text-uspech'}`}>{hlaska.text}</p>
       )}
     </div>
   );

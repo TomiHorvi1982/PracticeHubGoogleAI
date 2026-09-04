@@ -450,7 +450,7 @@ export const MidiPlayerPanel: React.FC = () => {
           className="w-full flex items-center gap-2 px-4 py-2.5 text-left cursor-pointer hover:bg-white/[0.03]"
         >
           {knihovnaOtevrena ? <ChevronDown className="w-4 h-4 text-neutral-400" /> : <ChevronRight className="w-4 h-4 text-neutral-400" />}
-          <Music4 className="w-4 h-4 text-[#FF9F0A]" />
+          <Music4 className="w-4 h-4 text-znacka" />
           <span className="text-xs font-black text-white">Knihovna MIDI</span>
           {celkem > 0 && (
             <span className="text-drobne text-neutral-500">
@@ -459,7 +459,7 @@ export const MidiPlayerPanel: React.FC = () => {
             </span>
           )}
           {stav.asset && (
-            <span className="ml-auto text-drobne font-bold text-[#FF9F0A] truncate max-w-[45%]">{stav.asset.name}</span>
+            <span className="ml-auto text-drobne font-bold text-znacka truncate max-w-[45%]">{stav.asset.name}</span>
           )}
         </button>
 
@@ -472,7 +472,7 @@ export const MidiPlayerPanel: React.FC = () => {
                 value={hledat}
                 onChange={(e) => setHledat(e.target.value)}
                 placeholder="Hledat skladatele, název…"
-                className="w-full bg-black/50 text-white text-xs pl-9 pr-3 py-2 rounded-xl border border-white/10 outline-none focus:border-[#FF9F0A] placeholder:text-neutral-500"
+                className="w-full bg-black/50 text-white text-xs pl-9 pr-3 py-2 rounded-xl border border-white/10 outline-none focus:border-znacka placeholder:text-neutral-500"
               />
             </div>
 
@@ -482,11 +482,11 @@ export const MidiPlayerPanel: React.FC = () => {
                 disabled={oblibene.size === 0}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-stitek font-bold border transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
                   jenOblibene
-                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A] text-[#FF9F0A]'
+                    ? 'bg-znacka/20 border-znacka text-znacka'
                     : 'bg-black/40 border-white/10 text-neutral-400 hover:text-white'
                 }`}
               >
-                <Star className={`w-3 h-3 ${jenOblibene ? 'fill-[#FF9F0A]' : ''}`} />
+                <Star className={`w-3 h-3 ${jenOblibene ? 'fill-znacka' : ''}`} />
                 Jen oblíbené{oblibene.size > 0 ? ` (${oblibene.size})` : ''}
               </button>
               <button
@@ -504,7 +504,7 @@ export const MidiPlayerPanel: React.FC = () => {
             </div>
 
             {chyba ? (
-              <div className="text-drobne text-[#FF453A]">{chyba}</div>
+              <div className="text-drobne text-chyba">{chyba}</div>
             ) : (
               <div className="max-h-72 overflow-auto space-y-2 pr-1">
                 {nacitam && <div className="text-drobne text-neutral-500 flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Načítám…</div>}
@@ -551,7 +551,7 @@ export const MidiPlayerPanel: React.FC = () => {
                                 key={`${nazev}:${a.id}`}
                                 className={`flex items-center rounded-lg border transition-all ${
                                   stav.asset?.id === a.id
-                                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                                    ? 'bg-znacka/20 border-znacka'
                                     : 'bg-black/40 border-white/10 hover:border-white/30'
                                 }`}
                               >
@@ -572,7 +572,7 @@ export const MidiPlayerPanel: React.FC = () => {
                                   <Star
                                     className={`w-3 h-3 transition-colors ${
                                       oblibene.has(a.id)
-                                        ? 'text-[#FF9F0A] fill-[#FF9F0A]'
+                                        ? 'text-znacka fill-znacka'
                                         : 'text-neutral-600 hover:text-neutral-300'
                                     }`}
                                   />
@@ -622,7 +622,7 @@ export const MidiPlayerPanel: React.FC = () => {
                                 key={`${slozka}:${a.id}`}
                                 className={`flex items-center rounded-lg border transition-all ${
                                   stav.asset?.id === a.id
-                                    ? 'bg-[#FF9F0A]/20 border-[#FF9F0A]'
+                                    ? 'bg-znacka/20 border-znacka'
                                     : 'bg-black/40 border-white/10 hover:border-white/30'
                                 }`}
                               >
@@ -643,7 +643,7 @@ export const MidiPlayerPanel: React.FC = () => {
                                   <Star
                                     className={`w-3 h-3 transition-colors ${
                                       jeOblibeny
-                                        ? 'text-[#FF9F0A] fill-[#FF9F0A]'
+                                        ? 'text-znacka fill-znacka'
                                         : 'text-neutral-600 hover:text-neutral-300'
                                     }`}
                                   />
@@ -672,7 +672,7 @@ export const MidiPlayerPanel: React.FC = () => {
           <Loader2 className="w-4 h-4 animate-spin" /> Načítám soubor…
         </div>
       )}
-      {stav.error && <div className="px-4 py-3 text-xs text-[#FF453A]">{stav.error}</div>}
+      {stav.error && <div className="px-4 py-3 text-xs text-chyba">{stav.error}</div>}
 
       {stav.tracks.length > 0 && (
         <>
@@ -680,20 +680,20 @@ export const MidiPlayerPanel: React.FC = () => {
           <div className="flex items-center gap-3 flex-wrap px-4 py-2.5 border-b border-white/10 bg-black/30">
             <button
               onClick={() => (stav.isPlaying ? midiPlayerService.pause() : midiPlayerService.play())}
-              className="flex items-center gap-1.5 bg-[#FF9F0A] hover:bg-[#FFB340] text-black font-black text-xs px-3.5 py-1.5 rounded-lg cursor-pointer"
+              className="flex items-center gap-1.5 bg-znacka hover:bg-[#FFB340] text-black font-black text-xs px-3.5 py-1.5 rounded-lg cursor-pointer"
             >
               {stav.isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
               {stav.isPlaying ? 'Pauza' : 'Přehrát'}
             </button>
 
             {engine.nacita && (
-              <span className="flex items-center gap-1.5 text-drobne text-[#FF9F0A]">
+              <span className="flex items-center gap-1.5 text-drobne text-znacka">
                 <Loader2 className="w-3 h-3 animate-spin" />
                 Stahuji zvukovou banku (40 MB)…
               </span>
             )}
             {engine.chyba && (
-              <span className="text-drobne text-[#FF453A]">
+              <span className="text-drobne text-chyba">
                 Zvuková banka: {engine.chyba}
               </span>
             )}
@@ -716,7 +716,7 @@ export const MidiPlayerPanel: React.FC = () => {
                   key={f}
                   onClick={() => midiPlayerService.setTempoFactor(f)}
                   className={`px-1.5 py-0.5 rounded text-stitek font-bold cursor-pointer ${
-                    stav.tempoFactor === f ? 'bg-[#FF9F0A] text-black' : 'bg-white/5 text-neutral-300 hover:bg-white/10'
+                    stav.tempoFactor === f ? 'bg-znacka text-black' : 'bg-white/5 text-neutral-300 hover:bg-white/10'
                   }`}
                 >
                   {f}×
@@ -736,7 +736,7 @@ export const MidiPlayerPanel: React.FC = () => {
                 className="text-neutral-400 hover:text-white cursor-pointer"
                 title={hlasitost > 0 ? 'Ztlumit' : 'Zapnout zvuk'}
               >
-                {hlasitost > 0 ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-[#FF453A]" />}
+                {hlasitost > 0 ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-chyba" />}
               </button>
               <input
                 type="range"
@@ -749,7 +749,7 @@ export const MidiPlayerPanel: React.FC = () => {
                   setHlasitost(v);
                   audioSynth.setMasterVolume(v);
                 }}
-                className="w-20 h-1 cursor-pointer accent-[#FF9F0A]"
+                className="w-20 h-1 cursor-pointer accent-znacka"
               />
               <span className="text-stitek font-mono text-neutral-500 w-7 text-right">
                 {Math.round(hlasitost * 100)}%
@@ -788,7 +788,7 @@ export const MidiPlayerPanel: React.FC = () => {
                   onClick={() => setVybranaStopa(i)}
                   style={{ height: VYSKA_STOPY }}
                   className={`px-2.5 py-1 border-b border-white/[0.06] cursor-pointer flex flex-col justify-center gap-1 ${
-                    i === vybranaStopa ? 'bg-[#FF9F0A]/10 border-l-2 border-l-[#FF9F0A]' : 'hover:bg-white/[0.03]'
+                    i === vybranaStopa ? 'bg-znacka/10 border-l-2 border-l-znacka' : 'hover:bg-white/[0.03]'
                   }`}
                 >
                   <div className="flex items-center gap-1.5">
@@ -797,11 +797,11 @@ export const MidiPlayerPanel: React.FC = () => {
                     </span>
                     <button
                       onClick={(e) => { e.stopPropagation(); midiPlayerService.toggleSolo(t.index); }}
-                      className={`px-1 rounded text-stitek font-black cursor-pointer ${t.solo ? 'bg-[#FF9F0A] text-black' : 'bg-white/10 text-neutral-400'}`}
+                      className={`px-1 rounded text-stitek font-black cursor-pointer ${t.solo ? 'bg-znacka text-black' : 'bg-white/10 text-neutral-400'}`}
                     >S</button>
                     <button
                       onClick={(e) => { e.stopPropagation(); midiPlayerService.toggleMute(t.index); }}
-                      className={`p-0.5 rounded cursor-pointer ${t.muted ? 'bg-[#FF453A]/25 text-[#FF453A]' : 'bg-white/10 text-neutral-400'}`}
+                      className={`p-0.5 rounded cursor-pointer ${t.muted ? 'bg-chyba/25 text-chyba' : 'bg-white/10 text-neutral-400'}`}
                     >
                       {t.muted ? <VolumeX className="w-2.5 h-2.5" /> : <Volume2 className="w-2.5 h-2.5" />}
                     </button>
@@ -814,7 +814,7 @@ export const MidiPlayerPanel: React.FC = () => {
                     value={t.hlasitost}
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => midiPlayerService.setTrackVolume(t.index, parseFloat(e.target.value))}
-                    className="w-full h-1 cursor-pointer accent-[#FF9F0A] mb-1"
+                    className="w-full h-1 cursor-pointer accent-znacka mb-1"
                     title={`Hlasitost stopy: ${Math.round(t.hlasitost * 100)} %`}
                   />
                   <select
@@ -857,13 +857,13 @@ export const MidiPlayerPanel: React.FC = () => {
                       onClick={() => setVybranaStopa(i)}
                       style={{ height: VYSKA_STOPY }}
                       className={`relative border-b border-white/[0.06] cursor-pointer ${
-                        i === vybranaStopa ? 'bg-[#FF9F0A]/[0.06]' : ''
+                        i === vybranaStopa ? 'bg-znacka/[0.06]' : ''
                       } ${t.muted ? 'opacity-35' : ''}`}
                     >
                       {t.notes.map((n, k) => (
                         <div
                           key={k}
-                          className="absolute rounded-[2px] bg-[#FF9F0A]"
+                          className="absolute rounded-[2px] bg-znacka"
                           style={{
                             left: n.time * pxZaSekundu,
                             width: Math.max(2, n.duration * pxZaSekundu),
@@ -879,7 +879,7 @@ export const MidiPlayerPanel: React.FC = () => {
 
                 {/* Přehrávací čára přes celou osu */}
                 <div
-                  className="absolute top-0 bottom-0 w-px bg-[#30D158] pointer-events-none z-10"
+                  className="absolute top-0 bottom-0 w-px bg-uspech pointer-events-none z-10"
                   style={{ left: stav.position * pxZaSekundu }}
                 />
               </div>
@@ -895,7 +895,7 @@ export const MidiPlayerPanel: React.FC = () => {
                 </span>
                 <span className="text-stitek text-neutral-500">
                   {stopa.notes.length} not
-                  {vybrane.size > 0 && <span className="text-[#FF9F0A] font-bold"> · {vybrane.size} označeno</span>}
+                  {vybrane.size > 0 && <span className="text-znacka font-bold"> · {vybrane.size} označeno</span>}
                 </span>
 
                 <div className="ml-auto flex items-center gap-3">
@@ -910,14 +910,14 @@ export const MidiPlayerPanel: React.FC = () => {
                   <button
                     onClick={smazVybrane}
                     disabled={vybrane.size === 0}
-                    className="flex items-center gap-1 text-stitek font-bold text-neutral-500 hover:text-[#FF453A] cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="flex items-center gap-1 text-stitek font-bold text-neutral-500 hover:text-chyba cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Smazat označené (Delete)"
                   >
                     <Trash2 className="w-3 h-3" /> Smazat výběr
                   </button>
                   <button
                     onClick={() => { zapisNoty([]); setVybrane(new Set()); }}
-                    className="flex items-center gap-1 text-stitek font-bold text-neutral-500 hover:text-[#FF453A] cursor-pointer"
+                    className="flex items-center gap-1 text-stitek font-bold text-neutral-500 hover:text-chyba cursor-pointer"
                   >
                     Vymazat stopu
                   </button>
@@ -952,7 +952,7 @@ export const MidiPlayerPanel: React.FC = () => {
                         onMouseDown={(e) => startNaNote(e, k, 'posun')}
                         title={`${midiToNoteName(n.midi)} · ${n.time.toFixed(2)} s · ${n.duration.toFixed(2)} s`}
                         className={`absolute rounded-[2px] cursor-grab active:cursor-grabbing ${
-                          oznacena ? 'bg-white ring-1 ring-[#FF9F0A]' : 'bg-[#FF9F0A]'
+                          oznacena ? 'bg-white ring-1 ring-znacka' : 'bg-znacka'
                         }`}
                         style={{
                           left: n.time * pxZaSekundu,
@@ -975,13 +975,13 @@ export const MidiPlayerPanel: React.FC = () => {
 
                   {ramecek && (
                     <div
-                      className="absolute border border-[#FF9F0A] bg-[#FF9F0A]/10 pointer-events-none"
+                      className="absolute border border-znacka bg-znacka/10 pointer-events-none"
                       style={{ left: ramecek.x, top: ramecek.y, width: ramecek.w, height: ramecek.h }}
                     />
                   )}
 
                   <div
-                    className="absolute top-0 bottom-0 w-px bg-[#30D158] pointer-events-none"
+                    className="absolute top-0 bottom-0 w-px bg-uspech pointer-events-none"
                     style={{ left: stav.position * pxZaSekundu }}
                   />
                 </div>

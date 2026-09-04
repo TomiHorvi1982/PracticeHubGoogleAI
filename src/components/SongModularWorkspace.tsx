@@ -651,7 +651,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                     if (musicalCtx?.setActiveChord) musicalCtx.setActiveChord(transposed);
                     if (onSelectModalChord) onSelectModalChord(transposed);
                   }}
-                  className="text-[#FF9F0A] font-bold px-1.5 py-0.5 bg-[#FF9F0A]/10 hover:bg-[#FF9F0A]/25 border border-[#FF9F0A]/30 rounded-md text-[0.9em] cursor-pointer inline-block mx-0.5"
+                  className="text-znacka font-bold px-1.5 py-0.5 bg-znacka/10 hover:bg-znacka/25 border border-znacka/30 rounded-md text-[0.9em] cursor-pointer inline-block mx-0.5"
                   title={`Akord ${transposed} - kliknutím zobrazit na klávesách i hmatníku`}
                 >
                   {transposed}
@@ -671,7 +671,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
     if (isPureChordLine) {
       return (
-        <div className="text-[#FF9F0A] font-bold text-[0.95em] flex flex-wrap gap-4 py-0.5">
+        <div className="text-znacka font-bold text-[0.95em] flex flex-wrap gap-4 py-0.5">
           {words.map((w, wIdx) => {
             const transposed = transposeChordName(w, effectiveTranspose);
             return (
@@ -682,7 +682,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   if (musicalCtx?.setActiveChord) musicalCtx.setActiveChord(transposed);
                   if (onSelectModalChord) onSelectModalChord(transposed);
                 }}
-                className="px-1.5 py-0.5 rounded-md hover:bg-[#FF9F0A]/20 cursor-pointer transition-colors"
+                className="px-1.5 py-0.5 rounded-md hover:bg-znacka/20 cursor-pointer transition-colors"
                 title={`Akord ${transposed} - kliknutím zobrazit na klávesách i hmatníku`}
               >
                 {transposed}
@@ -705,7 +705,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
           <p className="text-sm">Žádný text písně zatím nebyl vložen.</p>
           <button
             onClick={() => setIsEditingText(true)}
-            className="mt-3 px-4 py-2 bg-[#FF9F0A] text-black font-bold rounded-xl text-xs"
+            className="mt-3 px-4 py-2 bg-znacka text-black font-bold rounded-xl text-xs"
           >
             Vložit text a akordy
           </button>
@@ -721,13 +721,13 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             id={`sec-block-${section.id}`}
             className={`p-3 rounded-2xl transition-all ${
               selectedSectionId === section.id
-                ? 'bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 shadow-md'
+                ? 'bg-znacka/10 border border-znacka/30 shadow-md'
                 : 'hover:bg-white/[0.02]'
             }`}
           >
             {section.title && (
               <div className="flex items-center justify-between pb-1 mb-2 border-b border-white/[0.06]">
-                <span className="text-xs font-bold text-[#FF9F0A] uppercase tracking-wider">
+                <span className="text-xs font-bold text-znacka uppercase tracking-wider">
                   [{section.title}]
                 </span>
                 <button
@@ -742,7 +742,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   }}
                   className={`text-stitek px-2 py-0.5 rounded-lg flex items-center gap-1 font-semibold cursor-pointer ${
                     selectedSectionId === section.id && isLoopActive
-                      ? 'bg-[#FF9F0A] text-black'
+                      ? 'bg-znacka text-black'
                       : 'bg-white/5 text-neutral-400 hover:text-white'
                   }`}
                 >
@@ -762,7 +762,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                     key={lineIdx}
                     onClick={() => setActiveLineId(lineId)}
                     className={`p-1 rounded-xl transition-all cursor-pointer ${
-                      isActiveLine ? 'bg-white/10 ring-1 ring-[#FF9F0A]' : 'hover:bg-white/[0.04]'
+                      isActiveLine ? 'bg-white/10 ring-1 ring-znacka' : 'hover:bg-white/[0.04]'
                     }`}
                   >
                     {renderLineWithChords(lineText)}
@@ -795,7 +795,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 >
                   -1
                 </button>
-                <span className="text-xs font-bold text-[#FF9F0A] px-1 font-mono">
+                <span className="text-xs font-bold text-znacka px-1 font-mono">
                   {transposeSemitones > 0 ? `+${transposeSemitones}` : transposeSemitones}
                 </span>
                 <button
@@ -825,14 +825,14 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-xl border border-white/10">
                   <button
                     onClick={() => setFontSize((p) => Math.max(12, p - 2))}
-                    className="text-white hover:text-[#FF9F0A] font-bold px-1"
+                    className="text-white hover:text-znacka font-bold px-1"
                   >
                     A-
                   </button>
                   <span className="text-drobne text-neutral-300 px-1">{fontSize}px</span>
                   <button
                     onClick={() => setFontSize((p) => Math.min(36, p + 2))}
-                    className="text-white hover:text-[#FF9F0A] font-bold px-1"
+                    className="text-white hover:text-znacka font-bold px-1"
                   >
                     A+
                   </button>
@@ -842,7 +842,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   onClick={() => setIsAutoScrolling(!isAutoScrolling)}
                   className={`px-2.5 py-1 rounded-xl font-semibold flex items-center gap-1 cursor-pointer transition-all ${
                     isAutoScrolling
-                      ? 'bg-[#FF9F0A] text-black font-bold'
+                      ? 'bg-znacka text-black font-bold'
                       : 'bg-white/10 hover:bg-white/20 text-white'
                   }`}
                 >
@@ -857,7 +857,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   }}
                   className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-xl flex items-center gap-1 cursor-pointer"
                 >
-                  <Edit3 className="w-3.5 h-3.5 text-[#FF9F0A]" />
+                  <Edit3 className="w-3.5 h-3.5 text-znacka" />
                   <span>{isEditingText ? 'Zavřít' : 'Upravit'}</span>
                 </button>
               </div>
@@ -873,7 +873,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 />
                 <button
                   onClick={handleSaveText}
-                  className="py-2 bg-[#FF9F0A] text-black font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  className="py-2 bg-znacka text-black font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <Save className="w-4 h-4" /> Uložit text a akordy
                 </button>
@@ -935,7 +935,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
               <button
                 onClick={() => handleAddYoutube(ytInput)}
                 disabled={!ytInput.trim()}
-                className="px-3 py-1.5 bg-[#FF453A] text-white text-xs font-bold rounded-xl cursor-pointer disabled:opacity-40"
+                className="px-3 py-1.5 bg-chyba text-white text-xs font-bold rounded-xl cursor-pointer disabled:opacity-40"
               >
                 Připojit
               </button>
@@ -1007,7 +1007,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 onClick={onOpenImportModal}
                 className="shrink-0 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-[#FF9F0A]" /> Nahrát další tabulaturu
+                <Plus className="w-4 h-4 text-znacka" /> Nahrát další tabulaturu
               </button>
             )}
           </div>
@@ -1022,7 +1022,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 onClick={onOpenImportModal}
                 className="shrink-0 w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-[#30D158]" /> Nahrát další MIDI
+                <Plus className="w-4 h-4 text-uspech" /> Nahrát další MIDI
               </button>
             )}
           </div>
@@ -1042,7 +1042,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                     className="p-2.5 bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] rounded-2xl flex items-center justify-between text-xs transition-all cursor-pointer group"
                   >
                     <div className="flex items-center gap-2 truncate">
-                      <LinkIcon className="w-3.5 h-3.5 text-[#FF9F0A] shrink-0" />
+                      <LinkIcon className="w-3.5 h-3.5 text-znacka shrink-0" />
                       <span className="font-semibold text-white truncate">{link.title}</span>
                     </div>
                     <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white shrink-0" />
@@ -1084,7 +1084,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1 bg-[#FF9F0A] text-black font-bold rounded-xl text-xs cursor-pointer"
+                    className="px-3 py-1 bg-znacka text-black font-bold rounded-xl text-xs cursor-pointer"
                   >
                     Uložit odkaz
                   </button>
@@ -1095,7 +1095,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 onClick={() => setShowAddLink(true)}
                 className="w-full py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-[#FF9F0A]" /> Přidat novou URL
+                <Plus className="w-4 h-4 text-znacka" /> Přidat novou URL
               </button>
             )}
           </div>

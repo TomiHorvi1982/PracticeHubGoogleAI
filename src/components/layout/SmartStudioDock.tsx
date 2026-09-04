@@ -43,14 +43,14 @@ export const SmartStudioDock: React.FC = () => {
       {/* Dock Header Bar */}
       <div className="h-11 px-4 sm:px-6 bg-[#161722]/80 border-b border-white/[0.06] flex items-center justify-between select-none">
         <div className="flex items-center gap-3">
-          <span className="text-stitek font-extrabold text-[#FF9F0A] uppercase tracking-widest px-2.5 py-1 rounded-lg bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 flex items-center gap-1.5 shadow-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#FF9F0A] animate-pulse" />
+          <span className="text-stitek font-extrabold text-znacka uppercase tracking-widest px-2.5 py-1 rounded-lg bg-znacka/10 border border-znacka/20 flex items-center gap-1.5 shadow-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-znacka animate-pulse" />
             STUDIO DOCK
           </span>
           {activeChord && (
             <span className="text-xs font-bold text-white bg-black/40 px-2.5 py-1 rounded-lg border border-white/10 flex items-center gap-1.5">
               <span className="text-neutral-400 font-medium text-drobne">Akord:</span>
-              <span className="text-[#FF9F0A] font-extrabold font-mono">{activeChord}</span>
+              <span className="text-znacka font-extrabold font-mono">{activeChord}</span>
             </span>
           )}
           <span className="text-xs font-semibold text-neutral-400 hidden sm:inline-flex items-center gap-1">
@@ -69,7 +69,7 @@ export const SmartStudioDock: React.FC = () => {
                 onClick={() => setActiveDockTool(t.id)}
                 className={`px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-[#FF9F0A] text-black font-extrabold shadow-sm'
+                    ? 'bg-znacka text-black font-extrabold shadow-sm'
                     : 'text-neutral-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -107,7 +107,7 @@ export const SmartStudioDock: React.FC = () => {
         {activeDockTool === 'metronome' && (
           <div className="max-w-md mx-auto py-6 bg-[#16161A]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/[0.08] text-center space-y-5 shadow-2xl">
             <div className="flex items-center justify-center gap-2">
-              <Clock className="w-4 h-4 text-[#FF9F0A]" />
+              <Clock className="w-4 h-4 text-znacka" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-white">Rychlý Metronom</h3>
             </div>
             <div className="text-6xl font-black font-mono text-white tracking-tight flex items-baseline justify-center gap-2">
@@ -124,7 +124,7 @@ export const SmartStudioDock: React.FC = () => {
                 onClick={toggleMetronome}
                 className={`px-8 py-2.5 rounded-xl font-black text-sm shadow-xl transition-all flex items-center gap-2 cursor-pointer ${
                   isMetronomeActive
-                    ? 'bg-[#FF9F0A] text-black shadow-[#FF9F0A]/20 scale-105'
+                    ? 'bg-znacka text-black shadow-znacka/20 scale-105'
                     : 'bg-white/10 hover:bg-white/20 text-white border border-white/15'
                 }`}
               >

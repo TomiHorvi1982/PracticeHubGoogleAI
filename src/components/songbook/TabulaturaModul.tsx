@@ -95,7 +95,7 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
           tabulatury by to byl ovládací prvek bez účelu. */}
       {prilohy.length > 1 && (
         <div className="flex items-center gap-2 shrink-0">
-          <FileText className="w-3.5 h-3.5 text-[#FF9F0A] shrink-0" />
+          <FileText className="w-3.5 h-3.5 text-znacka shrink-0" />
           <div className="relative flex-1 min-w-0">
             <select
               value={vybrana}
@@ -103,7 +103,7 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
                 setVybrana(parseInt(e.target.value, 10));
                 setVybralClovek(true);
               }}
-              className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-drobne text-white outline-none focus:border-[#FF9F0A] cursor-pointer"
+              className="w-full appearance-none bg-black/50 border border-white/10 rounded-lg pl-2.5 pr-7 py-1 text-drobne text-white outline-none focus:border-znacka cursor-pointer"
             >
               {prilohy.map((p, i) => (
                 <option key={p.id} value={i}>
@@ -121,7 +121,7 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
 
       <div className="flex-1 min-h-0 overflow-auto">
         {chyba ? (
-          <p className="text-drobne text-[#FF453A] p-4 text-center">{chyba}</p>
+          <p className="text-drobne text-chyba p-4 text-center">{chyba}</p>
         ) : !adresa ? (
           <p className="text-drobne text-neutral-500 p-4 text-center">Načítám z úložiště…</p>
         ) : !jeGuitarPro(priloha.name) ? (

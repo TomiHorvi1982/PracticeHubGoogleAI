@@ -193,7 +193,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
           onClick={prehraj}
           disabled={!obalky}
           className={`p-2 rounded-xl transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-            hraje ? 'bg-red-500 text-white' : 'bg-[#30D158] text-black'
+            hraje ? 'bg-red-500 text-white' : 'bg-uspech text-black'
           }`}
           title={hraje ? 'Zastavit' : 'Přehrát'}
         >
@@ -208,7 +208,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
       </div>
 
       {chyba ? (
-        <div className="flex items-center gap-1.5 text-stitek text-[#FF453A]">
+        <div className="flex items-center gap-1.5 text-stitek text-chyba">
           <AlertCircle className="w-3 h-3 shrink-0" /> {chyba}
         </div>
       ) : !obalky ? (

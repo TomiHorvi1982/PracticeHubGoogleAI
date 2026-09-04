@@ -132,7 +132,7 @@ export const Tone3000Prohlizec: React.FC = () => {
     <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
-          <Globe className="w-3.5 h-3.5 text-[#0A84FF]" />
+          <Globe className="w-3.5 h-3.5 text-info" />
           Tone3000 — aparáty a bedny
         </h3>
         {celkem > 0 && (
@@ -161,14 +161,14 @@ export const Tone3000Prohlizec: React.FC = () => {
         </select>
         <button
           type="submit"
-          className="text-drobne px-3 py-2 rounded-xl bg-[#0A84FF]/15 border border-[#0A84FF]/40 text-[#0A84FF] hover:bg-[#0A84FF]/25 transition-colors cursor-pointer"
+          className="text-drobne px-3 py-2 rounded-xl bg-info/15 border border-info/40 text-info hover:bg-info/25 transition-colors cursor-pointer"
         >
           Hledat
         </button>
       </form>
 
       {chyba && (
-        <p className="text-drobne text-[#FF9F0A] bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 rounded-xl px-3 py-2 flex items-start gap-1.5">
+        <p className="text-drobne text-znacka bg-znacka/10 border border-znacka/30 rounded-xl px-3 py-2 flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />{chyba}
         </p>
       )}
@@ -232,14 +232,14 @@ export const Tone3000Prohlizec: React.FC = () => {
                     <div key={m.id} className="flex items-center gap-2 py-1">
                       <span className={`text-stitek shrink-0 border rounded-md px-1.5 py-0.5 ${
                         m.typ === 'nam'
-                          ? 'text-[#FF9F0A] border-[#FF9F0A]/30 bg-[#FF9F0A]/10'
+                          ? 'text-znacka border-znacka/30 bg-znacka/10'
                           : 'text-[#FF375F] border-[#FF375F]/30 bg-[#FF375F]/10'
                       }`}>
                         {m.typ === 'nam' ? 'aparát' : 'bedna'}
                       </span>
                       <span className="text-stitek text-neutral-300 truncate flex-1">{m.nazev}</span>
                       {stazene[m.id] ? (
-                        <span className="text-stitek text-[#30D158] shrink-0 flex items-center gap-1 max-w-[45%] truncate">
+                        <span className="text-stitek text-uspech shrink-0 flex items-center gap-1 max-w-[45%] truncate">
                           <Check className="w-3 h-3 shrink-0" />{stazene[m.id]}
                         </span>
                       ) : (

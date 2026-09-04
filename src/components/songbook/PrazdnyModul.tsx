@@ -69,7 +69,7 @@ export const PrazdnyModul: React.FC<Props> = ({ song, modulId, onUpdateSong, nah
       onClick={() => vstupRef.current?.click()}
       className={`flex-1 flex flex-col items-center justify-center gap-2 p-4 m-1 rounded-2xl border border-dashed transition-all cursor-pointer text-center ${
         nadSebou
-          ? 'border-[#FF9F0A] bg-[#FF9F0A]/10'
+          ? 'border-znacka bg-znacka/10'
           : 'border-white/15 hover:border-white/30 hover:bg-white/[0.02]'
       }`}
     >
@@ -86,12 +86,12 @@ export const PrazdnyModul: React.FC<Props> = ({ song, modulId, onUpdateSong, nah
 
       {nahravam ? (
         <>
-          <Loader2 className="w-5 h-5 text-[#FF9F0A] animate-spin" />
+          <Loader2 className="w-5 h-5 text-znacka animate-spin" />
           <p className="text-drobne text-neutral-300">Nahrávám…</p>
         </>
       ) : (
         <>
-          <Upload className={`w-5 h-5 ${nadSebou ? 'text-[#FF9F0A]' : 'text-neutral-500'}`} />
+          <Upload className={`w-5 h-5 ${nadSebou ? 'text-znacka' : 'text-neutral-500'}`} />
           <p className="text-drobne font-semibold text-neutral-300">
             {nadSebou ? 'Pusť to sem' : 'Přetáhni soubor nebo klikni'}
           </p>
@@ -101,7 +101,7 @@ export const PrazdnyModul: React.FC<Props> = ({ song, modulId, onUpdateSong, nah
       )}
 
       {chyba && (
-        <p className="text-stitek text-[#FF453A] flex items-center gap-1 mt-1">
+        <p className="text-stitek text-chyba flex items-center gap-1 mt-1">
           <AlertCircle className="w-3 h-3 shrink-0" /> {chyba}
         </p>
       )}

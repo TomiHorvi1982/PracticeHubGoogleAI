@@ -596,12 +596,12 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             Přepínač režimů ale zůstává: bez něj by nešlo přepnout na
             vlastní sbírku, což je zrovna to, co se tady hledá nejvíc. */}
         <div className={`flex items-center gap-3.5 ${vlozeny ? 'hidden' : ''}`}>
-          <div className="p-3 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl">
+          <div className="p-3 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
             <Globe className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-[#FF9F0A] text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+              <span className="bg-znacka text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
                 Freetar.de
               </span>
               <span className="text-xs text-neutral-400 font-medium">Oficiální repozitář tabulatur</span>
@@ -652,7 +652,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         <div
           className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between border shadow-lg ${
             statusMessage.type === 'success'
-              ? 'bg-[#30D158]/10 border-[#30D158]/30 text-[#30D158]'
+              ? 'bg-uspech/10 border-uspech/30 text-uspech'
               : 'bg-red-500/10 border-red-500/30 text-red-300'
           }`}
         >
@@ -701,14 +701,14 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Zadejte název písně nebo interpreta (např. Wonderwall, Pink Floyd, Kabát)..."
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-[#FF9F0A] outline-none transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-znacka outline-none transition-colors"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSearching}
-                className="px-6 py-3 bg-[#FF9F0A] hover:bg-[#ffb038] text-black font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
+                className="px-6 py-3 bg-znacka hover:bg-[#ffb038] text-black font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 {isSearching ? (
                   <>
@@ -732,7 +732,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   setUkladatSam(e.target.checked);
                   localStorage.setItem('neverlate_ug_automaticky', e.target.checked ? 'ano' : 'ne');
                 }}
-                className="accent-[#FF9F0A] cursor-pointer"
+                className="accent-znacka cursor-pointer"
               />
               Otevřenou tabulaturu rovnou uložit do zpěvníku i s akordy
             </label>
@@ -768,7 +768,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => setTypeFilter('chords')}
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'chords'
-                      ? 'bg-[#30D158] text-black font-bold shadow-md'
+                      ? 'bg-uspech text-black font-bold shadow-md'
                       : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
                   }`}
                 >
@@ -778,7 +778,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => setTypeFilter('tabs')}
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'tabs'
-                      ? 'bg-[#0A84FF] text-white font-bold shadow-md'
+                      ? 'bg-info text-white font-bold shadow-md'
                       : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
                   }`}
                 >
@@ -788,7 +788,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => setTypeFilter('bass')}
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'bass'
-                      ? 'bg-[#FF9F0A] text-black font-bold shadow-md'
+                      ? 'bg-znacka text-black font-bold shadow-md'
                       : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
                   }`}
                 >
@@ -798,7 +798,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => setTypeFilter('guitarpro')}
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'guitarpro'
-                      ? 'bg-[#BF5AF2] text-white font-bold shadow-md'
+                      ? 'bg-nastroj text-white font-bold shadow-md'
                       : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
                   }`}
                 >
@@ -842,20 +842,20 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
                       return (
                         <tr key={res.id} className="hover:bg-white/[0.02] transition-colors group">
-                          <td className="p-4 font-bold text-[#FF9F0A]">{res.artist}</td>
-                          <td className="p-4 font-semibold text-white group-hover:text-[#0A84FF] transition-colors">
+                          <td className="p-4 font-bold text-znacka">{res.artist}</td>
+                          <td className="p-4 font-semibold text-white group-hover:text-info transition-colors">
                             {res.song}
                           </td>
                           <td className="p-4">
                             <span
                               className={`px-2.5 py-1 text-drobne font-semibold rounded-lg border ${
                                 isChords
-                                  ? 'bg-[#30D158]/10 text-[#30D158] border-[#30D158]/30'
+                                  ? 'bg-uspech/10 text-uspech border-uspech/30'
                                   : isBass
-                                  ? 'bg-[#FF9F0A]/10 text-[#FF9F0A] border-[#FF9F0A]/30'
+                                  ? 'bg-znacka/10 text-znacka border-znacka/30'
                                   : isGp
-                                  ? 'bg-[#BF5AF2]/10 text-[#BF5AF2] border-[#BF5AF2]/30'
-                                  : 'bg-[#0A84FF]/10 text-[#0A84FF] border-[#0A84FF]/30'
+                                  ? 'bg-nastroj/10 text-nastroj border-nastroj/30'
+                                  : 'bg-info/10 text-info border-info/30'
                               }`}
                             >
                               {res.type}
@@ -864,7 +864,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                           <td className="p-4 text-neutral-300">
                             {res.rating ? (
                               <span className="flex items-center gap-1">
-                                <Star className="w-3.5 h-3.5 text-[#FF9F0A] fill-current" />
+                                <Star className="w-3.5 h-3.5 text-znacka fill-current" />
                                 {res.rating}
                               </span>
                             ) : (
@@ -875,14 +875,14 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handlePreviewTab(res)}
-                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-[#0A84FF] font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-info font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                                 title="Zobrazit náhled skladby a akordů"
                               >
                                 <Eye className="w-3.5 h-3.5" /> Náhled
                               </button>
                               <button
                                 onClick={() => handleImportToSongbook(res)}
-                                className="px-3 py-1.5 bg-[#30D158] hover:bg-[#34e260] text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
+                                className="px-3 py-1.5 bg-uspech hover:bg-[#34e260] text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
                                 title="Importovat přímo do Song Library"
                               >
                                 <Plus className="w-3.5 h-3.5" /> Do Song Library
@@ -901,7 +901,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           {/* Initial State / Placeholder when no search executed yet */}
           {searchResults.length === 0 && !isSearching && !searchError && (
             <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
-              <div className="w-16 h-16 rounded-full bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 flex items-center justify-center mx-auto text-[#FF9F0A]">
+              <div className="w-16 h-16 rounded-full bg-znacka/10 border border-znacka/20 flex items-center justify-center mx-auto text-znacka">
                 <Globe className="w-8 h-8" />
               </div>
               <div>
@@ -958,7 +958,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   value={directInput || currentUrl}
                   onChange={(e) => setDirectInput(e.target.value)}
                   placeholder="https://freetar.de nebo hledaný výraz..."
-                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-[#30D158] font-mono focus:border-[#FF9F0A] outline-none"
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-xs text-uspech font-mono focus:border-znacka outline-none"
                 />
               </div>
               <button
@@ -986,7 +986,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                     setStatusMessage({ type: 'error', text: 'Chyba při importu: ' + e?.message });
                   }
                 }}
-                className="px-4 py-2 bg-[#30D158] hover:bg-[#34e260] text-black font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                className="px-4 py-2 bg-uspech hover:bg-[#34e260] text-black font-bold text-xs uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
               >
                 <Download className="w-4 h-4" /> Import stránky
               </button>
@@ -1009,7 +1009,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             style={{ height: isFullscreen ? '100vh' : `${windowHeightPx}px` }}
           >
             {isNavigating && (
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-md z-10 flex items-center justify-center gap-2 text-xs font-semibold text-[#FF9F0A]">
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-md z-10 flex items-center justify-center gap-2 text-xs font-semibold text-znacka">
                 <Disc className="w-5 h-5 animate-spin" /> Načítám Freetar.de...
               </div>
             )}
@@ -1036,8 +1036,8 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   {previewTab.artist} — {previewTab.title}
                 </h3>
                 <div className="flex items-center gap-3 text-xs text-neutral-400 mt-0.5">
-                  {previewTab.key && <span>Tónina: <strong className="text-[#30D158]">{previewTab.key}</strong></span>}
-                  {previewTab.capo && <span>Capo: <strong className="text-[#FF9F0A]">{previewTab.capo}</strong></span>}
+                  {previewTab.key && <span>Tónina: <strong className="text-uspech">{previewTab.key}</strong></span>}
+                  {previewTab.capo && <span>Capo: <strong className="text-znacka">{previewTab.capo}</strong></span>}
                   {previewTab.tuning && <span>Ladění: <strong className="text-white">{previewTab.tuning}</strong></span>}
                 </div>
               </div>
@@ -1045,7 +1045,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={() => handleImportToSongbook(previewTab)}
-                  className="px-4 py-2 bg-[#30D158] hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
+                  className="px-4 py-2 bg-uspech hover:bg-[#34e260] text-black text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
                 >
                   <Plus className="w-4 h-4" /> Uložit do Song Library
                 </button>
@@ -1067,7 +1067,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   {previewTab.chordsUsed.map((ch: string) => (
                     <span
                       key={ch}
-                      className="px-3 py-1 bg-[#30D158]/10 text-[#30D158] border border-[#30D158]/30 rounded-xl text-xs font-bold font-mono"
+                      className="px-3 py-1 bg-uspech/10 text-uspech border border-uspech/30 rounded-xl text-xs font-bold font-mono"
                     >
                       {ch}
                     </span>

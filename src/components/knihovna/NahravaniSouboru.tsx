@@ -87,7 +87,7 @@ export const NahravaniSouboru: React.FC<{
         void posli(e.dataTransfer.files);
       }}
       className={`rounded-2xl border-2 border-dashed p-3 space-y-2.5 transition-all ${
-        tahne ? 'border-[#0A84FF] bg-[#0A84FF]/10' : 'border-white/10 bg-[#16161A]/40'
+        tahne ? 'border-info bg-info/10' : 'border-white/10 bg-[#16161A]/40'
       }`}
     >
       <input
@@ -119,7 +119,7 @@ export const NahravaniSouboru: React.FC<{
         <button
           onClick={() => vstupSlozka.current?.click()}
           disabled={bezi}
-          className="px-3 py-2 rounded-xl bg-[#0A84FF] text-white text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+          className="px-3 py-2 rounded-xl bg-info text-white text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
         >
           <FolderUp className="w-4 h-4" /> Vybrat složku
         </button>
@@ -212,7 +212,7 @@ export const NahravaniSouboru: React.FC<{
       )}
 
       {prevod && (
-        <p className="text-drobne text-[#0A84FF]">
+        <p className="text-drobne text-info">
           Zmenšuju „{prevod.nazev}" — {prevod.procent} %
         </p>
       )}

@@ -26,7 +26,7 @@ export const SamplyModul: React.FC = () => {
           onClick={() => (stav.hraje ? skladackaService.stop() : void skladackaService.prehraj())}
           disabled={stav.nacita || prazdna}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-            stav.hraje ? 'bg-[#FF453A] text-white' : 'bg-[#FF9F0A] text-black hover:bg-[#FF9F0A]/85'
+            stav.hraje ? 'bg-chyba text-white' : 'bg-znacka text-black hover:bg-znacka/85'
           }`}
         >
           {stav.nacita ? (
@@ -86,7 +86,7 @@ export const SamplyModul: React.FC = () => {
                 onClick={() => skladackaService.vyberCast(c.id)}
                 className={`px-1 py-0.5 rounded text-stitek font-bold cursor-pointer truncate ${
                   stav.aktivniCast === c.id
-                    ? 'bg-[#FF9F0A] text-black'
+                    ? 'bg-znacka text-black'
                     : 'bg-white/[0.05] text-neutral-400 hover:text-white'
                 }`}
               >
@@ -105,7 +105,7 @@ export const SamplyModul: React.FC = () => {
                 <button
                   onClick={() => skladackaService.nastavStopu(stopa.id, { ztlumena: !stopa.ztlumena })}
                   className={`p-0.5 rounded cursor-pointer ${
-                    stopa.ztlumena ? 'text-[#FF453A]' : 'text-neutral-500 hover:text-white'
+                    stopa.ztlumena ? 'text-chyba' : 'text-neutral-500 hover:text-white'
                   }`}
                 >
                   {stopa.ztlumena ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
@@ -120,8 +120,8 @@ export const SamplyModul: React.FC = () => {
                     style={pozadiPolicka(!!s, stav.hraje && stav.aktivniCast === c.id, stav.postup)}
                     className={`px-1 py-1 rounded text-stitek truncate border ${
                       s
-                        ? `border-[#30D158]/40 text-[#30D158] ${
-                            stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-[#30D158]/15'
+                        ? `border-uspech/40 text-uspech ${
+                            stav.hraje && stav.aktivniCast === c.id ? '' : 'bg-uspech/15'
                           }`
                         : 'bg-white/[0.02] border-white/[0.06] text-neutral-700'
                     }`}

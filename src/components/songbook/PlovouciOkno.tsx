@@ -101,7 +101,7 @@ export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavr
             e.stopPropagation();
             onZavrit(okno.id);
           }}
-          className="p-1 rounded hover:bg-[#FF453A]/25 text-neutral-400 hover:text-[#FF453A] cursor-pointer"
+          className="p-1 rounded hover:bg-chyba/25 text-neutral-400 hover:text-chyba cursor-pointer"
           title="Zavřít"
         >
           <X className="w-3 h-3" />

@@ -235,7 +235,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
           {!compact && (
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[#FF9F0A] text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+              <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
                 Harmonie & Teorie
               </span>
               <span className="text-xs text-neutral-400 font-medium">Interaktivní průzkumník</span>
@@ -286,7 +286,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                 onClick={() => setSelectedRoot(note)}
                 className={`w-10 h-10 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center ${
                   selectedRoot === note
-                    ? 'bg-[#FF9F0A] text-black font-extrabold shadow-md shadow-orange-500/20 scale-105'
+                    ? 'bg-znacka text-black font-extrabold shadow-md shadow-orange-500/20 scale-105'
                     : 'bg-black/40 hover:bg-white/10 text-white border border-white/10'
                 }`}
               >
@@ -309,7 +309,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                   onClick={() => setSelectedChordType(type)}
                   className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     selectedChordType === type
-                      ? 'bg-[#30D158]/20 border border-[#30D158] text-[#30D158] shadow-sm'
+                      ? 'bg-uspech/20 border border-uspech text-uspech shadow-sm'
                       : 'bg-black/40 hover:bg-white/10 text-neutral-300 border border-white/10'
                   }`}
                 >
@@ -329,7 +329,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                   type="checkbox"
                   checked={enableMidiScaleFilter}
                   onChange={(e) => setEnableMidiScaleFilter(e.target.checked)}
-                  className="accent-[#FF9F0A] rounded"
+                  className="accent-znacka rounded"
                 />
                 <span>Filtrovat hardware MIDI klávesy podle stupnice</span>
               </label>
@@ -341,7 +341,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                   onClick={() => setSelectedScaleName(sc.name)}
                   className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
                     selectedScaleName === sc.name
-                      ? 'bg-[#30D158]/15 border-[#30D158] text-white shadow-sm'
+                      ? 'bg-uspech/15 border-uspech text-white shadow-sm'
                       : 'bg-black/40 hover:bg-white/10 border-white/10 text-neutral-300'
                   }`}
                 >
@@ -393,7 +393,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             </select>
             <button
               onClick={playGuitarAudio}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-[#30D158] border border-[#30D158]/40 font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-uspech border border-uspech/40 font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
               title="Přehrát akord na kytaru"
             >
               <Volume2 className="w-3.5 h-3.5" />
@@ -401,7 +401,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             </button>
             <button
               onClick={playPianoAudio}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#30D158] hover:bg-[#30D158]/90 text-black font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-uspech hover:bg-uspech/90 text-black font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
               title="Přehrát akord na piano (reálný klavírní zvuk)"
             >
               <Volume2 className="w-3.5 h-3.5" />
@@ -418,7 +418,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             <span>STRUNA</span>
             <span>0</span>
             {Array.from({ length: 14 }).map((_, i) => (
-              <span key={i} className={i + 1 === 3 || i + 1 === 5 || i + 1 === 7 || i + 1 === 9 || i + 1 === 12 ? 'text-[#FF9F0A] font-extrabold' : ''}>
+              <span key={i} className={i + 1 === 3 || i + 1 === 5 || i + 1 === 7 || i + 1 === 9 || i + 1 === 12 ? 'text-znacka font-extrabold' : ''}>
                 {i + 1}
               </span>
             ))}
@@ -467,8 +467,8 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                       <div
                         key={fret}
                         className={`h-8 border-r border-white/10 flex items-center justify-center relative ${
-                          fret === 0 ? 'bg-white/[0.04] border-r-2 border-[#FF9F0A]' : ''
-                        } ${zrovnaZni ? 'bg-[#30D158]/20' : ''}`}
+                          fret === 0 ? 'bg-white/[0.04] border-r-2 border-znacka' : ''
+                        } ${zrovnaZni ? 'bg-uspech/20' : ''}`}
                       >
                         {/* String Line Background */}
                         <div className="absolute inset-x-0 h-[1.5px] bg-white/20 z-0"></div>
@@ -477,7 +477,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                             když člověk sáhne vedle, má to být vidět. */}
                         {zrovnaZni && !isHighlighted && (
                           <div
-                            className="w-5 h-5 rounded-full border-2 border-[#30D158] z-10 animate-pulse"
+                            className="w-5 h-5 rounded-full border-2 border-uspech z-10 animate-pulse"
                             title={`Zrovna zní ${znejiciTon}`}
                           />
                         )}
@@ -488,11 +488,11 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                             onClick={() => zahrajPrazec(baseMidi, fret)}
                             className={`w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md cursor-pointer transition-transform hover:scale-125 active:scale-95 ${
                               zrovnaZni
-                                ? 'bg-[#30D158] text-black ring-2 ring-white scale-125'
+                                ? 'bg-uspech text-black ring-2 ring-white scale-125'
                                 : isRoot
-                                ? 'bg-[#FF9F0A] text-black shadow-[0_0_10px_#FF9F0A]'
+                                ? 'bg-znacka text-black shadow-[0_0_10px_#FF9F0A]'
                                 : isChordFret
-                                ? 'bg-[#30D158] text-black shadow-[0_0_8px_#30D158]'
+                                ? 'bg-uspech text-black shadow-[0_0_8px_#30D158]'
                                 : 'bg-white text-black'
                             }`}
                             title={`Zahrát ${noteName} na ${fret}. pražci`}
@@ -516,7 +516,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-[#FF9F0A]" />
+            <BookOpen className="w-4 h-4 text-znacka" />
             <h3 className="text-sm font-bold text-white tracking-tight">
               Klávesnice Klavíru (2 Oktávy)
             </h3>
@@ -525,12 +525,12 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
           <div className="flex items-center gap-2">
             {explorerMode === 'chord' && chordDef && (
               <span className="text-drobne text-neutral-400 bg-white/[0.04] px-3 py-1 rounded-xl border border-white/[0.06]">
-                Tóny: <strong className="text-[#30D158]">{chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(' - ')}</strong>
+                Tóny: <strong className="text-uspech">{chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(' - ')}</strong>
               </span>
             )}
             <button
               onClick={playPianoAudio}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#30D158] hover:bg-[#30D158]/90 text-black font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-uspech hover:bg-uspech/90 text-black font-semibold text-xs rounded-xl transition-all cursor-pointer shadow-sm"
               title="Přehrát kompletní akord na reálné piano"
             >
               <Volume2 className="w-3.5 h-3.5 text-black" />
@@ -563,8 +563,8 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                     className={`w-6 h-20 -mx-3 z-10 rounded-b-md border border-black/80 flex flex-col justify-end items-center pb-1.5 transition-all active:scale-95 cursor-pointer ${
                       isHighlighted
                         ? isRoot
-                          ? 'bg-[#FF9F0A] text-black font-extrabold shadow-[0_0_10px_#FF9F0A]'
-                          : 'bg-[#30D158] text-black font-extrabold shadow-[0_0_10px_#30D158]'
+                          ? 'bg-znacka text-black font-extrabold shadow-[0_0_10px_#FF9F0A]'
+                          : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#30D158]'
                         : 'bg-[#1C1C1E] hover:bg-[#2C2C2E] text-neutral-400 hover:text-white'
                     }`}
                     title={`Přehrát tón ${noteName} na piano`}
@@ -581,8 +581,8 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                   className={`w-9 h-32 rounded-b-lg border border-neutral-700/50 flex flex-col justify-end items-center pb-2.5 font-mono text-stitek font-bold transition-all active:scale-95 cursor-pointer ${
                     isHighlighted
                       ? isRoot
-                        ? 'bg-[#FF9F0A] text-black font-extrabold shadow-[0_0_10px_#FF9F0A]'
-                        : 'bg-[#30D158] text-black font-extrabold shadow-[0_0_10px_#30D158]'
+                        ? 'bg-znacka text-black font-extrabold shadow-[0_0_10px_#FF9F0A]'
+                        : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#30D158]'
                       : 'bg-neutral-200 hover:bg-white text-black'
                   }`}
                   title={`Přehrát tón ${noteName} na piano`}
@@ -598,7 +598,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       {/* Scale Info & Practical Usage in Band */}
       {explorerMode === 'scale' && (
         <div className="bg-[#16161A]/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-5 shadow-xl flex items-start gap-4">
-          <div className="p-2.5 bg-[#FF9F0A]/10 border border-[#FF9F0A]/30 text-[#FF9F0A] rounded-2xl shrink-0">
+          <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl shrink-0">
             <Zap className="w-5 h-5" />
           </div>
           <div>
@@ -608,7 +608,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             <p className="text-xs text-neutral-300 leading-relaxed mb-2">
               {currentScale.description}
             </p>
-            <p className="text-xs text-[#30D158] font-mono bg-black/40 px-3 py-1.5 rounded-xl border border-white/[0.06] inline-block">
+            <p className="text-xs text-uspech font-mono bg-black/40 px-3 py-1.5 rounded-xl border border-white/[0.06] inline-block">
               Tóny stupnice: <strong>{currentScale.intervals.map((inv) => ROOT_NOTES[(rootIndex + inv) % 12]).join(' - ')}</strong>
             </p>
           </div>

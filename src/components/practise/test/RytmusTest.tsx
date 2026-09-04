@@ -76,7 +76,7 @@ export const RytmusTest: React.FC = () => {
     <div className="space-y-4">
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-3">
-          <Activity className="w-5 h-5 text-[#0A84FF]" />
+          <Activity className="w-5 h-5 text-info" />
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Rytmus</h3>
             <p className="text-drobne text-neutral-400">{CVICENI[cviceni].popis}</p>
@@ -90,14 +90,14 @@ export const RytmusTest: React.FC = () => {
               max={220}
               value={bpm}
               onChange={(e) => setBpm(Math.max(40, Math.min(220, Number(e.target.value) || 90)))}
-              className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-sm text-white tabular-nums outline-none focus:border-[#0A84FF]"
+              className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-sm text-white tabular-nums outline-none focus:border-info"
             />
           </div>
 
           <button
             onClick={() => (stav.bezi ? rytmusTestu.stop() : void spust())}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 ${
-              stav.bezi ? 'bg-[#FF453A] text-white' : 'bg-[#0A84FF] text-white'
+              stav.bezi ? 'bg-chyba text-white' : 'bg-info text-white'
             }`}
           >
             {stav.bezi ? <Square className="w-3.5 h-3.5 fill-current" /> : <Play className="w-3.5 h-3.5 fill-current" />}
@@ -106,7 +106,7 @@ export const RytmusTest: React.FC = () => {
         </div>
 
         {stav.chyba && (
-          <p className="text-drobne text-[#FF453A]">{stav.chyba}</p>
+          <p className="text-drobne text-chyba">{stav.chyba}</p>
         )}
 
         <VstupPanel zdroje={zdroje} onZmena={setZdroje} />
@@ -117,7 +117,7 @@ export const RytmusTest: React.FC = () => {
               key={c}
               onClick={() => { rytmusTestu.stop(); setCviceni(c); setHodnoceni(null); }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                cviceni === c ? 'bg-[#0A84FF] text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                cviceni === c ? 'bg-info text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
               }`}
             >
               {CVICENI[c].nazev}
@@ -143,9 +143,9 @@ export const RytmusTest: React.FC = () => {
                 key={d.index}
                 className={`h-5 flex-1 min-w-[8px] rounded-sm ${
                   d.index === stav.doba
-                    ? 'bg-[#FF9F0A]'
+                    ? 'bg-znacka'
                     : d.index < stav.doba
-                      ? d.ticho ? 'bg-[#0A84FF]/30' : 'bg-[#0A84FF]/70'
+                      ? d.ticho ? 'bg-info/30' : 'bg-info/70'
                       : d.ticho ? 'bg-white/[0.04]' : 'bg-white/[0.12]'
                 } ${d.duraz ? 'ring-1 ring-white/20' : ''}`}
                 title={`${d.index + 1}. doba${d.ticho ? ' — ticho' : ''}`}
@@ -170,14 +170,14 @@ export const RytmusTest: React.FC = () => {
 
           <div className="space-y-1.5 text-drobne text-neutral-300">
             {hodnoceni.uderu < MIN_UDERU && (
-              <p className="text-[#FF9F0A]">
+              <p className="text-znacka">
                 Zachytilo se jen {hodnoceni.uderu} úderů — na hodnocení je to málo. Hraj do každé doby,
                 ať je z čeho měřit.
               </p>
             )}
             {hodnoceni.vlastniBpm != null && (
               <p className="flex items-center gap-1.5">
-                <Gauge className="w-3.5 h-3.5 text-[#FF9F0A] shrink-0" />
+                <Gauge className="w-3.5 h-3.5 text-znacka shrink-0" />
                 Hrál jsi <strong className="text-white tabular-nums">{hodnoceni.vlastniBpm} BPM</strong>
                 {rozdilTempa !== null && rozdilTempa !== 0 && (
                   <> — o {Math.abs(rozdilTempa)} {rozdilTempa > 0 ? 'rychleji' : 'pomaleji'}, než bylo zadané.</>
@@ -234,7 +234,7 @@ export const RytmusTest: React.FC = () => {
                   return (
                     <div
                       key={i}
-                      className={`absolute w-1.5 rounded-full ${o.ticho ? 'bg-[#BF5AF2]' : 'bg-[#0A84FF]'}`}
+                      className={`absolute w-1.5 rounded-full ${o.ticho ? 'bg-nastroj' : 'bg-info'}`}
                       style={{
                         left: `${(i / Math.max(1, hodnoceni.odchylky.length - 1)) * 97}%`,
                         // Pozdě roste nahoru, brzy dolů — jako popisky po stranách.
@@ -249,7 +249,7 @@ export const RytmusTest: React.FC = () => {
                 })}
                 <span className="absolute left-2 top-1 text-stitek text-neutral-600">pozdě</span>
                 <span className="absolute left-2 bottom-1 text-stitek text-neutral-600">brzy</span>
-                <span className="absolute right-2 top-1 text-stitek text-[#BF5AF2]">
+                <span className="absolute right-2 top-1 text-stitek text-nastroj">
                   fialová = bez metronomu · měřítko ±{Math.round(max)} ms
                 </span>
               </div>

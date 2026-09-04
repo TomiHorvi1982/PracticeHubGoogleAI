@@ -67,7 +67,7 @@ export const EditorTextu: React.FC<{
             <button
               onClick={onUlozit}
               disabled={uklada}
-              className="px-3 py-1.5 rounded-xl bg-[#30D158] text-black text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl bg-uspech text-black text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
             >
               <Save className="w-3.5 h-3.5" /> {uklada ? 'Ukládám…' : 'Uložit do písně'}
             </button>
@@ -85,7 +85,7 @@ export const EditorTextu: React.FC<{
               <div key={i} className="flex gap-1.5 justify-end px-1">
                 <span
                   className={`w-4 ${
-                    schema[i] === '·' ? 'text-neutral-700' : 'text-[#BF5AF2] font-bold'
+                    schema[i] === '·' ? 'text-neutral-700' : 'text-nastroj font-bold'
                   }`}
                 >
                   {schema[i]}
@@ -105,7 +105,7 @@ export const EditorTextu: React.FC<{
             onClick={zjistiRadek}
             spellCheck={false}
             placeholder={'[Sloka]\nNebe nad městem hoří,\nptáci mlčí v korunách.'}
-            className="flex-1 min-h-[40vh] bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-drobne leading-6 text-white placeholder-neutral-700 outline-none focus:border-[#BF5AF2] resize-none"
+            className="flex-1 min-h-[40vh] bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-drobne leading-6 text-white placeholder-neutral-700 outline-none focus:border-nastroj resize-none"
           />
         </div>
 
@@ -118,7 +118,7 @@ export const EditorTextu: React.FC<{
 
       <div className="bg-[#16161A]/80 border border-white/[0.08] rounded-2xl p-4 space-y-3 self-start">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#BF5AF2]" />
+          <Sparkles className="w-4 h-4 text-nastroj" />
           <h4 className="text-sm font-bold text-white">Rýmy</h4>
         </div>
 
@@ -134,7 +134,7 @@ export const EditorTextu: React.FC<{
                   <button
                     key={n}
                     onClick={() => { vloz(n); setZkopirovano(n); window.setTimeout(() => setZkopirovano(null), 900); }}
-                    className="px-2 py-1 rounded-lg bg-white/[0.06] text-drobne text-neutral-200 hover:bg-[#BF5AF2] hover:text-white cursor-pointer flex items-center gap-1"
+                    className="px-2 py-1 rounded-lg bg-white/[0.06] text-drobne text-neutral-200 hover:bg-nastroj hover:text-white cursor-pointer flex items-center gap-1"
                     title="Vložit na místo kurzoru"
                   >
                     {zkopirovano === n ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3 opacity-40" />}
