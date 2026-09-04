@@ -1,5 +1,6 @@
 import { HlavickaSekce } from './ui/HlavickaSekce';
 import { DawVerticalFader } from './DawVerticalFader';
+import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Music2,
@@ -259,6 +260,15 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   }, []);
 
   /** Pověsí stopu na fader; na jednom faderu je vždycky jen jedna. */
+  /**
+   * Všechny stopy ze složky v jednom seznamu.
+   *
+   * Server je vrací seskupené po skladbách, ale pod faderem se vybírá
+   * jeden soubor — skupiny by tam jen přidaly patro navíc.
+   */
+  const mistniPloche: MistniPolozka[] = mistni.skladby.flatMap((sk) =>
+    sk.stopy.map((t) => ({ jmeno: t.jmeno, cesta: t.cesta, velikost: t.velikost })));
+
   const povesNaFader = (role: string, polozka: { nazev: string; assetId?: string; url?: string }) => {
     const nove = [...vlastniStopy.filter((v) => v.role !== role), { role, ...polozka }];
     setVlastniStopy(nove);
@@ -430,7 +440,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
         {/* Vlastní stopy: fadery zůstávají, jen se na ně věší soubory
             z knihovny. Hotových rozdělených sad je pár, kdežto jednotlivých
             stop leží v databázi spousta a nešlo z nich mix poskládat. */}
-        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
+        <div id="stopy-na-fadery" className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 shadow-xl">
           <div className="flex flex-wrap items-center gap-2">
             <Layers className="w-5 h-5 text-amber-400 shrink-0" />
             <h3 className="text-base font-bold text-white">Stopy na fadery</h3>
@@ -788,70 +798,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       {/* NÁHLED VIDEA
           Při cvičení je půlka informace v tom, co ruce dělají. Zvuk si
           řídíš v přehrávači YouTube — hraje vedle stop, ne místo nich. */}
-      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
-        <div className="flex flex-wrap items-center gap-2">
-          <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
-          <h3 className="text-base font-bold text-white">Náhled videa</h3>
-          <span className="text-xs text-slate-400">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
-          {videoId && (
-            <button
-              onClick={() => setVideoId(null)}
-              className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-drobne cursor-pointer"
-            >
-              Zavřít video
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <select
-            value={videoId ?? ''}
-            onChange={(e) => setVideoId(e.target.value || null)}
-            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
-          >
-            <option value="">— skladba ze zpěvníku —</option>
-            {pisne
-              .filter((p) => (p.youtubeVideos?.length ?? 0) > 0)
-              .map((p) => (
-                <optgroup key={p.id} label={`${p.artist ? p.artist + ' — ' : ''}${p.title}`}>
-                  {p.youtubeVideos!.map((v) => (
-                    <option key={v.id} value={v.id}>{v.title || v.type}</option>
-                  ))}
-                </optgroup>
-              ))}
-          </select>
-
-          <input
-            value={odkazVidea}
-            onChange={(e) => setOdkazVidea(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
-            placeholder="…nebo vlož odkaz na YouTube"
-            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
-          />
-          <button
-            onClick={zobrazOdkaz}
-            disabled={!odkazVidea.trim()}
-            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer disabled:opacity-40"
-          >
-            Zobrazit
-          </button>
-        </div>
-
-        {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
-
-        {videoId && (
-          <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
-            <iframe
-              className="absolute inset-0 w-full h-full"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              title="Náhled videa"
-              allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
-            />
-          </div>
-        )}
-      </div>
-
       {(
         <div className="bg-[#121217] border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
           {/* Kdo hraje. Ovládání je až pod stopami — patří k tomu,
@@ -994,24 +940,120 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 const stem = selectedSong?.stems.find((x) => x.id === role.id);
                 const naNem = vlastniStopy.find((v) => v.role === role.id);
                 return (
-                  <DawVerticalFader
-                    key={role.id}
-                    stemId={role.id}
-                    name={naNem?.nazev || stem?.name || role.popis}
-                    channel={channels[role.id] || {
-                      volume: 0, pan: 0, isMuted: false, isSolo: false,
-                      pitchSemi: 0, isMono: false, stereoWidth: 1.0,
-                    }}
-                    meterLevel={meterLevels?.[role.id] || 0}
-                    isPlaying={isPlaying}
-                    isLoading={loadingAudio}
-                    colorTheme={stemColors[role.id] || stemColors['other']}
-                    onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
-                  />
+                  <div key={role.id} className="flex flex-col w-[168px] shrink-0">
+                    <DawVerticalFader
+                      stemId={role.id}
+                      name={role.popis}
+                      channel={channels[role.id] || {
+                        volume: 0, pan: 0, isMuted: false, isSolo: false,
+                        pitchSemi: 0, isMono: false, stereoWidth: 1.0,
+                      }}
+                      meterLevel={meterLevels?.[role.id] || 0}
+                      isPlaying={isPlaying}
+                      isLoading={loadingAudio}
+                      colorTheme={stemColors[role.id] || stemColors['other']}
+                      vybrany={cilovyFader === role.id}
+                      onVybrat={() => setCilovyFader(role.id)}
+                      onUpdate={(u) => stemAudioService.updateChannel(role.id, u)}
+                    />
+
+                    {/* Zdroj u faderu, ke kterému patří. Dřív se soubory
+                        vybíraly nahoře v jednom panelu a fader se k nim
+                        volil zvlášť — u osmi stejných proužků se pak
+                        lehko sáhlo vedle. */}
+                    <ZdrojStopy
+                      naNem={naNem?.nazev || stem?.name || null}
+                      mistni={mistniPloche}
+                      mistniDostupne={mistni.dostupne}
+                      slozka={mistni.slozka}
+                      onZMistnich={(m) => {
+                        setCilovyFader(role.id);
+                        povesNaFader(role.id, { nazev: m.jmeno, url: odkazNaMistni(m.cesta) });
+                      }}
+                      onZKnihovny={() => {
+                        // Terč se přepne a horní panel se stane výběrem
+                        // pro tenhle fader.
+                        setCilovyFader(role.id);
+                        setZdroj('knihovna');
+                        document.getElementById('stopy-na-fadery')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }}
+                      onOdebrat={naNem ? () => {
+                        const nove = vlastniStopy.filter((v) => v.role !== role.id);
+                        setVlastniStopy(nove);
+                        stemAudioService.pouzijVlastniStopy(nove);
+                      } : undefined}
+                    />
+                  </div>
                 );
               })}
             </div>
           </div>
+
+          {/* Náhled videa až pod fadery: při mixu se kouká na stopy,
+              video je kontrola, ne to hlavní. */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
+        <div className="flex flex-wrap items-center gap-2">
+          <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
+          <h3 className="text-base font-bold text-white">Náhled videa</h3>
+          <span className="text-xs text-slate-400">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
+          {videoId && (
+            <button
+              onClick={() => setVideoId(null)}
+              className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-drobne cursor-pointer"
+            >
+              Zavřít video
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={videoId ?? ''}
+            onChange={(e) => setVideoId(e.target.value || null)}
+            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
+          >
+            <option value="">— skladba ze zpěvníku —</option>
+            {pisne
+              .filter((p) => (p.youtubeVideos?.length ?? 0) > 0)
+              .map((p) => (
+                <optgroup key={p.id} label={`${p.artist ? p.artist + ' — ' : ''}${p.title}`}>
+                  {p.youtubeVideos!.map((v) => (
+                    <option key={v.id} value={v.id}>{v.title || v.type}</option>
+                  ))}
+                </optgroup>
+              ))}
+          </select>
+
+          <input
+            value={odkazVidea}
+            onChange={(e) => setOdkazVidea(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
+            placeholder="…nebo vlož odkaz na YouTube"
+            className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
+          />
+          <button
+            onClick={zobrazOdkaz}
+            disabled={!odkazVidea.trim()}
+            className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer disabled:opacity-40"
+          >
+            Zobrazit
+          </button>
+        </div>
+
+        {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
+
+        {videoId && (
+          <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={`https://www.youtube.com/embed/${videoId}`}
+              title="Náhled videa"
+              allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+            />
+          </div>
+        )}
+      </div>
 
           {/* TRANSPORT */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2 min-w-0">

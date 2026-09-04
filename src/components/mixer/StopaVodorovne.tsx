@@ -102,8 +102,14 @@ export const StopaVodorovne: React.FC<Props> = ({
   const x = useMemo(() => casNaX(cas, delka, sirka), [cas, delka, sirka]);
   const obsazeno = !!naNem;
 
+  // Vybrat jde kliknutím kamkoli do stopy, ne jen na její název:
+  // do vlnovky se kliká nejčastěji a fader se má označit i tak.
   return (
-    <div className="flex items-stretch border-t border-slate-800/70" style={{ height: VYSKA_STOPY }}>
+    <div
+      onPointerDownCapture={onVybrat}
+      className="flex items-stretch border-t border-slate-800/70"
+      style={{ height: VYSKA_STOPY }}
+    >
       {/* OVLÁDÁNÍ */}
       <div
         className={`shrink-0 px-3 py-2 flex flex-col justify-center gap-1.5 border-r border-slate-800/70 ${

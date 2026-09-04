@@ -17,6 +17,16 @@ interface DawVerticalFaderProps {
     border: string;
   };
   compact?: boolean;
+  /**
+   * Je tenhle fader právě vybraný?
+   *
+   * Kliknutí na vodorovnou stopu nad pultem vybere i její fader, aby
+   * bylo poznat, se kterým kanálem se pracuje — bez toho se u osmi
+   * stejných proužků snadno sáhne vedle.
+   */
+  vybrany?: boolean;
+  /** Klik kamkoli do faderu ho vybere. */
+  onVybrat?: () => void;
 }
 
 export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
@@ -34,6 +44,8 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
     border: 'border-amber-500/30',
   },
   compact = false,
+  vybrany,
+  onVybrat,
 }) => {
   const isGuitar = stemId === 'guitar';
   const faderTrackRef = useRef<HTMLDivElement>(null);
@@ -111,10 +123,13 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
 
   return (
     <div
+      onPointerDownCapture={onVybrat}
       className={`rounded-3xl border ${
         channel.isSolo
           ? 'border-amber-400/90 shadow-[0_0_20px_rgba(255,159,10,0.25)] bg-[#1c1a16]'
-          : `${colorTheme.border} bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-950/95`
+          : vybrany
+            ? 'border-znacka bg-znacka/[0.07]'
+            : `${colorTheme.border} bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-950/95`
       } p-3.5 flex flex-col justify-between select-none shadow-xl transition-all relative overflow-hidden`}
     >
       {/* Channel Top Header: Name & Track Type Badge */}
