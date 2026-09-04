@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<title>TONE3000 — návrat</title>
+<style>
+  body { margin:0; display:grid; place-items:center; min-height:100vh;
+         background:#0A0A0C; color:#E9E9EE;
+         font:14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  p { opacity:.7 }
+</style>
+</head>
+<body>
+<p>Hotovo, tohle okno se za chvíli zavře…</p>
+<script>
+  /*
+   * Návrat z TONE3000.
+   *
+   * Tahle stránka nic nerozhoduje — jen podá dál to, s čím se prohlížeč
+   * vrátil, a zavře se. Kód i `state` kontroluje appka, která si `state`
+   * vygenerovala; sem se nedá nic podstrčit, protože zpráva jde jen na
+   * vlastní původ a příjemce si ji ověřuje.
+   */
+  try {
+    if (window.opener) {
+      window.opener.postMessage(
+        { typ: 't3k-navrat', hledani: window.location.search },
+        window.location.origin
+      );
+      setTimeout(function () { window.close(); }, 150);
+    } else {
+      document.querySelector('p').textContent =
+        'Tohle okno se otevřelo samo. Zavři ho a zkus přihlášení znovu z pultu.';
+    }
+  } catch (e) {
+    document.querySelector('p').textContent = 'Návrat se nepodařilo předat: ' + e.message;
+  }
+</script>
+</body>
+</html>

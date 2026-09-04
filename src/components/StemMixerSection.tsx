@@ -3,6 +3,7 @@ import { DawVerticalFader } from './DawVerticalFader';
 import { vyrez as spocitejVyrez, najdiFazi, tempoZNastupu, MIN_ZOOM, MAX_ZOOM } from '../services/mrizkaDob';
 import { CasovaOsa } from './mixer/CasovaOsa';
 import { KanalKytary } from './mixer/KanalKytary';
+import { Tone3000Katalog } from './mixer/Tone3000Katalog';
 import { KANAL_KYTARY } from '../services/kytaraVMixu';
 import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
 import React, { useState, useEffect, useRef } from 'react';
@@ -947,6 +948,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   />
                 </div>
               )}
+              {/* Katalog hned vedle faderu: aparát se vybírá tam, kde se
+                  zapojuje kytara, ne o dvě sekce dál. */}
+              <div className="w-[340px] shrink-0">
+                <Tone3000Katalog />
+              </div>
             </div>
           </div>
 

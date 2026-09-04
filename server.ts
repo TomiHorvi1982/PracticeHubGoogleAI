@@ -3988,6 +3988,51 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
   });
 
+  /**
+   * Uložení souboru staženého z oficiálního TONE3000 API.
+   *
+   * Stahuje prohlížeč, ne server: `model_url` chce přístupový token a ten
+   * má zůstat tam, kde vznikl. Sem přijdou už jen hotové bajty, aby si je
+   * appka našla i příště bez přihlášení.
+   *
+   * Jméno je pořád cizí text — čistí se stejně jako u proxy.
+   */
+  app.post(
+    '/api/tone3000/ulozit',
+    requireAuth,
+    express.raw({ type: 'application/octet-stream', limit: '64mb' }),
+    (req, res) => {
+      if (!mistniDiskJde()) {
+        return res.status(400).json({ error: 'Na serveru není kam ukládat. Spusť appku u sebe.' });
+      }
+      const typ = req.query.typ === 'ir' ? 'ir' : 'nam';
+      const id = Number(req.query.id) || 0;
+      const data = req.body;
+      if (!Buffer.isBuffer(data) || !data.length) {
+        return res.status(400).json({ error: 'Nepřišel žádný soubor.' });
+      }
+      if (data.length > STROP_SOUBORU) {
+        return res.status(400).json({ error: 'Soubor je nečekaně velký.' });
+      }
+
+      const slozka = typ === 'nam' ? SLOZKA_APARATU : SLOZKA_IR;
+      const jmeno = bezpecneJmeno(String(req.query.nazev || ''), id, typ);
+      const cil = path.join(slozka, jmeno);
+      // Pojistka: i po očištění se ověří, že cíl opravdu leží ve složce.
+      if (path.dirname(path.resolve(cil)) !== path.resolve(slozka)) {
+        return res.status(400).json({ error: 'Nepřijatelné jméno souboru.' });
+      }
+
+      try {
+        fs.mkdirSync(slozka, { recursive: true });
+        fs.writeFileSync(cil, data);
+        return res.json({ ulozeno: jmeno, slozka, velikost: data.length, typ });
+      } catch (e: any) {
+        return res.status(500).json({ error: e?.message || 'Soubor se nepodařilo uložit.' });
+      }
+    },
+  );
+
   app.get('/api/soundshed/presety', requireAuth, async (_req, res) => {
     if (!mistniDiskJde()) {
       return res.json({
