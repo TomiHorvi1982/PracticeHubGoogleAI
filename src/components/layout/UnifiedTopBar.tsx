@@ -135,7 +135,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
                 s nadpisem sekce — stránka měla dva a čtečka i vyhledávač
                 pak nevědí, o čem ta stránka je. */}
             <span className="text-sm font-bold tracking-wide text-white leading-tight">NEVERLATE</span>
-            <p className="text-stitek text-amber-400 font-medium uppercase tracking-widest">Studio Workspace</p>
+            <p className="stitek-pole text-znacka">Studio Workspace</p>
           </div>
         </div>
 
@@ -186,7 +186,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             min={30}
             max={300}
           />
-          <span className="hidden sm:inline text-stitek font-semibold text-slate-400 uppercase">BPM</span>
+          <span className="hidden sm:inline stitek-pole">BPM</span>
           {/* Šipky mají 15×14px, což se na dotyk netrefí — a na úzkém okně
               navíc vytlačovaly profil uživatele mimo obrazovku. Číslo se
               dá přepsat přímo, takže se tu nic neztrácí. */}
@@ -222,7 +222,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
         {/* Key & Transpose Control */}
         <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
-          <span className="text-stitek font-semibold text-slate-400 uppercase">Tónina</span>
+          <span className="stitek-pole">Tónina</span>
           <select
             value={key}
             onChange={(e) => zahrajV(e.target.value)}
@@ -264,7 +264,7 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
 
         {/* Tuning Selector */}
         <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 bg-slate-950/60 rounded-xl border border-slate-800">
-          <span className="text-stitek font-semibold text-slate-400 uppercase">Ladění</span>
+          <span className="stitek-pole">Ladění</span>
           <select
             value={tuning}
             onChange={(e) => setTuning(e.target.value)}

@@ -451,7 +451,7 @@ export const MidiPlayerPanel: React.FC = () => {
         >
           {knihovnaOtevrena ? <ChevronDown className="w-4 h-4 text-neutral-400" /> : <ChevronRight className="w-4 h-4 text-neutral-400" />}
           <Music4 className="w-4 h-4 text-znacka" />
-          <span className="text-xs font-black text-white">Knihovna MIDI</span>
+          <span className="nadpis-panelu">Knihovna MIDI</span>
           {celkem > 0 && (
             <span className="text-drobne text-neutral-500">
               ({celkem.toLocaleString('cs')}
@@ -535,7 +535,7 @@ export const MidiPlayerPanel: React.FC = () => {
                           ) : (
                             <ChevronRight className="w-3 h-3 text-neutral-500 shrink-0" />
                           )}
-                          <span className="text-stitek font-black uppercase tracking-wider text-neutral-500 group-hover:text-neutral-300 truncate">
+                          <span className="text-drobne font-medium capitalize text-pismo-tlum group-hover:text-pismo truncate">
                             {nazev}
                           </span>
                           <span className="text-stitek text-neutral-600 shrink-0">({pocet})</span>
@@ -607,7 +607,7 @@ export const MidiPlayerPanel: React.FC = () => {
                         ) : (
                           <ChevronDown className="w-3 h-3 text-neutral-500 shrink-0" />
                         )}
-                        <span className="text-stitek font-black uppercase tracking-wider text-neutral-500 group-hover:text-neutral-300 truncate">
+                        <span className="text-drobne font-medium capitalize text-pismo-tlum group-hover:text-pismo truncate">
                           {slozka}
                         </span>
                         <span className="text-stitek text-neutral-600 shrink-0">({polozky.length})</span>
@@ -779,7 +779,7 @@ export const MidiPlayerPanel: React.FC = () => {
           <div className="flex">
             {/* Hlavičky stop */}
             <div className="shrink-0 border-r border-white/10 bg-black/40" style={{ width: SIRKA_HLAVICEK }}>
-              <div className="h-7 border-b border-white/10 px-3 flex items-center text-stitek font-black uppercase tracking-wider text-neutral-500">
+              <div className="h-7 border-b border-kresba px-3 flex items-center stitek-pole">
                 Stopy ({stav.tracks.length})
               </div>
               {stav.tracks.map((t, i) => (

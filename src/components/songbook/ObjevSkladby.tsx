@@ -67,7 +67,13 @@ export const ObjevSkladby: React.FC<Props> = ({
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* Mřížka, ne zalamovaná řada.
+
+          Každý zdroj má jinak dlouhý název, takže se tlačítka lišila
+          šířkou (214 až 283 px) a zalomila se do rozsypaných 2+2+1.
+          V mřížce mají všechna stejný díl místa a stojí pod sebou
+          v pravidelných sloupcích. */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-1.5">
         {ZDROJE.map((z) => {
           const Ikona = z.ikona;
           const aktivni = zdroj === z.id;
@@ -75,16 +81,18 @@ export const ObjevSkladby: React.FC<Props> = ({
             <button
               key={z.id}
               onClick={() => prepni(z.id)}
-              className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer border transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer border transition-all min-w-0 ${
                 aktivni
                   ? 'bg-znacka text-black border-znacka'
                   : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
               }`}
               title={z.co}
             >
-              <Ikona className="w-3.5 h-3.5" />
-              {z.popis}
-              <span className={`hidden xl:inline font-normal ${aktivni ? 'text-black/60' : 'text-neutral-600'}`}>
+              <Ikona className="w-3.5 h-3.5 shrink-0" />
+              <span className="truncate">{z.popis}</span>
+              {/* Popisek jen tam, kde je na něj místo — jinak by roztahoval
+                  sloupce a mřížka by se zase rozjela. */}
+              <span className={`hidden 2xl:inline font-normal truncate ${aktivni ? 'text-black/60' : 'text-neutral-600'}`}>
                 {z.co}
               </span>
             </button>

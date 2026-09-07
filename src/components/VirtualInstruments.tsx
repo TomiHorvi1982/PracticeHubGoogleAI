@@ -654,7 +654,7 @@ export const VirtualInstruments: React.FC = () => {
               a nebylo by zřejmé proč. */}
           {midiStav.tonina && midiStav.tracks.length > 0 && (
             <div className="bg-nastroj/10 border border-nastroj/30 rounded-2xl px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-drobne">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500">Ze skladby</span>
+              <span className="stitek-pole">Ze skladby</span>
               <span className="text-white font-bold">
                 {midiStav.tonina.nazev}
                 <span className="ml-1.5 font-normal text-neutral-400">
@@ -692,7 +692,7 @@ export const VirtualInstruments: React.FC = () => {
               {/* Scale Title */}
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4 text-znacka" />
-                <span className="text-xs font-bold uppercase text-white tracking-wider">
+                <span className="nadpis-panelu">
                   Filtr stupnice písničky (zobrazení not na klávesách)
                 </span>
               </div>
@@ -734,12 +734,18 @@ export const VirtualInstruments: React.FC = () => {
             </div>
 
             {/* Custom Scale & Octave Shift Controls */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-1">
+            {/* Čtyři stejná pole ve dvou řadách.
+
+                Dřív to byla mřížka o čtyřech sloupcích, ve které první
+                pole zabíralo dva — na čtvrté tak zbyla osamocená čtvrtina
+                a vedle ní přes tisíc pixelů prázdna. Ve dvou sloupcích
+                mají všechna stejný díl a řady jsou zarovnané. */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 items-stretch">
               
               {/* Sound Profile Selector */}
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5 sm:col-span-2">
+              <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider block">Zvuk kláves ({ALL_INSTRUMENTS.length} nástrojů)</span>
+                  <span className="stitek-pole block">Zvuk kláves ({ALL_INSTRUMENTS.length} nástrojů)</span>
                   <button
                     onClick={() => setIsSoundLibraryOpen(true)}
                     className="flex items-center gap-1 text-drobne font-bold text-znacka hover:text-znacka-svetla transition-colors cursor-pointer"
@@ -816,7 +822,7 @@ export const VirtualInstruments: React.FC = () => {
 
               {/* Root Note Picker */}
               <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
-                <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider block">Základní tón:</span>
+                <span className="stitek-pole block">Základní tón:</span>
                 <div className="flex flex-wrap gap-1">
                   {CHROMATIC_NOTES.map((note) => (
                     <button
@@ -836,7 +842,7 @@ export const VirtualInstruments: React.FC = () => {
 
               {/* Scale Type Picker */}
               <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
-                <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider block">Typ stupnice:</span>
+                <span className="stitek-pole block">Typ stupnice:</span>
                 <select
                   value={selectedScaleIndex === null ? 'none' : selectedScaleIndex}
                   onChange={(e) => {
@@ -857,7 +863,7 @@ export const VirtualInstruments: React.FC = () => {
               {/* Octave Shift Controls */}
               <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-drobne text-neutral-400 font-semibold uppercase tracking-wider">Posun oktáv</span>
+                  <span className="stitek-pole">Posun oktáv</span>
                   <span className="text-stitek font-mono font-bold text-uspech bg-uspech/10 px-2 py-0.5 rounded-md border border-uspech/30">
                     C{baseOctaveNumber} – C{baseOctaveNumber + 2}
                   </span>

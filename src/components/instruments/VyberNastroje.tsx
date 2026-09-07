@@ -82,7 +82,7 @@ export const VyberNastroje: React.FC<{
             </div>
 
             <div className="flex items-center gap-1.5 mb-0.5">
-              <span className={`text-sm font-bold ${aktivni ? 'text-white' : 'text-neutral-300'}`}>
+              <span className={`nadpis-panelu ${aktivni ? '' : 'text-pismo-tlum'}`}>
                 {n.nazev}
               </span>
               {aktivni && (
@@ -97,7 +97,7 @@ export const VyberNastroje: React.FC<{
             <p className="text-drobne text-neutral-500 leading-tight mb-2.5">{n.popis}</p>
 
             <label className="block">
-              <span className="text-stitek uppercase tracking-widest text-neutral-600">Vstup</span>
+              <span className="stitek-pole">Vstup</span>
               <select
                 value={vstup}
                 onClick={(e) => e.stopPropagation()}

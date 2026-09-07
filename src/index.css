@@ -261,3 +261,49 @@
     min-height: 0;
   }
 }
+
+/*
+ * TŘI ÚROVNĚ POPISKŮ
+ *
+ * Nadpis panelu se dal od štítku pole poznat jen těžko: obojí bylo
+ * dvanáct pixelů verzálkami a lišilo se náhodnou tučností. Naměřeno
+ * pět různých kombinací pro tentýž druh popisku — 400 s prostrkáním
+ * 1,2 px, 500 s 1,2, 600 s −0,18, 600 s 0,3 a 700 s 0,6.
+ *
+ * Rozdíl teď nese tvar, ne váha:
+ *   nadpis  = větší, normální písmena, světlý
+ *   štítek  = menší, verzálky, prostrkaný, tlumený
+ *
+ * Verzálky jsou vyhrazené štítkům. Co je verzálkami, je popisek
+ * něčeho; co je normálně, je název věci samé.
+ */
+@layer components {
+  /* Název sekce — jeden na obrazovku. */
+  .nadpis-sekce {
+    font-size: var(--text-nadpis-1);
+    line-height: var(--text-nadpis-1--line-height);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--color-pismo);
+    text-wrap: balance;
+  }
+
+  /* Název panelu nebo karty uvnitř sekce. */
+  .nadpis-panelu {
+    font-size: var(--text-zaklad);
+    line-height: var(--text-zaklad--line-height);
+    font-weight: 700;
+    letter-spacing: 0;
+    color: var(--color-pismo);
+  }
+
+  /* Štítek pole, skupiny nebo podkategorie. */
+  .stitek-pole {
+    font-size: var(--text-stitek);
+    line-height: var(--text-stitek--line-height);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-pismo-slaby);
+  }
+}
