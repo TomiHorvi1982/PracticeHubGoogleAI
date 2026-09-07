@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--browser",
+        "chrome",
+        "--executable-path",
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "--caps",
+        "vision,devtools"
+      ]
+    }
+  }
+}

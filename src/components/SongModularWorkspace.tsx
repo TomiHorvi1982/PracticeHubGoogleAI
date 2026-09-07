@@ -16,6 +16,25 @@ import { SamplyModul } from './songbook/SamplyModul';
 import { parseSongSections } from '../utils/songSectionUtils';
 import { extractUniqueChords, findOrGenerateChord } from '../utils/chordUtils';
 import { audioSynth } from '../services/audioSynth';
+import { authorizedFetch } from '../services/assetLibraryService';
+
+/*
+ * Údaje z `metadata` písně.
+ *
+ * Sloupec `metadata` se při načtení rozlije rovnou do objektu písně
+ * (viz `rowToSong` v songDatabaseService), takže `song.metadata` je
+ * vždycky `undefined` — čtení přes něj tiše nikdy nic nenajde. Typ
+ * `Song` tahle volitelná pole nezná, proto se sahá přes indexaci.
+ */
+function youtubeIdPisne(s: Song): string | undefined {
+  const v = (s as unknown as Record<string, unknown>).youtubeId;
+  return typeof v === 'string' && v ? v : undefined;
+}
+
+function skoreKandidata(s: Song): number | undefined {
+  const k = (s as unknown as Record<string, any>).youtubeSearchCandidate;
+  return typeof k?.score === 'number' ? k.score : undefined;
+}
 import { ModularTunerSection, ModularFretboardSection, ModularPianoSection } from './ModularWorkspaceExtras';
 import { ModularStemsMixer } from './ModularStemsMixer';
 import { songDatabaseService } from '../services/songDatabaseService';
@@ -178,6 +197,8 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(modules));
     }
+    // Trigger YouTube auto-search after saving
+    triggerYouTubeSearch();
     showToast('✅ Nastavení, moduly a rozložení skladby byly úspěšně uloženy!');
   };
 
@@ -212,6 +233,11 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   // YouTube States
   const [ytInput, setYtInput] = useState('');
   const [selectedYtIndex, setSelectedYtIndex] = useState(0);
+  type YouTubeSearchStatus = 'idle' | 'queued' | 'searching' | 'found' | 'low_confidence' | 'not_found' | 'error' | 'skipped';
+  const [youtubeSearchStatus, setYoutubeSearchStatus] = useState<YouTubeSearchStatus>('idle');
+  const [youtubeSearchMessage, setYoutubeSearchMessage] = useState('');
+  const [youtubeJobId, setYoutubeJobId] = useState<string | null>(null);
+  const [youtubePollingInterval, setYoutubePollingInterval] = useState<NodeJS.Timeout | null>(null);
 
   // Links state
   const [showAddLink, setShowAddLink] = useState(false);
@@ -595,6 +621,119 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     setYtInput('');
   };
 
+  /** Stav hledání na serveru — kvůli tomu, co běží ve frontě. */
+  const checkYouTubeStatus = async () => {
+    try {
+      const res = await authorizedFetch(`/api/songs/${song.id}/youtube-status`);
+      if (!res.ok) return;
+      const data = await res.json();
+
+      if (data.hasConfirmed) {
+        setYoutubeSearchStatus('found');
+        setYoutubeSearchMessage('Skladba už potvrzené YouTube video má.');
+        stopPolling();
+      } else if (data.candidate) {
+        setYoutubeSearchStatus('low_confidence');
+        setYoutubeSearchMessage(`Kandidát nalezen (score: ${data.candidate.score}). Vyžaduje kontrolu.`);
+        stopPolling();
+      } else if (data.searchStatus === 'confirmed') {
+        setYoutubeSearchStatus('found');
+        setYoutubeSearchMessage('YouTube video nalezeno!');
+        stopPolling();
+      } else if (data.searchStatus === 'pending' || data.searchStatus === 'processing') {
+        // Still processing - keep polling
+      } else if (data.searchStatus === 'none') {
+        setYoutubeSearchStatus('queued');
+      } else {
+        setYoutubeSearchStatus('not_found');
+        stopPolling();
+      }
+    } catch (e) {
+      // Silent fail during polling
+    }
+  };
+
+  // Start polling for search results
+  const startPolling = () => {
+    stopPolling(); // Clear any existing interval
+    const interval = setInterval(() => {
+      checkYouTubeStatus();
+    }, 3000); // Poll every 3 seconds
+    setYoutubePollingInterval(interval);
+  };
+
+  // Stop polling
+  const stopPolling = () => {
+    if (youtubePollingInterval) {
+      clearInterval(youtubePollingInterval);
+      setYoutubePollingInterval(null);
+    }
+  };
+
+  // Auto YouTube Search - triggers background search for song's video
+  const triggerYouTubeSearch = async () => {
+    // Check if song already has YouTube data
+    if (song.youtubeVideos && song.youtubeVideos.length > 0) {
+      setYoutubeSearchStatus('skipped');
+      setYoutubeSearchMessage('Song už má připojené YouTube video.');
+      return;
+    }
+    // `metadata` se při načtení písně rozlije do objektu, samostatné
+    // pole tam není — `youtubeId` proto leží rovnou na písni.
+    if (youtubeIdPisne(song)) {
+      setYoutubeSearchStatus('skipped');
+      setYoutubeSearchMessage('Skladba už YouTube ID má.');
+      return;
+    }
+
+    if (!song.title || !song.artist) {
+      setYoutubeSearchStatus('error');
+      setYoutubeSearchMessage('Chybí název písně nebo interpret.');
+      return;
+    }
+
+    // Reset status and show queued
+    setYoutubeSearchStatus('queued');
+    setYoutubeSearchMessage('Hledání enqueued...');
+    setYoutubeJobId(null);
+
+    try {
+      const res = await authorizedFetch(`/api/songs/${song.id}/find-youtube`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: song.title, artist: song.artist,
+          youtubeVideos: song.youtubeVideos, youtubeId: youtubeIdPisne(song),
+        }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setYoutubeSearchStatus('queued');
+        setYoutubeJobId(data.jobId);
+        setYoutubeSearchMessage(`Hledání enqueued (job ${data.jobId}). Prohledáváme…`);
+        // Start polling for results
+        startPolling();
+      } else if (data.action === 'SKIPPED_ALREADY_HAS_YOUTUBE') {
+        setYoutubeSearchStatus('skipped');
+        setYoutubeSearchMessage(data.error);
+      } else {
+        setYoutubeSearchStatus('error');
+        setYoutubeSearchMessage(data.error || 'Chyba při spouštění hledání.');
+      }
+    } catch (e: any) {
+      setYoutubeSearchStatus('error');
+      setYoutubeSearchMessage(e?.message || 'Chyba připojení.');
+    }
+  };
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      stopPolling();
+    };
+  }, []);
+
   // Save Text Changes
   const handleSaveText = () => {
     const updated = {
@@ -940,6 +1079,35 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 Připojit
               </button>
             </div>
+
+            {/* YouTube Search Status */}
+            {youtubeSearchStatus !== 'idle' && (
+              <div className="mt-2 text-xs space-y-1">
+                {youtubeSearchStatus === 'queued' && (
+                  <p className="text-blue-400">Hledání enqueued na serveru - čekáme na zpracování…</p>
+                )}
+                {youtubeSearchStatus === 'searching' && (
+                  <p className="text-neutral-300">Prohledáváme YouTube…</p>
+                )}
+                {youtubeSearchStatus === 'found' && (
+                  <p className="text-znacka">YouTube video nalezeno a potvrzeno!</p>
+                )}
+                {youtubeSearchStatus === 'low_confidence' && (
+                  <p className="text-orange-400">
+                    Kandidát nalezen (skóre {skoreKandidata(song) ?? '?'}). Radši si ho ověř.
+                  </p>
+                )}
+                {youtubeSearchStatus === 'not_found' && (
+                  <p className="text-chyba">Na YouTube nebylo nalezeno žádné vhodné video.</p>
+                )}
+                {youtubeSearchStatus === 'skipped' && (
+                  <p className="text-neutral-500">{youtubeSearchMessage}</p>
+                )}
+                {youtubeSearchStatus === 'error' && (
+                  <p className="text-chyba">{youtubeSearchMessage}</p>
+                )}
+              </div>
+            )}
           </div>
         );
 

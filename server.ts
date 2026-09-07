@@ -35,6 +35,7 @@ import {
   jePresetovySoubor, prectiPreset, sloucPresety, aktivniPresetId, SoundshedPreset,
 } from './server/soundshedPresety';
 import { bezpecneJmeno } from './server/tone3000';
+import { scoreCandidate } from './src/services/autoYouTubeSearch';
 
 dotenv.config();
 
@@ -2280,6 +2281,429 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
       res.json({ videos });
     } catch (err: any) {
       res.status(500).json({ error: 'Chyba při přímém vyhledávání na YouTube.', details: err?.message });
+    }
+  });
+
+  // ─── YouTube Search Queue System ─────────────────────────────────────────
+  // In-memory queue for background YouTube search jobs. Each job processes a
+  // song's YouTube search, scores results, and saves the best match.
+  interface QueuedJob {
+    id: string;                        // Unique job identifier
+    songId: string;                    // Target song ID in Supabase
+    title: string;                     // Song title
+    artist: string;                    // Song artist
+    album?: string;                    // Optional album name
+    priority: 'high' | 'normal' | 'low'; // Processing priority
+    attempts: number;                  // Number of retry attempts
+    maxAttempts: number;               // Maximum allowed retries
+    createdAt: number;                 // Timestamp when job was created
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+  }
+
+  const youtubeQueue: QueuedJob[] = [];
+  let queueWorkerInterval: NodeJS.Timeout | null = null;
+  let queueProcessing = false;
+
+  /**
+   * Kolik hotových jobů si fronta pamatuje.
+   *
+   * Dokončené ani neúspěšné se odsud nikdy nemazaly, takže pole u dlouho
+   * běžícího serveru rostlo donekonečna. Historie je přitom k něčemu jen
+   * chvíli — než si ji uživatel přečte ve stavu.
+   */
+  const STROP_HOTOVYCH = 200;
+
+  function uklidFrontu(): void {
+    const hotove = youtubeQueue.filter((j) => j.status === 'completed' || j.status === 'failed');
+    if (hotove.length <= STROP_HOTOVYCH) return;
+    // Zahodí se ty nejstarší; pořadí v poli je pořadí vzniku.
+    const kZahozeni = new Set(hotove.slice(0, hotove.length - STROP_HOTOVYCH));
+    for (let i = youtubeQueue.length - 1; i >= 0; i--) {
+      if (kZahozeni.has(youtubeQueue[i])) youtubeQueue.splice(i, 1);
+    }
+  }
+
+  /**
+   * Enqueue a YouTube search job for a song.
+   * In-memory queue: restarts will lose pending jobs (acceptable for v1).
+   * Returns existing job ID if already queued.
+   */
+  function enqueueYouTubeSearch(job: Omit<QueuedJob, 'id' | 'attempts' | 'maxAttempts' | 'createdAt' | 'status'>): string {
+    // Check for existing job for this songId (any status except completed/failed)
+    const existing = youtubeQueue.find((j) => j.songId === job.songId && j.status !== 'completed' && j.status !== 'failed');
+    if (existing) {
+      // Keep the higher-priority job
+      const priorityOrder: Record<'high' | 'normal' | 'low', number> = { high: 0, normal: 1, low: 2 };
+      if (priorityOrder[job.priority] >= priorityOrder[existing.priority]) {
+        return existing.id; // Existing job is better or equal
+      }
+      // Replace existing job with higher priority
+      const idx = youtubeQueue.indexOf(existing);
+      youtubeQueue.splice(idx, 1);
+    }
+
+    const newJob: QueuedJob = {
+      id: `yt-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      songId: job.songId,
+      title: job.title,
+      artist: job.artist,
+      album: job.album,
+      priority: job.priority,
+      attempts: 0,
+      maxAttempts: 3,
+      createdAt: Date.now(),
+      status: 'pending',
+    };
+
+    youtubeQueue.push(newJob);
+    console.log(`[youtube] Enqueued job ${newJob.id} for song ${job.songId}: "${job.title}" by "${job.artist}"`);
+    return newJob.id;
+  }
+
+  /**
+   * Process all pending YouTube search jobs (one iteration).
+   * Called by the background worker.
+   * Rate limited: processes ONE job every 60 seconds, with 2 second delay between jobs.
+   */
+  async function processYouTubeQueueIteration(): Promise<void> {
+    if (queueProcessing) return;
+    queueProcessing = true;
+
+    try {
+      // Get the first pending job (sorted by priority: high first)
+      const job = youtubeQueue
+        .filter((j) => j.status === 'pending')
+        .sort((a, b) => {
+          const order: Record<'high' | 'normal' | 'low', number> = { high: 0, normal: 1, low: 2 };
+          return order[a.priority] - order[b.priority];
+        })[0];
+
+      if (!job) {
+        queueProcessing = false;
+        return; // No pending jobs
+      }
+
+      job.status = 'processing';
+
+      // Wait 2 seconds between jobs (rate limiting)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Fetch song data to check for existing YouTube videos
+      const admin = getSupabaseAdmin();
+      // `youtubeVideos` není sloupec — tabulka `songs` má jen id, title,
+      // artist, owner_id, status, metadata a časy. Všechno ostatní leží
+      // uvnitř `metadata`. Dotaz na neexistující sloupec vracel chybu,
+      // takže `existingSong` bylo pokaždé null a obě kontroly níž se
+      // tvářily, že píseň žádné video nemá.
+      const { data: existingSong } = await admin
+        .from('songs').select('metadata').eq('id', job.songId).single();
+      const metaPisne = (existingSong?.metadata as Record<string, any>) || {};
+
+      // CHECK #1: Skip if song already has youtubeVideos (existing player)
+      if ((metaPisne.youtubeVideos?.length || 0) > 0) {
+        console.log(`[youtube] Skipping ${job.songId}: already has youtubeVideos`);
+        job.status = 'completed';
+        return;
+      }
+
+      // CHECK #2: Skip if song already has confirmed youtubeId
+      if (metaPisne.youtubeId) {
+        console.log(`[youtube] Skipping ${job.songId}: already has youtubeId`);
+        job.status = 'completed';
+        return;
+      }
+
+      job.attempts++;
+
+      try {
+        // Run the YouTube search using the existing scraper
+        const response = await fetch('/api/search-youtube', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: job.title, artist: job.artist }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`YouTube search failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const videos = data.videos || [];
+
+        if (videos.length === 0) {
+          if (job.attempts < job.maxAttempts) {
+            job.status = 'pending';
+            console.log(`[youtube] No results for ${job.songId}, retrying (${job.attempts}/${job.maxAttempts})`);
+          } else {
+            job.status = 'failed';
+            console.log(`[youtube] No results for song ${job.songId} after ${job.attempts} attempts`);
+          }
+          return;
+        }
+
+        // Score each candidate using the existing scoring engine
+        const candidates: any[] = videos.map((v: any) =>
+          scoreCandidate(v.title, v.channel || v.author_name, v.type, job.artist, job.title, job.album)
+        );
+
+        // Sort by score descending
+        candidates.sort((a: any, b: any) => b.score - a.score);
+
+        // Count how many candidates meet threshold
+        const thresholdCandidates = candidates.filter((c) => c.confidence !== 'none');
+
+        const best = candidates[0];
+
+        if (!best || best.confidence === 'none') {
+          job.status = 'failed';
+          console.log(`[youtube] No confident result for song ${job.songId}`);
+          return;
+        }
+
+        // Save candidate for review (LOW confidence - NOT confirmed youtubeId)
+      const existingMeta = metaPisne;
+      const candidateData = {
+        videoId: best.videoId,
+        title: best.title,
+        channel: best.channel,
+        type: best.type,
+        score: best.score,
+        confidence: best.confidence,
+        allCandidates: candidates.slice(0, 5),
+      };
+
+      // HIGH confidence: save as confirmed youtubeId
+      if (best.confidence === 'high') {
+        await admin.from('songs').update({
+          metadata: {
+            ...existingMeta,
+            youtubeId: best.videoId,
+            youtubeTitle: best.title,
+            youtubeChannel: best.channel,
+            youtubeType: best.type,
+            youtubeScore: best.score,
+            youtubeConfidence: 'high',
+            // Clear candidate since we now have a confirmed video
+            youtubeSearchCandidate: undefined,
+          },
+        }).eq('id', job.songId);
+
+        job.status = 'completed';
+        console.log(`[youtube] Auto-saved confirmed YouTube video ${best.videoId} for song ${job.songId} (score: ${best.score})`);
+        return;
+      }
+
+      // LOW confidence: save ONLY as candidate, NOT as confirmed video
+      // youtubeId is NOT set - this is for manual review only
+      await admin.from('songs').update({
+        metadata: {
+          ...existingMeta,
+          youtubeSearchCandidate: candidateData,
+          youtubeConfidence: 'low',
+        },
+      }).eq('id', job.songId);
+
+      job.status = 'completed';
+      console.log(`[youtube] Saved low-confidence candidate for ${job.songId} (score: ${best.score}, needs review)`);
+      return;
+
+      } catch (err: any) {
+        console.error(`[youtube] Error processing job ${job.id}:`, err?.message);
+        if (job.attempts < job.maxAttempts) {
+          job.status = 'pending';
+        } else {
+          job.status = 'failed';
+        }
+      }
+    } finally {
+      queueProcessing = false;
+      uklidFrontu();
+    }
+  }
+
+  /**
+   * Background worker: processes the YouTube queue every 60 seconds.
+   * Runs while the server is active.
+   */
+  function startYouTubeQueueWorker(): void {
+    if (queueWorkerInterval) {
+      console.log('[youtube] Queue worker already running, skipping start');
+      return;
+    }
+
+    // Process immediately on first start
+    processYouTubeQueueIteration().then(() => {
+      queueWorkerInterval = setInterval(() => {
+        processYouTubeQueueIteration().catch((e) => {
+          console.error('[youtube] Queue worker error:', e);
+        });
+      }, 60_000); // 60 seconds
+
+      console.log('[youtube] Queue worker started - processing every 60s');
+    });
+  }
+
+  // Expose queue status endpoint
+  // Stav fronty nese názvy skladeb a jejich id, takže patří za
+  // přihlášení stejně jako tři sousední endpointy — ty ho měly, tenhle
+  // jediný ne.
+  app.get('/api/youtube/queue/status', requireAuth, async (req, res) => {
+    const pending = youtubeQueue.filter((j) => j.status === 'pending').length;
+    const processing = youtubeQueue.filter((j) => j.status === 'processing').length;
+    const completed = youtubeQueue.filter((j) => j.status === 'completed').length;
+    const failed = youtubeQueue.filter((j) => j.status === 'failed').length;
+
+    res.json({
+      total: youtubeQueue.length,
+      pending,
+      processing,
+      completed,
+      failed,
+      jobs: youtubeQueue.map((j) => ({
+        id: j.id,
+        songId: j.songId,
+        title: j.title,
+        artist: j.artist,
+        priority: j.priority,
+        status: j.status,
+        attempts: j.attempts,
+        maxAttempts: j.maxAttempts,
+      })),
+    });
+  });
+
+  // Endpoint: trigger YouTube search for a specific song
+  app.post('/api/songs/:id/find-youtube', requireAuth, async (req, res) => {
+    try {
+      const songId = req.params.id;
+      const { title, artist, youtubeVideos, youtubeId } = req.body;
+
+      // Check if song already has YouTube data
+      if (youtubeVideos && youtubeVideos.length > 0) {
+        return res.status(409).json({
+          error: 'Song already has YouTube videos.',
+          action: 'SKIPPED_ALREADY_HAS_YOUTUBE',
+        });
+      }
+      if (youtubeId) {
+        return res.status(409).json({
+          error: 'Song already has YouTube ID.',
+          action: 'SKIPPED_ALREADY_HAS_YOUTUBE',
+        });
+      }
+
+      if (!title || !artist) {
+        return res.status(400).json({ error: 'Chybí název písně nebo interpret.' });
+      }
+
+      // Enqueue the search job
+      const jobId = enqueueYouTubeSearch({
+        songId,
+        title,
+        artist,
+        priority: 'high',
+      });
+
+      res.json({
+        message: 'YouTube search enqueued',
+        jobId,
+        status: 'queued',
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Chyba při enqueueování YouTube hledání.', details: err?.message });
+    }
+  });
+
+  /**
+   * Get YouTube search status for a song.
+   * Returns current search state and any candidate data.
+   */
+  app.get('/api/songs/:id/youtube-status', requireAuth, async (req, res) => {
+    try {
+      const songId = req.params.id;
+      const admin = getSupabaseAdmin();
+
+      const { data: song } = await admin.from('songs').select('metadata').eq('id', songId).single();
+
+      if (!song) {
+        return res.status(404).json({ error: 'Song not found.' });
+      }
+
+      const metadata = (song.metadata as Record<string, any>) || {};
+
+      // Check if song has confirmed YouTube video
+      const hasConfirmed = !!metadata.youtubeId || (metadata.youtubeVideos && metadata.youtubeVideos.length > 0);
+
+      // Get candidate (low confidence result)
+      const candidate = metadata.youtubeSearchCandidate || null;
+
+      // Find job in queue for this song
+      const job = youtubeQueue.find((j) => j.songId === songId);
+
+      res.json({
+        songId,
+        hasConfirmed,
+        candidate,
+        searchStatus: hasConfirmed ? 'confirmed' : (job ? job.status : 'none'),
+        jobId: job?.id || null,
+        attempts: job?.attempts || 0,
+        confidence: metadata.youtubeConfidence || null,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Chyba při načítání statusu.', details: err?.message });
+    }
+  });
+
+  // Start the queue worker when the API routes are set up
+  startYouTubeQueueWorker();
+
+  // Admin endpoint: trigger batch backfill for all songs without YouTube videos
+  app.post('/api/admin/youtube/backfill', requireAuth, async (req, res) => {
+    try {
+      const admin = getSupabaseAdmin();
+
+      // Get all songs that don't have YouTube videos or have low-confidence videos
+      const { data: songs, error } = await admin
+        .from('songs')
+        .select('id, title, artist, metadata')
+        .or('metadata.youtubeId.is.null,metadata.youtubeConfidence.eq.low');
+
+      if (error) {
+        return res.status(500).json({ error: 'Chyba při načítání skladeb pro backfill.' });
+      }
+
+      const enrichedSongs = songs
+        .filter((song) => song.title && song.artist)
+        .slice(0, 20); // Process 20 songs at a time to avoid timeout
+
+      const results = [];
+
+      for (const song of enrichedSongs) {
+        const jobId = enqueueYouTubeSearch({
+          songId: song.id,
+          title: song.title,
+          artist: song.artist,
+          album: (song.metadata as any)?.album || undefined,
+          priority: 'normal',
+        });
+
+        results.push({
+          songId: song.id,
+          title: song.title,
+          artist: song.artist,
+          jobId,
+          status: 'enqueued',
+        });
+      }
+
+      res.json({
+        message: 'Batch backfill triggered',
+        totalSongs: songs.length,
+        processedSongs: enrichedSongs.length,
+        results,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Chyba při spouštění backfill.', details: err?.message });
     }
   });
 
@@ -4757,7 +5181,7 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
         + `?query=${encodeURIComponent(postavDotazTipu(oblast, dekada))}`
         + `&fmt=json&limit=${kolik}&offset=${od}`;
       const odpoved = await vePorade(() => fetch(adresa, {
-        headers: { 'User-Agent': 'NeverLateStudio/1.0 ( hortom82@gmail.com )' },
+        headers: { 'User-Agent': 'NeverLateStudio/1.0 (hortom82@gmail.com)' },
         signal: AbortSignal.timeout(12_000),
       }));
       if (!odpoved.ok) throw new Error(`MusicBrainz vrátil ${odpoved.status}`);

@@ -33,3 +33,8 @@ backups/
 
 # Modely pro místní přepis (stahují se, do gitu nepatří)
 modely/
+
+# Výstupy z prohlížečových testů — logy, snímky, trasování.
+# Vznikají při každém běhu a do repa nepatří.
+.playwright-mcp/
+/*.png

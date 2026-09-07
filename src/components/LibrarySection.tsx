@@ -618,7 +618,12 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             : 'documents');
         const assetType = typAssetuProKategorii(kategorie, type);
         // „Nezařazené" je hromádka, ne složka — do té se nedá nahrát.
-        const podslozka = podkategorieFiltr === '__bez__' ? null : podkategorieFiltr;
+        const explicitniPodkategorie = podkategorieFiltr === '__bez__' ? null : podkategorieFiltr;
+        // Automatická inference podkategorie z názvu souboru — až když
+        // uživatel nic explicitně nevybral. Existující navrhniPodkategorii()
+        // umí rozpoznat názvy nástrojů (kick, snare, hihat…) i české názvy
+        // podkategorii. Pokud ani to nevede k výsledku, zůstane NULL.
+        const podslozka = explicitniPodkategorie ?? navrhniPodkategorii(kategorie, file.name);
 
         try {
           // Správce plní společnou knihovnu, ostatní si nahrávají svoje.
