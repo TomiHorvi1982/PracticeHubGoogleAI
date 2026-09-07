@@ -2416,19 +2416,13 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
       job.attempts++;
 
       try {
-        // Run the YouTube search using the existing scraper
-        const response = await fetch('/api/search-youtube', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ title: job.title, artist: job.artist }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`YouTube search failed: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const videos = data.videos || [];
+        // Scraper se volá přímo, ne přes vlastní HTTP endpoint.
+        //
+        // Dřív tu bylo `fetch('/api/search-youtube')` — relativní adresa,
+        // která v prohlížeči funguje, ale v Node ne: `Failed to parse URL`.
+        // Job proto pokaždé spadl a vyčerpal všechny tři pokusy. Server
+        // tu funkci má vedle sebe, obcházet se přes síť nemusí.
+        const videos = await fetchYouTubeVideosForQuery(job.title, job.artist);
 
         if (videos.length === 0) {
           if (job.attempts < job.maxAttempts) {
@@ -2443,7 +2437,7 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
 
         // Score each candidate using the existing scoring engine
         const candidates: any[] = videos.map((v: any) =>
-          scoreCandidate(v.title, v.channel || v.author_name, v.type, job.artist, job.title, job.album)
+          scoreCandidate(v.id, v.title, v.channel || v.author_name, v.type, job.artist, job.title, job.album)
         );
 
         // Sort by score descending

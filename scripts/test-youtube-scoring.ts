@@ -85,6 +85,7 @@ function runTests() {
 
   for (const tc of TEST_CASES) {
     const result = scoreCandidate(
+      'testovaci-id',
       tc.videoTitle,
       tc.channel,
       tc.videoType,

@@ -57,10 +57,22 @@ const PENALTY = {
   INSTRUMENTAL: 20,
 } as const;
 
-// Thresholdy
+/*
+ * Prahy jistoty.
+ *
+ * `HIGH` je hranice, nad kterou se video uloží samo, bez ptaní. Sedm
+ * desítek na ni bylo málo: shoda názvu (+50) a interpreta (+40) dá 90,
+ * a penalizace za cover (−25) ani karaoke (−15) to pod hranici
+ * nestlačí. Kytarový cover se tak u písně, ke které oficiální klip
+ * neexistuje, ukládal jako „to pravé“.
+ *
+ * Na stovku projde jen nález, který má k shodě názvu a interpreta ještě
+ * nějaký skutečný signál — oficiální kanál, VEVO, Topic. Všechno ostatní
+ * spadne do „needs review“ a jen se nabídne k potvrzení.
+ */
 const THRESHOLDS = {
-  HIGH: 70,      // Auto-save
-  LOW: 40,       // Needs review
+  HIGH: 100,     // Uloží se samo
+  LOW: 40,       // Nabídne se k potvrzení
 } as const;
 
 export interface ScoredCandidate {
@@ -118,6 +130,14 @@ function isPositiveSignal(title: string): string | null {
 // ─── Hlavní scoring funkce ───
 
 export function scoreCandidate(
+  /**
+   * Id videa na YouTube.
+   *
+   * Bylo tu dřív natvrdo prázdné a žádný volající ho nedoplňoval, takže
+   * se u písně uložil název i skóre, ale odkaz na video ne. Je proto
+   * první v pořadí a povinné — kdo ho zapomene, neprojde překladem.
+   */
+  videoId: string,
   videoTitle: string,
   channel: string | undefined,
   videoType: string,
@@ -211,7 +231,7 @@ export function scoreCandidate(
   }
 
   return {
-    videoId: '',
+    videoId,
     title: videoTitle,
     channel,
     type: videoType,
@@ -261,7 +281,7 @@ export async function findBestYouTubeVideo(
 
   // Score each candidate
   const candidates: ScoredCandidate[] = videos.map((v: any) =>
-    scoreCandidate(v.title, v.channel || v.author_name, v.type, artist, title, album)
+    scoreCandidate(v.id || v.videoId, v.title, v.channel || v.author_name, v.type, artist, title, album)
   );
 
   // Sort by score descending
