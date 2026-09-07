@@ -2468,9 +2468,26 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
 
       // HIGH confidence: save as confirmed youtubeId
       if (best.confidence === 'high') {
+        // Do `youtubeVideos` taky, ne jen jako holé `youtubeId`.
+        //
+        // Přehrávač u písně čte pole `youtubeVideos`; samotné `youtubeId`
+        // nikde nečte nikdo. Nalezené video se sice uložilo, ale
+        // v aplikaci se nikdy neobjevilo.
+        const nalezene = {
+          id: best.videoId,
+          title: best.title,
+          url: `https://www.youtube.com/watch?v=${best.videoId}`,
+          type: best.type || 'original',
+          channel: best.channel,
+          addedAt: Date.now(),
+        };
+        const doPole = [...(existingMeta.youtubeVideos || [])];
+        if (!doPole.some((v: any) => v?.id === best.videoId)) doPole.push(nalezene);
+
         await admin.from('songs').update({
           metadata: {
             ...existingMeta,
+            youtubeVideos: doPole,
             youtubeId: best.videoId,
             youtubeTitle: best.title,
             youtubeChannel: best.channel,

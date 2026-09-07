@@ -197,8 +197,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(modules));
     }
-    // Trigger YouTube auto-search after saving
-    triggerYouTubeSearch();
     showToast('✅ Nastavení, moduly a rozložení skladby byly úspěšně uloženy!');
   };
 
@@ -694,7 +692,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
     // Reset status and show queued
     setYoutubeSearchStatus('queued');
-    setYoutubeSearchMessage('Hledání enqueued...');
+    setYoutubeSearchMessage('Zařazuji hledání…');
     setYoutubeJobId(null);
 
     try {
@@ -711,7 +709,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
       if (res.ok) {
         setYoutubeSearchStatus('queued');
         setYoutubeJobId(data.jobId);
-        setYoutubeSearchMessage(`Hledání enqueued (job ${data.jobId}). Prohledáváme…`);
+        setYoutubeSearchMessage('Zařazeno, prohledáváme YouTube…');
         // Start polling for results
         startPolling();
       } else if (data.action === 'SKIPPED_ALREADY_HAS_YOUTUBE') {
@@ -1080,11 +1078,29 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
               </button>
             </div>
 
+            {/* Hledání jako vlastní akce, ne vedlejší účinek ukládání.
+
+                Zapnout ho jde jen tehdy, když je co hledat — bez názvu
+                a interpreta by dotaz stejně nikam nevedl. A když už video
+                připojené je, tlačítko se neukazuje vůbec: přepisovat ho
+                automaticky by bylo horší než ho nechat být. */}
+            {!youtubeVideos.length && song.title && song.artist && (
+              <button
+                onClick={() => void triggerYouTubeSearch()}
+                disabled={youtubeSearchStatus === 'queued' || youtubeSearchStatus === 'searching'}
+                className="mt-1.5 w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-chyba/40 bg-chyba/10 text-chyba text-xs font-bold cursor-pointer hover:bg-chyba/20 transition-colors disabled:opacity-40 disabled:cursor-default"
+              >
+                <Youtube className="w-3.5 h-3.5" />
+                {youtubeSearchStatus === 'queued' || youtubeSearchStatus === 'searching'
+                  ? 'Hledám…' : 'Najít video na YouTube'}
+              </button>
+            )}
+
             {/* YouTube Search Status */}
             {youtubeSearchStatus !== 'idle' && (
               <div className="mt-2 text-xs space-y-1">
                 {youtubeSearchStatus === 'queued' && (
-                  <p className="text-blue-400">Hledání enqueued na serveru - čekáme na zpracování…</p>
+                  <p className="text-blue-400">Zařazeno na server, čekáme na zpracování…</p>
                 )}
                 {youtubeSearchStatus === 'searching' && (
                   <p className="text-neutral-300">Prohledáváme YouTube…</p>

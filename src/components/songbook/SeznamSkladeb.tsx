@@ -13,6 +13,7 @@ import { Song } from '../../types';
 import { KlicRazeni, SLOUPCE, seradPodle, odhadniJazyk } from '../../services/songSort';
 import { MiniPrehravac } from './MiniPrehravac';
 import { dostupnostPisne } from '../../services/dostupnostPisne';
+import { authorizedFetch } from '../../services/assetLibraryService';
 
 interface Props {
   songs: Song[];
@@ -136,6 +137,35 @@ export const SeznamSkladeb: React.FC<Props> = ({
 }) => {
   /** U které skladby je otevřené doplňování materiálů. */
   const [doplnovana, setDoplnovana] = useState<string | null>(null);
+
+  /**
+   * Hledání videa na YouTube, spuštěné z řádku.
+   *
+   * Server si to zařadí do fronty a odbaví na pozadí, takže se tu jen
+   * počká na potvrzení, že je úloha přijatá — ne na výsledek. Ten se
+   * objeví u písně, až ho worker dohledá.
+   */
+  const [hledaSeVideo, setHledaSeVideo] = useState<Set<string>>(new Set());
+  const [videoHotovo, setVideoHotovo] = useState<Set<string>>(new Set());
+
+  const najdiVideo = async (s: Song, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (hledaSeVideo.has(s.id)) return;
+    setHledaSeVideo((x) => new Set(x).add(s.id));
+    try {
+      const r = await authorizedFetch(`/api/songs/${s.id}/find-youtube`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: s.title, artist: s.artist }),
+      });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || 'Nepodařilo se zařadit.');
+      setVideoHotovo((x) => new Set(x).add(s.id));
+    } catch (chyba: any) {
+      alert(chyba?.message || 'Hledání se nepodařilo spustit.');
+    } finally {
+      setHledaSeVideo((x) => { const n = new Set(x); n.delete(s.id); return n; });
+    }
+  };
 
   const [zapnute, setZapnute] = useState<KlicRazeni[]>(() => {
     try {
@@ -609,6 +639,25 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
+                  {/* Dohledání videa. Ukazuje se jen tam, kde ještě žádné
+                      není — u písně s videem by to jen svádělo přepsat
+                      něco, co je v pořádku. */}
+                  {!(s.youtubeVideos?.length) && s.title && s.artist && (
+                    <button
+                      onClick={(e) => void najdiVideo(s, e)}
+                      disabled={hledaSeVideo.has(s.id)}
+                      className={`p-1.5 rounded-lg cursor-pointer transition-all disabled:cursor-default ${
+                        videoHotovo.has(s.id)
+                          ? 'text-uspech'
+                          : 'hover:bg-white/10 text-neutral-500 hover:text-chyba'
+                      }`}
+                      title={videoHotovo.has(s.id)
+                        ? 'Zařazeno — video se dohledá na pozadí'
+                        : 'Najít k písni video na YouTube'}
+                    >
+                      <Youtube className={`w-3.5 h-3.5 ${hledaSeVideo.has(s.id) ? 'animate-pulse' : ''}`} />
+                    </button>
+                  )}
                   {(s.attachments?.length || 0) > 0 && (
                     <button
                       onClick={(e) => void stahni(s, e)}
