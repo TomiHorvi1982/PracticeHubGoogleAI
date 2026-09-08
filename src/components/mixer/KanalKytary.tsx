@@ -3,7 +3,7 @@ import { Guitar, Power, Upload, X, Check, AlertTriangle } from 'lucide-react';
 import { kytaraVMixu, StavKytary } from '../../services/kytaraVMixu';
 import { stemAudioService } from '../../services/stemAudioService';
 import { zvukovaKarta, StavKarty } from '../../services/zvukovaKarta';
-import { authorizedFetch } from '../../services/assetLibraryService';
+import { authorizedFetch, assetLibraryService } from '../../services/assetLibraryService';
 import { platnyNamModel } from '../../services/namModel';
 import { SpektrumKytary } from './SpektrumKytary';
 import { EkvalizerKytary } from './EkvalizerKytary';
@@ -39,6 +39,8 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
   const [stav, setStav] = useState<StavKytary>(kytaraVMixu.getStav());
   const [karta, setKarta] = useState<StavKarty>(zvukovaKarta.getStav());
   const [aparaty, setAparaty] = useState<Aparat[]>([]);
+  const [bedny, setBedny] = useState<{ nazev: string; soubor: string }[]>([]);
+  const [dovoz, setDovoz] = useState<{ hotovo: number; celkem: number } | null>(null);
   const [hlaska, setHlaska] = useState<string | null>(null);
   const [aktivniPreset, setAktivniPreset] = useState<string | null>(null);
 
@@ -133,6 +135,7 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
       try {
         const d = await (await authorizedFetch('/api/aparaty/mistni')).json();
         setAparaty(d.aparaty || []);
+        setBedny(d.bedny || []);
       } catch { /* seznam zůstane prázdný, načíst se dá ze souboru */ }
     })();
   }, []);
@@ -153,6 +156,51 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
     const json = await r.text();
     if (!platnyNamModel(json).platny) { setHlaska('Invalid NAM model.'); return; }
     if (!await kytaraVMixu.nactiModel(json, a.nazev)) setHlaska('Model se nepodařilo načíst.');
+  };
+
+  /**
+   * Přenese modely a impulzy z disku do knihovny.
+   *
+   * Na disku je najde jen tahle appka a jen na tomhle počítači.
+   * V knihovně je najdeš odkudkoli a přežijí přeinstalaci — proto obojí,
+   * ne místo sebe. Duplicity řeší knihovna sama otiskem obsahu, takže
+   * opakovaný dovoz nic nezdvojí.
+   */
+  const dovezDoKnihovny = async () => {
+    const vse = [
+      ...aparaty.map((a) => ({ ...a, typ: 'nam' as const })),
+      ...bedny.map((b) => ({ ...b, typ: 'ir' as const })),
+    ];
+    if (!vse.length) return;
+    setHlaska(null);
+    setDovoz({ hotovo: 0, celkem: vse.length });
+    let chyb = 0;
+    for (let i = 0; i < vse.length; i++) {
+      const s = vse[i];
+      try {
+        const cesta = s.typ === 'nam'
+          ? `/api/aparaty/mistni/soubor?soubor=${encodeURIComponent(s.soubor)}`
+          : `/api/aparaty/mistni/bedna?soubor=${encodeURIComponent(s.soubor)}`;
+        const r = await authorizedFetch(cesta);
+        if (!r.ok) throw new Error('nečitelný');
+        const data = await r.arrayBuffer();
+        await assetLibraryService.upload(
+          new File([data], s.soubor, { type: 'application/octet-stream' }),
+          'nam',
+          'preset',
+          'private',
+          s.typ === 'nam' ? 'AMP' : 'IR',
+          { zdrojovaSlozka: 'z disku' },
+        );
+      } catch {
+        chyb += 1;
+      }
+      setDovoz({ hotovo: i + 1, celkem: vse.length });
+    }
+    setDovoz(null);
+    setHlaska(chyb
+      ? `Do knihovny přeneseno ${vse.length - chyb} z ${vse.length}; ${chyb} se nepodařilo.`
+      : `Do knihovny přeneseno ${vse.length} souborů — najdeš je v NAM.`);
   };
 
   /** Vlastní `.nam` z počítače — přetažením i výběrem. */
@@ -362,6 +410,21 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
           className="flex items-center justify-center gap-1 px-1.5 py-1 rounded-prvek text-stitek text-pismo-slaby hover:text-chyba cursor-pointer"
         >
           <X className="w-3 h-3" /> vyndat model
+        </button>
+      )}
+
+      {/* Přenos do knihovny. Na disku je najde jen tenhle počítač;
+          v knihovně odkudkoli. */}
+      {(aparaty.length > 0 || bedny.length > 0) && (
+        <button
+          onClick={() => void dovezDoKnihovny()}
+          disabled={!!dovoz}
+          title="Nahraje modely a impulzy z disku do knihovny, do složky NAM"
+          className="flex items-center justify-center gap-1 px-1.5 py-1 rounded-prvek text-stitek text-pismo-slaby hover:text-pismo hover:bg-plocha-2 cursor-pointer disabled:opacity-50"
+        >
+          {dovoz
+            ? `Přenáším ${dovoz.hotovo}/${dovoz.celkem}…`
+            : `Do knihovny (${aparaty.length} aparátů, ${bedny.length} beden)`}
         </button>
       )}
 

@@ -248,6 +248,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       case 'guitar_sample': case 'vocal_sample': case 'samples':
         return 'sample';
       case 'backing_tracks': return 'audio';
+      // Model aparátu i impulz bedny jsou nastavení zvuku, ne zvuk sám.
+      case 'nam': return 'preset';
       default:
         return typ === 'guitarpro' ? 'guitar_pro'
           : typ === 'pdf' ? 'pdf'

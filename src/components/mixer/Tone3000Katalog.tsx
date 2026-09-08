@@ -8,7 +8,7 @@ import {
 } from '../../services/tone3000Api';
 import { kytaraVMixu } from '../../services/kytaraVMixu';
 import { platnyNamModel } from '../../services/namModel';
-import { authorizedFetch } from '../../services/assetLibraryService';
+import { authorizedFetch, assetLibraryService } from '../../services/assetLibraryService';
 
 /**
  * Katalog TONE3000 vedle kytarového faderu.
@@ -147,6 +147,27 @@ export const Tone3000Katalog: React.FC = () => {
         throw new Error('Impuls se nepodařilo načíst do bedny.');
       }
 
+      /*
+       * Do knihovny i na disk.
+       *
+       * Na disku ho najde aparát, když appka běží u tebe; v knihovně ho
+       * najdeš odkudkoli a přežije přeinstalaci. Ani jedno samo nestačí,
+       * tak se dělá obojí — a když jedno selže, zvuk hraje dál.
+       */
+      let vKnihovne = false;
+      try {
+        const pripona = typ === 'nam' ? '.nam' : '.wav';
+        await assetLibraryService.upload(
+          new File([data], `${jmeno}${pripona}`, { type: 'application/octet-stream' }),
+          'nam',
+          'preset',
+          'private',
+          typ === 'nam' ? 'AMP' : 'IR',
+          { zdrojovaSlozka: 'TONE3000', tagy: [t.gear, t.format].filter(Boolean) },
+        );
+        vKnihovne = true;
+      } catch { /* knihovna je navíc; na faderu to hraje i bez ní */ }
+
       let ulozeno = false;
       try {
         const r = await authorizedFetch(
@@ -162,7 +183,9 @@ export const Tone3000Katalog: React.FC = () => {
 
       setHotovo((h) => ({
         ...h,
-        [m.id]: ulozeno ? 'na faderu, uloženo' : 'na faderu',
+        [m.id]: vKnihovne && ulozeno ? 'na faderu, v knihovně i na disku'
+          : vKnihovne ? 'na faderu a v knihovně'
+            : ulozeno ? 'na faderu a na disku' : 'na faderu',
       }));
     } catch (e: any) {
       setChyba(e?.message || 'Soubor se nepodařilo použít.');

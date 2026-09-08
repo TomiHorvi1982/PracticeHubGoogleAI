@@ -118,6 +118,23 @@ export const KATEGORIE: Kategorie[] = [
     ikona: '🎛️',
     podkategorie: [],
   },
+  {
+    /*
+     * Nasnímaná aparatura.
+     *
+     * `.nam` je model zesilovače, `.wav` v IR je odezva bedny — dvě
+     * různé věci, které se v řetězu potkají za sebou, takže patří do
+     * jedné složky, ale ne na jednu hromadu.
+     *
+     * Stažené z TONE3000 sem padnou samy; ručně sem jde přetáhnout
+     * cokoli, co si člověk nasnímal nebo stáhl jinde.
+     */
+    id: 'nam',
+    nazev: 'NAM — aparáty a bedny',
+    ikona: '🎚️',
+    podkategorie: ['AMP', 'IR'],
+    napoveda: 'Modely .nam patří do AMP, impulzy .wav do IR.',
+  },
 ];
 
 /**
@@ -169,6 +186,13 @@ export function ikonaKategorie(id: string): string {
  * půlku sbírky špatně a nikdo by si toho nevšiml.
  */
 export function navrhniPodkategorii(kategorie: string, nazev: string): string | null {
+  // U nasnímané aparatury rozhoduje přípona: model zesilovače je vždycky
+  // `.nam`, odezva bedny zvuk. Hádat z názvu tu není co.
+  if (kategorie === 'nam') {
+    if (/\.nam$/i.test(nazev)) return 'AMP';
+    if (/\.(wav|aiff?|flac)$/i.test(nazev)) return 'IR';
+    return null;
+  }
   const n = nazev.toLowerCase();
   const nabidka = PODLE_ID[kategorie]?.podkategorie || [];
 

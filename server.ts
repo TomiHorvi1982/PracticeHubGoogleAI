@@ -631,7 +631,9 @@ export async function createApp() {
      * Členovi se proto uloží jako jeho, ne do společného.
      */
     const jeSpravce = await isProfileAdmin(req.user!.id);
-    const vlastniKategorie = ['my_songs', 'drum_kit_sample'];
+    // Vlastní aparát je osobní věc jako vlastní nahrávka: kdo si stáhne
+    // model z TONE3000, ukládá si ho sobě, ne do společné knihovny.
+    const vlastniKategorie = ['my_songs', 'drum_kit_sample', 'nam'];
     if (!jeSpravce && !vlastniKategorie.includes(String(category))) {
       return res.status(403).json({ error: 'Přidávat do společné knihovny může jen správce.' });
     }
@@ -4513,7 +4515,48 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     }
 
     aparaty.sort((a, b) => a.nazev.localeCompare(b.nazev, 'cs'));
-    return res.json({ dostupne: true, slozka: SLOZKA_APARATU, aparaty });
+
+    /*
+     * Impulzy beden ze sousední složky.
+     *
+     * Model zesilovače a odezva bedny jsou dvě různé věci, ale v řetězu
+     * jdou za sebou a do knihovny patří spolu. Ať se nemusí ptát dvakrát,
+     * chodí obojí jednou odpovědí.
+     */
+    const bedny: { nazev: string; soubor: string; velikost: number }[] = [];
+    try {
+      if (fs.existsSync(SLOZKA_IR)) {
+        for (const jmeno of fs.readdirSync(SLOZKA_IR)) {
+          if (!/\.(wav|aiff?|flac)$/i.test(jmeno)) continue;
+          const st = fs.statSync(path.join(SLOZKA_IR, jmeno));
+          if (st.isFile()) {
+            bedny.push({ nazev: jmeno.replace(/\.[^.]+$/, ''), soubor: jmeno, velikost: st.size });
+          }
+        }
+      }
+    } catch { /* složka s impulzy je nepovinná */ }
+    bedny.sort((a, b) => a.nazev.localeCompare(b.nazev, 'cs'));
+
+    return res.json({
+      dostupne: true, slozka: SLOZKA_APARATU, aparaty,
+      slozkaBeden: SLOZKA_IR, bedny,
+    });
+  });
+
+  /** Obsah jednoho impulzu. Posílá se jako bajty — je to zvuk. */
+  app.get('/api/aparaty/mistni/bedna', requireAuth, async (req, res) => {
+    if (!mistniDiskJde()) return res.status(404).json({ error: 'Místní disk tu není.' });
+    const cil = bezpecnaCesta(SLOZKA_IR, String(req.query.soubor || ''));
+    if (!cil || !/\.(wav|aiff?|flac)$/i.test(cil)) {
+      return res.status(400).json({ error: 'Neplatná cesta.' });
+    }
+    try {
+      const data = fs.readFileSync(cil);
+      res.setHeader('Content-Type', 'audio/wav');
+      return res.send(data);
+    } catch {
+      return res.status(404).json({ error: 'Impulz tam není.' });
+    }
   });
 
   /**
