@@ -9,6 +9,8 @@
  * nebo chybějící jméno nesmí shodit pult.
  */
 
+import { PresetKytary, srovnejPresety } from './presetyKytary';
+
 export interface Sekce {
   id: string;
   nazev: string;
@@ -142,6 +144,8 @@ export function pridejSekci(
  */
 export interface UlozenyPult {
   sekce?: Sekce[];
+  /** Presety kytarového kanálu — rytmika, sólo, akustika. */
+  kytara?: PresetKytary[];
   mrizka?: { bpm: number; faze: number; shoda: number };
   mix?: Record<string, {
     volume: number; pan: number; isMuted: boolean; isSolo: boolean; pitchSemi: number;
@@ -152,6 +156,9 @@ export interface UlozenyPult {
 export function prectiPult(zdroj: any, delka: number): UlozenyPult {
   const p = (zdroj && typeof zdroj === 'object') ? zdroj : {};
   const ven: UlozenyPult = { sekce: srovnejSekce(p.sekce, delka) };
+
+  const presety = srovnejPresety(p.kytara);
+  if (presety.length) ven.kytara = presety;
 
   const m = p.mrizka;
   if (m && Number.isFinite(Number(m.bpm)) && Number(m.bpm) > 0) {
@@ -188,5 +195,6 @@ function cislo(v: any, min: number, max: number, vychozi: number): number {
 
 /** Je v uloženém pultu vůbec něco? Prázdný se k písni nezapisuje. */
 export function maObsah(p: UlozenyPult): boolean {
-  return !!(p.sekce?.length || p.mrizka || (p.mix && Object.keys(p.mix).length));
+  return !!(p.sekce?.length || p.kytara?.length || p.mrizka
+    || (p.mix && Object.keys(p.mix).length));
 }

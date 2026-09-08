@@ -17,7 +17,7 @@ export interface ScaleFilterConfig {
 }
 
 export interface MidiEventPayload {
-  type: 'noteon' | 'noteoff' | 'pitchbend' | 'controlchange';
+  type: 'noteon' | 'noteoff' | 'pitchbend' | 'controlchange' | 'programchange';
   note?: number;
   noteName?: string;
   velocity?: number;
@@ -245,6 +245,21 @@ class MidiService {
       payload = {
         type: 'controlchange',
         value: rawVelocity,
+        channel,
+        deviceName,
+        timestamp: performance.now(),
+      };
+    } else if (command === 0xc) {
+      /*
+       * PROGRAM CHANGE — jím se přepínají presety kytary.
+       *
+       * Má jen jeden datový bajt, ne dva jako ostatní: číslo programu
+       * leží hned za stavovým bajtem. Čte se proto `note`, ne `velocity`,
+       * kde u dvoubajtových zpráv sedí druhá hodnota.
+       */
+      payload = {
+        type: 'programchange',
+        value: note,
         channel,
         deviceName,
         timestamp: performance.now(),

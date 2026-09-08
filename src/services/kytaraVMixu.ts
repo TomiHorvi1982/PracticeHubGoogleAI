@@ -1,6 +1,7 @@
 import * as Tone from 'tone';
 import { namAparat } from './namAparat';
 import { zvukovaKarta } from './zvukovaKarta';
+import { PasmoEq, VYCHOZI_EQ, typPasma } from './presetyKytary';
 
 /**
  * Živá kytara jako kanál stávajícího mixu.
@@ -42,6 +43,9 @@ export interface StavKytary {
   /** Špička vstupu 0–1, na měřák před aparátem. */
   urovenVstupu: number;
 
+  /** Pásma parametrického ekvalizéru — frekvence, zesílení, šířka. */
+  eq: PasmoEq[];
+
   /** Ozvěna. `mix` 0–1 je podíl efektu, `cas` v sekundách, `zpetna` 0–0.9. */
   delay: { zapnuto: boolean; cas: number; zpetna: number; mix: number };
   /** Dozvuk. `delka` je doba doznění v sekundách. */
@@ -53,6 +57,7 @@ const VYCHOZI: StavKytary = {
   model: null, bedna: null,
   bypassAparatu: false, bypassBedny: false, bypassEq: true,
   urovenVstupu: 0,
+  eq: VYCHOZI_EQ.map((x) => ({ ...x })),
   // Vypnuté a s nulovým podílem: kytara má napoprvé znít, jak ji hraješ.
   delay: { zapnuto: false, cas: 0.35, zpetna: 0.35, mix: 0.25 },
   reverb: { zapnuto: false, delka: 2.2, mix: 0.25 },
@@ -181,14 +186,19 @@ class KytaraVMixu {
     this.bednaOd = ctx.createGain();
     this.bednaDo = ctx.createGain();
 
-    // Tři pásma stačí: co kytaře chybí nebo přebývá, se řeší dole,
-    // uprostřed a nahoře. Ve výchozím stavu jsou ploché.
-    this.eq = (['lowshelf', 'peaking', 'highshelf'] as BiquadFilterType[]).map((typ, i) => {
+    /*
+     * Pět pásem, krajní police a tři zvony uprostřed.
+     *
+     * Tři pásma stačila na „přidat basy, ubrat výšky", ale ne na
+     * vyříznutí jedné bručící frekvence, kvůli které se kytara pere
+     * s basou. Frekvenci i šířku zásahu si teď řídí uživatel.
+     */
+    this.eq = this.stav.eq.map((pasmo, i) => {
       const f = ctx.createBiquadFilter();
-      f.type = typ;
-      f.frequency.value = [120, 800, 4000][i];
-      f.gain.value = 0;
-      if (typ === 'peaking') f.Q.value = 0.9;
+      f.type = typPasma(i, this.stav.eq.length);
+      f.frequency.value = pasmo.hz;
+      f.gain.value = this.stav.bypassEq ? 0 : pasmo.db;
+      f.Q.value = pasmo.q;
       return f;
     });
 
@@ -203,10 +213,10 @@ class KytaraVMixu {
     this.aparatOd.connect(this.aparatDo);
     this.aparatDo.connect(this.bednaOd);
     this.bednaOd.connect(this.bednaDo);
+    // Pásma za sebou, ať jich je kolik chce.
     this.bednaDo.connect(this.eq[0]);
-    this.eq[0].connect(this.eq[1]);
-    this.eq[1].connect(this.eq[2]);
-    this.eq[2].connect(this.vystupGain);
+    for (let i = 0; i < this.eq.length - 1; i++) this.eq[i].connect(this.eq[i + 1]);
+    this.eq[this.eq.length - 1].connect(this.vystupGain);
 
     // Ozvěna: vlastní odbočka z výstupu, zpětná vazba uvnitř ní.
     this.delayUzel = ctx.createDelay(2.0);
@@ -423,13 +433,101 @@ class KytaraVMixu {
     }
   }
 
-  public nastavEq(pasmo: 0 | 1 | 2, db: number): void {
-    if (this.eq[pasmo]) this.eq[pasmo].gain.value = this.stav.bypassEq ? 0 : db;
+  /** Změní pásmo ekvalizéru — frekvenci, zesílení i šířku zásahu. */
+  public nastavEq(i: number, zmena: Partial<PasmoEq>): void {
+    const eq = this.stav.eq.map((p, j) => (j === i ? { ...p, ...zmena } : p));
+    this.oznam({ eq });
+    this.pouzijEq();
+  }
+
+  /** Přepíše hodnoty pásem do filtrů. Vypnutý ekvalizér má všude nulu. */
+  private pouzijEq(): void {
+    const ted = this.eq.length ? this.kontext().currentTime : 0;
+    this.stav.eq.forEach((pasmo, i) => {
+      const f = this.eq[i];
+      if (!f) return;
+      f.frequency.setTargetAtTime(pasmo.hz, ted, 0.02);
+      f.Q.setTargetAtTime(pasmo.q, ted, 0.02);
+      f.gain.setTargetAtTime(this.stav.bypassEq ? 0 : pasmo.db, ted, 0.02);
+    });
+  }
+
+  /**
+   * Křivka ekvalizéru pro vykreslení.
+   *
+   * Sečte odezvy všech pásem — filtry jdou za sebou, takže se jejich
+   * zesílení v decibelech sčítá. Vrací `null`, dokud kytara neběží:
+   * bez filtrů není co počítat.
+   */
+  public krivkaEq(frekvence: Float32Array): Float32Array | null {
+    if (!this.eq.length) return null;
+    const soucet = new Float32Array(frekvence.length);
+    const mag = new Float32Array(frekvence.length);
+    const faze = new Float32Array(frekvence.length);
+    for (const f of this.eq) {
+      f.getFrequencyResponse(frekvence, mag, faze);
+      for (let i = 0; i < soucet.length; i++) soucet[i] += 20 * Math.log10(mag[i] || 1e-6);
+    }
+    return soucet;
   }
 
   public setBypassEq(b: boolean): void {
     this.oznam({ bypassEq: b });
-    this.eq.forEach((f) => { if (b) f.gain.value = 0; });
+    // Zapnutí musí vrátit uložená zesílení, ne nechat filtry na nule.
+    this.pouzijEq();
+  }
+
+  /**
+   * Nasadí celý preset naráz.
+   *
+   * Model a bedna se sem nekopírují — preset si je pamatuje jménem a
+   * načítá je volající, který má přístup k souborům. Tady se přepne to,
+   * co je čistě nastavení: hlasitosti, ekvalizér, efekty a obcházení.
+   */
+  public nasadPreset(p: {
+    vstupDb: number; vystupDb: number; eq: PasmoEq[];
+    delay: StavKytary['delay']; reverb: StavKytary['reverb'];
+    bypassAparatu: boolean; bypassBedny: boolean; bypassEq: boolean;
+  }): void {
+    this.oznam({
+      vstupDb: p.vstupDb,
+      vystupDb: p.vystupDb,
+      eq: p.eq.map((x) => ({ ...x })),
+      delay: { ...p.delay },
+      reverb: { ...p.reverb },
+      bypassAparatu: p.bypassAparatu,
+      bypassBedny: p.bypassBedny,
+      bypassEq: p.bypassEq,
+    });
+    if (this.vstupGain) this.vstupGain.gain.value = dbNaPomer(p.vstupDb);
+    if (this.vystupGain) this.vystupGain.gain.value = dbNaPomer(p.vystupDb);
+    if (this.reverbUzel && this.kontextBezi()) {
+      this.reverbUzel.buffer = vyrobOdezvu(this.kontext(), p.reverb.delka);
+    }
+    this.pouzijEq();
+    this.pouzijEfekty();
+    this.prepojAparat();
+    this.prepojBednu();
+  }
+
+  /** Běží kanál? Bez něj nemá smysl sahat na uzly. */
+  private kontextBezi(): boolean { return !!this.vystupGain; }
+
+  /** Aktuální nastavení kanálu — pro uložení do presetu. */
+  public dejNastaveni() {
+    const s = this.stav;
+    return {
+      model: s.model || undefined,
+      bedna: s.bedna || undefined,
+      vstupDb: s.vstupDb,
+      vystupDb: s.vystupDb,
+      eq: s.eq.map((x) => ({ ...x })),
+      delay: { ...s.delay },
+      reverb: { ...s.reverb },
+      bypassAparatu: s.bypassAparatu,
+      bypassBedny: s.bypassBedny,
+      bypassEq: s.bypassEq,
+    };
   }
 }
 

@@ -9,6 +9,7 @@ import { KanalKytary } from './mixer/KanalKytary';
 import { Tone3000Katalog } from './mixer/Tone3000Katalog';
 import { PasSekci, SekceZeSmycky } from './mixer/PasSekci';
 import { Sekce, UlozenyPult, maObsah, prectiPult, srovnejSekce } from '../services/sekceSongu';
+import { PresetKytary, presetProProgram } from '../services/presetyKytary';
 import { nactiVysku, srovnejVysku, ulozVysku } from '../services/rozvrzeniPultu';
 import { KANAL_KYTARY } from '../services/kytaraVMixu';
 import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
@@ -134,6 +135,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
   );
   /** Sekce skladby — sloka, refrén, sólo. Ukládají se k písni. */
   const [sekce, setSekce] = useState<Sekce[]>([]);
+  /** Presety kytarového kanálu u téhle skladby. */
+  const [presetyKytary, setPresetyKytary] = useState<PresetKytary[]>([]);
   const [vyskaStopy, setVyskaStopy] = useState(() => nactiVysku());
   const [ukladaPult, setUkladaPult] = useState(false);
   const [pultUlozen, setPultUlozen] = useState(false);
@@ -496,6 +499,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
     if (!(duration > 0)) { setSekce([]); return; }
     const ulozeno = prectiPult((selectedSong as any)?.pult, duration);
     setSekce(ulozeno.sekce || []);
+    setPresetyKytary(ulozeno.kytara || []);
     setPultUlozen(false);
     // Mřížka spočítaná dřív se jen převezme; počítat ji z audia znovu
     // trvá vteřiny a výsledek je týž.
@@ -519,10 +523,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
     }
     return {
       sekce,
+      kytara: presetyKytary.length ? presetyKytary : undefined,
       mrizka: mrizka.bpm > 0 ? mrizka : undefined,
       mix: Object.keys(mix).length ? mix : undefined,
     };
-  }, [sekce, mrizka, channels]);
+  }, [sekce, presetyKytary, mrizka, channels]);
 
   const ulozPult = async () => {
     if (!selectedSong?.id) return;
@@ -1361,7 +1366,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           <div className="overflow-x-auto">
             <div className="flex items-stretch gap-2 pb-1 min-w-[880px]">
               <div className="w-[300px] shrink-0 flex flex-col gap-2">
-                <KanalKytary />
+                <KanalKytary
+                  presety={presetyKytary}
+                  onPresety={setPresetyKytary}
+                />
               </div>
               {channels[KANAL_KYTARY] && (
                 <div className="flex flex-col w-[168px] shrink-0">

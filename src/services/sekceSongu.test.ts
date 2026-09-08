@@ -140,3 +140,25 @@ test('výška stopy se drží v rozumných mezích', () => {
   assert.equal(srovnejVysku(120.6), 121);
   assert.equal(srovnejVysku(NaN), VYCHOZI_VYSKA_STOPY);
 });
+
+test('presety kytary se uloží k písni a přečtou zpátky', () => {
+  const p = prectiPult({
+    sekce: [],
+    kytara: [
+      { nazev: 'Rytmika', midiProgram: 0, vstupDb: 3 },
+      { nazev: 'Sólo', midiProgram: 1, vystupDb: -2 },
+      'zmetek',
+    ],
+  }, 200);
+  assert.equal(p.kytara!.length, 2);
+  assert.equal(p.kytara![0].nazev, 'Rytmika');
+  assert.equal(p.kytara![0].vstupDb, 3);
+  assert.equal(p.kytara![1].midiProgram, 1);
+  // Pult s presety není prázdný, i když sekce ani mix nejsou.
+  assert.equal(maObsah(p), true);
+});
+
+test('pult bez presetů klíč `kytara` vůbec nenese', () => {
+  const p = prectiPult({ sekce: [] }, 200);
+  assert.equal(p.kytara, undefined);
+});

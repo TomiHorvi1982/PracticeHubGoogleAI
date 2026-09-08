@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Guitar, Power, Upload, X, Check, AlertTriangle } from 'lucide-react';
 import { kytaraVMixu, StavKytary } from '../../services/kytaraVMixu';
 import { stemAudioService } from '../../services/stemAudioService';
@@ -6,6 +6,10 @@ import { zvukovaKarta, StavKarty } from '../../services/zvukovaKarta';
 import { authorizedFetch } from '../../services/assetLibraryService';
 import { platnyNamModel } from '../../services/namModel';
 import { SpektrumKytary } from './SpektrumKytary';
+import { EkvalizerKytary } from './EkvalizerKytary';
+import { PresetyKytary } from './PresetyKytary';
+import { PresetKytary, presetProProgram } from '../../services/presetyKytary';
+import { midiService } from '../../services/midiService';
 
 /**
  * Kytarový kanál v pultu: vstup, aparát, bedna, EQ.
@@ -18,11 +22,57 @@ import { SpektrumKytary } from './SpektrumKytary';
 
 interface Aparat { nazev: string; soubor: string }
 
-export const KanalKytary: React.FC = () => {
+interface Props {
+  /** Presety uložené u téhle skladby. */
+  presety?: PresetKytary[];
+  onPresety?: (p: PresetKytary[]) => void;
+}
+
+export const KanalKytary: React.FC<Props> = ({ presety, onPresety }) => {
   const [stav, setStav] = useState<StavKytary>(kytaraVMixu.getStav());
   const [karta, setKarta] = useState<StavKarty>(zvukovaKarta.getStav());
   const [aparaty, setAparaty] = useState<Aparat[]>([]);
   const [hlaska, setHlaska] = useState<string | null>(null);
+  const [aktivniPreset, setAktivniPreset] = useState<string | null>(null);
+
+  /**
+   * Nasadí preset na kanál.
+   *
+   * Nastavení jde do kanálu rovnou; aparát a bednu si preset pamatuje
+   * jménem, takže se dohledají mezi modely na disku. Když tam ten model
+   * není, zbytek presetu platí dál a řekne se to — lepší než nenasadit
+   * nic kvůli jednomu chybějícímu souboru.
+   */
+  const nasadPreset = async (p: PresetKytary) => {
+    setHlaska(null);
+    kytaraVMixu.nasadPreset(p);
+    if (p.model && p.model !== kytaraVMixu.getStav().model) {
+      const a = aparaty.find((x) => x.nazev === p.model);
+      if (a) await nactiZDisku(a);
+      else setHlaska(`Aparát „${p.model}" mezi modely na disku není — zbytek presetu nasazen.`);
+    }
+  };
+
+  /*
+   * Nožní přepínač.
+   *
+   * Program Change vyvolá preset, který na to číslo slyší. Drží se
+   * v ref, protože posluchač se věší jednou, ale seznam presetů i
+   * obsluha se mění při každém překreslení — jinak by přepínač volal
+   * zastaralou verzi.
+   */
+  const nasadRef = useRef(nasadPreset);
+  nasadRef.current = nasadPreset;
+  const presetyRef = useRef(presety);
+  presetyRef.current = presety;
+
+  useEffect(() => midiService.subscribe((e) => {
+    if (e.type !== 'programchange' || e.value === undefined) return;
+    const p = presetProProgram(presetyRef.current || [], e.value);
+    if (!p) return;
+    setAktivniPreset(p.id);
+    void nasadRef.current(p);
+  }), []);
 
   useEffect(() => kytaraVMixu.subscribe(setStav), []);
   useEffect(() => zvukovaKarta.subscribe(setKarta), []);
@@ -188,6 +238,45 @@ export const KanalKytary: React.FC = () => {
       {blok('AMP', stav.model, stav.bypassAparatu, () => kytaraVMixu.setBypassAparatu(!stav.bypassAparatu))}
       {blok('CAB', stav.bedna, stav.bypassBedny, () => kytaraVMixu.setBypassBedny(!stav.bypassBedny))}
       {blok('EQ', stav.bypassEq ? 'plochý' : 'zapnutý', stav.bypassEq, () => kytaraVMixu.setBypassEq(!stav.bypassEq))}
+
+      {/* Křivka se kreslí z toho, co filtry doopravdy dělají — sečtená
+          odezva všech pásem. Překryv dvou pásem je tak vidět, kdežto
+          podle jezdců se odhaduje špatně. */}
+      {!stav.bypassEq && (
+        <>
+          <EkvalizerKytary eq={stav.eq} bypass={stav.bypassEq} bezi={stav.bezi} />
+          <div className="grid grid-cols-5 gap-1">
+            {stav.eq.map((pasmo, i) => (
+              <label key={i} className="flex flex-col items-center gap-0.5">
+                <input
+                  type="range"
+                  min={-18}
+                  max={18}
+                  step={0.5}
+                  value={pasmo.db}
+                  onChange={(e) => kytaraVMixu.nastavEq(i, { db: Number(e.target.value) })}
+                  title={`${Math.round(pasmo.hz)} Hz — ${pasmo.db > 0 ? '+' : ''}${pasmo.db} dB`}
+                  className="w-full h-1 cursor-pointer"
+                  style={{ accentColor: '#FF9F0A' }}
+                />
+                <span className="text-stitek text-pismo-slaby tabular-nums">
+                  {pasmo.hz >= 1000 ? `${Math.round(pasmo.hz / 100) / 10}k` : Math.round(pasmo.hz)}
+                </span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Presety kanálu — rytmika, sólo, akustika. */}
+      {onPresety && (
+        <PresetyKytary
+          presety={presety || []}
+          aktivni={aktivniPreset}
+          onZmena={onPresety}
+          onNasadit={(p) => { setAktivniPreset(p.id); nasadPreset(p); }}
+        />
+      )}
 
       <select
         value=""
