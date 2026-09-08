@@ -155,6 +155,10 @@ export const OCEKAVANE = [
   'stem_mix',
   'recordings',
   'images',
+  // Kytarový fader do NAM ukládá, co stáhne z TONE3000. Než se stáhne
+  // první model, musí být složka i tak vidět — jinak není kam soubory
+  // z disku přetáhnout.
+  'nam',
 ];
 
 export const PODLE_ID: Record<string, Kategorie> = Object.fromEntries(
