@@ -282,12 +282,12 @@ export const PracticeAssistant: React.FC = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
-                  Vizuální Metronom
+                  Vizuální metronom
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">{bpm} BPM • {beatsPerBar}/4 takt</span>
               </div>
               <h2 className="text-lg font-bold text-white tracking-tight mt-0.5">
-                Přesný Metronom s Nastavením Akcentů
+                Přesný metronom s nastavením akcentů
               </h2>
             </div>
           </div>

@@ -59,6 +59,8 @@ import { parseAnyFile, fileToDataUrl } from '../utils/fileParsers';
 import { GuitarProPlayer } from './GuitarProPlayer';
 import { audioSynth, midiToNoteName } from '../services/audioSynth';
 import { Midi } from '@tonejs/midi';
+import { useSdilenyVyraz } from '../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../services/sdilenyVyraz';
 
 export type LibraryCategory = 'all' | 'guitarpro' | 'pdf' | 'txt' | 'image' | 'midi' | 'audio';
 
@@ -118,6 +120,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   const [prejmenovavany, setPrejmenovavany] = useState<{ id: string; nazev: string } | null>(null);
   const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
   const [searchQuery, setSearchQuery] = usePamet('knihovna_hledani', '');
+
+  /*
+   * Výraz napsaný jinde.
+   *
+   * Tohle pole filtruje průběžně a nemá odesílací tlačítko — stačí do něj
+   * výraz vložit a seznam se přefiltruje sám (viz efekt s prodlevou níž).
+   */
+  useSdilenyVyraz((v) => setSearchQuery(v));
   /**
    * Filtr podle sbírky — druhá osa knihovny.
    *
@@ -831,7 +841,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
     }
     setStatusMessage({
       type: 'success',
-      text: `Skladba "${newSong.title}" byla úspěšně přidána do Song Library!`,
+      text: `Skladba "${newSong.title}" byla úspěšně přidána do knihovny skladeb!`,
     });
     if (onSelectSongForPlayback) {
       onSelectSongForPlayback(newSong);
@@ -1044,6 +1054,11 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                // Dál se výraz pošle až Enterem, ne při každém písmenu —
+                // jinak by ostatní sekce přebíraly rozepsané půlslovo.
+                if (e.key === 'Enter' && searchQuery.trim()) sdilenyVyraz.nastav(searchQuery);
+              }}
               placeholder="Vyhledat soubor, interpreta..."
               className="w-full bg-plocha-2 border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-info outline-none transition-all shadow-sm"
             />
@@ -1362,7 +1377,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   <button
                     onClick={() => handleCreateSongFromItem(activeItem)}
                     className="px-3.5 py-2 bg-uspech hover:bg-uspech-svetla text-black text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-md"
-                    title="Vytvořit novou skladbu v Song Library z tohoto souboru"
+                    title="Vytvořit novou skladbu v knihovně skladeb z tohoto souboru"
                   >
                     <Plus className="w-4 h-4" /> <span>Přidat do zpěvníku</span>
                   </button>

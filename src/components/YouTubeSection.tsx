@@ -1,5 +1,7 @@
 import { spustDoplneni } from '../services/enrichmentClient';
 import React, { useState, useEffect } from 'react';
+import { useSdilenyVyraz } from '../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../services/sdilenyVyraz';
 import { Song, YouTubeVideo } from '../types';
 import { searchYouTubeDirect, searchYouTubeForSong } from '../services/onlineSongSearch';
 import { TipyKapel } from './youtube/TipyKapel';
@@ -84,7 +86,13 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
   // Handle Direct YouTube Search (Fetches ~10-15 top videos with title and thumbnails)
   const handleDirectSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!youtubeQuery.trim()) return;
+    void hledejNaYoutube(youtubeQuery);
+  };
+
+  /** Vlastní hledání, ať jde spustit i sdíleným výrazem, nejen formulářem. */
+  const hledejNaYoutube = async (dotaz: string) => {
+    if (!dotaz.trim()) return;
+    sdilenyVyraz.nastav(dotaz);
 
     setIsDirectSearching(true);
     setError(null);
@@ -92,7 +100,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     setDirectYtResults([]);
 
     try {
-      const results = await searchYouTubeDirect(youtubeQuery.trim());
+      const results = await searchYouTubeDirect(dotaz.trim());
       if (results.length === 0) {
         setError('Nebyly nalezeny žádné YouTube výsledky pro váš dotaz. Zkuste upřesnit hledání.');
       } else {
@@ -104,6 +112,9 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
       setIsDirectSearching(false);
     }
   };
+
+  // Výraz napsaný jinde: pole se vyplní a hledá se při vstupu do sekce.
+  useSdilenyVyraz((v) => { setYoutubeQuery(v); void hledejNaYoutube(v); });
 
   // Open import prompt for a video
   const triggerImportPrompt = (video: YouTubeVideo) => {
@@ -349,7 +360,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
         {importingVideo && (
           <div className="bg-plocha-2 border border-chyba/40 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
             <h4 className="text-sm font-bold text-chyba uppercase border-b border-white/5 pb-2 flex items-center gap-2">
-              <Type className="w-4 h-4" /> Pojmenujte novou skladbu v Song Library
+              <Type className="w-4 h-4" /> Pojmenujte novou skladbu v knihovně skladeb
             </h4>
             <p className="text-xs text-neutral-400">
               Tato skladba bude uložena do vaší kytarové knihovny. Později si pod ní můžete nahrát vlastní akordy a GP tabulatury.

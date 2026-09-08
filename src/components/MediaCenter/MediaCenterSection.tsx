@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSdilenyVyraz } from '../../services/useSdilenyVyraz';
+import { sdilenyVyraz } from '../../services/sdilenyVyraz';
 import { audioBus } from '../../services/audioBus';
 import { nactiYouTubeApi } from '../../services/youtubeApi';
 import { Song, MediaTrack, LyricLine, MediaPlaylist, MediaPlaybackState, YouTubeVideo } from '../../types';
@@ -239,9 +241,18 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
   }, [playbackState.lyricsIndex]);
 
   // Search handler
-  const handleSearch = async (e?: React.FormEvent) => {
+  /**
+   * `dotaz` se předává, ne čte ze stavu.
+   *
+   * Sdílený výraz přijde zvenčí a `setSearchQuery` se projeví až
+   * v dalším vykreslení — hledalo by se tedy s tím, co bylo v poli
+   * předtím.
+   */
+  const handleSearch = async (e?: React.FormEvent, dotaz?: string) => {
     if (e) e.preventDefault();
-    if (!searchQuery.trim()) return;
+    const q = (dotaz ?? searchQuery).trim();
+    if (!q) return;
+    sdilenyVyraz.nastav(q);
 
     setIsSearching(true);
     setSearchError(null);
@@ -252,7 +263,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: searchQuery.trim(),
+          query: q,
           filter: searchFilter,
         }),
       });
@@ -269,6 +280,9 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
       setIsSearching(false);
     }
   };
+
+  // Výraz napsaný jinde: pole se vyplní a hledá se při vstupu do sekce.
+  useSdilenyVyraz((v) => { setSearchQuery(v); void handleSearch(undefined, v); });
 
   // Helper to format seconds
   const formatTime = (secs: number) => {
@@ -296,7 +310,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
       tuning: 'Standard (EADGBe)',
       chordsUsed: ['G', 'C', 'D', 'Em'],
       content: `[G] Úvodní sloka pro novou skladbu: ${track.title}
-[C] Akordy a text můžete editovat přímo v Song Library.
+[C] Akordy a text můžete editovat přímo v knihovně skladeb.
 [D] Přehrávač Media Center je propojen s touto skladbou.`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
@@ -521,7 +535,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             <div className="space-y-6 max-w-5xl mx-auto">
               <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-white mb-1">Vyhledávač Backing Tracků & YouTube Music</h2>
+                  <h2 className="text-base font-bold text-white mb-1">Vyhledávač backing tracků a YouTube Music</h2>
                   <p className="text-xs text-slate-400">
                     Najděte kytarové podklady, drumless smyčky, karaoke, originální nahrávky nebo video lekce.
                   </p>
@@ -677,7 +691,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               <button
                                 onClick={() => handleCreateSongFromTrack(track)}
                                 className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-stitek font-medium transition-colors cursor-pointer ml-auto"
-                                title="Vytvořit novou skladbu v Song Library z tohoto podkladu"
+                                title="Vytvořit novou skladbu v knihovně skladeb z tohoto podkladu"
                               >
                                 + Song Library
                               </button>

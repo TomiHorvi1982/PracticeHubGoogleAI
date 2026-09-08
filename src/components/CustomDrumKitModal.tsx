@@ -1225,7 +1225,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                       className="flex items-center gap-1.5 px-4 py-1.5 bg-uspech hover:bg-uspech/90 text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-md"
                     >
                       <Check className="w-3.5 h-3.5" />
-                      <span>Spustit Import všech souborů</span>
+                      <span>Spustit import všech souborů</span>
                     </button>
                   </div>
 

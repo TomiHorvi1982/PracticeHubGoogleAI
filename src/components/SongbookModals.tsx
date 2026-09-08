@@ -69,7 +69,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
           onClick={handleAddGlobalAudio}
           className="w-full p-3 bg-znacka/15 hover:bg-znacka/25 border border-znacka/30 text-white rounded-2xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer"
         >
-          <span>🎵 Hlavní Audio Přehrávač</span>
+          <span>🎵 Hlavní audio přehrávač</span>
           <Plus className="w-4 h-4 text-znacka" />
         </button>
 

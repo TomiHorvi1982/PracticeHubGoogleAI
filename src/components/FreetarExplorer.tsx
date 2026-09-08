@@ -542,7 +542,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
     onSongImported(newSong);
     setStatusMessage({
       type: 'success',
-      text: `Skladba "${newSong.title}" (${newSong.artist}) byla úspěšně přidána do Song Library!`,
+      text: `Skladba "${newSong.title}" (${newSong.artist}) byla úspěšně přidána do knihovny skladeb!`,
     });
     setPreviewTab(null);
   };
@@ -891,7 +891,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                               <button
                                 onClick={() => handleImportToSongbook(res)}
                                 className="px-3 py-1.5 bg-uspech hover:bg-uspech-svetla text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer active:scale-95"
-                                title="Importovat přímo do Song Library"
+                                title="Importovat přímo do knihovny skladeb"
                               >
                                 <Plus className="w-3.5 h-3.5" /> Do Song Library
                               </button>
@@ -1055,7 +1055,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => handleImportToSongbook(previewTab)}
                   className="px-4 py-2 bg-uspech hover:bg-uspech-svetla text-black text-xs font-bold uppercase rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
                 >
-                  <Plus className="w-4 h-4" /> Uložit do Song Library
+                  <Plus className="w-4 h-4" /> Uložit do knihovny skladeb
                 </button>
                 <button
                   onClick={() => setPreviewTab(null)}

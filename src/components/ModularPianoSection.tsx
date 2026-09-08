@@ -492,7 +492,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded-full bg-fuchsia-500 border border-fuchsia-300 inline-block"></span>
-            <span className="font-semibold text-slate-300">Septima &amp; Rozšíření (7 / 9)</span>
+            <span className="font-semibold text-slate-300">Septima a rozšíření (7 / 9)</span>
           </div>
         </div>
       </div>

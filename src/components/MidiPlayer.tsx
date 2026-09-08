@@ -373,7 +373,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               <span className="odznak bg-info text-white px-2 py-0.5 rounded-md">
                 MIDI Player
               </span>
-              <span className="text-xs text-neutral-400 font-medium">Syntetizér &amp; Piano Roll</span>
+              <span className="text-xs text-neutral-400 font-medium">Syntetizér a Piano Roll</span>
             </div>
             <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
               Přehrávač a Vizualizér MIDI Souborů
@@ -467,7 +467,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
           {/* Interactive Visual Piano Roll Canvas */}
           <div className="border border-white/5 bg-black/40 rounded-2xl p-3 relative">
             <div className="flex items-center justify-between text-xs text-neutral-400 mb-2">
-              <span className="font-medium">Vizuální Piano Roll osnova</span>
+              <span className="font-medium">Osnova Piano Roll</span>
               <span className="font-mono text-white">{currentTime.toFixed(1)}s / {totalDuration.toFixed(1)}s</span>
             </div>
             <canvas
