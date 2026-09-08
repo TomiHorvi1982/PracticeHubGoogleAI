@@ -729,6 +729,16 @@ class StemAudioService {
     this.stop();
     this.currentTime = konec;
     this.notify();
+    /*
+     * Povel pro Pódium, ať posune setlist.
+     *
+     * Rozesílá se událostí, ne voláním: pult o Pódiu neví a vědět nemá.
+     * Kdo poslouchá, ten se posune; kdo ne, tomu se nic neděje.
+     * Při hraní dokola sem řízení nedojde — `dalsiCas` konec nehlásí.
+     */
+    window.dispatchEvent(new CustomEvent('neverlate:skladba-dohrala', {
+      detail: { songId: this.selectedSong?.id || null },
+    }));
   }
 
   /**

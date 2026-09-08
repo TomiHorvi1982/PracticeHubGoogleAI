@@ -89,6 +89,16 @@ const ROLE_FADERU: { id: string; popis: string }[] = [
 interface StemMixerSectionProps {
   currentUser?: any;
   /**
+   * Píseň, na které Pódium stojí.
+   *
+   * Pult si sám drží naposledy vybranou sadu stop; na Pódiu ale má
+   * ukazovat tu, která patří k právě hrané písni. Bez toho by se
+   * v setlistu přepínala okna, ale fadery i kytarový preset by zůstaly
+   * od předchozí skladby.
+   */
+  pisen?: { title?: string; artist?: string } | null;
+
+  /**
    * Pult v plovoucím okně na Pódiu.
    *
    * Sekční omáčka jde pryč — hlavička s nápovědou, nahrávání do knihovny
@@ -110,7 +120,7 @@ const stemColors: Record<string, { accent: string; badge: string; bg: string; bo
   other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30', label: 'Synth / Ostatní' },
 };
 
-export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser, vOkne }) => {
+export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser, vOkne, pisen }) => {
   const [audioState, setAudioState] = useState<StemAudioState>(stemAudioService.getState());
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -488,6 +498,24 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
     return () => { zruseno = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioReady, selectedSong?.id]);
+
+  /*
+   * Pult jde za písní z Pódia.
+   *
+   * Páruje se podle jména a interpreta, ne podle id: sada stop má
+   * vlastní identitu a se zpěvníkovou písní ji nespojuje nic jiného.
+   * Když sada k písni není, nechá se, co je vybrané — prázdný pult by
+   * na pódiu nepomohl nikomu.
+   */
+  useEffect(() => {
+    if (!pisen?.title) return;
+    const klic = (t?: string, a?: string) =>
+      `${(a || '').trim().toLowerCase()}|${(t || '').trim().toLowerCase()}`;
+    const hledany = klic(pisen.title, pisen.artist);
+    if (klic(selectedSong?.title, selectedSong?.artist) === hledany) return;
+    const sada = songs.find((x) => klic(x.title, x.artist) === hledany);
+    if (sada) stemAudioService.selectSong(sada);
+  }, [pisen?.title, pisen?.artist, songs, selectedSong?.title, selectedSong?.artist]);
 
   /**
    * Načte, co je u písně uložené.
@@ -1369,6 +1397,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                 <KanalKytary
                   presety={presetyKytary}
                   onPresety={setPresetyKytary}
+                  idPisne={selectedSong?.id || null}
                 />
               </div>
               {channels[KANAL_KYTARY] && (

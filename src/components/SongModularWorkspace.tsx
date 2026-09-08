@@ -1135,7 +1135,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
       case 'stems_mixer':
         // Plný pult, ne zkrácená verze: na pódiu je potřeba i vlnovka,
         // smyčky, sekce a kytarový kanál s NAM — ne jen holé fadery.
-        return <StemMixerSection vOkne />;
+        return <StemMixerSection vOkne pisen={song} />;
 
       case 'tuner':
         return <ModularTunerSection currentTuningName={song.tuning} />;

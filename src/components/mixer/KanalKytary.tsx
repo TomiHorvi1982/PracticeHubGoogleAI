@@ -26,9 +26,16 @@ interface Props {
   /** Presety uložené u téhle skladby. */
   presety?: PresetKytary[];
   onPresety?: (p: PresetKytary[]) => void;
+  /**
+   * Která skladba je na pultu.
+   *
+   * Podle změny se pozná, že se má nasadit její první preset — jinak by
+   * po přepnutí v setlistu zůstal na kytaře zvuk z předchozí písně.
+   */
+  idPisne?: string | null;
 }
 
-export const KanalKytary: React.FC<Props> = ({ presety, onPresety }) => {
+export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) => {
   const [stav, setStav] = useState<StavKytary>(kytaraVMixu.getStav());
   const [karta, setKarta] = useState<StavKarty>(zvukovaKarta.getStav());
   const [aparaty, setAparaty] = useState<Aparat[]>([]);
@@ -65,6 +72,25 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety }) => {
   nasadRef.current = nasadPreset;
   const presetyRef = useRef(presety);
   presetyRef.current = presety;
+
+  /*
+   * Po přepnutí skladby naskočí její první preset.
+   *
+   * Pořadí v seznamu rozhoduje: první je ten, se kterým se do písně jde.
+   * Hlídá se `idPisne`, ne samotný seznam — jinak by se preset nasadil
+   * znovu pokaždé, když v něm uživatel něco změní, a přepsal by mu, co
+   * si právě zkoušel.
+   */
+  const nasazenoPro = useRef<string | null>(null);
+  useEffect(() => {
+    if (!idPisne || nasazenoPro.current === idPisne) return;
+    const prvni = presety?.[0];
+    if (!prvni) return;
+    nasazenoPro.current = idPisne;
+    setAktivniPreset(prvni.id);
+    void nasadPreset(prvni);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idPisne, presety]);
 
   useEffect(() => midiService.subscribe((e) => {
     if (e.type !== 'programchange' || e.value === undefined) return;

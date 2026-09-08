@@ -109,6 +109,13 @@ export const Podium: React.FC<Props> = ({
    */
   const mimoSet = Boolean(aktivni && vPlaylistu.length > 0 && kde < 0);
 
+  // Posluchač se věší jednou, ale pozice i seznam se mění — proto refy.
+  const kdeRef = useRef(kde);
+  kdeRef.current = kde;
+  const vPlaylistuRef = useRef(vPlaylistu);
+  vPlaylistuRef.current = vPlaylistu;
+  const prepniRef = useRef<(p: number) => void>(() => {});
+
   const vyberPlaylist = (id: string) => {
     setPlaylistId(id);
     podiumProfil.ulozPlaylist(id);
@@ -120,6 +127,36 @@ export const Podium: React.FC<Props> = ({
     const dalsi = kde < 0 ? 0 : (kde + posun + vPlaylistu.length) % vPlaylistu.length;
     onVybrat(vPlaylistu[dalsi]);
   };
+  prepniRef.current = prepni;
+
+  /*
+   * Setlist jede sám.
+   *
+   * Jakmile skladba dohraje, posune se na další v pořadí — jinak by se
+   * mezi písněmi muselo doklikávat, což je na pódiu to poslední, co kdo
+   * chce dělat. Posouvá se jen během hraní: dohrání po ručním poslechu
+   * mimo set by jinak setlist rozjelo samo od sebe.
+   *
+   * Rozložení oken, mix i kytarový preset naskočí s písní samy — plocha
+   * i pult se řídí tím, která skladba je vybraná.
+   */
+  const hrajeRef = useRef(hraje);
+  hrajeRef.current = hraje;
+
+  useEffect(() => {
+    const dohralo = () => {
+      if (!hrajeRef.current) return;
+      // Na konci setu se zastaví, nezacyklí. Přehrát znovu je rozhodnutí,
+      // ne výchozí chování.
+      if (kdeRef.current >= 0 && kdeRef.current >= vPlaylistuRef.current.length - 1) {
+        setHraje(false);
+        return;
+      }
+      prepniRef.current(1);
+    };
+    window.addEventListener('neverlate:skladba-dohrala', dohralo);
+    return () => window.removeEventListener('neverlate:skladba-dohrala', dohralo);
+  }, []);
 
   // Odpočet žije v ref, aby ho šlo zrušit i z jiného tiknutí než toho,
   // které ho spustilo.
