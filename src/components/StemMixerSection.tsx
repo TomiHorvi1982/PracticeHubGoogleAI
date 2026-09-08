@@ -539,6 +539,28 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
     }
   }, [selectedSong?.id, duration]);
 
+  /*
+   * Smyčka na sekci hlasem.
+   *
+   * Jméno se porovnává volně a bez diakritiky — vyslovené „refren" má
+   * sednout na „Refrén". Bez názvu se smyčka ruší.
+   */
+  useEffect(() => {
+    const naPovel = (e: Event) => {
+      const chce = (e as CustomEvent).detail?.nazev;
+      if (!chce) { setSmycka(null); stemAudioService.setSmycka(null); return; }
+      const bez = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const hledany = bez(String(chce));
+      const s = sekce.find((x) => bez(x.nazev) === hledany || bez(x.nazev).includes(hledany));
+      if (!s) return;
+      const sm = { od: s.od, do: s.do };
+      setSmycka(sm);
+      stemAudioService.setSmycka(sm);
+    };
+    window.addEventListener('neverlate:smycka-sekce', naPovel);
+    return () => window.removeEventListener('neverlate:smycka-sekce', naPovel);
+  }, [sekce]);
+
   /** Sesbírá, co má smysl uložit. */
   const sesbirejPult = React.useCallback((): UlozenyPult => {
     const mix: NonNullable<UlozenyPult['mix']> = {};

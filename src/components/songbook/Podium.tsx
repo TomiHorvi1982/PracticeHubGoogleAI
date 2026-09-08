@@ -7,6 +7,8 @@ import { Song } from '../../types';
 import { audioSynth } from '../../services/audioSynth';
 import { audioBus } from '../../services/audioBus';
 import { podiumProfil } from '../../services/podiumProfil';
+import { zaregistruj } from '../../services/hlas/vykonavac';
+import { rekni } from '../../services/hlas/odpoved';
 import { ObalkyPisne } from './ObalkyPisne';
 import { usePretahovaniPoradi } from './usePretahovaniPoradi';
 
@@ -209,6 +211,58 @@ export const Podium: React.FC<Props> = ({
     tik();
     casovac.current = window.setInterval(tik, 60000 / bpm);
   };
+  // Obsluha se věší jednou, ale `spust` se při každém překreslení mění.
+  const spustRef = useRef(spust);
+  spustRef.current = spust;
+
+  /*
+   * OVLÁDÁNÍ PÓDIA HLASEM
+   *
+   * Na pódiu se nekliká — ruce drží nástroj. Obsluhy sedí tady, protože
+   * jen tady jsou po ruce: režim na celou obrazovku, odpočet i posun
+   * v setlistu jsou stav téhle komponenty.
+   *
+   * Registruje se, jen dokud je Pódium na obrazovce. Katalog tak říká
+   * pravdu: mimo Pódium se tyhle příkazy hlásí jako nezapojené místo
+   * aby tiše nedělaly nic.
+   */
+  useEffect(() => {
+    const odeber = [
+      zaregistruj('podium.rezim', () => {
+        setNaCelou(true);
+        rekni('Pódiový režim.');
+      }),
+      zaregistruj('podium.zavriRezim', () => {
+        setNaCelou(false);
+        rekni('Zpátky do okna.');
+      }),
+      zaregistruj('podium.odpocet', () => {
+        spustRef.current();
+        rekni('Počítám.');
+      }),
+      zaregistruj('podium.srovnejOkna', () => {
+        window.dispatchEvent(new CustomEvent('neverlate:podium-srovnej'));
+        rekni('Srovnáno.');
+      }),
+      zaregistruj('podium.otevriOkno', ({ druh }) => {
+        window.dispatchEvent(new CustomEvent('neverlate:podium-okno', { detail: { druh } }));
+        rekni(`Otevírám ${String(druh || 'okno')}.`);
+      }),
+      zaregistruj('podium.preset', ({ nazev }) => {
+        window.dispatchEvent(new CustomEvent('neverlate:kytara-preset', { detail: { nazev } }));
+        rekni(`Preset ${String(nazev || '')}.`);
+      }),
+      zaregistruj('podium.smyckaSekce', ({ nazev }) => {
+        window.dispatchEvent(new CustomEvent('neverlate:smycka-sekce', { detail: { nazev } }));
+        rekni(`Dokola ${String(nazev || '')}.`);
+      }),
+      zaregistruj('podium.zrusSmycku', () => {
+        window.dispatchEvent(new CustomEvent('neverlate:smycka-sekce', { detail: { nazev: null } }));
+        rekni('Smyčka zrušena.');
+      }),
+    ];
+    return () => odeber.forEach((f) => f());
+  }, []);
 
   const udaj = (popis: string, hodnota: string | number | undefined) =>
     hodnota ? (

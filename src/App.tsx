@@ -24,6 +24,8 @@ import { ZalozkySection } from './components/ZalozkySection';
 import { PractiseHubSection } from './components/PractiseHubSection';
 import { TextySection } from './components/TextySection';
 import { StemMixerSection } from './components/StemMixerSection';
+import { sdilenyVyraz } from './services/sdilenyVyraz';
+import { rekni } from './services/hlas/odpoved';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { PodiumSection } from './components/PodiumSection';
 import { UvitaniSection } from './components/UvitaniSection';
@@ -217,6 +219,45 @@ function AppContent() {
           setActiveSong(nalez.song);
           setActiveTab('songbook');
         }
+      }),
+
+      /*
+       * HLEDÁNÍ HLASEM
+       *
+       * Výraz jde do sdíleného vyhledávání, odkud si ho převezmou
+       * všechny sekce, které na něj slyší. Hlasem se tak dá hledat,
+       * aniž by se muselo přepínat tam, kde se hledá — a odpověď
+       * řekne, kolik toho je, aby se nemuselo koukat.
+       */
+      zaregistruj('hledani.vyraz', ({ vyraz }) => {
+        const v = String(vyraz || '').trim();
+        if (!v) { rekni({ druh: 'nerozumim' }); return; }
+        sdilenyVyraz.nastav(v);
+        setActiveTab('songbook');
+        rekni(`Hledám ${v}.`);
+      }),
+      zaregistruj('hledani.kapela', ({ vyraz }) => {
+        const v = String(vyraz || '').trim();
+        if (!v) { rekni({ druh: 'nerozumim' }); return; }
+        sdilenyVyraz.nastav(v);
+        setActiveTab('songbook');
+        rekni(`Hledám kapelu ${v}.`);
+      }),
+      zaregistruj('hledani.tabulatura', ({ vyraz }) => {
+        const v = String(vyraz || '').trim();
+        if (v) sdilenyVyraz.nastav(v);
+        setActiveTab('alphatab');
+        rekni(v ? `Tabulatury na ${v}.` : 'Otevírám Guitar Pro.');
+      }),
+      zaregistruj('hledani.video', ({ vyraz }) => {
+        const v = String(vyraz || '').trim();
+        if (v) sdilenyVyraz.nastav(v);
+        setActiveTab('songbook');
+        rekni(v ? `Videa na ${v}.` : 'Otevírám hledání videa.');
+      }),
+      zaregistruj('hledani.zrus', () => {
+        sdilenyVyraz.nastav('');
+        rekni('Hledání zrušeno.');
       }),
     ];
     return () => odeber.forEach((f) => f());

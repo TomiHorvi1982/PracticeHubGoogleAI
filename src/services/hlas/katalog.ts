@@ -29,7 +29,8 @@ export interface Akce {
   /** Věta, kterou se akce vysvětlí v katalogu. */
   popis: string;
   /** Do které části aplikace patří — jen pro přehled. */
-  skupina: 'přehrávání' | 'navigace' | 'metronom' | 'nahrávání' | 'zpěvník';
+  skupina: 'přehrávání' | 'navigace' | 'metronom' | 'nahrávání' | 'zpěvník'
+    | 'hledání' | 'pódium';
   parametry: ParametrAkce[];
   /** Fráze, kterými akce funguje hned, bez vlastního příkazu. */
   vychoziFraze: string[];
@@ -194,6 +195,125 @@ export const AKCE: Akce[] = [
     skupina: 'zpěvník',
     parametry: [{ klic: 'nazev', nazev: 'Název skladby', typ: 'text' }],
     vychoziFraze: ['otevři skladbu', 'najdi skladbu'],
+  },
+
+  /*
+   * HLEDÁNÍ
+   *
+   * Výraz se ukládá do sdíleného vyhledávání, takže ho převezmou
+   * všechny sekce, které na něj slyší. Hlasem se tak dá hledat, aniž
+   * by se muselo přepínat tam, kde se hledá.
+   */
+  {
+    id: 'hledani.vyraz',
+    nazev: 'Hledat',
+    popis: 'Vyhledá zadaný výraz — výsledek se objeví ve všech vyhledávačích.',
+    skupina: 'hledání',
+    parametry: [{ klic: 'vyraz', nazev: 'Co hledat', typ: 'text' }],
+    vychoziFraze: ['hledej', 'vyhledej', 'najdi'],
+  },
+  {
+    id: 'hledani.kapela',
+    nazev: 'Hledat kapelu',
+    popis: 'Vyhledá interpreta a otevře, co se k němu najde.',
+    skupina: 'hledání',
+    parametry: [{ klic: 'vyraz', nazev: 'Kapela', typ: 'text' }],
+    vychoziFraze: ['najdi kapelu', 'hledej kapelu', 'hledej od'],
+  },
+  {
+    id: 'hledani.tabulatura',
+    nazev: 'Hledat tabulaturu',
+    popis: 'Otevře Guitar Pro a hledá tam zadaný název.',
+    skupina: 'hledání',
+    parametry: [{ klic: 'vyraz', nazev: 'Co hledat', typ: 'text' }],
+    vychoziFraze: ['najdi tabulaturu', 'hledej tabulaturu', 'najdi taby'],
+  },
+  {
+    id: 'hledani.video',
+    nazev: 'Hledat video',
+    popis: 'Otevře YouTube Jam a hledá tam zadaný název.',
+    skupina: 'hledání',
+    parametry: [{ klic: 'vyraz', nazev: 'Co hledat', typ: 'text' }],
+    vychoziFraze: ['najdi video', 'hledej video', 'najdi na youtube'],
+  },
+  {
+    id: 'hledani.zrus',
+    nazev: 'Zrušit hledání',
+    popis: 'Vymaže vyhledávací výraz ve všech sekcích.',
+    skupina: 'hledání',
+    parametry: [],
+    vychoziFraze: ['zruš hledání', 'vymaž hledání'],
+  },
+
+  /*
+   * PÓDIUM
+   *
+   * Na pódiu se nekliká: ruce drží nástroj. Proto sem patří všechno,
+   * co se během hraní může hodit — od setlistu po smyčku na sekci.
+   */
+  {
+    id: 'podium.rezim',
+    nazev: 'Pódiový režim',
+    popis: 'Přepne Pódium na celou obrazovku.',
+    skupina: 'pódium',
+    parametry: [],
+    vychoziFraze: ['pódiový režim', 'na celou obrazovku', 'celá obrazovka'],
+  },
+  {
+    id: 'podium.zavriRezim',
+    nazev: 'Zavřít pódiový režim',
+    popis: 'Vrátí Pódium do okna.',
+    skupina: 'pódium',
+    parametry: [],
+    vychoziFraze: ['zavři pódiový režim', 'zpátky do okna'],
+  },
+  {
+    id: 'podium.odpocet',
+    nazev: 'Spustit s odpočtem',
+    popis: 'Naklepe dva takty a spustí skladbu.',
+    skupina: 'pódium',
+    parametry: [],
+    vychoziFraze: ['počítej', 'odpočet', 'nádech', 'jedeme'],
+  },
+  {
+    id: 'podium.srovnejOkna',
+    nazev: 'Srovnat okna',
+    popis: 'Rozloží okna na ploše tak, aby vyplnila celé místo.',
+    skupina: 'pódium',
+    parametry: [],
+    vychoziFraze: ['srovnej okna', 'urovnej okna'],
+  },
+  {
+    id: 'podium.otevriOkno',
+    nazev: 'Otevřít okno',
+    popis: 'Přidá na plochu okno daného druhu — tabulaturu, text, pult.',
+    skupina: 'pódium',
+    parametry: [{ klic: 'druh', nazev: 'Druh okna', typ: 'text' }],
+    vychoziFraze: ['otevři okno', 'přidej okno'],
+  },
+  {
+    id: 'podium.preset',
+    nazev: 'Kytarový preset',
+    popis: 'Nasadí preset kytary podle jména — rytmika, sólo, akustika.',
+    skupina: 'pódium',
+    parametry: [{ klic: 'nazev', nazev: 'Název presetu', typ: 'text' }],
+    vychoziFraze: ['preset', 'nasaď preset', 'přepni zvuk'],
+  },
+  {
+    id: 'podium.smyckaSekce',
+    nazev: 'Smyčka na sekci',
+    popis: 'Pustí dokola sekci skladby podle jména — refrén, sólo.',
+    skupina: 'pódium',
+    parametry: [{ klic: 'nazev', nazev: 'Název sekce', typ: 'text' }],
+    vychoziFraze: ['smyčka na', 'opakuj', 'dokola'],
+  },
+  {
+    id: 'podium.zrusSmycku',
+    nazev: 'Zrušit smyčku',
+    popis: 'Vypne opakování úseku.',
+    skupina: 'pódium',
+    parametry: [],
+    vychoziFraze: ['zruš smyčku', 'konec smyčky'],
   },
 ];
 

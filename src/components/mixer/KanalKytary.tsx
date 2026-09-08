@@ -92,6 +92,29 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idPisne, presety]);
 
+  /*
+   * Preset hlasem.
+   *
+   * Jméno se porovnává volně — vyslovené „sólo" má sednout na preset
+   * „Sólo" i na „Sólo kytara". Přesná shoda by se netrefila skoro nikdy.
+   */
+  useEffect(() => {
+    const naPovel = (e: Event) => {
+      const chce = String((e as CustomEvent).detail?.nazev || '').trim().toLowerCase();
+      if (!chce) return;
+      const bezDiakritiky = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+      const p = (presetyRef.current || []).find((x) => {
+        const n = bezDiakritiky(x.nazev);
+        return n === bezDiakritiky(chce) || n.includes(bezDiakritiky(chce));
+      });
+      if (!p) return;
+      setAktivniPreset(p.id);
+      void nasadRef.current(p);
+    };
+    window.addEventListener('neverlate:kytara-preset', naPovel);
+    return () => window.removeEventListener('neverlate:kytara-preset', naPovel);
+  }, []);
+
   useEffect(() => midiService.subscribe((e) => {
     if (e.type !== 'programchange' || e.value === undefined) return;
     const p = presetProProgram(presetyRef.current || [], e.value);

@@ -57,6 +57,46 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [song.id]);
 
+  /*
+   * Povely hlasem.
+   *
+   * Plocha je jediná, kdo zná svoje rozměry i seznam oken, takže
+   * srovnání a přidání okna musí obsloužit ona. Chodí to událostí —
+   * Pódium o vnitřku plochy neví a vědět nemá.
+   */
+  useEffect(() => {
+    const srovnej = () => {
+      const r = plochaRef.current?.getBoundingClientRect();
+      setOkna((o) => {
+        const nove = rozlozNaPlochu(o, r?.width || 1200, r?.height || 800);
+        podiumProfil.ulozOknaPisne(song.id, nove);
+        return nove;
+      });
+    };
+    const otevri = (e: Event) => {
+      const rec = String((e as CustomEvent).detail?.druh || '').toLowerCase();
+      // Hledá se podle jména okna, jak ho zná uživatel — „tabulatura",
+      // „text", „pult". Vyslovené slovo skoro nikdy nesedí na klíč.
+      const typ = (Object.keys(POPIS_OKEN) as TypOkna[]).find((t) => {
+        const n = POPIS_OKEN[t].nazev.toLowerCase();
+        return n.includes(rec) || rec.includes(n.split(' ')[0]);
+      });
+      if (!typ) return;
+      setOkna((o) => {
+        const nove = [...o, noveOkno(typ, o)];
+        podiumProfil.ulozOknaPisne(song.id, nove);
+        return nove;
+      });
+    };
+    window.addEventListener('neverlate:podium-srovnej', srovnej);
+    window.addEventListener('neverlate:podium-okno', otevri);
+    return () => {
+      window.removeEventListener('neverlate:podium-srovnej', srovnej);
+      window.removeEventListener('neverlate:podium-okno', otevri);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [song.id]);
+
   /**
    * Uloží plochu ke skladbě i do prohlížeče.
    *
