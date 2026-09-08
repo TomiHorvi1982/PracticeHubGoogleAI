@@ -125,7 +125,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
       {onGain && gain !== undefined && (
         <label className="block space-y-0.5">
-          <span className="text-stitek uppercase tracking-wider text-neutral-500 flex justify-between">
+          <span className="stitek-pole flex justify-between">
             <span>Gain</span>
             <span className="font-mono text-neutral-300">{gain.toFixed(1)}×</span>
           </span>
@@ -139,7 +139,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
       {onPanorama && panorama !== undefined && (
         <label className="block space-y-0.5">
-          <span className="text-stitek uppercase tracking-wider text-neutral-500 flex justify-between">
+          <span className="stitek-pole flex justify-between">
             <span>Panorama</span>
             <span className="font-mono text-neutral-300">
               {panorama === 0 ? 'střed' : panorama < 0 ? `L ${Math.round(-panorama * 100)}` : `P ${Math.round(panorama * 100)}`}
@@ -155,7 +155,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
       {onSirka && sirka !== undefined && (
         <label className="block space-y-0.5">
-          <span className="text-stitek uppercase tracking-wider text-neutral-500 flex justify-between">
+          <span className="stitek-pole flex justify-between">
             <span>Šířka</span>
             <span className="font-mono text-neutral-300">{Math.round(sirka * 100)} %</span>
           </span>

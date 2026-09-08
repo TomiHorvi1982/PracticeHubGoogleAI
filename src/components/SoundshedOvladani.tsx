@@ -156,7 +156,7 @@ export const SoundshedOvladani: React.FC = () => {
             const vSkupine = OVLADACE.filter((o) => o.skupina === skupina);
             return (
               <div key={skupina} className="space-y-1.5">
-                <p className="text-stitek uppercase tracking-wider text-neutral-500">{skupina}</p>
+                <p className="stitek-pole">{skupina}</p>
                 <div className={skupina === 'Presety' ? 'grid grid-cols-2 sm:grid-cols-4 gap-1.5' : 'space-y-1.5'}>
                   {vSkupine.map((o) => {
                     const cislo = cisloOvladace(o, nastaveni);

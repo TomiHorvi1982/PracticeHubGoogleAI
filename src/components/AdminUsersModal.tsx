@@ -281,7 +281,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-znacka text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wider">
+                <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
                   Správa kapely
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">{users.length} aktivních účtů</span>
@@ -448,12 +448,12 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                   <div className="font-semibold text-white flex items-center gap-2">
                                     <span>{u.displayName}</span>
                                     {isPrimaryAdmin && (
-                                      <span className="text-stitek bg-chyba text-white font-bold px-1.5 py-0.2 rounded uppercase">
+                                      <span className="odznak bg-chyba text-white px-1.5 py-0.2 rounded">
                                         Superadmin
                                       </span>
                                     )}
                                     {isSelf && (
-                                      <span className="text-stitek bg-white/10 text-neutral-300 font-semibold px-1.5 py-0.2 rounded uppercase">
+                                      <span className="odznak bg-white/10 text-neutral-300 px-1.5 py-0.2 rounded">
                                         Vy
                                       </span>
                                     )}
@@ -600,7 +600,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                 
                 {/* Role selector */}
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5">
+                  <label className="stitek-pole block mb-2.5">
                     Zvolte roli uživatele:
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
@@ -638,7 +638,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                 {/* Granular Rules Checklist */}
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2.5">
+                  <label className="stitek-pole block mb-2.5">
                     Detailní pravidla a oprávnění:
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black/40 p-4 rounded-2xl border border-white/[0.08]">
@@ -941,7 +941,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         <Sparkles className="w-4 h-4" />
                         <span>Pozvánka připravena</span>
                       </div>
-                      <span className="text-stitek bg-uspech text-black px-2 py-0.5 rounded-md font-bold uppercase">
+                      <span className="odznak bg-uspech text-black px-2 py-0.5 rounded-md">
                         Aktivní
                       </span>
                     </div>

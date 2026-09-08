@@ -281,7 +281,7 @@ export const PracticeAssistant: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-znacka text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+                <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
                   Vizuální Metronom
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">{bpm} BPM • {beatsPerBar}/4 takt</span>
@@ -358,7 +358,7 @@ export const PracticeAssistant: React.FC = () => {
               <span className="text-5xl font-bold font-mono tracking-tighter">
                 {isPlayingMetro ? currentBeat + 1 : '-'}
               </span>
-              <span className="text-stitek font-bold uppercase tracking-wider mt-1">
+              <span className="stitek-pole mt-1">
                 {isPlayingMetro
                   ? accentBeats[currentBeat]
                     ? '⚡ Akcent'
@@ -395,7 +395,7 @@ export const PracticeAssistant: React.FC = () => {
 
             {/* Time Signature Presets */}
             <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
-              <span className="text-stitek text-neutral-400 font-semibold px-1.5 uppercase">Takt:</span>
+              <span className="stitek-pole px-1.5">Takt:</span>
               {[
                 { label: '2/4', beats: 2 },
                 { label: '3/4', beats: 3 },
@@ -468,7 +468,7 @@ export const PracticeAssistant: React.FC = () => {
                   >
                     <span className="text-stitek opacity-70 font-semibold">Doba {i + 1}</span>
                     <span className="text-base font-bold">{i + 1}</span>
-                    <span className="text-stitek font-bold uppercase">
+                    <span className="stitek-pole">
                       {isAccented ? '⚡ Akcent' : 'Běžná'}
                     </span>
                   </button>
@@ -556,7 +556,7 @@ export const PracticeAssistant: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <button
                 onClick={() => setIsPlayingMetro(!isPlayingMetro)}
-                className={`px-5 py-3 rounded-2xl font-bold text-xs uppercase flex items-center gap-2 shadow-lg cursor-pointer transition-all active:scale-95 ${
+                className={`px-5 py-3 rounded-2xl font-bold text-zaklad flex items-center gap-2 shadow-lg cursor-pointer transition-all active:scale-95 ${
                   isPlayingMetro
                     ? 'bg-chyba text-white hover:bg-chyba-svetla'
                     : 'bg-uspech text-black hover:bg-uspech-svetla'
@@ -611,7 +611,7 @@ export const PracticeAssistant: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-uspech text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+                <span className="odznak bg-uspech text-black px-2 py-0.5 rounded-md">
                   Doprovodný trenér
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">{chordSequence.length} akordů ve smyčce</span>
@@ -624,7 +624,7 @@ export const PracticeAssistant: React.FC = () => {
 
           <button
             onClick={() => setIsPlayingBacking(!isPlayingBacking)}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-xs uppercase shadow-lg cursor-pointer transition-all active:scale-95 ${
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-zaklad shadow-lg cursor-pointer transition-all active:scale-95 ${
               isPlayingBacking
                 ? 'bg-chyba text-white hover:bg-chyba-svetla'
                 : 'bg-uspech text-black hover:bg-uspech-svetla'

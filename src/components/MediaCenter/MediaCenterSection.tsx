@@ -339,7 +339,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white tracking-tight">Media Center</h1>
-              <span className="px-2 py-0.5 rounded-full text-stitek font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 uppercase tracking-wider">
+              <span className="odznak px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 Kaset Engine
               </span>
             </div>
@@ -352,7 +352,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <div className="flex items-center gap-3 px-4 py-2 bg-slate-800/80 rounded-2xl border border-slate-700/80 shadow-sm">
             <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
             <div className="text-left">
-              <div className="text-stitek uppercase font-bold text-slate-400 tracking-wider">Aktivní skladba</div>
+              <div className="stitek-pole">Aktivní skladba</div>
               <div className="text-xs font-semibold text-white truncate max-w-[180px]">
                 {activeSong.title} <span className="text-slate-400 font-normal">({activeSong.artist})</span>
               </div>
@@ -394,7 +394,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
         <nav className="w-56 bg-slate-950/60 border-r border-slate-800/80 p-3 flex flex-col justify-between shrink-0">
           <div className="space-y-4">
             <div>
-              <div className="px-3 text-stitek font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <div className="stitek-pole px-3 mb-1.5">
                 Procházet & Hledat
               </div>
               <div className="space-y-1">
@@ -434,7 +434,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             </div>
 
             <div>
-              <div className="px-3 text-stitek font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+              <div className="stitek-pole px-3 mb-1.5">
                 Knihovna & Fronta
               </div>
               <div className="space-y-1">
@@ -693,7 +693,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               {/* Suggested Curated Practice Channels */}
               {searchResults.length === 0 && !isSearching && (
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Doporučené cvičné jam podklady</h3>
+                  <h3 className="stitek-pole">Doporučené cvičné jam podklady</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       { title: 'A Minor Blues Rock Jam Track', artist: 'Guitar Jam Tracks', key: 'Am', bpm: 95 },

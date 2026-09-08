@@ -303,7 +303,7 @@ const KDYKOLI: { nadpis: string; popis: string; kam: MainTabType }[] = [
 export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
   <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6">
     <div className="bg-gradient-to-br from-znacka/15 to-transparent border border-znacka/25 rounded-3xl p-6 sm:p-8">
-      <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+      <span className="odznak bg-znacka text-black px-2.5 py-0.5 rounded-md">
         NeverLate Studio
       </span>
       <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mt-3">
@@ -349,7 +349,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
     </div>
 
     <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 sm:p-5 space-y-3 shadow-xl">
-      <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+      <h2 className="stitek-pole">
         A kdykoli po ruce
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">

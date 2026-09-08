@@ -297,6 +297,22 @@
     color: var(--color-pismo);
   }
 
+  /*
+   * Odznak — návěští nad nadpisem, stav, příznak.
+   *
+   * Od štítku se liší tím, že má pozadí a stojí sám za sebe. Naměřeno
+   * pět různých vah pro tentýž druh odznaku (600 s prostrkáním 0,3 px,
+   * 700 s 0,6, 700 s 0,3, 800 s 0,6, 600 s −0,18) — barvu a pozadí si
+   * každý nese vlastní, ale písmo mají mít stejné.
+   */
+  .odznak {
+    font-size: var(--text-stitek);
+    line-height: var(--text-stitek--line-height);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
   /* Štítek pole, skupiny nebo podkategorie. */
   .stitek-pole {
     font-size: var(--text-stitek);

@@ -243,7 +243,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
         <div className="space-y-3">
           {skupiny.map((s) => (
             <div key={s}>
-              <div className="text-stitek uppercase tracking-widest text-neutral-500 mb-1.5">{s}</div>
+              <div className="stitek-pole mb-1.5">{s}</div>
               <div className="space-y-1">
                 {AKCE.filter((a) => a.skupina === s).map((a: Akce) => {
                   const zapojena = zapojene.includes(a.id);
@@ -314,7 +314,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             />
 
             <div className="space-y-1.5">
-              <div className="text-stitek uppercase tracking-widest text-neutral-500">Fráze</div>
+              <div className="stitek-pole">Fráze</div>
               {navrh.fraze.map((f, i) => (
                 <div key={i} className="flex items-center gap-1.5">
                   <input
@@ -354,7 +354,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             </div>
 
             <div className="space-y-1.5">
-              <div className="text-stitek uppercase tracking-widest text-neutral-500">
+              <div className="stitek-pole">
                 Nebo popiš, co má dělat
               </div>
               <div className="flex items-center gap-1.5">
@@ -379,7 +379,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             </div>
 
             <div className="space-y-1.5">
-              <div className="text-stitek uppercase tracking-widest text-neutral-500">Kroky</div>
+              <div className="stitek-pole">Kroky</div>
               {navrh.kroky.map((k, i) => {
                 const akce = AKCE.find((a) => a.id === k.akce);
                 return (

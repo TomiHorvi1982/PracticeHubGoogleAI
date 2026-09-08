@@ -95,10 +95,10 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-3 border-b border-kresba pb-2">
           <div className="flex items-center gap-2">
-            <span className="bg-[#00FF41] text-black font-black px-2 py-0.5 text-stitek uppercase">
+            <span className="odznak bg-[#00FF41] text-black px-2 py-0.5">
               ONLINE_API
             </span>
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h2 className="nadpis-panelu flex items-center gap-1.5">
               <Globe className="w-4 h-4 text-[#00FF41]" />
               ONLINE HLEDÁNÍ AKORDŮ (FREETAR.DE & PISNICKY-AKORDY.CZ)
             </h2>
@@ -145,7 +145,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
           {/* Quick Suggestions / Examples */}
           <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-stitek">
-            <span className="text-pismo-slaby uppercase font-bold shrink-0">RYCHLÝ VÝBĚR:</span>
+            <span className="stitek-pole shrink-0">RYCHLÝ VÝBĚR:</span>
             {[
               'Oasis - Wonderwall',
               'freetar.de',
@@ -168,7 +168,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
         {/* Error Notification */}
         {error && (
-          <div className="bg-[#2B0000] border border-[#FF3E00] p-2.5 text-[#FF3E00] text-xs mb-3 font-mono uppercase">
+          <div className="odznak bg-[#2B0000] border border-[#FF3E00] p-2.5 text-[#FF3E00] mb-3 font-mono">
             {error}
           </div>
         )}
@@ -187,7 +187,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
           {!isLoading && results.length === 0 && !error && (
             <div className="p-8 text-center text-[#555] border border-dashed border-kresba bg-vhloubeni">
               <Globe className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#00FF41]" />
-              <p className="text-xs uppercase font-bold text-pismo-tlum">
+              <p className="stitek-pole">
                 VYHLEDEJTE PÍSNIČKU NEBO VLOŽTE URL ADRESU S AKORDY
               </p>
               <p className="text-stitek text-[#555] mt-1">
@@ -205,17 +205,17 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-plocha-2 pb-2">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-sm font-black text-white uppercase">{song.title}</h3>
-                    <span className="text-stitek font-bold text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40 uppercase">
+                    <h3 className="nadpis-panelu">{song.title}</h3>
+                    <span className="odznak text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40">
                       TÓNINA: {song.key}
                     </span>
                     {song.youtubeVideos && song.youtubeVideos.length > 0 && (
-                      <span className="text-stitek font-black text-white bg-[#FF0000] px-2 py-0.5 border border-black uppercase flex items-center gap-1">
+                      <span className="odznak text-white bg-[#FF0000] px-2 py-0.5 border border-black flex items-center gap-1">
                         🎬 YOUTUBE ({song.youtubeVideos.length} KLIPŮ / BACKING TRACK)
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-pismo-tlum uppercase mt-0.5">{song.artist}</p>
+                  <p className="stitek-pole mt-0.5">{song.artist}</p>
                 </div>
 
                 {/* Import Action Button */}

@@ -108,7 +108,7 @@ export const KytaraJakoNastroj: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="text-stitek uppercase tracking-widest text-neutral-500">Hlasitost</span>
+        <span className="stitek-pole">Hlasitost</span>
         <input
           type="range"
           min={0}
@@ -140,7 +140,7 @@ export const KytaraJakoNastroj: React.FC = () => {
 
       {hraje && (
         <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
-          <div className="text-stitek uppercase tracking-widest text-neutral-500 mb-1.5">
+          <div className="stitek-pole mb-1.5">
             Co slyším
           </div>
           {posledni.length === 0 ? (

@@ -434,7 +434,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
 
           {interpret.alba.length > 0 && (
             <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-stitek font-bold uppercase tracking-wider text-neutral-500">
+              <div className="stitek-pole flex items-center gap-1.5">
                 <Disc3 className="w-3 h-3" /> Alba
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1">
@@ -464,7 +464,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
           )}
 
           <div className="space-y-1">
-            <div className="text-stitek font-bold uppercase tracking-wider text-neutral-500">
+            <div className="stitek-pole">
               Nejposlouchanější
             </div>
             {mrizka(interpret.skladby, true)}

@@ -183,7 +183,7 @@ export const HraniTest: React.FC = () => {
         <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-5 space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex-1 min-w-[200px]">
-              <div className="text-stitek uppercase tracking-wider text-neutral-500">
+              <div className="stitek-pole">
                 {DRUHY.find((d) => d.id === ukol.druh)?.nazev}
                 {ukol.zpusob === 'poslech' && ' po sluchu'}
               </div>

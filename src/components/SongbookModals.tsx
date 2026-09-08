@@ -75,7 +75,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
 
         {/* Local Setlists List */}
         <div className="space-y-2 pt-2">
-          <span className="text-drobne font-bold uppercase tracking-wider text-neutral-400 block">
+          <span className="stitek-pole block">
             Moje setlisty a playlisty:
           </span>
 

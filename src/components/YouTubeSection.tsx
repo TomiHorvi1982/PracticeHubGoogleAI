@@ -286,7 +286,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-chyba text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+                <span className="odznak bg-chyba text-white px-2 py-0.5 rounded-md">
                   YouTube
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">Vyhledávač &amp; Importér</span>
@@ -399,7 +399,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
         {/* Dynamic Video Results Row/List */}
         {directYtResults.length > 0 && (
           <div className="space-y-3 bg-black/40 border border-white/5 rounded-2xl p-4 max-h-[440px] overflow-y-auto">
-            <h4 className="text-xs font-bold text-white uppercase border-b border-white/5 pb-2 flex items-center justify-between">
+            <h4 className="nadpis-panelu border-b border-white/5 pb-2 flex items-center justify-between">
               <span className="text-chyba">Nalezené video výsledky ({directYtResults.length}):</span>
               <span className="text-drobne text-neutral-400 font-normal lowercase">klikněte pro přehrání náhledu nebo uložte do zpěvníku</span>
             </h4>
@@ -462,7 +462,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-chyba text-white text-stitek font-bold px-2 py-0.5 rounded-md uppercase">
+              <span className="odznak bg-chyba text-white px-2 py-0.5 rounded-md">
                 Přehrávač
               </span>
               <h2 className="text-xl font-bold text-white tracking-tight">
@@ -674,7 +674,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
         <div className="space-y-4">
           <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
-              <span className="text-xs font-bold text-white uppercase flex items-center gap-2">
+              <span className="nadpis-panelu flex items-center gap-2">
                 <Youtube className="w-4 h-4 text-chyba" />
                 Doprovody písně ({videos.length})
               </span>
@@ -697,7 +697,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                       }`}
                     >
                       <div className="overflow-hidden">
-                        <span className="text-stitek font-bold px-2 py-0.5 bg-chyba text-white uppercase rounded-md inline-block mb-1.5">
+                        <span className="odznak px-2 py-0.5 bg-chyba text-white rounded-md inline-block mb-1.5">
                           {vid.type}
                         </span>
                         <p className="text-xs font-semibold text-white line-clamp-2 leading-tight">

@@ -332,7 +332,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Youtube className="w-4 h-4 text-chyba" />
-              <span className="text-white font-semibold text-xs uppercase tracking-wider">
+              <span className="nadpis-panelu">
                 Vyhledávání na YouTube
               </span>
             </div>
@@ -413,7 +413,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <LinkIcon className="w-4 h-4 text-znacka" />
-              <span className="text-white font-semibold text-xs uppercase tracking-wider">
+              <span className="nadpis-panelu">
                 Vložit přímý odkaz na YouTube
               </span>
             </div>
@@ -483,7 +483,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Music className="w-4 h-4 text-uspech" />
-              <span className="text-white font-semibold text-xs uppercase tracking-wider">
+              <span className="nadpis-panelu">
                 Vybrat píseň ze zpěvníku
               </span>
             </div>
@@ -615,7 +615,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                         {item.title}
                       </button>
                       {isCurrent && (
-                        <span className="text-stitek bg-znacka text-black font-bold px-1.5 py-0.5 rounded-md uppercase shrink-0">
+                        <span className="odznak bg-znacka text-black px-1.5 py-0.5 rounded-md shrink-0">
                           Hraje
                         </span>
                       )}

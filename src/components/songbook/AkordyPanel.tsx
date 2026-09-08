@@ -259,7 +259,7 @@ export const AkordyPanel: React.FC<Props> = ({
 
           {naCem === 'hmatnik' && (
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500">Ladění</span>
+              <span className="stitek-pole">Ladění</span>
               <select
                 value={ladeni}
                 onChange={(e) => setLadeni(e.target.value)}
@@ -299,7 +299,7 @@ export const AkordyPanel: React.FC<Props> = ({
             )}
 
             <div className="space-y-1">
-              <div className="text-stitek uppercase tracking-wider text-neutral-500">
+              <div className="stitek-pole">
                 {naCem === 'hmatnik' ? 'Na klavíru' : 'Na hmatníku'}
               </div>
               {naCem === 'hmatnik' ? (
@@ -330,7 +330,7 @@ export const AkordyPanel: React.FC<Props> = ({
             {/* Název se nabídne sám z tónů. Přepsat ho jde — appka pozná
                 akord, ale ne to, jak mu v kapele říkáte. */}
             <div className="min-w-0">
-              <div className="text-stitek uppercase tracking-wider text-neutral-500">Rozpoznáno</div>
+              <div className="stitek-pole">Rozpoznáno</div>
               {rozpoznany ? (
                 <div className="flex items-baseline gap-1.5">
                   <span

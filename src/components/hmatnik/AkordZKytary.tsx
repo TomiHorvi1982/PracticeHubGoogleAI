@@ -168,7 +168,7 @@ export const AkordZKytary: React.FC = () => {
 
           {/* Klaviatura s hmatem. */}
           <div className="pt-1">
-            <div className="text-stitek uppercase tracking-widest text-neutral-500 mb-1.5 flex items-center gap-1.5">
+            <div className="stitek-pole mb-1.5 flex items-center gap-1.5">
               <Piano className="w-3.5 h-3.5" /> na klavír
             </div>
             <div className="relative h-24 flex select-none">

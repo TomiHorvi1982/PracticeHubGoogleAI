@@ -890,7 +890,7 @@ export const MidiPlayerPanel: React.FC = () => {
           {stopa && (
             <div className="border-t border-white/10">
               <div className="flex items-center gap-2 px-4 py-2 bg-black/30">
-                <span className="text-stitek font-black uppercase tracking-wider text-neutral-500">
+                <span className="stitek-pole">
                   Editor — {stopa.name}
                 </span>
                 <span className="text-stitek text-neutral-500">

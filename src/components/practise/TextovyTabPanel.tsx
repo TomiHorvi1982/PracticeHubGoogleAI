@@ -84,7 +84,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         </span>
 
         <label className="flex items-center gap-1.5">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Ladění</span>
+          <span className="stitek-pole">Ladění</span>
           <select
             value={ladeni}
             onChange={(e) => setLadeni(Number(e.target.value))}
@@ -95,7 +95,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         </label>
 
         <label className="flex items-center gap-1.5">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Nota</span>
+          <span className="stitek-pole">Nota</span>
           <select
             value={delka}
             onChange={(e) => setDelka(Number(e.target.value))}

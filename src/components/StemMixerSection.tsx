@@ -754,7 +754,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                   ['Délka', duration > 0 ? casOsy(duration) : null, null],
                 ].map(([popis, hodnota, pod]) => (
                   <div key={String(popis)} className="min-w-[92px]">
-                    <div className="text-stitek uppercase tracking-wider text-slate-500">{popis}</div>
+                    <div className="stitek-pole">{popis}</div>
                     <div className="text-sm font-bold text-white tabular-nums">
                       {hodnota ?? <span className="text-slate-700">—</span>}
                     </div>
@@ -957,7 +957,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           >
             <div className="flex items-stretch bg-slate-900/60">
               <div
-                className="shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center text-stitek font-bold uppercase tracking-wider text-slate-500"
+                className="stitek-pole shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center"
                 style={{ width: SIRKA_OVLADANI }}
               >
                 Mixér
@@ -986,7 +986,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
                 kde začínají vlnovky. */}
             <div className="flex items-stretch">
               <div
-                className="shrink-0 border-r border-slate-800/70 bg-slate-900/50 border-b border-b-slate-800/70 px-3 flex items-center text-stitek uppercase tracking-wider text-slate-600"
+                className="shrink-0 border-r border-slate-800/70 bg-slate-900/50 border-b border-b-slate-800/70 px-3 flex items-center stitek-pole"
                 style={{ width: SIRKA_OVLADANI }}
               >
                 Sekce

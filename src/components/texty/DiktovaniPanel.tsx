@@ -170,7 +170,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-stitek uppercase tracking-widest text-neutral-500">Česky</span>
+            <span className="stitek-pole">Česky</span>
             {cesky && (
               <button
                 onClick={() => onVlozit(cesky)}
@@ -191,7 +191,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
 
         <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-stitek uppercase tracking-widest text-neutral-500">Anglicky</span>
+            <span className="stitek-pole">Anglicky</span>
             {anglicky && (
               <button
                 onClick={() => void prectiAnglicky(anglicky)}

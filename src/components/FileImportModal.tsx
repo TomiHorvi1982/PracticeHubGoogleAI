@@ -194,7 +194,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                   Soubor byl úspěšně načten
                 </span>
               </div>
-              <span className="text-stitek bg-white/10 text-neutral-300 px-2.5 py-0.5 rounded-md font-mono uppercase">
+              <span className="odznak bg-white/10 text-neutral-300 px-2.5 py-0.5 rounded-md font-mono">
                 Typ: {importResult.attachment.type}
               </span>
             </div>

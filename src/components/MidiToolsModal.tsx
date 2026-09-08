@@ -97,7 +97,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-uspech text-black font-bold px-1.5 py-0.5 text-stitek rounded uppercase tracking-wider">
+                <span className="odznak bg-uspech text-black px-1.5 py-0.5 rounded">
                   MIDI Tools
                 </span>
                 <span className="text-xs text-neutral-400 font-medium">Hardware & mapování</span>
@@ -167,7 +167,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-3">
                   <div className="flex items-center gap-2">
                     <Radio className="w-4 h-4 text-uspech animate-pulse" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <span className="nadpis-panelu">
                       Připojené MIDI klávesy & kontroléry ({devices.length})
                     </span>
                   </div>
@@ -194,7 +194,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                             Výrobce: {dev.manufacturer || 'Standardní MIDI controller'}
                           </span>
                         </div>
-                        <span className="bg-uspech text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase flex items-center gap-1">
+                        <span className="odznak bg-uspech text-black px-2 py-0.5 rounded-md flex items-center gap-1">
                           <CheckCircle2 className="w-3 h-3 text-black" /> Aktivní
                         </span>
                       </div>
@@ -271,7 +271,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
               {/* Active Playing Notes Visualizer */}
               <div className="bg-black/30 border border-white/10 rounded-2xl p-4 space-y-2">
-                <span className="text-xs font-bold text-white uppercase tracking-wider block border-b border-white/5 pb-2 flex items-center gap-2">
+                <span className="nadpis-panelu block border-b border-white/5 pb-2 flex items-center gap-2">
                   <Activity className="w-4 h-4 text-znacka" />
                   <span>Živý displej reálně stisknutých not (MIDI Visualizer)</span>
                 </span>
@@ -301,7 +301,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
               {/* Real-time MIDI Event Log */}
               <div className="bg-black/30 border border-white/10 rounded-2xl p-4 space-y-2">
-                <span className="text-xs font-bold text-white uppercase tracking-wider block border-b border-white/5 pb-2">
+                <span className="nadpis-panelu block border-b border-white/5 pb-2">
                   Historie příchozích MIDI zpráv (Communication Log)
                 </span>
 
@@ -332,7 +332,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
             <div className="space-y-4">
               <div className="bg-black/30 border border-white/10 rounded-2xl p-4 space-y-3">
                 <div>
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  <h3 className="nadpis-panelu">
                     Mapování MIDI kanálů (1-16) na zvukové profily
                   </h3>
                   <p className="text-xs text-neutral-400 mt-0.5">
@@ -392,7 +392,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
             <div className="space-y-4">
               <div className="bg-black/30 border border-white/10 rounded-2xl p-4 space-y-3">
                 <div>
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+                  <h3 className="nadpis-panelu">
                     Mapování zvukových profilů pro nástroje kapely
                   </h3>
                   <p className="text-xs text-neutral-400 mt-0.5">

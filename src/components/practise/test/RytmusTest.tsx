@@ -83,7 +83,7 @@ export const RytmusTest: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
+            <span className="stitek-pole">Tempo</span>
             <input
               type="number"
               min={40}

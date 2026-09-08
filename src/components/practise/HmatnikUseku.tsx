@@ -134,7 +134,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         </button>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Rychlost</span>
+          <span className="stitek-pole">Rychlost</span>
           {[0.5, 0.75, 1].map((r) => (
             <button
               key={r}

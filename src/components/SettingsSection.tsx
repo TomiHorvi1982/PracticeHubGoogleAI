@@ -133,7 +133,7 @@ export const SettingsSection: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+          <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
             Nastavení
           </span>
         </div>
@@ -146,7 +146,7 @@ export const SettingsSection: React.FC = () => {
           přidávají a mažou, takže i důsledek patří tam. Tady zůstal jen
           odkaz, aby to nikdo nehledal na dvou místech. */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl">
-        <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+        <h3 className="nadpis-panelu flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-uspech" /> Úložiště
         </h3>
         <p className="text-drobne text-neutral-400 mt-1">
@@ -159,7 +159,7 @@ export const SettingsSection: React.FC = () => {
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 className="nadpis-panelu flex items-center gap-2">
               <Laptop className="w-4 h-4 text-info" /> MIDI hardware a mapování zvuků
             </h3>
             <p className="text-drobne text-neutral-400">
@@ -181,7 +181,7 @@ export const SettingsSection: React.FC = () => {
           rozpoznání i ve zpoždění, takže volba patří sem. */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-uspech" /> Zvuková karta
           </h3>
           <p className="text-drobne text-neutral-400">
@@ -201,7 +201,7 @@ export const SettingsSection: React.FC = () => {
 
         <div className="grid sm:grid-cols-2 gap-3">
           <label className="space-y-1 block">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Vstup (mikrofon / linka)</span>
+            <span className="stitek-pole">Vstup (mikrofon / linka)</span>
             <select
               value={karta.vstup || ''}
               onChange={(e) => zvukovaKarta.nastavVstup(e.target.value || null)}
@@ -215,7 +215,7 @@ export const SettingsSection: React.FC = () => {
           </label>
 
           <label className="space-y-1 block">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Výstup (sluchátka / karta)</span>
+            <span className="stitek-pole">Výstup (sluchátka / karta)</span>
             <select
               value={karta.vystup || ''}
               onChange={(e) => zvukovaKarta.nastavVystup(e.target.value || null)}
@@ -242,7 +242,7 @@ export const SettingsSection: React.FC = () => {
           proto je mikrofon v horní liště a nastavení až tady. */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
         <div>
-          <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+          <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-znacka" /> Hlasové ovládání
           </h3>
           <p className="text-drobne text-neutral-400">
@@ -259,7 +259,7 @@ export const SettingsSection: React.FC = () => {
       {jsemSpravce && (
         <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
           <div>
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <h3 className="nadpis-panelu flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-znacka" /> Ultimate Guitar Pro
             </h3>
             <p className="text-drobne text-neutral-400">

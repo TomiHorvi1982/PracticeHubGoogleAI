@@ -370,7 +370,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-info text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+              <span className="odznak bg-info text-white px-2 py-0.5 rounded-md">
                 MIDI Player
               </span>
               <span className="text-xs text-neutral-400 font-medium">Syntetizér &amp; Piano Roll</span>
@@ -436,7 +436,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
             {/* Sound Synthesizer Selector */}
             <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
-              <span className="text-stitek text-neutral-400 font-semibold px-1.5 uppercase">Zvuk:</span>
+              <span className="stitek-pole px-1.5">Zvuk:</span>
               <button
                 onClick={() => setSelectedSound('piano')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${

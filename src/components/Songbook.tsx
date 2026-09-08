@@ -480,7 +480,7 @@ export const Songbook: React.FC<SongbookProps> = ({
         <div className="bg-plocha-2 border border-znacka/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-znacka" />
-            <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+            <h2 className="stitek-pole">
               Objevit novou skladbu
             </h2>
             <span className="text-stitek text-neutral-500">Last.fm — hledá venku, ne ve tvé knihovně</span>
@@ -543,7 +543,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             className="w-full flex items-center gap-2 px-4 py-2.5 bg-plocha-2 border border-znacka/20 rounded-3xl text-left cursor-pointer hover:border-znacka/40 transition-all"
           >
             <Globe className="w-4 h-4 text-znacka shrink-0" />
-            <span className="text-drobne font-bold text-neutral-300 uppercase tracking-wider">
+            <span className="stitek-pole">
               Objevit novou skladbu
             </span>
             <ChevronRight className="w-3.5 h-3.5 text-neutral-500 ml-auto" />
@@ -557,7 +557,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-znacka" />
-                <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+                <h2 className="stitek-pole">
                   Moje skladby ({filteredSongs.length})
                 </h2>
               </div>
@@ -641,7 +641,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             className="w-full flex items-center gap-2 px-4 py-2.5 bg-plocha-2 border border-white/[0.08] rounded-3xl text-left cursor-pointer hover:border-white/20 transition-all"
           >
             <BookOpen className="w-4 h-4 text-znacka shrink-0" />
-            <span className="text-drobne font-bold text-neutral-300 uppercase tracking-wider">
+            <span className="stitek-pole">
               Moje skladby ({songs.length})
             </span>
             <ChevronRight className="w-3.5 h-3.5 text-neutral-500 ml-auto" />

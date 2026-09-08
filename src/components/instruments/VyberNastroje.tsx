@@ -87,7 +87,7 @@ export const VyberNastroje: React.FC<{
               </span>
               {aktivni && (
                 <span
-                  className="text-stitek font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                  className="odznak px-1.5 py-0.5 rounded"
                   style={{ backgroundColor: `${n.barva}25`, color: n.barva }}
                 >
                   hraje

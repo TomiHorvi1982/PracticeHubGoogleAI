@@ -187,7 +187,7 @@ export const Tuner: React.FC = () => {
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+            <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
               Přesná Ladička
             </span>
             <span className="text-xs text-neutral-400 font-medium">Autodetekce frekvence</span>
@@ -455,7 +455,7 @@ export const Tuner: React.FC = () => {
         <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-znacka" />
-            <h3 className="text-xs font-semibold text-white uppercase tracking-wider">
+            <h3 className="nadpis-panelu">
               Metronom & Tap Tempo
             </h3>
           </div>

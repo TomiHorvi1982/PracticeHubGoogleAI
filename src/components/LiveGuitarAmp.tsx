@@ -134,7 +134,7 @@ export const LiveGuitarAmp: React.FC = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className="space-y-1 block">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">
+            <span className="stitek-pole">
               Vstup — odsud se poslouchá
             </span>
             <select
@@ -152,7 +152,7 @@ export const LiveGuitarAmp: React.FC = () => {
           </label>
 
           <label className="space-y-1 block">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">
+            <span className="stitek-pole">
               Výstup — kudy to slyšíš ty
             </span>
             <select
@@ -175,7 +175,7 @@ export const LiveGuitarAmp: React.FC = () => {
             virtuální ovladač není potřeba. */}
         {maVicParu(karta.kanalu) && (
           <div className="space-y-1">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">
+            <span className="stitek-pole">
               Vstupní kanály — zvukovka jich dala {karta.kanalu}
             </span>
             <div className="flex flex-wrap gap-1.5">

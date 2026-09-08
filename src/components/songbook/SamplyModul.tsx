@@ -40,7 +40,7 @@ export const SamplyModul: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
-          <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
+          <span className="stitek-pole">Tempo</span>
           <input
             type="number"
             value={stav.bpm}

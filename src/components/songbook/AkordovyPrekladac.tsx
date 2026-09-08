@@ -124,7 +124,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
         )}
 
         <div className="space-y-1">
-          <div className="text-stitek uppercase tracking-wider text-neutral-500">
+          <div className="stitek-pole">
             {naCem === 'hmatnik' ? 'Na klavíru' : 'Na hmatníku'}
           </div>
           {naCem === 'hmatnik' ? (
@@ -153,7 +153,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-0">
-          <div className="text-stitek uppercase tracking-wider text-neutral-500">Rozpoznáno</div>
+          <div className="stitek-pole">Rozpoznáno</div>
           {rozpoznany ? (
             <div className="flex items-baseline gap-1.5">
               <span

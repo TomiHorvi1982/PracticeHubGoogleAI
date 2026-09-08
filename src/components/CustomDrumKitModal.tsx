@@ -556,7 +556,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="bg-znacka text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
+                <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
                   Sampled Drum Engine Pro
                 </span>
                 <span className="text-xs text-neutral-400 font-medium hidden sm:inline">
@@ -612,7 +612,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
         <div className="p-4 border-b border-white/10 bg-black/40 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Kit Switcher Pill Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin flex-1">
-            <span className="text-drobne font-bold text-neutral-400 uppercase tracking-wider mr-1 whitespace-nowrap">
+            <span className="stitek-pole mr-1 whitespace-nowrap">
               Sady ({kits.length}):
             </span>
             {kits.map((kit) => {
@@ -760,7 +760,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                  <h3 className="nadpis-panelu flex items-center gap-2">
                     <Disc className="w-4 h-4 text-znacka" />
                     Pady Bicí Soustavy (Kick, Snare, Toms, Cymbals, Percussion)
                   </h3>
@@ -1034,7 +1034,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                   </button>
 
                   <div className="flex flex-col items-center">
-                    <span className="text-stitek text-neutral-400 uppercase font-bold">Poslední RR</span>
+                    <span className="stitek-pole">Poslední RR</span>
                     <span className="text-xs font-mono font-extrabold px-2 py-0.5 bg-znacka/20 text-znacka rounded-md border border-znacka/30">
                       RR{lastHitRR}
                     </span>
@@ -1217,7 +1217,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
               {batchParsedFiles.length > 0 && (
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    <h4 className="nadpis-panelu">
                       Rozpoznané soubory k importu ({batchParsedFiles.length}):
                     </h4>
                     <button

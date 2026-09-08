@@ -668,7 +668,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
           >
             <div className="flex items-center gap-2">
               <GripHorizontal className="w-4 h-4 text-neutral-400 group-hover:text-white" />
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
+              <span className="nadpis-panelu">
                 Floating Player
               </span>
             </div>

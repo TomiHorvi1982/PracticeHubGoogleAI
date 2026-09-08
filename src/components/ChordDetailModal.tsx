@@ -48,7 +48,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b border-kresba pb-3 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="bg-[#FF3E00] text-black font-extrabold px-2 py-0.5 text-stitek uppercase">
+            <span className="odznak bg-[#FF3E00] text-black px-2 py-0.5">
               DETAIL AKORDU
             </span>
             <h3 className="text-lg font-black text-white tracking-wider">
@@ -110,7 +110,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                 showTitle={false}
                 showPlayButton={false}
               />
-              <p className="text-stitek text-pismo-tlum text-center uppercase font-bold">
+              <p className="stitek-pole text-center">
                 ZÁKLADNÍ POLOHA AKORDU NA KYTAROVÉM HMATNÍKU
               </p>
             </div>
@@ -140,7 +140,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                           {v.label}
                         </span>
                         {v.chord.barreFret && (
-                          <span className="text-stitek bg-[#FF3E00] text-black font-extrabold px-1.5 py-0.2 uppercase">
+                          <span className="odznak bg-[#FF3E00] text-black px-1.5 py-0.2">
                             BARRE {v.chord.barreFret}. FR
                           </span>
                         )}
@@ -173,7 +173,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
 
           {activeTab === 'piano' && (
             <div className="bg-vhloubeni p-3 border border-kresba space-y-2">
-              <div className="flex items-center justify-between text-stitek text-pismo-tlum font-bold uppercase border-b border-plocha-2 pb-1">
+              <div className="stitek-pole flex items-center justify-between border-b border-plocha-2 pb-1">
                 <span>KLÁVESNICE PIANA (1.5 OKTÁVY)</span>
                 <span className="text-[#00FF41]">
                   TÓNY: {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(' - ')}
@@ -234,15 +234,15 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
         {/* Info Details */}
         <div className="space-y-1 text-xs text-pismo-tlum border-t border-kresba pt-2 shrink-0">
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
-            <span className="text-pismo-slaby uppercase text-stitek">Základní tón:</span>
+            <span className="stitek-pole">Základní tón:</span>
             <span className="text-white font-bold">{chordDef.root}</span>
           </div>
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
-            <span className="text-pismo-slaby uppercase text-stitek">Typ akordu:</span>
+            <span className="stitek-pole">Typ akordu:</span>
             <span className="text-white font-bold">{chordDef.type}</span>
           </div>
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
-            <span className="text-pismo-slaby uppercase text-stitek">Tóny:</span>
+            <span className="stitek-pole">Tóny:</span>
             <span className="text-[#00FF41] font-mono font-bold">
               {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(', ')}
             </span>

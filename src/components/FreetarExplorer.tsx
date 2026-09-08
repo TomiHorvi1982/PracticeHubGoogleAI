@@ -607,7 +607,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-znacka text-black font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+              <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
                 Freetar.de
               </span>
               <span className="text-xs text-neutral-400 font-medium">Oficiální repozitář tabulatur</span>

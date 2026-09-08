@@ -185,12 +185,12 @@ export const SamplesStudio: React.FC = () => {
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Layers className="w-4 h-4 text-znacka shrink-0" />
-          <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">Skládačka</h2>
+          <h2 className="stitek-pole">Skládačka</h2>
           <span className="text-stitek text-neutral-500">stopy pod sebou, části za sebou</span>
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
+              <span className="stitek-pole">Tempo</span>
               <input
                 type="number"
                 value={stav.bpm}
@@ -362,7 +362,7 @@ export const SamplesStudio: React.FC = () => {
           ))}
 
           <div className="ml-auto flex items-center gap-1">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Řadit</span>
+            <span className="stitek-pole">Řadit</span>
             {RAZENI.map((r) => (
               <button
                 key={r.id}

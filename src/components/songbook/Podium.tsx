@@ -176,7 +176,7 @@ export const Podium: React.FC<Props> = ({
   const udaj = (popis: string, hodnota: string | number | undefined) =>
     hodnota ? (
       <div className="flex items-baseline gap-1.5">
-        <span className="text-stitek uppercase tracking-wider text-neutral-500">{popis}</span>
+        <span className="stitek-pole">{popis}</span>
         <span className="text-sm font-bold text-white tabular-nums">{hodnota}</span>
       </div>
     ) : null;
@@ -379,7 +379,7 @@ export const Podium: React.FC<Props> = ({
             ))}
           </select>
         ) : (
-          <span className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+          <span className="stitek-pole">
             {playlist?.name || 'Playlist'}
           </span>
         )}
@@ -402,7 +402,7 @@ export const Podium: React.FC<Props> = ({
       <div className="fixed inset-0 z-[100] bg-podklad text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-0.5 rounded-md uppercase tracking-wider">
+            <span className="odznak bg-znacka text-black px-2.5 py-0.5 rounded-md">
               Pódiový režim
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5 truncate">
@@ -455,7 +455,7 @@ export const Podium: React.FC<Props> = ({
 
           {mimoSet && onPridatDoSetu && (
             <div className="flex items-center gap-1.5 shrink-0">
-              <span className="text-stitek font-bold uppercase tracking-wider text-znacka bg-znacka/12 border border-znacka/30 px-2 py-0.5 rounded-lg">
+              <span className="odznak text-znacka bg-znacka/12 border border-znacka/30 px-2 py-0.5 rounded-lg">
                 Není v setu
               </span>
               <button

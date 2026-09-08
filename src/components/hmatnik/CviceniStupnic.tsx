@@ -69,7 +69,7 @@ export const CviceniStupnic: React.FC = () => {
     <div className="space-y-3">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <label className="block">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Stupnice</span>
+          <span className="stitek-pole">Stupnice</span>
           <select
             value={stupnice}
             onChange={(e) => setStupnice(e.target.value)}
@@ -82,7 +82,7 @@ export const CviceniStupnic: React.FC = () => {
         </label>
 
         <label className="block">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Základní tón</span>
+          <span className="stitek-pole">Základní tón</span>
           <select
             value={zaklad}
             onChange={(e) => setZaklad(Number(e.target.value))}
@@ -95,7 +95,7 @@ export const CviceniStupnic: React.FC = () => {
         </label>
 
         <label className="block">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Vzorec</span>
+          <span className="stitek-pole">Vzorec</span>
           <select
             value={cviceni}
             onChange={(e) => setCviceni(e.target.value)}
@@ -108,7 +108,7 @@ export const CviceniStupnic: React.FC = () => {
         </label>
 
         <label className="block">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Oktávy</span>
+          <span className="stitek-pole">Oktávy</span>
           <select
             value={oktav}
             onChange={(e) => setOktav(Number(e.target.value))}
@@ -135,7 +135,7 @@ export const CviceniStupnic: React.FC = () => {
         </button>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">Tempo</span>
+          <span className="stitek-pole">Tempo</span>
           <input
             type="range"
             min={40}
@@ -174,7 +174,7 @@ export const CviceniStupnic: React.FC = () => {
           jinak nedá poznat, kde v sekvenci člověk je. */}
       <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-stitek uppercase tracking-widest text-neutral-500">
+          <span className="stitek-pole">
             Posloupnost ({tony.length} tónů)
           </span>
         </div>

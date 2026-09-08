@@ -85,7 +85,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
           {otevreno ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
         <ListMusic className="w-4 h-4 text-znacka shrink-0" />
-        <h2 className="text-xs font-semibold text-neutral-300 uppercase tracking-wider">
+        <h2 className="stitek-pole">
           Set list{vSetu.length > 0 ? ` (${vSetu.length})` : ''}
         </h2>
         <span className="text-stitek text-neutral-500">pořadí, ve kterém se bude hrát</span>

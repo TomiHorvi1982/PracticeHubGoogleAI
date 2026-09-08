@@ -103,7 +103,7 @@ export const AiKapelaSection: React.FC = () => {
             <Users className="w-6 h-6" />
           </div>
           <div className="flex-1 min-w-[240px]">
-            <span className="bg-nastroj text-white font-bold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+            <span className="odznak bg-nastroj text-white px-2 py-0.5 rounded-md">
               Jam Room
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
@@ -219,7 +219,7 @@ export const AiKapelaSection: React.FC = () => {
         <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
           <div>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500">Tempo</span>
+              <span className="stitek-pole">Tempo</span>
               <span className="text-sm font-mono font-bold text-nastroj tabular-nums">
                 {stav.bpm} BPM
               </span>
@@ -235,7 +235,7 @@ export const AiKapelaSection: React.FC = () => {
           </div>
 
           <div>
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Styl</span>
+            <span className="stitek-pole">Styl</span>
             <div className="grid grid-cols-2 gap-1.5 mt-1">
               {STYLY.map((s) => (
                 <button
@@ -435,7 +435,7 @@ export const AiKapelaSection: React.FC = () => {
             Model umí přijmout klavírní roli, takže nemusí jen „hrát ve
             stylu" — může hrát do harmonie, kterou drží kapela. */}
         <div className="flex flex-wrap items-center gap-3 pt-1">
-          <span className="text-stitek uppercase tracking-wider text-neutral-500 shrink-0">
+          <span className="stitek-pole shrink-0">
             Držet se akordů
           </span>
           <input

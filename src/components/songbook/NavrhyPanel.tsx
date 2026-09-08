@@ -95,7 +95,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
               key={`${n.nazev}-${i}`}
               className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-2xl px-3 py-2"
             >
-              <span className="text-stitek font-bold uppercase tracking-wider text-znacka bg-znacka/10 px-1.5 py-0.5 rounded shrink-0">
+              <span className="odznak text-znacka bg-znacka/10 px-1.5 py-0.5 rounded shrink-0">
                 {POPIS_DRUHU[n.druh] || n.druh}
               </span>
               <div className="min-w-0 flex-1">

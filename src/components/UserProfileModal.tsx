@@ -105,7 +105,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   {roleMeta.label}
                 </span>
                 {isSuperAdmin && (
-                  <span className="text-stitek bg-znacka/20 text-znacka border border-znacka/30 font-bold px-1.5 py-0.5 rounded-md uppercase">
+                  <span className="odznak bg-znacka/20 text-znacka border border-znacka/30 px-1.5 py-0.5 rounded-md">
                     Superadmin
                   </span>
                 )}
@@ -121,7 +121,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
           {/* User Permissions Overview */}
           <div className="bg-black/30 border border-white/5 rounded-2xl p-4 space-y-2.5">
-            <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+            <div className="stitek-pole">
               Přidělená práva v aplikaci:
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">

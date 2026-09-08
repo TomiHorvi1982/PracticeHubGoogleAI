@@ -210,7 +210,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
       {pridavam && song && onUpdateSong && (
         <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Přiřadit na fader</span>
+            <span className="stitek-pole">Přiřadit na fader</span>
             {ROLE_FADERU.map((r) => (
               <button
                 key={r.id}
@@ -254,7 +254,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 
           {vlastni.length > 0 && (
             <div className="border-t border-white/[0.06] pt-2 space-y-1">
-              <div className="text-stitek uppercase tracking-wider text-neutral-500">Na faderech</div>
+              <div className="stitek-pole">Na faderech</div>
               {vlastni.map((v) => (
                 <div key={v.role} className="flex items-center gap-2 text-drobne text-neutral-300">
                   <span className="text-stitek font-bold text-znacka w-14 shrink-0 uppercase">

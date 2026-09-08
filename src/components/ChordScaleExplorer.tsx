@@ -235,7 +235,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
           {!compact && (
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+              <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
                 Harmonie & Teorie
               </span>
               <span className="text-xs text-neutral-400 font-medium">Interaktivní průzkumník</span>
@@ -276,7 +276,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
 
         {/* Root Note Picker */}
         <div>
-          <label className="block text-drobne font-semibold text-neutral-400 mb-2 uppercase tracking-wider">
+          <label className="stitek-pole block mb-2">
             Základní tón (Root Note)
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -299,7 +299,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
         {/* Type Picker */}
         {explorerMode === 'chord' ? (
           <div>
-            <label className="block text-drobne font-semibold text-neutral-400 mb-2 uppercase tracking-wider">
+            <label className="stitek-pole block mb-2">
               Typ akordu
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -321,7 +321,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
         ) : (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="block text-drobne font-semibold text-neutral-400 uppercase tracking-wider">
+              <label className="stitek-pole block">
                 Vybrat stupnici
               </label>
               <label className="flex items-center gap-2 text-xs text-neutral-400 cursor-pointer">
@@ -602,7 +602,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             <Zap className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-1">
+            <h4 className="nadpis-panelu mb-1">
               Použití v kapele & sólo hře ({currentScale.czName})
             </h4>
             <p className="text-xs text-neutral-300 leading-relaxed mb-2">

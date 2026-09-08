@@ -610,7 +610,7 @@ export const VirtualInstruments: React.FC = () => {
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="bg-znacka text-black font-semibold px-2 py-0.5 text-stitek rounded-md uppercase tracking-wide">
+            <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
               Workstation
             </span>
             <span className="text-xs text-neutral-400 font-medium">Virtuální nástroje & MIDI</span>
@@ -911,7 +911,7 @@ export const VirtualInstruments: React.FC = () => {
             {selectedScaleIndex !== null && activeScaleDefinition && (
               <div className="bg-uspech/10 border border-uspech/30 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="bg-uspech text-black font-semibold text-stitek px-2 py-0.5 rounded-md uppercase">
+                  <span className="odznak bg-uspech text-black px-2 py-0.5 rounded-md">
                     Aktivní stupnice
                   </span>
                   <span className="font-bold text-white">
@@ -949,7 +949,7 @@ export const VirtualInstruments: React.FC = () => {
             {/* PC Keyboard Mapping Legend Bar */}
             <div className="bg-black/50 border border-white/10 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-left">
               <div className="flex items-center gap-2">
-                <span className="bg-znacka text-black font-extrabold text-stitek px-2.5 py-1 rounded-lg uppercase tracking-wide flex items-center gap-1.5 shadow-sm">
+                <span className="odznak bg-znacka text-black px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
                   <Laptop className="w-3.5 h-3.5" /> PC Klávesnice
                 </span>
                 <span className="text-white font-medium text-xs">
@@ -1005,7 +1005,7 @@ export const VirtualInstruments: React.FC = () => {
                         <span className="text-stitek font-bold font-mono uppercase tracking-tighter">{keyObj.root}</span>
 
                         {/* Graphical PC Keycap Badge */}
-                        <span className="px-1 py-0.5 rounded bg-black/90 text-znacka font-mono text-stitek font-black border border-znacka/40 uppercase shadow-xs flex items-center justify-center min-w-[18px]">
+                        <span className="odznak px-1 py-0.5 rounded bg-black/90 text-znacka font-mono border border-znacka/40 shadow-xs flex items-center justify-center min-w-[18px]">
                           {keyObj.keyShortcut.toUpperCase()}
                         </span>
                       </button>
@@ -1042,7 +1042,7 @@ export const VirtualInstruments: React.FC = () => {
 
                       {/* Graphical PC Keycap Badge */}
                       <div className="flex flex-col items-center gap-0.5">
-                        <span className="text-stitek text-neutral-500 uppercase font-bold tracking-tighter">PC Klávesa</span>
+                        <span className="stitek-pole">PC Klávesa</span>
                         <span className="px-2 py-0.5 rounded-lg bg-plocha-3 text-white font-mono text-stitek font-extrabold border border-white/20 shadow-md flex items-center justify-center min-w-[22px]">
                           <span className="text-znacka font-black">{keyObj.keyShortcut.toUpperCase()}</span>
                         </span>
@@ -1177,7 +1177,7 @@ export const VirtualInstruments: React.FC = () => {
 
             {/* Quick Presets within All-Guitar-Chords */}
             <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
-              <span className="text-stitek text-neutral-400 font-semibold uppercase px-1">Rychlé sekce:</span>
+              <span className="stitek-pole px-1">Rychlé sekce:</span>
               <button
                 onClick={() => {
                   setIsGuitarNavigating(true);
@@ -1351,7 +1351,7 @@ export const VirtualInstruments: React.FC = () => {
             <div className="p-5 sm:p-6 border-b border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-plocha-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="bg-znacka text-black font-extrabold text-stitek px-2 py-0.5 rounded-md uppercase tracking-wider">
+                  <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
                     Knihovna Zvuků
                   </span>
                   <span className="text-xs text-uspech font-mono font-bold">

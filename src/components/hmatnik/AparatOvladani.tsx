@@ -60,7 +60,7 @@ export const AparatOvladani: React.FC = () => {
   return (
     <div className="bg-black/40 border border-white/10 rounded-2xl p-3 space-y-2.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-stitek uppercase tracking-widest text-neutral-500 flex items-center gap-1.5">
+        <span className="stitek-pole flex items-center gap-1.5">
           <Zap className="w-3.5 h-3.5 text-znacka" /> Aparát
         </span>
         <button

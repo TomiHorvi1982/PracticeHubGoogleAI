@@ -206,7 +206,7 @@ export const PoslechKytaryPanel: React.FC<{
         <div className="border-t border-white/[0.06] pt-3 space-y-2">
           {stav.akord.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Akord</span>
+              <span className="stitek-pole w-20">Akord</span>
               {stav.akord.map((a) => (
                 <span key={a} className="px-2 py-1 rounded-lg bg-info/15 text-info text-xs font-bold">
                   {a}
@@ -217,7 +217,7 @@ export const PoslechKytaryPanel: React.FC<{
 
           {stav.stupnice.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Stupnice</span>
+              <span className="stitek-pole w-20">Stupnice</span>
               {stav.stupnice.map((s, i) => (
                 <button
                   key={s}
@@ -241,7 +241,7 @@ export const PoslechKytaryPanel: React.FC<{
 
           {akordyStupnice.length > 0 && (
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500 w-20">Sedí k tomu</span>
+              <span className="stitek-pole w-20">Sedí k tomu</span>
               {akordyStupnice.map((a) => (
                 <span key={a} className="px-2 py-1 rounded-lg bg-white/[0.05] text-neutral-300 text-xs font-mono">
                   {a}

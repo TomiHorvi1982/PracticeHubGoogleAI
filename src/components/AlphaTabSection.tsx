@@ -123,7 +123,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             Rozbalený seznam osmdesáti položek zabral víc místa než
             samotné hledání; jako roletka je po ruce a nepřekáží. */}
         <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 space-y-2 shadow-lg">
-          <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-2">
+          <label className="stitek-pole flex items-center gap-2">
             <Layers className="w-4 h-4 text-znacka" />
             <span>Soubory ve zpěvníku ({libraryGpFiles.length})</span>
           </label>

@@ -206,7 +206,7 @@ export const PrehledSbirky: React.FC<{
                       poznámky vypadá takový řádek jako rozbitý odkaz. */}
                   {!s.stored && <span className="ml-2 text-stitek text-neutral-600">jen v rejstříku</span>}
                 </span>
-                <span className="text-stitek font-mono uppercase text-neutral-600">{s.format}</span>
+                <span className="stitek-pole font-mono">{s.format}</span>
                 {s.stored && onOtevrit && (
                   <button
                     onClick={() => onOtevrit(s)}

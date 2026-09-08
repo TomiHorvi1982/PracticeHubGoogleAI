@@ -142,7 +142,7 @@ export const NahravaniSouboru: React.FC<{
       {rozbaleno && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-white/[0.06]">
           <label className="space-y-1">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Zařadit do</span>
+            <span className="stitek-pole">Zařadit do</span>
             <select
               value={kategorie}
               onChange={(e) => setKategorie(e.target.value)}
@@ -158,7 +158,7 @@ export const NahravaniSouboru: React.FC<{
           </label>
 
           <label className="space-y-1">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500">Sbírka</span>
+            <span className="stitek-pole">Sbírka</span>
             <select
               value={sbirka}
               onChange={(e) => setSbirka(e.target.value)}
@@ -173,7 +173,7 @@ export const NahravaniSouboru: React.FC<{
 
           {!sbirka && (
             <label className="space-y-1">
-              <span className="text-stitek uppercase tracking-wider text-neutral-500">
+              <span className="stitek-pole">
                 Nová sbírka — odkud dávka je
               </span>
               <div className="flex items-center gap-1.5">
@@ -198,7 +198,7 @@ export const NahravaniSouboru: React.FC<{
           )}
 
           <label className="space-y-1">
-            <span className="text-stitek uppercase tracking-wider text-neutral-500 flex items-center gap-1">
+            <span className="stitek-pole flex items-center gap-1">
               <Tag className="w-3 h-3" /> Štítky, oddělené čárkou
             </span>
             <input

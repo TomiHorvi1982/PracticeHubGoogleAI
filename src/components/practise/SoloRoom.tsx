@@ -117,7 +117,7 @@ export const SoloRoom: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-stitek uppercase tracking-wider text-neutral-500 mr-1">Stupnice</span>
+          <span className="stitek-pole mr-1">Stupnice</span>
           {tonyStupnice.map((n) => (
             <span
               key={n}

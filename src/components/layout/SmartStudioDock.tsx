@@ -43,7 +43,7 @@ export const SmartStudioDock: React.FC = () => {
       {/* Dock Header Bar */}
       <div className="h-11 px-4 sm:px-6 bg-[#161722]/80 border-b border-white/[0.06] flex items-center justify-between select-none">
         <div className="flex items-center gap-3">
-          <span className="text-stitek font-extrabold text-znacka uppercase tracking-widest px-2.5 py-1 rounded-lg bg-znacka/10 border border-znacka/20 flex items-center gap-1.5 shadow-sm">
+          <span className="odznak text-znacka px-2.5 py-1 rounded-lg bg-znacka/10 border border-znacka/20 flex items-center gap-1.5 shadow-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-znacka animate-pulse" />
             STUDIO DOCK
           </span>
@@ -108,7 +108,7 @@ export const SmartStudioDock: React.FC = () => {
           <div className="max-w-md mx-auto py-6 bg-plocha-2 p-6 rounded-3xl border border-white/[0.08] text-center space-y-5 shadow-2xl">
             <div className="flex items-center justify-center gap-2">
               <Clock className="w-4 h-4 text-znacka" />
-              <h3 className="text-xs font-bold uppercase tracking-wider text-white">Rychlý Metronom</h3>
+              <h3 className="nadpis-panelu">Rychlý Metronom</h3>
             </div>
             <div className="text-6xl font-black font-mono text-white tracking-tight flex items-baseline justify-center gap-2">
               {bpm} <span className="text-sm text-neutral-400 font-sans font-semibold">BPM</span>

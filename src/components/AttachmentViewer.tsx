@@ -142,7 +142,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
   if (!attachments || attachments.length === 0) {
     return (
       <div className="bg-vhloubeni border border-kresba p-4 text-center my-3 font-mono">
-        <p className="text-xs text-pismo-tlum uppercase mb-2">
+        <p className="stitek-pole mb-2">
           K TÉTO SKLADBĚ ZATÍM NEJSOU PŘIPOJENY ŽÁDNÉ SOUBORY (.GP, .PDF, .TXT, .MID, .FOTO)
         </p>
         {onOpenImportModal && (
@@ -162,7 +162,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
       {/* Attachments List Tabs */}
       <div className="flex items-center justify-between border-b border-kresba pb-2 overflow-x-auto gap-2">
         <div className="flex items-center gap-1">
-          <span className="text-stitek font-extrabold text-pismo-tlum uppercase mr-2">PŘÍLOHY:</span>
+          <span className="stitek-pole mr-2">PŘÍLOHY:</span>
           {attachments.map((att) => {
             const isSelected = activeAtt?.id === att.id;
             return (
@@ -199,8 +199,8 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
             <div className="flex items-center gap-2">
               {getTypeIcon(activeAtt.type)}
               <div>
-                <h4 className="text-xs font-bold text-white uppercase">{activeAtt.name}</h4>
-                <p className="text-stitek text-pismo-slaby uppercase">
+                <h4 className="nadpis-panelu">{activeAtt.name}</h4>
+                <p className="stitek-pole">
                   {getTypeName(activeAtt.type)} • {Math.round((activeAtt.size || 0) / 1024)} KB
                 </p>
               </div>
@@ -311,7 +311,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     {activeAtt.parsedData.trackNames.map((trk, idx) => (
                       <span
                         key={idx}
-                        className="bg-[#002D3A] px-2 py-0.5 border border-[#00E5FF]/40 text-white uppercase font-mono"
+                        className="odznak bg-[#002D3A] px-2 py-0.5 border border-[#00E5FF]/40 text-white font-mono"
                       >
                         🎹 {trk}
                       </span>

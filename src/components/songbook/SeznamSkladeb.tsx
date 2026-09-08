@@ -475,7 +475,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
         {/* Hlavička drží u horního okraje, aby se při rolování vědělo,
             který sloupec je který. */}
         <div
-          className="grid gap-2 px-3 py-1.5 sticky top-0 z-10 bg-[#101014] border-b border-white/[0.08] text-stitek font-bold uppercase tracking-wider text-neutral-500"
+          className="odznak grid gap-2 px-3 py-1.5 sticky top-0 z-10 bg-[#101014] border-b border-white/[0.08] text-neutral-500"
           style={mrizka}
         >
           {vyberRezim && (

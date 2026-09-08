@@ -71,7 +71,7 @@ export const KanalKytary: React.FC = () => {
     <div className={`flex items-center gap-2 px-2 py-1.5 rounded-prvek border ${
       bypass ? 'border-kresba bg-plocha-1 opacity-50' : 'border-kresba-silna bg-plocha-2'
     }`}>
-      <span className="text-stitek font-bold uppercase tracking-wider text-pismo-slaby w-10 shrink-0">
+      <span className="stitek-pole w-10 shrink-0">
         {nazev}
       </span>
       <span className="flex-1 min-w-0 truncate text-stitek text-pismo-tlum" title={obsah || ''}>
@@ -104,7 +104,7 @@ export const KanalKytary: React.FC = () => {
       zapnuto ? 'border-nastroj/40 bg-nastroj/10' : 'border-kresba bg-plocha-1'
     }`}>
       <div className="flex items-center gap-1.5 mb-1">
-        <span className={`text-stitek font-bold uppercase tracking-wider flex-1 ${
+        <span className={`stitek-pole flex-1 ${
           zapnuto ? 'text-nastroj' : 'text-pismo-slaby'
         }`}>
           {nazev}

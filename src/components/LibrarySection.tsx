@@ -1409,7 +1409,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 <div className="space-y-2">
                   {zvukoveNahledy.length > 1 && (
                     <div className="flex items-center gap-2">
-                      <span className="text-stitek uppercase tracking-wider text-neutral-500">
+                      <span className="stitek-pole">
                         {zvukoveNahledy.length} otevřených zvuků
                       </span>
                       <button
