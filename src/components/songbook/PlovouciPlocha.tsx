@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus, LayoutGrid } from 'lucide-react';
 import { Song } from '../../types';
 import {
-  Okno, TypOkna, POPIS_OKEN, noveOkno, vRamci, vychoziOkna, srovnejDoRadku,
+  Okno, TypOkna, POPIS_OKEN, noveOkno, vRamci, vychoziOkna, srovnejDoRadku, rozlozNaPlochu,
 } from './plovouciOkna';
 import { podiumProfil } from '../../services/podiumProfil';
 import { dataModulu } from './moduleRegistry';
@@ -30,10 +30,11 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
 
   // Přepnutí písně načte její vlastní plochu.
   useEffect(() => {
-    // Šířka se čte až tady: při prvním výpočtu ve `useState` plocha ještě
-    // není v dokumentu, takže by se automatická okna zalomila podle
-    // odhadu místo podle skutečnosti.
-    setOkna(nactiOkna(song, plochaRef.current?.clientWidth || 1200));
+    // Rozměry se čtou až tady: při prvním výpočtu ve `useState` plocha
+    // ještě není v dokumentu, takže by se okna rozložila podle odhadu
+    // místo podle skutečnosti.
+    const el = plochaRef.current;
+    setOkna(nactiOkna(song, el?.clientWidth || 1200, el?.clientHeight || 800));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [song.id]);
 
@@ -48,7 +49,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
   useEffect(() => {
     const zProfilu = (e: Event) => {
       if ((e as CustomEvent).detail?.zProfilu) {
-        setOkna(nactiOkna(song, plochaRef.current?.clientWidth || 1200));
+        setOkna(nactiOkna(song, plochaRef.current?.clientWidth || 1200, plochaRef.current?.clientHeight || 800));
       }
     };
     window.addEventListener('neverlate:podium-zmena', zProfilu);
@@ -126,7 +127,12 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
         {okna.length > 0 && (
           <>
             <button
-              onClick={() => uloz(srovnejDoRadku(okna, plochaRef.current?.getBoundingClientRect().width || 1200))}
+              onClick={() => {
+                // Srovnat = vyplnit plochu, ne jen postavit okna vedle
+                // sebe v jejich vlastní velikosti a zbytek zalomit dolů.
+                const r = plochaRef.current?.getBoundingClientRect();
+                uloz(rozlozNaPlochu(okna, r?.width || 1200, r?.height || 800));
+              }}
               className="px-3 py-2 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.1] text-neutral-300 text-drobne font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
               title="Srovnat okna vedle sebe"
             >
@@ -142,7 +148,11 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
       <div
         ref={plochaRef}
         onClick={() => nabidkaOtevrena && setNabidkaOtevrena(false)}
-        className="relative w-full min-h-[70vh] bg-black/20 border border-white/[0.06] rounded-3xl overflow-x-auto overflow-y-hidden"
+                // `h-full` proto, aby plocha v pódiovém režimu vyplnila obrazovku:
+        // rodič jí dává `flex-1`, ale bez tohohle by se scvrkla na
+        // spodní mez a dole zbyl pruh prázdna. Tmavší podklad než dřív —
+        // okna na něm mají vystoupit, ne s ním splývat.
+        className="relative w-full h-full min-h-[70vh] bg-vhloubeni border border-kresba rounded-3xl overflow-x-auto overflow-y-hidden"
       >
         {okna.length === 0 && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
@@ -183,7 +193,7 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
  * všem naráz zmizelo, co si nastavili, než se rozložení stěhovalo
  * k profilům.
  */
-function nactiOkna(song: Song, sirkaPlochy = 1200): Okno[] {
+function nactiOkna(song: Song, sirkaPlochy = 1200, vyskaPlochy = 800): Okno[] {
   const moje = podiumProfil.oknaPisne(song.id);
   if (moje) return moje;
 
@@ -200,6 +210,13 @@ function nactiOkna(song: Song, sirkaPlochy = 1200): Okno[] {
   // Nikdy tu nic nebylo: otevře se, k čemu jsou u písně materiály.
   // Dřív zůstala plocha holá a všechno se muselo naklikat znovu —
   // na zkoušce zrovna ve chvíli, kdy se má hrát.
-  return vychoziOkna((typ) => dataModulu(song, typ).jsouData, sirkaPlochy);
+  // Rozloží se podle skutečné plochy, ne v pevných rozměrech: jinak by
+  // se to, co se nevejde do řádku, zalomilo dolů mimo obraz — plocha
+  // svisle nescrolluje.
+  return rozlozNaPlochu(
+    vychoziOkna((typ) => dataModulu(song, typ).jsouData, sirkaPlochy),
+    sirkaPlochy,
+    vyskaPlochy,
+  );
 }
 

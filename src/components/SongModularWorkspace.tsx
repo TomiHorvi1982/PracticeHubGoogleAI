@@ -37,6 +37,7 @@ function skoreKandidata(s: Song): number | undefined {
 }
 import { ModularTunerSection, ModularFretboardSection, ModularPianoSection } from './ModularWorkspaceExtras';
 import { ModularStemsMixer } from './ModularStemsMixer';
+import { StemMixerSection } from './StemMixerSection';
 import { songDatabaseService } from '../services/songDatabaseService';
 import { useMusicalContext } from '../context/MusicalContext';
 
@@ -1132,13 +1133,9 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
         return <SamplyModul />;
 
       case 'stems_mixer':
-        return (
-          <ModularStemsMixer
-            song={song}
-            stopyPisne={stemAttachments}
-            onUpdateSong={onUpdateSong}
-          />
-        );
+        // Plný pult, ne zkrácená verze: na pódiu je potřeba i vlnovka,
+        // smyčky, sekce a kytarový kanál s NAM — ne jen holé fadery.
+        return <StemMixerSection vOkne />;
 
       case 'tuner':
         return <ModularTunerSection currentTuningName={song.tuning} />;

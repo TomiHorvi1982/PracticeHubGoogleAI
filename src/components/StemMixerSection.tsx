@@ -32,6 +32,7 @@ import {
   Wand2,
   Check,
   FolderOpen,
+  AlertTriangle,
 } from 'lucide-react';
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
@@ -86,6 +87,15 @@ const ROLE_FADERU: { id: string; popis: string }[] = [
 
 interface StemMixerSectionProps {
   currentUser?: any;
+  /**
+   * Pult v plovoucím okně na Pódiu.
+   *
+   * Sekční omáčka jde pryč — hlavička s nápovědou, nahrávání do knihovny
+   * a náhled videa. Na pódiu je místo vzácné a tohle se tam nedělá; hraje
+   * se z toho, co už je připravené. Pracovní část zůstává celá: stopy,
+   * časová osa, smyčky, sekce, fadery i kytarový kanál.
+   */
+  vOkne?: boolean;
 }
 
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string; label: string }> = {
@@ -99,7 +109,7 @@ const stemColors: Record<string, { accent: string; badge: string; bg: string; bo
   other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30', label: 'Synth / Ostatní' },
 };
 
-export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser }) => {
+export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser, vOkne }) => {
   const [audioState, setAudioState] = useState<StemAudioState>(stemAudioService.getState());
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -612,6 +622,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           dekorativní ikonu 256×256 a odstavec, dohromady přes 300px,
           takže první fader začínal až na 473px a při každém otevření
           se četlo totéž vysvětlení. Text nezmizel, jen se sbalil. */}
+      {!vOkne && (
       <HlavickaSekce
         nazev="Mixážní pult"
         klic="stemmixer"
@@ -624,6 +635,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           </>
         )}
       />
+      )}
 
       {/* PŘIŘAZENÍ STOP NA FADERY */}
       <div className="space-y-6">
@@ -631,7 +643,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
             pod tím faderem, kterému patří, takže se nedá splést komu.
             Zůstalo jen nahrávání do knihovny — to není výběr stopy, ale
             uložení souboru, a jinde v pultu není. */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={`flex-wrap items-center gap-2 ${vOkne ? 'hidden' : 'flex'}`}>
           <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-prvek bg-plocha-3 border border-kresba text-drobne text-neutral-200 hover:border-kresba-silna cursor-pointer transition-colors">
             <Upload className="w-3.5 h-3.5 text-znacka" />
             Nahrát stopy do knihovny
@@ -655,7 +667,30 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       </div>
 
       {/* AUDIO LOADING & BUFFER INITIALIZATION MODAL / BANNER */}
-      {selectedSong && selectedSong.status === 'completed' && (loadingAudio || !audioReady) && (
+      {/* Sada bez stop není „načítá se", ale „není co načíst".
+
+          Zůstala tu sada označená jako hotová, ke které nevede ani jedna
+          stopa — soubory se mezitím smazaly. Pult u ní točil kolečko
+          donekonečna, protože `audioReady` se nemělo z čeho stát pravdou. */}
+      {selectedSong && selectedSong.status === 'completed'
+        && !loadingAudio && !audioReady && !(selectedSong.stems?.length) && (
+        <div className="rounded-panel border border-pozor/40 bg-pozor/10 px-4 py-3 flex items-start gap-2.5">
+          <AlertTriangle className="w-4 h-4 text-pozor shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <p className="text-drobne text-pismo">
+              U „{selectedSong.title}" nejsou žádné stopy — sada je označená jako hotová,
+              ale soubory k ní nevedou.
+            </p>
+            <p className="text-stitek text-pismo-slaby mt-0.5">
+              Vyexportuj stopy z Neural Mix Pro do složky se stopami, nebo je vyber
+              pod jednotlivými fadery.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {selectedSong && selectedSong.status === 'completed'
+        && (loadingAudio || (!audioReady && !!selectedSong.stems?.length)) && (
         <div className="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-900 border border-amber-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 animate-in fade-in duration-300">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
@@ -741,6 +776,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
         </div>
       )}
 
+      {!vOkne && (
+      <>
       {/* SLOŽKA SE STOPAMI
 
           Separace běží mimo appku — v Neural Mix Pro — a ta sem jen
@@ -845,6 +882,9 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           );
         })}
       </div>
+
+      </>
+      )}
 
       {/* NÁHLED VIDEA
           Při cvičení je půlka informace v tom, co ruce dělají. Zvuk si
@@ -1352,8 +1392,9 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
       )}
 
         {/* Náhled videa až pod fadery: při mixu se kouká na stopy,
-            video je kontrola, ne to hlavní. */}
-    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl">
+            video je kontrola, ne to hlavní. V okně na Pódiu se
+            nevykresluje — video má na ploše vlastní okno. */}
+    <div className={`bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl ${vOkne ? 'hidden' : ''}`}>
       <div className="flex flex-wrap items-center gap-2">
         <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
         <h3 className="text-base font-bold text-white">Náhled videa</h3>
