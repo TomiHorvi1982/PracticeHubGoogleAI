@@ -221,8 +221,25 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
     if (rezim !== 'tise') setMistniNacita(true);
     try {
       const r = await authorizedFetch('/api/stopy/mistni');
-      const d: MistniOdpoved = await r.json();
-      setMistni(d);
+      const d = await r.json();
+      /*
+       * Odpověď se ověří, než se uloží.
+       *
+       * Bez přihlášení vrací endpoint `{ error }` — bez `skladby`. Ta se
+       * hned nato prohání `flatMap`, takže celý pult spadl na
+       * „Cannot read properties of undefined". Chybějící stopy mají být
+       * prázdný seznam s vysvětlením, ne bílá obrazovka.
+       */
+      if (!r.ok || !Array.isArray(d?.skladby)) {
+        setMistni({
+          dostupne: false,
+          slozka: d?.slozka || '',
+          skladby: [],
+          duvod: d?.error || d?.duvod || 'Složku se nepodařilo přečíst.',
+        });
+        return;
+      }
+      setMistni(d as MistniOdpoved);
 
       const ted = otisky(d.skladby || []);
       if (rezim === 'prvni') {
