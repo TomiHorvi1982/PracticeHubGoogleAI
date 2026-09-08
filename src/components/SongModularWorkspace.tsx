@@ -180,25 +180,6 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
     }
   };
 
-  // Explicit Save button action: Saves layout, module states and song parameters permanently
-  const handleSaveLayoutAndSong = () => {
-    const updatedSong: Song = {
-      ...song,
-      moduleConfigs: modules,
-      content: editedContent || song.content,
-      tuning: musicalCtx?.tuning || song.tuning,
-      key: musicalCtx?.key || song.key,
-      bpm: musicalCtx?.bpm || song.bpm,
-      capo: capoFret,
-      updatedAt: Date.now(),
-    };
-    songDatabaseService.saveSong(updatedSong);
-    onUpdateSong(updatedSong);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(`song_modules_cfg_${song.id}`, JSON.stringify(modules));
-    }
-    showToast('✅ Nastavení, moduly a rozložení skladby byly úspěšně uloženy!');
-  };
 
   // Restore button action: Restores original default layout and modules
   const handleRestoreDefaultLayout = () => {

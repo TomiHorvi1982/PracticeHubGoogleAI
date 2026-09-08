@@ -30,7 +30,8 @@ import {
   Download,
   Cpu,
   Wand2,
-  Check
+  Check,
+  FolderOpen,
 } from 'lucide-react';
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
@@ -106,6 +107,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
   const [cilovyFader, setCilovyFader] = useState<string>('vocals');
   /** Přiblížení vlnovky a úsek, který je z něj vidět. */
   const [zoom, setZoom] = useState(1);
+  /** Co se právě usazuje na fadery. `null` = nic se nenačítá. */
+  const [nacitanaSada, setNacitanaSada] = useState<
+    { nazev: string; hotovo: number; celkem: number } | null
+  >(null);
+
   /** Ruční posun vlnovky do stran. `null` = obraz sleduje hlavu. */
   const [posun, setPosun] = useState<number | null>(null);
   const plochaStop = React.useRef<HTMLDivElement>(null);
@@ -311,16 +317,29 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
    * Separátor vyplivne čtyři soubory a věšet je po jednom je čtyřikrát
    * ta samá práce; role se pozná z názvu, takže sedí samy.
    */
+  /**
+   * Sada z disku na fadery.
+   *
+   * Stopa bez rozpoznané role se přeskočí — nemá kam sednout. Kolik se
+   * jich usadilo a kolik zbylo, se ukáže v panelu složky, aby nebylo
+   * potřeba hádat, proč je některý fader prázdný.
+   */
   const nactiSadu = (sk: MistniSkladba) => {
+    setNacitanaSada({ nazev: sk.nazev, hotovo: 0, celkem: sk.stopy.filter((t) => t.role).length });
     const nove = [...vlastniStopy];
+    let hotovo = 0;
     for (const t of sk.stopy) {
       if (!t.role) continue;
       const polozka = { role: t.role, nazev: t.jmeno, url: odkazNaMistni(t.cesta) };
       const i = nove.findIndex((v) => v.role === t.role);
       if (i >= 0) nove[i] = polozka; else nove.push(polozka);
+      hotovo += 1;
+      setNacitanaSada((x) => (x && x.nazev === sk.nazev ? { ...x, hotovo } : x));
     }
     setVlastniStopy(nove);
     stemAudioService.pouzijVlastniStopy(nove);
+    // Hlášku o dokončení nechat chvíli viset, ať jde přečíst.
+    window.setTimeout(() => setNacitanaSada((x) => (x?.nazev === sk.nazev ? null : x)), 4000);
   };
 
   // Poll processing songs progress
@@ -721,6 +740,111 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser 
           </button>
         </div>
       )}
+
+      {/* SLOŽKA SE STOPAMI
+
+          Separace běží mimo appku — v Neural Mix Pro — a ta sem jen
+          kouká. Panel proto neukazuje průběh dělení, ale co ve složce
+          leží, kam to sedne a co se právě usadilo.
+
+          Přiřazení jde z konce názvu souboru: Neural Mix věší za název
+          skladby štítek stopy (`01. Arise-harmonic.wav`). Vlastní JSON
+          k exportu nepřikládá, takže rozhoduje jméno. */}
+      <div className="bg-[#121217] border border-slate-800 rounded-3xl p-5 sm:p-6 text-white shadow-2xl space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <FolderOpen className="w-5 h-5 text-info shrink-0" />
+          <h3 className="nadpis-panelu">Složka se stopami</h3>
+          {mistni.dostupne && (
+            <code className="text-stitek text-pismo-slaby truncate max-w-[22rem]">{mistni.slozka}</code>
+          )}
+          <div className="flex-1" />
+          {mistni.dostupne && (
+            <span className="stitek-pole flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-uspech animate-pulse" />
+              hlídá se každých 6 s
+            </span>
+          )}
+          <button
+            onClick={() => void nactiMistni('rucne')}
+            disabled={mistniNacita}
+            className="text-stitek px-2.5 py-1 rounded-lg bg-plocha-3 hover:bg-plocha-nad text-pismo-tlum hover:text-pismo cursor-pointer disabled:opacity-40"
+          >
+            {mistniNacita ? 'Čtu…' : 'Načíst znovu'}
+          </button>
+        </div>
+
+        {nacitanaSada && (
+          <div className="flex items-center gap-2 text-drobne text-uspech bg-uspech/10 border border-uspech/30 rounded-prvek px-3 py-2">
+            <Layers className="w-4 h-4 shrink-0" />
+            <span className="truncate">
+              {nacitanaSada.hotovo < nacitanaSada.celkem
+                ? `Usazuji „${nacitanaSada.nazev}" na fadery…`
+                : `„${nacitanaSada.nazev}" je na faderech.`}
+            </span>
+            <span className="ml-auto tabular-nums shrink-0">
+              {nacitanaSada.hotovo}/{nacitanaSada.celkem} stop
+            </span>
+          </div>
+        )}
+
+        {!mistni.dostupne && (
+          <p className="text-drobne text-pismo-tlum">{mistni.duvod || 'Složka se nedá přečíst.'}</p>
+        )}
+
+        {mistni.dostupne && !mistni.skladby.length && (
+          <p className="text-drobne text-pismo-slaby">
+            Zatím tu nic není. Vyexportuj stopy z Neural Mix Pro do téhle složky
+            a objeví se samy — nemusíš nic mačkat.
+          </p>
+        )}
+
+        {mistni.dostupne && mistni.skladby.map((sk) => {
+          const sRoli = sk.stopy.filter((t) => t.role);
+          const bezRole = sk.stopy.filter((t) => !t.role);
+          return (
+            <div key={sk.nazev} className="rounded-prvek border border-kresba bg-plocha-2 p-3 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-drobne font-bold text-pismo truncate flex-1 min-w-0">
+                  {sk.nazev || '(bez názvu)'}
+                </span>
+                <button
+                  onClick={() => nactiSadu(sk)}
+                  disabled={!sRoli.length}
+                  className="text-stitek px-2.5 py-1 rounded-lg bg-uspech/15 border border-uspech/40 text-uspech hover:bg-uspech/25 cursor-pointer disabled:opacity-40"
+                >
+                  Na fadery
+                </button>
+              </div>
+
+              {/* Které stopy kam sednou. Bez tohohle se dá jen hádat,
+                  proč zůstal některý fader prázdný. */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {sRoli.map((t) => {
+                  const fader = ROLE_FADERU.find((r) => r.id === t.role);
+                  const usazena = vlastniStopy.some((v) => v.role === t.role && v.nazev === t.jmeno);
+                  return (
+                    <div key={t.cesta} className="flex items-center gap-1.5 text-stitek min-w-0">
+                      {usazena
+                        ? <Check className="w-3 h-3 text-uspech shrink-0" />
+                        : <span className="w-3 h-3 shrink-0" />}
+                      <span className="text-pismo-slaby truncate flex-1 min-w-0">{t.jmeno}</span>
+                      <span className="text-pismo-slaby shrink-0">→</span>
+                      <span className="text-pismo-tlum shrink-0">{fader?.popis || t.role}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {bezRole.length > 0 && (
+                <p className="text-stitek text-pozor">
+                  Nepoznaná stopa: {bezRole.map((t) => t.jmeno).join(', ')} — přejmenuj ji tak,
+                  aby na konci názvu stálo, co obsahuje (drums, bass, vocals, harmonic…).
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
       {/* NÁHLED VIDEA
           Při cvičení je půlka informace v tom, co ruce dělají. Zvuk si

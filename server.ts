@@ -4159,7 +4159,18 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
     // 'processing' for the worker's own bookkeeping) but the frontend
     // StemSongDocument type predates it — map both onto 'processing' so
     // existing UI polling (`status === 'processing'`) keeps working.
-    const status = stemSetRow.status === 'queued' ? 'processing' : stemSetRow.status;
+    /*
+     * Zrušená nebo spadlá úloha znamená konec, ne běh.
+     *
+     * Serverová separace je vypnutá, ale v databázi po ní zůstaly sady
+     * ve stavu `queued` se zrušenou úlohou. Pult je bral jako běžící,
+     * točil u nich kolečko a každé dvě vteřiny se doptával — donekonečna,
+     * protože dokončit je nemá co. Rozhoduje tedy stav úlohy, ne sady.
+     */
+    const uloha = jobRow?.status;
+    const status = (uloha === 'cancelled' || uloha === 'failed')
+      ? 'failed'
+      : (stemSetRow.status === 'queued' ? 'processing' : stemSetRow.status);
 
     return {
       id: stemSetRow.id,
