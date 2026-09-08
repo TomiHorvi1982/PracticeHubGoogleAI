@@ -20,13 +20,17 @@ import { audioSynth } from './audioSynth';
  * ohledu na to, kolikrát se modul vyhodnotí.
  */
 interface OknoSMetronomem extends Window {
-  __neverlateMetronom?: { casovac: number | null; doba: number; bpm: number; dobVTaktu: number };
+  __neverlateMetronom?: {
+    casovac: number | null; doba: number; bpm: number; dobVTaktu: number;
+    /** Kdy padla první doba. Podle toho se dopočítá pozice mezi tiky. */
+    zacatek: number;
+  };
 }
 
 function stav() {
   const w = window as OknoSMetronomem;
   if (!w.__neverlateMetronom) {
-    w.__neverlateMetronom = { casovac: null, doba: 0, bpm: 120, dobVTaktu: 4 };
+    w.__neverlateMetronom = { casovac: null, doba: 0, bpm: 120, dobVTaktu: 4, zacatek: 0 };
   }
   return w.__neverlateMetronom;
 }
@@ -46,6 +50,9 @@ class MetronomService {
    */
   public start(bpm: number, dobVTaktu = 4): void {
     const s = stav();
+    // Strop 300 na čtvrtky: šestnáctky pak jdou dvacet za vteřinu, což
+    // je rychleji, než se dá zahrát. Níž než třicet už se ztrácí pocit
+    // tempa a klepe to jako hodiny.
     const nove = Math.max(30, Math.min(300, bpm));
     if (this.bezi() && s.bpm === nove && s.dobVTaktu === dobVTaktu) return;
 
@@ -61,6 +68,7 @@ class MetronomService {
       s.doba++;
     };
 
+    s.zacatek = performance.now();
     tik();
     s.casovac = window.setInterval(tik, 60000 / s.bpm);
   }
@@ -71,6 +79,25 @@ class MetronomService {
     if (this.bezi()) this.start(bpm, s.dobVTaktu);
     else s.bpm = bpm;
   }
+
+  /**
+   * Kde je metronom právě teď, v dobách od spuštění.
+   *
+   * Vrací i desetinnou část, aby se dala vykreslit plynulá čára mezi
+   * tiky — samotné klepání je po čtvrtkách, ale šestnáctinový vzor
+   * potřebuje vědět, kde se je uvnitř doby.
+   *
+   * Počítá se z času, ne z počitadla tiků: `setInterval` se v prohlížeči
+   * opožďuje a po pár desítkách taktů by se čára rozešla se zvukem.
+   */
+  public pozice(): number {
+    const s = stav();
+    if (s.casovac === null) return 0;
+    return ((performance.now() - s.zacatek) / 60000) * s.bpm;
+  }
+
+  /** Tempo, ve kterém běží (nebo poslední nastavené). */
+  public tempo(): number { return stav().bpm; }
 
   public stop(): void {
     const s = stav();

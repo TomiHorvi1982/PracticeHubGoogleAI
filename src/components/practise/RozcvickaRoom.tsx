@@ -2,6 +2,17 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Play, Pause, Check, SkipForward, Flame } from 'lucide-react';
 import { ROZCVICKA, delkaProgramu, Cvik } from '../../data/rozcvicka';
 import { metronomService } from '../../services/metronomService';
+import { PasRytmu } from './PasRytmu';
+
+/**
+ * Kam až jde vytáhnout tempo.
+ *
+ * Doporučený strop u cviku říká, kde je rozumné se usadit; tohle je
+ * mez přístroje. Při 260 jdou šestnáctky sedmnáctkrát za vteřinu —
+ * rychleji než většina toho, co kdo hraje, ale pomaleji, než kam
+ * metronom umí (300).
+ */
+const STROP_TEMPA = 260;
 
 /**
  * Rozcvička před hraním.
@@ -113,8 +124,11 @@ export const RozcvickaRoom: React.FC = () => {
               <div className="flex items-center gap-2">
                 <input
                   type="range"
-                  min={bezici.bpmOd}
-                  max={bezici.bpmDo}
+                  min={Math.max(30, bezici.bpmOd - 20)}
+                  /* Doporučený strop je doporučení, ne mez. Některé kapely
+                     hrají šestnáctky rychleji, než kam sahá — a cvičit se
+                     na to musí někde. */
+                  max={STROP_TEMPA}
                   value={bpm}
                   onChange={(e) => {
                     const t = Number(e.target.value);
@@ -125,6 +139,14 @@ export const RozcvickaRoom: React.FC = () => {
                 />
                 <span className="text-sm font-mono font-bold text-znacka w-14 tabular-nums">
                   {bpm}
+                </span>
+                {/* Kolik not za vteřinu to při šestnáctkách dělá — podle
+                    toho se pozná, jestli je cíl v lidských silách. */}
+                <span className="text-stitek text-pismo-slaby tabular-nums whitespace-nowrap">
+                  {(bpm * 4 / 60).toFixed(1)} šestnáctin/s
+                  {bpm > bezici.bpmDo && bezici.bpmDo > 0 && (
+                    <span className="text-pozor"> · nad doporučením</span>
+                  )}
                 </span>
               </div>
             )}
@@ -137,17 +159,7 @@ export const RozcvickaRoom: React.FC = () => {
           </div>
 
           {bezici.vzor && (
-            <div className="flex gap-1">
-              {bezici.vzor.map((zni, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 h-7 rounded ${
-                    zni ? 'bg-znacka' : 'bg-white/[0.06]'
-                  } ${i % 4 === 0 ? 'ring-1 ring-white/25' : ''}`}
-                  title={`${Math.floor(i / 4) + 1}. doba`}
-                />
-              ))}
-            </div>
+            <PasRytmu vzor={bezici.vzor} bezi={metronomService.bezi()} />
           )}
         </div>
       )}
