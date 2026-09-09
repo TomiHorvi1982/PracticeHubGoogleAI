@@ -3,6 +3,7 @@ import { useMusicalContext } from '../../context/MusicalContext';
 import { audioBus, CoHraje } from '../../services/audioBus';
 import { posunDoToniny } from '../../services/akordy';
 import { MikrofonTlacitko } from '../hlas/MikrofonTlacitko';
+import { ZivaKytara } from './ZivaKytara';
 import { zaregistruj } from '../../services/hlas/vykonavac';
 import { toninaZReci } from '../../services/tonina';
 import { 
@@ -285,6 +286,9 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
             pruhu dole a všechny jeho nástroje — hmatník, akordy, ladička,
             metronom, klávesy — má aplikace i jako plnohodnotné sekce.
             Dvě cesty k témuž jen nutily hádat, která je ta lepší. */}
+        {/* Kytara i hlas patří do lišty ze stejného důvodu: obojí se
+            používá při hraní, kdy se člověk neproklikává do sekce. */}
+        <ZivaKytara />
         {/* Hlasové příkazy — v liště, tedy dostupné ze všech sekcí. */}
         <MikrofonTlacitko />
         {/* User Profile / Admin Button */}

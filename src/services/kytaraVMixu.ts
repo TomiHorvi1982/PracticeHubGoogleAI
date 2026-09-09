@@ -43,6 +43,16 @@ export interface StavKytary {
   /** Špička vstupu 0–1, na měřák před aparátem. */
   urovenVstupu: number;
 
+  /**
+   * Ztlumený vstup.
+   *
+   * Rozdíl proti vypnutí: řetěz stojí dál, model zůstává načtený a
+   * mikrofon povolený. Když se mezi písničkami potřebuješ ztišit,
+   * odpojovat kvůli tomu celou kytaru znamená čekat na nové povolení
+   * a nové načtení aparátu.
+   */
+  ztlumeno: boolean;
+
   /** Pásma parametrického ekvalizéru — frekvence, zesílení, šířka. */
   eq: PasmoEq[];
 
@@ -57,6 +67,7 @@ const VYCHOZI: StavKytary = {
   model: null, bedna: null,
   bypassAparatu: false, bypassBedny: false, bypassEq: true,
   urovenVstupu: 0,
+  ztlumeno: false,
   eq: VYCHOZI_EQ.map((x) => ({ ...x })),
   // Vypnuté a s nulovým podílem: kytara má napoprvé znít, jak ji hraješ.
   delay: { zapnuto: false, cas: 0.35, zpetna: 0.35, mix: 0.25 },
@@ -128,6 +139,19 @@ class KytaraVMixu {
   private reverbMokro: GainNode | null = null;
   /** Analyzér za celým řetězem — z něj čte spektrum. */
   private spektrum: AnalyserNode | null = null;
+
+  /**
+   * Naposled načtený model.
+   *
+   * Odpojení kytary shodí worklet i s aparátem. Bez tohohle by po
+   * každém vypnutí a zapnutí hrála čistá kytara a model by se musel
+   * vybírat znovu — což u ikonky v liště, kterou člověk mačká mezi
+   * písničkami, nedává smysl.
+   */
+  private posledni: { json: string; jmeno: string } | null = null;
+
+  /** Totéž pro bednu — už rozkódovanou, kontext se odpojením nemění. */
+  private posledniBedna: { buf: AudioBuffer; jmeno: string } | null = null;
 
   public getStav(): StavKytary { return this.stav; }
 
@@ -257,7 +281,24 @@ class KytaraVMixu {
     await namAparat.pripoj(ctx);
 
     this.spustMeric();
-    this.oznam({ bezi: true, chyba: null });
+    this.oznam({ bezi: true, chyba: null, ztlumeno: false });
+
+    // Aparát, který jsi měl před odpojením, se vrátí sám. Kdyby se
+    // nenačetl, kytara hraje čistá — to je horší zvuk, ne chyba.
+    if (this.posledni) {
+      const p = this.posledni;
+      if (await namAparat.nactiModel(p.json, p.jmeno)) {
+        this.oznam({ model: p.jmeno });
+        this.prepojAparat();
+      }
+    }
+    if (this.posledniBedna) {
+      this.bedna = ctx.createConvolver();
+      this.bedna.normalize = true;
+      this.bedna.buffer = this.posledniBedna.buf;
+      this.oznam({ bedna: this.posledniBedna.jmeno });
+      this.prepojBednu();
+    }
     return true;
   }
 
@@ -281,7 +322,17 @@ class KytaraVMixu {
     this.bednaDo = null;
     this.eq = [];
     this.vystupGain = null;
-    this.oznam({ ...VYCHOZI });
+    // Nastavení přežije odpojení. Zmizí jen to, co bez běžícího řetězu
+    // nedává smysl — dřív se s kytarou vracel i vynulovaný ekvalizér a
+    // vypnutá ozvěna, což po zapnutí ikonkou v liště nikdo nečeká.
+    this.oznam({
+      bezi: false,
+      chyba: null,
+      model: null,
+      bedna: null,
+      urovenVstupu: 0,
+      ztlumeno: false,
+    });
   }
 
   private spustMeric(): void {
@@ -297,7 +348,27 @@ class KytaraVMixu {
 
   public nastavVstupDb(db: number): void {
     this.oznam({ vstupDb: db });
-    if (this.vstupGain) this.vstupGain.gain.value = dbNaPomer(db);
+    this.pouzijVstup();
+  }
+
+  /**
+   * Ztlumí nebo pustí vstup.
+   *
+   * Sahá se na vstupní zesílení, ne na výstupní: co doznívá v ozvěně a
+   * dozvuku, má dojet do ticha. Uříznout to na konci řetězu by uprostřed
+   * fráze luplo.
+   */
+  public setZtlumeno(b: boolean): void {
+    this.oznam({ ztlumeno: b });
+    this.pouzijVstup();
+  }
+
+  private pouzijVstup(): void {
+    if (!this.vstupGain) return;
+    const cil = this.stav.ztlumeno ? 0 : dbNaPomer(this.stav.vstupDb);
+    // Skok na nulu lupne; dvacet milisekund je pod hranicí, kdy by se
+    // ztlumení dalo vnímat jako zpoždění.
+    this.vstupGain.gain.setTargetAtTime(cil, this.kontext().currentTime, 0.02);
   }
 
   public nastavVystupDb(db: number): void {
@@ -371,6 +442,7 @@ class KytaraVMixu {
   public async nactiModel(json: string, jmeno: string): Promise<boolean> {
     const ok = await namAparat.nactiModel(json, jmeno);
     if (ok) {
+      this.posledni = { json, jmeno };
       this.oznam({ model: jmeno });
       this.prepojAparat();
     }
@@ -379,6 +451,7 @@ class KytaraVMixu {
 
   public vyndejModel(): void {
     namAparat.vyndejModel();
+    this.posledni = null;
     this.oznam({ model: null });
     this.prepojAparat();
   }
@@ -402,6 +475,7 @@ class KytaraVMixu {
       this.bedna = ctx.createConvolver();
       this.bedna.normalize = true;
       this.bedna.buffer = buf;
+      this.posledniBedna = { buf, jmeno };
       this.oznam({ bedna: jmeno });
       this.prepojBednu();
       return true;
@@ -413,6 +487,7 @@ class KytaraVMixu {
 
   public vyndejBednu(): void {
     this.bedna = null;
+    this.posledniBedna = null;
     this.oznam({ bedna: null });
     this.prepojBednu();
   }
