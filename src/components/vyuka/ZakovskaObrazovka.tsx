@@ -15,6 +15,9 @@ import {
 } from '../../services/body';
 import { bodyService } from '../../services/bodyService';
 import { Kviz } from './Kviz';
+import { KontrolaCviku } from './KontrolaCviku';
+import { VlastniCvik } from '../../services/vlastniCviky';
+import { cvikyUloziste } from '../../services/vlastniCvikyUloziste';
 
 /**
  * Obrazovka žáka.
@@ -64,6 +67,8 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
   const [odmeny, setOdmeny] = useState<Odmena[]>([]);
   const [dnyAktivity, setDnyAktivity] = useState<string[]>([]);
   const [kvizOtevren, setKvizOtevren] = useState(false);
+  /* Cviky, na které úkoly ukazují — kvůli samokontrole. */
+  const [cviky, setCviky] = useState<VlastniCvik[]>([]);
 
   const nactiUkoly = async () => {
     try { setUkoly(await ukolyService.nacti()); } catch { /* bez úkolů se dá cvičit dál */ }
@@ -96,6 +101,10 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
     } catch { /* body jsou navíc; úkoly se ukážou i bez nich */ }
   };
   useEffect(() => { void nactiBody(); }, [zak.id]);
+
+  useEffect(() => {
+    cvikyUloziste.nacti().then(setCviky).catch(() => { /* bez cviků jen nebude samokontrola */ });
+  }, []);
 
   /*
    * Body za sérii.
@@ -240,6 +249,21 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
                             Učitel: {u.zpetna_vazba}
                           </p>
                         )}
+
+                        {/* Samokontrola jen u cviků: u úkolu „projdi si
+                            přechod" není co porovnávat. */}
+                        {!hotovo && u.druh === 'cvik' && (() => {
+                          const cvik = cviky.find((c) => c.id === u.cil_id);
+                          return cvik?.tony.length ? (
+                            <div className="mt-2">
+                              <KontrolaCviku
+                                tony={cvik.tony}
+                                bpm={u.cilove_tempo || cvik.bpm}
+                                prizvuk={motiv.prizvuk}
+                              />
+                            </div>
+                          ) : null;
+                        })()}
                       </div>
 
                       {/* Odevzdat smí dítě samo; ohodnotit ne — o tom
