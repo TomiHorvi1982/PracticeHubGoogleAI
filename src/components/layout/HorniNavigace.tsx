@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Library, Maximize2, FileCode, FileText, GraduationCap, Piano, Clock, Mic,
-  Sliders, Guitar, FolderOpen, Bookmark, Settings, Compass,
+  Sliders, Guitar, FolderOpen, Bookmark, Settings, Compass, LayoutGrid,
 } from 'lucide-react';
 import { MainTabType } from './sekce';
 import { PRIME, SKUPINY, STRANOU } from './skupiny';
@@ -9,6 +9,9 @@ import { PRIME, SKUPINY, STRANOU } from './skupiny';
 interface Props {
   activeTab: MainTabType;
   onSelectTab: (tab: MainTabType) => void;
+  /** Plocha s okny místo jedné sekce. */
+  rezimPlochy?: boolean;
+  onPrepnoutPlochu?: () => void;
 }
 
 /**
@@ -47,14 +50,16 @@ const VSE = [
   ...SKUPINY.flatMap((s) => s.polozky.filter((p) => !p.jenHlasem)),
 ];
 
-export const HorniNavigace: React.FC<Props> = ({ activeTab, onSelectTab }) => (
+export const HorniNavigace: React.FC<Props> = ({
+  activeTab, onSelectTab, rezimPlochy = false, onPrepnoutPlochu,
+}) => (
   <nav
     aria-label="Hlavní navigace"
     className="bg-plocha-1 border-b border-kresba px-2 sm:px-3 flex items-stretch gap-0.5 shrink-0"
   >
     {VSE.map((p) => {
       const Ikona = IKONY[p.id] || Compass;
-      const aktivni = activeTab === p.id;
+      const aktivni = !rezimPlochy && activeTab === p.id;
       return (
         <button
           key={p.id}
@@ -78,9 +83,27 @@ export const HorniNavigace: React.FC<Props> = ({ activeTab, onSelectTab }) => (
 
     {/* Zázemí vpravo: nejsou to nástroje k písni, tak nedělí šířku s nimi. */}
     <span className="w-px my-2 bg-kresba shrink-0 mx-1" aria-hidden="true" />
+
+    {/* Plocha s okny. Není to sekce, ale jiný způsob, jak je ukázat —
+        proto stojí stranou od řady a nedělí s ní šířku. */}
+    {onPrepnoutPlochu && (
+      <button
+        onClick={onPrepnoutPlochu}
+        title={rezimPlochy ? 'Zpátky na jednu sekci' : 'Plocha s okny — otevři si víc sekcí naráz'}
+        aria-label="Plocha s okny"
+        aria-pressed={rezimPlochy}
+        className={`shrink-0 inline-flex items-center justify-center rounded-prvek px-2
+          min-h-dotyk lg:min-h-0 lg:py-1.5 transition-colors cursor-pointer
+          focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-znacka ${
+          rezimPlochy ? 'bg-znacka-tlum text-znacka' : 'text-pismo-slaby hover:text-pismo hover:bg-plocha-2'
+        }`}
+      >
+        <LayoutGrid className="w-4 h-4" />
+      </button>
+    )}
     {STRANOU.map((p) => {
       const Ikona = p.id === 'settings' ? Settings : Compass;
-      const aktivni = activeTab === p.id;
+      const aktivni = !rezimPlochy && activeTab === p.id;
       return (
         <button
           key={p.id}

@@ -4,6 +4,7 @@ import { TabType, Song, YouTubeVideo, UserAccount, AuthSession, PlaylistItem } f
 import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
+import { PlochaSekci } from './components/plocha/PlochaSekci';
 import { zaregistruj } from './services/hlas/vykonavac';
 import { najdiPisenProSoubor } from './services/priradKPisni';
 import { LoginModal } from './components/LoginModal';
@@ -55,6 +56,28 @@ function AppContent() {
    * znamená vrátit se tam, kde člověk byl, ne na nějakou pevnou sekci.
    */
   const [odkudDoPlaylistu, setOdkudDoPlaylistu] = useState<MainTabType>('songbook');
+
+  /**
+   * Plocha s ikonami místo jedné sekce přes celou obrazovku.
+   *
+   * Volba se pamatuje, protože kdo si okna rozmístí, chce je najít i
+   * příště — a kdo plochu nechce, nemá se do ní vracet po každém
+   * načtení.
+   */
+  const [rezimPlochy, setRezimPlochy] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('neverlate_rezim_plochy') === '1';
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem('neverlate_rezim_plochy', rezimPlochy ? '1' : '0');
+    } catch {
+      /* volba se prostě nezapamatuje */
+    }
+  }, [rezimPlochy]);
 
   const [activeTab, setActiveTab] = useState<MainTabType>(() => {
     try {
@@ -276,18 +299,16 @@ function AppContent() {
   };
 
 
-  return (
-    <MainLayout
-      activeTab={activeTab}
-      onSelectTab={setActiveTab}
-      onOpenLoginModal={() => setIsLoginModalOpen(true)}
-      onOpenProfileModal={() => setIsProfileModalOpen(true)}
-      onOpenAdminModal={() => setIsAdminModalOpen(true)}
-      currentUser={currentUser}
-      userRole={userRole}
-    >
-      {/* PLAYLIST / SETLIST SECTION */}
-      {activeTab === 'playlist' && (
+  /**
+   * Obsah jednotlivých sekcí.
+   *
+   * Dřív to byla řada podmínek přímo v JSX, takže sekci uměla ukázat
+   * jen horní lišta a vždycky jednu. Jako mapa se totéž dá vykreslit i
+   * do okna na ploše — prvky se tu jen popisují, připojí je až to, co je
+   * opravdu použije.
+   */
+  const obsahSekci: Partial<Record<MainTabType, React.ReactNode>> = {
+    playlist: (
         <PlaylistSection
           playlist={playlist}
           currentTrackIndex={currentTrackIndex}
@@ -305,10 +326,9 @@ function AppContent() {
           songs={songs}
           currentUser={currentUser}
         />
-      )}
+    ),
 
-      {/* SONGBOOK SECTION */}
-      {activeTab === 'songbook' && (
+    songbook: (
         <Songbook
           onOtevritPodium={() => setActiveTab('podium')}
           onSelectSongForYoutube={(song) => {
@@ -327,9 +347,9 @@ function AppContent() {
             setActiveTab('playlist');
           }}
         />
-      )}
+    ),
 
-      {activeTab === 'vitejte' && (
+    vitejte: (
         <UvitaniSection
           jmeno={authSession?.user?.displayName}
           onJit={(t) => {
@@ -349,14 +369,12 @@ function AppContent() {
             setActiveTab('songbook');
           }}
         />
-      )}
+    ),
 
-      {/* PÓDIUM — příprava oken ke skladbám a pódiový režim */}
-      {activeTab === 'podium' && <PodiumSection />}
+      //PÓDIUM — příprava oken ke skladbám a pódiový režim
+    podium: <PodiumSection />,
 
-      {/* LIBRARY SECTION */}
-
-      {activeTab === 'library' && (
+    library: (
         <LibrarySection
           songs={songs}
           onUpdateSongs={(newSongs) => {
@@ -370,10 +388,10 @@ function AppContent() {
             setActiveTab('songbook');
           }}
         />
-      )}
+    ),
 
-      {/* MEDIA CENTER (KASET ENGINE) SECTION */}
-      {activeTab === 'mediacenter' && (
+      //MEDIA CENTER (KASET ENGINE) SECTION
+    mediacenter: (
         <MediaCenterSection
           songs={songs}
           onSelectSong={(s) => setActiveSong(s)}
@@ -383,10 +401,9 @@ function AppContent() {
           }}
           onNavigateToTab={(tab) => setActiveTab(tab as MainTabType)}
         />
-      )}
+    ),
 
-      {/* YOUTUBE JAM SECTION */}
-      {activeTab === 'youtube' && (
+    youtube: (
         <YouTubeSection
           activeSong={activeSong}
           songs={songs}
@@ -397,21 +414,18 @@ function AppContent() {
             setActiveSong(newSong);
           }}
         />
-      )}
+    ),
 
-      {/* PRACTISE HUB */}
-      {activeTab === 'practise' && <PractiseHubSection />}
-      {activeTab === 'texty' && <TextySection />}
+    practise: <PractiseHubSection />,
+    texty: <TextySection />,
 
-      {/* ZÁLOŽKY */}
-      {activeTab === 'zalozky' && <ZalozkySection />}
+      //ZÁLOŽKY
+    zalozky: <ZalozkySection />,
 
-      {/* AI BAND */}
-      {activeTab === 'liveamp' && <LiveGuitarAmp />}
-      {activeTab === 'aikapela' && <AiKapelaSection />}
+    liveamp: <LiveGuitarAmp />,
+    aikapela: <AiKapelaSection />,
 
-      {/* GUITAR PRO / ALPHATAB SECTION */}
-      {activeTab === 'alphatab' && (
+    alphatab: (
         <AlphaTabSection
           songs={songs}
           onAddSong={(song) => {
@@ -419,22 +433,34 @@ function AppContent() {
             setActiveSong(song);
           }}
         />
-      )}
+    ),
 
-      {/* BOOKMARKS SECTION */}
-      {/* TUNER SECTION */}
-      {activeTab === 'tuner' && <Tuner />}
-      {activeTab === 'settings' && <SettingsSection />}
+    tuner: <Tuner />,
+    settings: <SettingsSection />,
 
-      {/* CHORD & SCALE EXPLORER */}
-      {/* VIRTUAL INSTRUMENTS */}
-      {activeTab === 'instruments' && <VirtualInstruments />}
+    instruments: <VirtualInstruments />,
 
-      {/* PRACTICE ASSISTANT */}
-      {activeTab === 'practice' && <PracticeAssistant />}
+    practice: <PracticeAssistant />,
 
-      {/* AI STEM SEPARATION & MIXER STUDIO */}
-      {activeTab === 'stemmixer' && <StemMixerSection currentUser={currentUser} />}
+    stemmixer: <StemMixerSection currentUser={currentUser} />,
+  };
+
+  return (
+    <MainLayout
+      activeTab={activeTab}
+      onSelectTab={(t) => { setRezimPlochy(false); setActiveTab(t); }}
+      rezimPlochy={rezimPlochy}
+      onPrepnoutPlochu={() => setRezimPlochy((p) => !p)}
+      onOpenLoginModal={() => setIsLoginModalOpen(true)}
+      onOpenProfileModal={() => setIsProfileModalOpen(true)}
+      onOpenAdminModal={() => setIsAdminModalOpen(true)}
+      currentUser={currentUser}
+      userRole={userRole}
+    >
+      {/* Sekce: buď jedna přes celou obrazovku, nebo plocha s okny. */}
+      {rezimPlochy
+        ? <PlochaSekci obsah={obsahSekci} />
+        : obsahSekci[activeTab]}
 
       {/* MY LIBRARY (Supabase-backed personal/global asset storage) */}
 

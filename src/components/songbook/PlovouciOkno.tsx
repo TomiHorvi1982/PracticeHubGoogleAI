@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import { X, Minus, Square } from 'lucide-react';
-import { Okno, POPIS_OKEN } from './plovouciOkna';
+import { Geometrie, Okno, POPIS_OKEN } from './plovouciOkna';
 
-interface Props {
-  okno: Okno;
+interface Props<T extends Geometrie> {
+  okno: T;
   plochaRef: React.RefObject<HTMLDivElement | null>;
-  onZmena: (o: Okno) => void;
+  onZmena: (o: T) => void;
   onZavrit: (id: string) => void;
   onDopredu: (id: string) => void;
   /**
@@ -17,6 +17,16 @@ interface Props {
    * takže okno zůstalo vzadu, i když na ně člověk klikl.
    */
   naVrchu: boolean;
+  /**
+   * Čím se okno podepíše v záhlaví.
+   *
+   * Bez toho si jméno bere z `POPIS_OKEN`, což je seznam modulů nad
+   * písní. Plocha se sekcemi používá totéž okenní rámování, ale jiné
+   * názvy — a přidávat sekce mezi moduly písně jen kvůli popisku by
+   * ten seznam rozvrátilo.
+   */
+  nazev?: string;
+  ikona?: string;
   children: React.ReactNode;
 }
 
@@ -28,11 +38,17 @@ interface Props {
  * by z toho udělal trhaný pohyb. Nadřazené komponentě se ohlásí až konec,
  * takže se ukládá jedna změna místo stovky.
  */
-export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavrit, onDopredu, naVrchu, children }) => {
+export function PlovouciOkno<T extends Geometrie>({
+  okno, plochaRef, onZmena, onZavrit, onDopredu, naVrchu, nazev, ikona, children,
+}: Props<T>) {
   const prvekRef = useRef<HTMLDivElement>(null);
-  const tahRef = useRef<{ druh: 'posun' | 'velikost'; x: number; y: number; o: Okno } | null>(null);
+  const tahRef = useRef<{ druh: 'posun' | 'velikost'; x: number; y: number; o: T } | null>(null);
 
-  const popis = POPIS_OKEN[okno.typ];
+  const typ = (okno as Partial<Okno>).typ;
+  const popis = {
+    nazev: nazev ?? (typ ? POPIS_OKEN[typ]?.nazev : undefined) ?? 'Okno',
+    ikona: ikona ?? (typ ? POPIS_OKEN[typ]?.ikona : undefined) ?? '🎵',
+  };
 
   const start = (e: React.MouseEvent, druh: 'posun' | 'velikost') => {
     e.preventDefault();
@@ -143,4 +159,4 @@ export const PlovouciOkno: React.FC<Props> = ({ okno, plochaRef, onZmena, onZavr
       )}
     </div>
   );
-};
+}

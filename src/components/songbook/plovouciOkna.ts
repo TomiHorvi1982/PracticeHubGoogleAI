@@ -23,11 +23,15 @@ export type TypOkna =
   | 'fretboard'
   | 'keyboard';
 
-export interface Okno {
-  /** Vlastní identita okna. Téhož typu může být otevřeno víc naráz —
-   *  třeba dvě tabulatury vedle sebe. */
+/**
+ * Co okno potřebuje, aby se dalo táhnout a zvětšovat.
+ *
+ * Vyčleněné z `Okno`, protože totéž rámování používá i plocha se
+ * sekcemi — ta má místo typu modulu jméno sekce a do tohohle seznamu
+ * nepatří.
+ */
+export interface Geometrie {
   id: string;
-  typ: TypOkna;
   x: number;
   y: number;
   sirka: number;
@@ -35,6 +39,11 @@ export interface Okno {
   /** Které pořadí je navrchu. Kliknutím se okno vytáhne dopředu. */
   poradi: number;
   sbalene?: boolean;
+}
+
+export interface Okno extends Geometrie {
+  /** Téhož typu může být otevřeno víc naráz — dvě tabulatury vedle sebe. */
+  typ: TypOkna;
   /**
    * Co má okno uvnitř načtené — kterou tabulaturu, které MIDI.
    * Bez toho by se sice plocha obnovila, ale okna by byla prázdná a

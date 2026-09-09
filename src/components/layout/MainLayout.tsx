@@ -14,6 +14,9 @@ interface MainLayoutProps {
   onOpenAdminModal: () => void;
   currentUser: any;
   userRole: string;
+  /** Běží plocha s okny místo jedné sekce přes celou obrazovku? */
+  rezimPlochy?: boolean;
+  onPrepnoutPlochu?: () => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
@@ -25,6 +28,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onOpenAdminModal,
   currentUser,
   userRole,
+  rezimPlochy = false,
+  onPrepnoutPlochu,
 }) => {
   return (
     <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col font-sans antialiased overflow-hidden">
@@ -39,18 +44,25 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* Nástroje. Bývaly v bočním panelu, který ukrajoval pruh obrazovky
           i tam, kde je plocha to hlavní. */}
-      <HorniNavigace activeTab={activeTab} onSelectTab={onSelectTab} />
+      <HorniNavigace
+        activeTab={activeTab}
+        onSelectTab={onSelectTab}
+        rezimPlochy={rezimPlochy}
+        onPrepnoutPlochu={onPrepnoutPlochu}
+      />
 
       <main className="flex-1 overflow-y-auto bg-[#0B1120] flex flex-col">
         {/* Bez bočního panelu má obsah celou šířku. Strop zůstává, aby se
             řádky textu na širokoúhlé obrazovce nerozjely donekonečna. */}
         {/* Na mobilu uzsi odsazeni: vnorene panely uvnitr sekci sezraly
             na 375px pres sto pixelu a na obsah zbylo 267. */}
-        <div className="flex-1 p-3 sm:p-6 w-full max-w-[1920px] mx-auto">
+        {/* Plocha si obrazovku řídí sama — odsazení a strop šířky by jí
+            ukrojily místo, kvůli kterému vznikla. */}
+        <div className={rezimPlochy ? 'flex-1' : 'flex-1 p-3 sm:p-6 w-full max-w-[1920px] mx-auto'}>
           {children}
         </div>
 
-        <SmartStudioDock />
+        {!rezimPlochy && <SmartStudioDock />}
       </main>
     </div>
   );
