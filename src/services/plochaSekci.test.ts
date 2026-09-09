@@ -21,6 +21,12 @@ test('dlaždice pokrývají sekce z navigace a nic se nezdvojí', () => {
   for (const x of d) {
     assert.ok(x.nazev.length > 0, `${x.id} nemá jméno`);
     assert.ok(x.ikona.length > 0, `${x.id} nemá ikonu`);
+    // Zlatá patří značce a aktivnímu stavu; dlaždice ji mít nesmí,
+    // jinak přestane být poznat, která je otevřená.
+    assert.ok(
+      ['info', 'uspech', 'pozor', 'chyba', 'nastroj'].includes(x.barva),
+      `${x.id} má barvu ${x.barva}, která pro dlaždice není`,
+    );
     assert.ok(x.sirka >= 260 && x.vyska >= 140, `${x.id} má nepoužitelnou velikost`);
   }
 });

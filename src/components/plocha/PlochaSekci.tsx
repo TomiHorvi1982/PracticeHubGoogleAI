@@ -13,6 +13,20 @@ interface Props {
 }
 
 /**
+ * Dlaždice v barvě nástroje.
+ *
+ * Vypsané celé, ne skládané z proměnné: Tailwind hledá třídy v textu
+ * zdroje, takže `bg-${barva}/15` by v hotovém balíčku neexistovalo.
+ */
+const BARVA: Record<string, string> = {
+  info: 'bg-info/15 border-info/35 group-hover:border-info',
+  uspech: 'bg-uspech/15 border-uspech/35 group-hover:border-uspech',
+  pozor: 'bg-pozor/15 border-pozor/35 group-hover:border-pozor',
+  chyba: 'bg-chyba/15 border-chyba/35 group-hover:border-chyba',
+  nastroj: 'bg-nastroj/15 border-nastroj/35 group-hover:border-nastroj',
+};
+
+/**
  * Plocha s ikonami sekcí.
  *
  * Ikony leží vzadu jako na tabletu, okna se otevírají nad nimi. Rozložení
@@ -189,16 +203,19 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
                   title={`Otevřít ${d.nazev}`}
                   className="group flex flex-col items-center gap-1.5 cursor-pointer"
                 >
+                  {/* Barevná dlaždice s vlastní barvou nástroje; otevřená
+                      se obtáhne zlatě, protože zlatá je vyhrazená stavu. */}
                   <span
-                    className={`w-[62px] h-[62px] rounded-[18px] flex items-center justify-center text-2xl border transition-all group-hover:scale-105 ${
-                      otevrena
-                        ? 'bg-znacka/20 border-znacka-okraj shadow-lg shadow-znacka/10'
-                        : 'bg-plocha-2 border-kresba group-hover:border-znacka-okraj'
+                    className={`w-[62px] h-[62px] rounded-[18px] flex items-center justify-center
+                      text-2xl border transition-all group-hover:scale-105 ${BARVA[d.barva] || BARVA.info} ${
+                      otevrena ? 'ring-2 ring-znacka-okraj shadow-znacka' : ''
                     }`}
                   >
                     {d.ikona}
                   </span>
-                  <span className="text-stitek text-pismo-tlum text-center leading-tight line-clamp-2">
+                  <span className={`text-stitek text-center leading-tight line-clamp-2 ${
+                    otevrena ? 'text-znacka font-bold' : 'text-pismo-tlum'
+                  }`}>
                     {d.nazev}
                   </span>
                 </button>

@@ -41,6 +41,8 @@ export interface Dlazdice {
   id: MainTabType;
   nazev: string;
   ikona: string;
+  /** Vlastní barva nástroje — viz `BARVY`. */
+  barva: string;
   sirka: number;
   vyska: number;
 }
@@ -89,6 +91,34 @@ const IKONY: Partial<Record<MainTabType, string>> = {
   settings: '⚙️',
 };
 
+/**
+ * Barva nástroje.
+ *
+ * Každá sekce má svou, a ne pro ozdobu: mezi patnácti stejně šedými
+ * dlaždicemi se hledá podle jména, mezi barevnými podle místa a barvy.
+ * Po týdnu používání sáhneš po zelené, aniž bys četl.
+ *
+ * Zlatá tu není schválně — ta patří značce a aktivnímu stavu. Kdyby ji
+ * měla i jedna z dlaždic, přestala by aktivní stav odlišovat.
+ */
+const BARVY: Partial<Record<MainTabType, string>> = {
+  songbook: 'info',
+  podium: 'chyba',
+  alphatab: 'nastroj',
+  texty: 'pozor',
+  practise: 'uspech',
+  instruments: 'info',
+  practice: 'pozor',
+  tuner: 'uspech',
+  stemmixer: 'nastroj',
+  liveamp: 'chyba',
+  library: 'info',
+  zalozky: 'nastroj',
+  playlist: 'pozor',
+  vitejte: 'uspech',
+  settings: 'info',
+};
+
 const VYCHOZI_ROZMER: [number, number] = [700, 560];
 
 /**
@@ -111,7 +141,14 @@ export function dlazdice(): Dlazdice[] {
     .filter((p) => (videne.has(p.id) ? false : (videne.add(p.id), true)))
     .map((p) => {
       const [sirka, vyska] = ROZMERY[p.id] || VYCHOZI_ROZMER;
-      return { id: p.id, nazev: p.nazev, ikona: IKONY[p.id] || '🎵', sirka, vyska };
+      return {
+        id: p.id,
+        nazev: p.nazev,
+        ikona: IKONY[p.id] || '🎵',
+        barva: BARVY[p.id] || 'info',
+        sirka,
+        vyska,
+      };
     });
 }
 
