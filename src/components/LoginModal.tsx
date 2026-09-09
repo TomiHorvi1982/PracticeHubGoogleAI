@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { GraduationCap } from 'lucide-react';
+import { vyukaService } from '../services/vyukaService';
 import { UserAccount, AuthSession } from '../types';
 import { authService, ROLE_LABELS } from '../services/authService';
 import { Shield, Key, Mail, Lock, User, CheckCircle2, AlertCircle, ArrowRight, Eye, EyeOff, Sparkles, LogIn, Music } from 'lucide-react';
@@ -23,7 +25,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   initialEmail,
   forceInviteTab,
 }) => {
-  const [mode, setMode] = useState<'login' | 'invite'>('login');
+  const [mode, setMode] = useState<'login' | 'invite' | 'zak'>('login');
+  /* Přihlášení dítěte: přezdívka a čtyři číslice, žádný e-mail. */
+  const [zakPrezdivka, setZakPrezdivka] = useState('');
+  const [zakPin, setZakPin] = useState('');
 
   // Login form states
   const [identifier, setIdentifier] = useState(initialEmail || '');
@@ -124,7 +129,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
             <div>
               <span className="text-white font-bold text-base tracking-tight">
-                {mode === 'login' ? 'Přihlášení do studia' : 'Aktivace pozvánky'}
+                {mode === 'login' ? 'Přihlášení do studia'
+                  : mode === 'zak' ? 'Přihlášení žáka' : 'Aktivace pozvánky'}
               </span>
               <p className="text-xs text-pismo-tlum">Neverlast — Never Late Studio</p>
             </div>
@@ -139,7 +145,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
         {/* Mode Selector Tabs (Segmented control) */}
         <div className="px-6 pt-4">
-          <div className="grid grid-cols-2 bg-black/40 p-1 rounded-2xl border border-white/5">
+          <div className="grid grid-cols-3 bg-black/40 p-1 rounded-2xl border border-white/5">
             <button
               type="button"
               onClick={() => { setMode('login'); setErrorMsg(null); }}
@@ -164,6 +170,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <Key className="w-3.5 h-3.5" />
               <span>Mám pozvánku</span>
             </button>
+            <button
+              type="button"
+              onClick={() => { setMode('zak'); setErrorMsg(null); }}
+              className={`py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                mode === 'zak'
+                  ? 'bg-info/20 text-info border border-info/30 shadow-sm'
+                  : 'text-pismo-tlum hover:text-pismo'
+              }`}
+            >
+              <GraduationCap className="w-3.5 h-3.5" />
+              <span>Jsem žák</span>
+            </button>
           </div>
         </div>
 
@@ -185,7 +203,59 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </div>
           )}
 
-          {mode === 'login' ? (
+          {mode === 'zak' ? (
+            /* Dvě pole a nic víc. Dítě si pamatuje přezdívku a čtyři
+               číslice; e-mail ani heslo tu nemá co dělat. */
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setErrorMsg(null);
+                setIsSubmitting(true);
+                try {
+                  await vyukaService.prihlasZaka(zakPrezdivka.trim(), zakPin);
+                  // Sezení je nasazené; aplikace se přehlásí sama.
+                  window.location.reload();
+                } catch (err: any) {
+                  setErrorMsg(err?.message || 'Přihlásit se nepodařilo.');
+                } finally {
+                  setIsSubmitting(false);
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-1.5">
+                <label className="stitek-pole block">Přezdívka</label>
+                <input
+                  value={zakPrezdivka}
+                  onChange={(e) => setZakPrezdivka(e.target.value)}
+                  placeholder="Kuba"
+                  autoFocus
+                  className="w-full bg-vhloubeni border border-kresba rounded-2xl px-4 py-3 text-pismo outline-none focus:border-znacka-okraj"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="stitek-pole block">PIN</label>
+                <input
+                  value={zakPin}
+                  onChange={(e) => setZakPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  inputMode="numeric"
+                  placeholder="••••"
+                  className="w-full bg-vhloubeni border border-kresba rounded-2xl px-4 py-3 text-pismo font-mono text-2xl tracking-[0.5em] text-center outline-none focus:border-znacka-okraj"
+                />
+              </div>
+              {errorMsg && <p className="text-drobne text-chyba">{errorMsg}</p>}
+              <button
+                type="submit"
+                disabled={isSubmitting || zakPin.length !== 4 || !zakPrezdivka.trim()}
+                className="w-full py-3 rounded-2xl zlata-plocha text-base cursor-pointer disabled:opacity-40"
+              >
+                {isSubmitting ? 'Přihlašuji…' : 'Jdeme cvičit'}
+              </button>
+              <p className="text-stitek text-pismo-slaby text-center">
+                Přezdívku a PIN ti dal učitel. Když je zapomeneš, řekni mu o ně.
+              </p>
+            </form>
+          ) : mode === 'login' ? (
             <form onSubmit={handleStandardLogin} className="space-y-4">
               
               {/* Email / Username */}

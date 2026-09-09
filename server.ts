@@ -4,6 +4,10 @@ import { GoogleGenAI } from '@google/genai';
 import { createHash } from 'node:crypto';
 import { spocitejDuplicity, uklidDuplicit } from './knihovnaUklid';
 import { verejnaAdresa } from './server/verejnaAdresa';
+import {
+  adresaZaka, jeBlokovano, noveTajemstvi, ocistiSekce, otiskPinu,
+  platnaPrezdivka, platnyPin, poPokusu, sediPin, zbyvaMinut,
+} from './server/vyuka';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
@@ -213,8 +217,14 @@ async function requireAuth(req: express.Request, res: express.Response, next: ex
   }
 }
 
-/** Must run after requireAuth. 403s unless the caller's profile has the given role. */
-function requireRole(role: 'admin') {
+/**
+ * Must run after requireAuth. 403s unless the caller's profile has one of
+ * the given roles.
+ *
+ * Bere víc rolí, protože výuku obsluhuje učitel i správce — správce se
+ * musí dostat k žákům, když učitel potřebuje pomoct.
+ */
+function requireRole(...role: string[]) {
   return async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Chybí přihlašovací token.' });
@@ -226,7 +236,7 @@ function requireRole(role: 'admin') {
         .eq('user_id', req.user.id)
         .single();
 
-      if (error || !profile || profile.role !== role) {
+      if (error || !profile || !role.includes(profile.role)) {
         return res.status(403).json({ error: 'Nedostatečná oprávnění.' });
       }
       next();
@@ -404,6 +414,234 @@ export async function createApp() {
     // Adresa jde s seznamem, ať ji má i přehled čekajících pozvánek —
     // text pozvánky se skládá i tam a localhost by v něm byl stejná chyba.
     res.json({ users: data, inviteUrl: adresaZPozadavku(req) });
+  });
+
+  /* ------------------------------------------------------------------
+   * VÝUKA — žáci, jejich přihlášení přezdívkou a PINem
+   *
+   * Žák se přihlašuje tím, co si pamatuje. Uvnitř to pořád běží na
+   * běžném účtu Supabase, jen adresa je odvozená a nikdo ji nevidí.
+   * PIN heslo účtu není — heslo je dlouhé náhodné tajemství uložené
+   * v `zaci_pristup`, tabulce bez jediného pravidla přístupu, takže
+   * se k ní přes prohlížeč nedostane nikdo.
+   *
+   * Logika otisků, zámků a adres sedí v `server/vyuka.ts`, aby šla
+   * ověřit testem bez databáze.
+   * ------------------------------------------------------------------ */
+
+  app.get('/api/vyuka/zaci', requireAuth, requireRole('ucitel', 'admin'), async (req, res) => {
+    const { data, error } = await getSupabaseAdmin()
+      .from('zaci')
+      .select('*')
+      .eq('ucitel_uid', req.user!.id)
+      .order('created_at', { ascending: true });
+    if (error) return res.status(500).json({ error: 'Žáky se nepodařilo načíst.', details: error.message });
+    res.json({ zaci: data || [] });
+  });
+
+  app.post('/api/vyuka/zaci', requireAuth, requireRole('ucitel', 'admin'), async (req, res) => {
+    const prezdivka = String(req.body?.prezdivka || '').trim();
+    const pin = String(req.body?.pin || '');
+    if (!platnaPrezdivka(prezdivka)) {
+      return res.status(400).json({ error: 'Přezdívka: 2–24 znaků, bez mezer a diakritiky.' });
+    }
+    if (!platnyPin(pin)) {
+      return res.status(400).json({ error: 'PIN musí být přesně čtyři číslice.' });
+    }
+
+    const admin = getSupabaseAdmin();
+    const ucitelUid = req.user!.id;
+    const adresa = adresaZaka(prezdivka, ucitelUid);
+    const tajemstvi = noveTajemstvi();
+
+    const { data: ucet, error: chybaUctu } = await admin.auth.admin.createUser({
+      email: adresa,
+      password: tajemstvi,
+      email_confirm: true,
+      user_metadata: { display_name: prezdivka, role: 'zak', status: 'active' },
+    });
+    if (chybaUctu || !ucet.user) {
+      const duplicita = chybaUctu?.message?.toLowerCase().includes('already');
+      return res.status(duplicita ? 409 : 500).json({
+        error: duplicita ? 'Žák s touhle přezdívkou už existuje.' : 'Účet žáka se nepodařilo založit.',
+        details: chybaUctu?.message,
+      });
+    }
+
+    await admin.from('profiles')
+      .update({ role: 'zak', status: 'active' })
+      .eq('user_id', ucet.user.id);
+
+    const { data: zak, error: chybaZaka } = await admin.from('zaci').insert({
+      ucitel_uid: ucitelUid,
+      zak_uid: ucet.user.id,
+      prezdivka,
+      stupen: Number(req.body?.stupen) || 1,
+      sekce: ocistiSekce(req.body?.sekce),
+      motiv: String(req.body?.motiv || 'vesmir'),
+      poznamka: String(req.body?.poznamka || ''),
+    }).select().single();
+
+    if (chybaZaka || !zak) {
+      // Účet bez řádku v `zaci` je sirotek, ke kterému se nikdo nedostane.
+      await admin.auth.admin.deleteUser(ucet.user.id);
+      return res.status(500).json({ error: 'Žáka se nepodařilo uložit.', details: chybaZaka?.message });
+    }
+
+    const { error: chybaPristupu } = await admin.from('zaci_pristup').insert({
+      zak_id: zak.id,
+      pin_hash: otiskPinu(pin),
+      auth_tajemstvi: tajemstvi,
+    });
+    if (chybaPristupu) {
+      await admin.from('zaci').delete().eq('id', zak.id);
+      await admin.auth.admin.deleteUser(ucet.user.id);
+      return res.status(500).json({ error: 'Přihlášení žáka se nepodařilo nastavit.', details: chybaPristupu.message });
+    }
+
+    res.json({ success: true, zak });
+  });
+
+  app.patch('/api/vyuka/zaci/:id', requireAuth, requireRole('ucitel', 'admin'), async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: zak } = await admin.from('zaci').select('*').eq('id', req.params.id).single();
+    if (!zak || zak.ucitel_uid !== req.user!.id) {
+      return res.status(404).json({ error: 'Takového žáka nevedeš.' });
+    }
+
+    const zmeny: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (req.body?.stupen !== undefined) zmeny.stupen = Math.min(6, Math.max(1, Number(req.body.stupen) || 1));
+    if (req.body?.sekce !== undefined) zmeny.sekce = ocistiSekce(req.body.sekce);
+    if (req.body?.motiv !== undefined) zmeny.motiv = String(req.body.motiv);
+    if (req.body?.poznamka !== undefined) zmeny.poznamka = String(req.body.poznamka);
+    if (req.body?.aktivni !== undefined) zmeny.aktivni = Boolean(req.body.aktivni);
+
+    const { data: novy, error } = await admin.from('zaci').update(zmeny).eq('id', zak.id).select().single();
+    if (error) return res.status(500).json({ error: 'Uložit se to nepodařilo.', details: error.message });
+
+    // Nový PIN se mění zvlášť a zámek se u toho vynuluje — zapomenutý
+    // PIN se řeší na hodině a dítě nemá čekat deset minut.
+    const pin = req.body?.pin ? String(req.body.pin) : '';
+    if (pin) {
+      if (!platnyPin(pin)) return res.status(400).json({ error: 'PIN musí být přesně čtyři číslice.' });
+      await admin.from('zaci_pristup')
+        .update({ pin_hash: otiskPinu(pin), pokusu: 0, blokovano_do: null, updated_at: new Date().toISOString() })
+        .eq('zak_id', zak.id);
+    }
+
+    res.json({ success: true, zak: novy });
+  });
+
+  app.delete('/api/vyuka/zaci/:id', requireAuth, requireRole('ucitel', 'admin'), async (req, res) => {
+    const admin = getSupabaseAdmin();
+    const { data: zak } = await admin.from('zaci').select('*').eq('id', req.params.id).single();
+    if (!zak || zak.ucitel_uid !== req.user!.id) {
+      return res.status(404).json({ error: 'Takového žáka nevedeš.' });
+    }
+    // Účet padá jako první: řádky na něm visí přes cizí klíč a smažou se s ním.
+    await admin.auth.admin.deleteUser(zak.zak_uid);
+    await admin.from('zaci').delete().eq('id', zak.id);
+    res.json({ success: true });
+  });
+
+  /**
+   * Přihlášení žáka.
+   *
+   * Bez ověření tokenem — tohle je ta cesta dovnitř. Přezdívka je
+   * jedinečná jen u jednoho učitele, takže se zkusí všechny stejnojmenné
+   * a projde ta, jejíž PIN sedí. Kdyby seděly dvě, nepustí se ani jedna:
+   * hádat, které dítě to je, se nedá.
+   */
+  app.post('/api/vyuka/prihlaseni', async (req, res) => {
+    const prezdivka = String(req.body?.prezdivka || '').trim();
+    const pin = String(req.body?.pin || '');
+    if (!prezdivka || !platnyPin(pin)) {
+      return res.status(400).json({ error: 'Zadej přezdívku a čtyřmístný PIN.' });
+    }
+
+    const admin = getSupabaseAdmin();
+    const { data: kandidati } = await admin
+      .from('zaci')
+      .select('id, zak_uid, prezdivka, aktivni')
+      .ilike('prezdivka', prezdivka)
+      .eq('aktivni', true);
+
+    if (!kandidati?.length) {
+      return res.status(401).json({ error: 'Přezdívka nebo PIN nesedí.' });
+    }
+
+    const sedi: { zak: typeof kandidati[number]; tajemstvi: string }[] = [];
+    let zamek = 0;
+
+    for (const kandidat of kandidati) {
+      const { data: pristup } = await admin
+        .from('zaci_pristup')
+        .select('pin_hash, auth_tajemstvi, pokusu, blokovano_do')
+        .eq('zak_id', kandidat.id)
+        .single();
+      if (!pristup) continue;
+
+      if (jeBlokovano(pristup)) {
+        zamek = Math.max(zamek, zbyvaMinut(pristup));
+        continue;
+      }
+
+      const ok = sediPin(pin, pristup.pin_hash);
+      const stav = poPokusu({ pokusu: pristup.pokusu, blokovano_do: pristup.blokovano_do }, ok);
+      await admin.from('zaci_pristup')
+        .update({ ...stav, updated_at: new Date().toISOString() })
+        .eq('zak_id', kandidat.id);
+
+      if (ok) sedi.push({ zak: kandidat, tajemstvi: pristup.auth_tajemstvi });
+    }
+
+    if (!sedi.length) {
+      if (zamek > 0) {
+        return res.status(429).json({ error: `Moc pokusů. Zkus to za ${zamek} min.` });
+      }
+      return res.status(401).json({ error: 'Přezdívka nebo PIN nesedí.' });
+    }
+    if (sedi.length > 1) {
+      return res.status(409).json({ error: 'Tuhle přezdívku má víc žáků. Řekni to učiteli.' });
+    }
+
+    const { zak, tajemstvi } = sedi[0];
+    const { data: ucet } = await admin.auth.admin.getUserById(zak.zak_uid);
+    if (!ucet?.user?.email) {
+      return res.status(500).json({ error: 'Účet žáka se nepodařilo najít.' });
+    }
+
+    /*
+     * Přihlašuje se jednorázový klient, ne ten servisní.
+     *
+     * `signInWithPassword` si na klientovi, na kterém se zavolá, nasadí
+     * session přihlášeného — a servisní klient je jedináček sdílený celým
+     * serverem. Po prvním přihlášeném žákovi by tedy posílal jeho token
+     * místo servisního klíče, přestal by vidět do `zaci_pristup` a od
+     * druhého pokusu by dovnitř nepustil nikoho. Přišlo se na to až
+     * druhým přihlášením naživo.
+     */
+    const jednorazovy = createClient(
+      process.env.VITE_SUPABASE_URL!,
+      process.env.VITE_SUPABASE_ANON_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
+    const { data: sezeni, error: chyba } = await jednorazovy.auth.signInWithPassword({
+      email: ucet.user.email,
+      password: tajemstvi,
+    });
+    if (chyba || !sezeni.session) {
+      return res.status(500).json({ error: 'Přihlásit se nepodařilo.', details: chyba?.message });
+    }
+
+    res.json({
+      success: true,
+      prezdivka: zak.prezdivka,
+      session: {
+        access_token: sezeni.session.access_token,
+        refresh_token: sezeni.session.refresh_token,
+      },
+    });
   });
 
   // Create a new user (real Supabase Auth account + profile row)

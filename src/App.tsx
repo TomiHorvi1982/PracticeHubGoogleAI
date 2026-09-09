@@ -6,6 +6,10 @@ import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
 import { PlochaSekci } from './components/plocha/PlochaSekci';
 import { Tone3000Sekce } from './components/Tone3000Sekce';
+import { VyukaSekce } from './components/vyuka/VyukaSekce';
+import { ZakovskaObrazovka } from './components/vyuka/ZakovskaObrazovka';
+import { Zak, vyukaService } from './services/vyukaService';
+import { dlazdice } from './services/plochaSekci';
 import { zaregistruj } from './services/hlas/vykonavac';
 import { najdiPisenProSoubor } from './services/priradKPisni';
 import { LoginModal } from './components/LoginModal';
@@ -115,6 +119,25 @@ function AppContent() {
 
   const currentUser = authSession?.user || null;
   const userRole = currentUser?.role || 'viewer';
+
+  /**
+   * Jsem přihlášený jako žák?
+   *
+   * `null` znamená „ještě nevím" — dokud se to nerozhodne, nesestaví se
+   * nic. Kdyby se mezitím ukázalo studio, dítě by ho na okamžik vidělo.
+   */
+  const [zak, setZak] = useState<Zak | null | undefined>(undefined);
+  /** Kterou povolenou sekci má žák zrovna otevřenou. */
+  const [zakOtevrena, setZakOtevrena] = useState<MainTabType | null>(null);
+
+  useEffect(() => {
+    let platne = true;
+    if (!currentUser) { setZak(null); return; }
+    if (userRole !== 'zak') { setZak(null); return; }
+    void vyukaService.mujZaznam().then((z) => { if (platne) setZak(z); });
+    return () => { platne = false; };
+  }, [currentUser, userRole]);
+
 
   // Synchronize Active Song initially if none selected
   useEffect(() => {
@@ -425,6 +448,7 @@ function AppContent() {
 
     liveamp: <LiveGuitarAmp />,
     tone3000: <Tone3000Sekce />,
+    vyuka: <VyukaSekce />,
     aikapela: <AiKapelaSection />,
 
     alphatab: (
@@ -446,6 +470,37 @@ function AppContent() {
 
     stemmixer: <StemMixerSection currentUser={currentUser} />,
   };
+
+  /**
+   * Žák dostane vlastní obrazovku místo studia.
+   *
+   * Vrací se dřív, než se `MainLayout` vůbec zavolá — do sekce se dá
+   * dostat sedmi cestami a schovávat je po jedné by znamenalo, že jedno
+   * opomenutí posadí dítě do mixážního pultu. Co se nesestaví, tam se
+   * dostat nedá.
+   */
+  if (userRole === 'zak') {
+    if (zak === undefined) return null;   // ještě nevíme, kdo to je
+    if (zak) {
+      const povolene = zak.sekce
+        .map((id) => {
+          const d = dlazdice().find((x) => String(x.id) === id);
+          const obsah = obsahSekci[id as MainTabType];
+          return d && obsah ? { id: d.id, nazev: d.nazev, ikona: d.ikona, obsah } : null;
+        })
+        .filter((x): x is NonNullable<typeof x> => x !== null);
+
+      return (
+        <ZakovskaObrazovka
+          zak={zak}
+          povoleneSekce={povolene}
+          otevrena={zakOtevrena}
+          onOtevrit={setZakOtevrena}
+          onOdhlasit={() => { authService.logout(); setAuthSession(null); }}
+        />
+      );
+    }
+  }
 
   return (
     <MainLayout

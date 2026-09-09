@@ -13,6 +13,7 @@ export type MainTabType =
   | 'alphatab'
   | 'liveamp'
   | 'tone3000'
+  | 'vyuka'
   | 'instruments'
   | 'youtube'
   | 'mediacenter'
@@ -58,6 +59,8 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'ladička': 'tuner',
   'soubory': 'library',
   'záložky': 'zalozky',
+  'výuka': 'vyuka',
+  'žáci': 'vyuka',
   'nastavení': 'settings',
   'rozcestník': 'vitejte',
 };

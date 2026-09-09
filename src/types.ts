@@ -210,7 +210,14 @@ export interface CustomDrumKit {
   multiLayers?: Record<string, Record<string, MultiLayerSampleLayer>>;
 }
 
-export type UserRole = 'admin' | 'editor' | 'musician' | 'viewer';
+/**
+ * Role.
+ *
+ * `ucitel` a `zak` přibyly s výukou dětí. Žák není omezený hudebník —
+ * je to role, které se studio vůbec nesestaví a která má vlastní
+ * obrazovku. Viz `src/components/vyuka/`.
+ */
+export type UserRole = 'admin' | 'editor' | 'musician' | 'viewer' | 'ucitel' | 'zak';
 
 export interface UserPermissions {
   canEditSongs: boolean;

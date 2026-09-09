@@ -84,6 +84,7 @@ export const SKUPINY: Skupina[] = [
     nazev: 'Archiv',
     polozky: [
       { id: 'library', nazev: 'Soubory' },
+      { id: 'vyuka', nazev: 'Výuka' },
       { id: 'zalozky', nazev: 'Záložky' },
     ],
   },

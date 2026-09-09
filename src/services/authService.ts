@@ -59,6 +59,28 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, UserPermissions> = {
     canManageSetlists: false,
     canAccessTools: true,
   },
+  /* Učitel je editor, který navíc vede žáky. Správu uživatelů kapely
+     nemá — žáky si zakládá sám vlastní cestou. */
+  ucitel: {
+    canEditSongs: true,
+    canDeleteSongs: false,
+    canImportFiles: true,
+    canManageUsers: false,
+    canStartBandSession: true,
+    canManageSetlists: true,
+    canAccessTools: true,
+  },
+  /* Žák nemá povoleno nic, a není to opomenutí: co uvidí, se neurčuje
+     tady, ale seznamem sekcí u jeho záznamu v tabulce `zaci`. */
+  zak: {
+    canEditSongs: false,
+    canDeleteSongs: false,
+    canImportFiles: false,
+    canManageUsers: false,
+    canStartBandSession: false,
+    canManageSetlists: false,
+    canAccessTools: false,
+  },
 };
 
 export const ROLE_LABELS: Record<UserRole, { label: string; desc: string; color: string; badgeBg: string }> = {
@@ -85,6 +107,18 @@ export const ROLE_LABELS: Record<UserRole, { label: string; desc: string; color:
     desc: 'Pouze zobrazení a čtení zpěvníku a materiálů',
     color: '#888888',
     badgeBg: 'bg-[#333333] text-[#AAA]',
+  },
+  ucitel: {
+    label: 'UČITEL',
+    desc: 'Celé studio a k tomu žáci, osnova, lekce a domácí úkoly',
+    color: '#0EAEBE',
+    badgeBg: 'bg-info text-black',
+  },
+  zak: {
+    label: 'ŽÁK',
+    desc: 'Vlastní jednoduchá obrazovka s úkoly; studio se mu nesestaví',
+    color: '#00B878',
+    badgeBg: 'bg-uspech text-black',
   },
 };
 
