@@ -1,13 +1,19 @@
-import React, { useRef, useState } from 'react';
-import { FolderOpen, Trash2, Upload } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { FolderOpen, Scissors, Trash2, Upload } from 'lucide-react';
 import * as Tone from 'tone';
 import {
-  ClipTrack, PlayButton, PauseButton, PlaylistVisualization, StopButton,
-  WaveformPlaylistProvider, ZoomInButton, ZoomOutButton,
+  ClipInteractionProvider, ClipTrack, LoopButton, PlayButton, PauseButton,
+  PlaylistVisualization, StopButton, WaveformPlaylistProvider, ZoomInButton,
+  ZoomOutButton, useClipSplitting, usePlaylistControls, usePlaylistData,
+  usePlaylistState,
 } from '@waveform-playlist/browser';
 // Stavitele stop a klipů vydává jádro, ne prohlížečový balíček.
 import { createClipFromSeconds, createTrack } from '@waveform-playlist/core';
 import { assetLibraryService, authorizedFetch } from '../services/assetLibraryService';
+import { editorUloziste } from '../services/editorUloziste';
+import {
+  KlipData, StopaData, klipVCase, nastavProlinacku, rozstrihniStopu,
+} from '../services/stopyEditoru';
 
 /**
  * Editor stop.
@@ -84,8 +90,110 @@ const MOTIV = {
   fontSizeSmall: '12px',
 } as const;
 
+/**
+ * Nástroje nad klipy.
+ *
+ * Musí být uvnitř poskytovatele: potřebují vědět, kam se kliklo do
+ * vlnovky a která stopa je vybraná, a obojí drží jeho kontext.
+ *
+ * Kotvou je místo výběru, ne přehrávací hlava. Hlavu kontext ven
+ * nevydává — a i kdyby, stříhat za běhu podle toho, kde zrovna hraje,
+ * se netrefí. Klikneš do vlnovky, kde chceš řez, a teprve pak střihneš.
+ */
+const NastrojeKlipu: React.FC<{
+  stopy: ClipTrack[];
+  onZmena: (s: ClipTrack[]) => void;
+}> = ({ stopy, onZmena }) => {
+  const { samplesPerPixel, playoutRef, sampleRate } = usePlaylistData();
+  const { selectedTrackId, selectionStart } = usePlaylistState();
+  const { formatTime } = usePlaylistControls();
+
+  // Střih dělá engine knihovny, ne my: kromě rozdělení dat musí
+  // přepočítat vlnovky, a to zvenčí neuděláme.
+  const { splitClipAt } = useClipSplitting({
+    tracks: stopy,
+    samplesPerPixel,
+    engineRef: playoutRef,
+  });
+
+  /** Na kterou stopu nástroje míří: na vybranou, jinak na první. */
+  const index = Math.max(0, stopy.findIndex((s) => s.id === selectedTrackId));
+  const cil = stopy[index];
+  const vzorek = Math.round((selectionStart || 0) * (sampleRate || 44100));
+  const klip = cil ? klipVCase(cil as unknown as StopaData, vzorek) : -1;
+
+  const strihni = () => {
+    if (!cil || klip < 0) return;
+    splitClipAt(index, klip, selectionStart);
+  };
+
+  const prolinacka = (kde: 'in' | 'out', vterin: number) => {
+    if (!cil || klip < 0) return;
+    const s = cil as unknown as StopaData;
+    const upravena = {
+      ...s,
+      clips: s.clips.map((k, i) => (i === klip ? nastavProlinacku(k, kde, vterin) : k)),
+    } as unknown as ClipTrack;
+
+    // Napřed engine, pak stav. Sám by se o změně nedozvěděl — vlnovka by
+    // zůstala nakreslená bez přechodu a při přehrání by to stejně
+    // hrálo naplno.
+    playoutRef.current?.updateTrack(upravena.id, upravena);
+    onZmena(stopy.map((x, i) => (i === index ? upravena : x)));
+  };
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-kresba-jemna">
+      <span className="stitek-pole">{cil ? `klipy: ${cil.name}` : 'klipy'}</span>
+
+      <button
+        onClick={strihni}
+        disabled={klip < 0}
+        title="Klikni do vlnovky, kde chceš řez, a pak sem"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer disabled:opacity-40"
+      >
+        <Scissors className="w-3.5 h-3.5" />Rozstřihnout
+      </button>
+
+      {/* Prolínačku knihovna hotovou nemá, počítáme si ji sami a
+          předáváme enginu. Půl vteřiny je délka, po které přechod zmizí
+          uchu, ale ještě není slyšet jako ztišení. */}
+      {([['in', 'náběh'], ['out', 'doznění']] as const).map(([kde, popis]) => (
+        <span key={kde} className="flex items-center gap-1">
+          <button
+            onClick={() => prolinacka(kde, 0.5)}
+            disabled={klip < 0}
+            title={`Nasadí ${popis} na vybraný klip`}
+            className="px-2 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer disabled:opacity-40"
+          >
+            {popis}
+          </button>
+          <button
+            onClick={() => prolinacka(kde, 0)}
+            disabled={klip < 0}
+            aria-label={`Sundat ${popis}`}
+            title={`Sundat ${popis}`}
+            className="px-1.5 py-1.5 rounded-prvek text-stitek text-pismo-slaby hover:text-chyba cursor-pointer disabled:opacity-40"
+          >
+            ✕
+          </button>
+        </span>
+      ))}
+
+      <span className="text-stitek text-pismo-slaby ml-auto tabular-nums">
+        {klip < 0
+          ? 'klikni do vlnovky, kde chceš řez'
+          : `řez v ${formatTime(selectionStart || 0)}`}
+      </span>
+    </div>
+  );
+};
+
 export const EditorStop: React.FC = () => {
-  const [stopy, setStopy] = useState<ClipTrack[]>([]);
+  // Stopy žijí mimo komponentu, aby přežily přepnutí sekce.
+  const [stopy, setStopyStav] = useState<ClipTrack[]>(editorUloziste.dej());
+  useEffect(() => editorUloziste.subscribe(setStopyStav), []);
+  const setStopy = (n: ClipTrack[] | ((p: ClipTrack[]) => ClipTrack[])) => editorUloziste.nastav(n);
   const [hlaska, setHlaska] = useState<string | null>(null);
   const [nacita, setNacita] = useState(false);
   const vyber = useRef<HTMLInputElement>(null);
@@ -154,9 +262,11 @@ export const EditorStop: React.FC = () => {
       <div>
         <h2 className="nadpis-sekce">Editor stop</h2>
         <p className="text-drobne text-pismo-tlum max-w-[74ch]">
-          Skládání nahrávek vedle sebe — posuny v čase, střihy, prolínačky.
-          Doplněk k Mixážnímu pultu, ne jeho náhrada: pult má fadery, EQ
-          a kytarový řetěz, tohle má práci s klipy.
+          Klip se chytne myší a posune po ose, za kraje se zkracuje.
+          Kliknutím do vlnovky určíš místo řezu, tlačítkem pod ní se
+          rozstřihne, a na kraje jde nasadit náběh nebo doznění. Doplněk
+          k Mixážnímu pultu — ten má fadery, EQ a kytarový řetěz, tohle
+          má práci s klipy.
         </p>
       </div>
 
@@ -187,7 +297,7 @@ export const EditorStop: React.FC = () => {
 
         {stopy.length > 0 && (
           <button
-            onClick={() => setStopy([])}
+            onClick={() => editorUloziste.vyprazdni()}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-slaby hover:text-chyba cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />Vyprázdnit
@@ -220,15 +330,28 @@ export const EditorStop: React.FC = () => {
             onTracksChange={setStopy}
             onError={(e) => setHlaska(e.message)}
           >
-            <div className="flex flex-wrap items-center gap-1.5 pb-2">
-              <PlayButton />
-              <PauseButton />
-              <StopButton />
-              <span className="w-px h-5 bg-kresba mx-1" />
-              <ZoomInButton />
-              <ZoomOutButton />
-            </div>
-            <PlaylistVisualization />
+            {/* Bez tohohle se klipy jen kreslí. Tahání po ose, chytání
+                za kraje a výběr stopy zapíná až tenhle poskytovatel. */}
+            <ClipInteractionProvider snap>
+              <div className="flex flex-wrap items-center gap-1.5 pb-2">
+                <PlayButton />
+                <PauseButton />
+                <StopButton />
+                <LoopButton />
+                <span className="w-px h-5 bg-kresba mx-1" />
+                <ZoomInButton />
+                <ZoomOutButton />
+              </div>
+
+              <PlaylistVisualization
+                interactiveClips
+                showClipHeaders
+                showFades
+                onRemoveTrack={(i) => setStopy((p) => p.filter((_, x) => x !== i))}
+              />
+
+              <NastrojeKlipu stopy={stopy} onZmena={setStopy} />
+            </ClipInteractionProvider>
           </WaveformPlaylistProvider>
         </div>
       )}
