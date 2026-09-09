@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Grid2X2, LayoutGrid, Save, Trash2, X } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
 import { KresleniOkna } from '../../hooks/useKreslit';
-import { usePretahovaniPoradi } from '../songbook/usePretahovaniPoradi';
 import { PlovouciOkno } from '../songbook/PlovouciOkno';
 import {
   OknoSekce, Plocha, dlazdice, dlazdicove, dopredu, otevri, prectiAktualni,
@@ -56,48 +55,86 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
     [obsah, poradi],
   );
 
-  /**
+  /*
    * Přetahování ikon.
    *
-   * Do mřížky se srovnávají samy — ikony sedí v buňkách, ne na volných
-   * souřadnicích, takže puštěná ikona zapadne na místo a ostatní se
-   * posunou. Uklízet po sobě rozházené ikony jako na skutečné ploše
-   * tady nikdo nechce.
-   */
-  const tah = usePretahovaniPoradi((z, na) => {
-    setPoradi(presunVPoli(nabidka.map((d) => String(d.id)), z, na));
-  }, 'vodorovne');
-
-  useEffect(() => { ulozAktualni(okna); }, [okna]);
-  useEffect(() => { ulozPlochy(plochy); }, [plochy]);
-  useEffect(() => { if (poradi.length) ulozPoradiDlazdic(poradi); }, [poradi]);
-
-  /**
-   * Plocha se měří, ne odhaduje.
+   * Napoprvé jsem sem vzal `usePretahovaniPoradi`, které obsluhuje
+   * seznamy — vkládá MEZI položky podle toho, nad kterou polovinou
+   * držíš myš. V seznamu pod sebou to sedí, v mřížce ne: puštění na
+   * sousední dlaždici tam znamená „beze změny", takže posun o jedno
+   * místo nedělal nic a ikona se zdánlivě vracela zpátky.
    *
-   * Rozložení uložené na velkém monitoru by na notebooku leželo mimo
-   * obrazovku. Po každé změně velikosti se okna srovnají zpátky.
+   * Mřížka potřebuje místa, ne mezery: pustíš ikonu NA dlaždici a ona
+   * to místo zabere, ostatní se posunou. Tak to dělá i tablet.
+   *
+   * Do mřížky se srovnávají samy, protože ikony sedí v buňkách, ne na
+   * volných souřadnicích. Uklízet po sobě rozházené ikony jako na
+   * skutečné ploše tady nikdo nechce.
    */
-  useEffect(() => {
-    const el = plochaRef.current;
-    if (!el) return;
-    const zmer = () => {
-      const r = el.getBoundingClientRect();
-      setRozmer({ sirka: r.width, vyska: r.height });
-    };
-    zmer();
-    const po = new ResizeObserver(zmer);
-    po.observe(el);
-    return () => po.disconnect();
-  }, []);
+  /*
+   * Přetahování ikon na ukazateli myši, ne na nativním „drag and drop".
+   *
+   * Nativní přetahování se tady ukázalo jako nespolehlivé: `dragover`
+   * proběhl, ale `drop` ani `dragend` už ne, takže se ikona vrátila
+   * zpátky a na dlaždici zůstal viset zvýrazněný cíl. Ukazatel myši je
+   * obyčejný stisk, pohyb a puštění — totéž, na čem stojí tažení oken,
+   * a funguje i na dotykové obrazovce.
+   *
+   * Do mřížky se ikony srovnávají samy, protože sedí v buňkách, ne na
+   * volných souřadnicích. Puštěná ikona zabere místo, na kterém stojíš,
+   * a ostatní se posunou — tak to dělá i tablet.
+   */
+  const tahRef = useRef<{ z: number; x: number; y: number; hnul: boolean } | null>(null);
+  const [tazena, setTazena] = useState<number | null>(null);
+  const [cil, setCil] = useState<number | null>(null);
 
-  useEffect(() => {
-    setOkna((p) => {
-      const s = p.map((o) => srovnejOkno(o, rozmer.sirka, rozmer.vyska));
-      return s.some((o, i) => o.x !== p[i].x || o.y !== p[i].y
-        || o.sirka !== p[i].sirka || o.vyska !== p[i].vyska) ? s : p;
-    });
-  }, [rozmer.sirka, rozmer.vyska]);
+  /** Nad kterou dlaždicí ukazatel právě je. */
+  function dlazdicePod(x: number, y: number): number | null {
+    const el = document.elementFromPoint(x, y);
+    const dl = el?.closest('[data-dlazdice]');
+    if (!dl) return null;
+    const i = Number(dl.getAttribute('data-dlazdice'));
+    return Number.isInteger(i) ? i : null;
+  }
+
+  const zacniTah = (e: React.PointerEvent, i: number) => {
+    // Jen levé tlačítko. Pravé patří kontextové nabídce prohlížeče.
+    if (e.button !== 0) return;
+    tahRef.current = { z: i, x: e.clientX, y: e.clientY, hnul: false };
+
+    const pohyb = (ev: PointerEvent) => {
+      const t = tahRef.current;
+      if (!t) return;
+      // Pár pixelů se promine — jinak by se každé kliknutí počítalo
+      // jako tažení a ikona by se nedala jen tak otevřít.
+      if (!t.hnul && Math.hypot(ev.clientX - t.x, ev.clientY - t.y) < 5) return;
+      if (!t.hnul) { t.hnul = true; setTazena(t.z); }
+      setCil(dlazdicePod(ev.clientX, ev.clientY));
+    };
+
+    const konec = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', pohyb);
+      window.removeEventListener('pointerup', konec);
+      window.removeEventListener('pointercancel', konec);
+      const t = tahRef.current;
+      tahRef.current = null;
+      setTazena(null);
+      setCil(null);
+      if (!t?.hnul) return;
+      // Puštění mimo dlaždice zařadí na konec. Vrátit ikonu zpátky by
+      // znamenalo, že se do prázdna pouštět nedá — a přesně to člověk
+      // zkusí, když ji chce dát úplně dozadu.
+      const nad = dlazdicePod(ev.clientX, ev.clientY);
+      const kam = nad ?? nabidka.length - 1;
+      if (kam !== t.z) {
+        setPoradi(presunVPoli(nabidka.map((d) => String(d.id)), t.z, kam));
+      }
+    };
+
+    window.addEventListener('pointermove', pohyb);
+    window.addEventListener('pointerup', konec);
+    window.addEventListener('pointercancel', konec);
+  };
 
   const naVrchu = okna.reduce<string | null>(
     (nej, o) => (!nej || o.poradi > (okna.find((x) => x.id === nej)?.poradi ?? -1) ? o.id : nej),
@@ -221,20 +258,23 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
               return (
                 <button
                   key={d.id}
-                  {...tah.vlastnostiPolozky(i)}
-                  onClick={() => setOkna((p) => otevri(p, d.id))}
+                  data-dlazdice={i}
+                  onPointerDown={(e) => zacniTah(e, i)}
+                  onClick={() => {
+                    // Tažení končí puštěním nad dlaždicí, takže by po něm
+                    // ještě přišlo kliknutí a otevřelo sekci. Ťuknutí bez
+                    // pohybu ale otevřít má.
+                    if (tazena === null) setOkna((p) => otevri(p, d.id));
+                  }}
                   title={`Otevřít ${d.nazev} — přetažením změníš pořadí`}
                   className={`group flex flex-col items-center gap-1.5 cursor-pointer
                     rounded-panel px-1 py-1 transition-all ${
-                    tah.tazene === i ? 'opacity-35' : ''
+                    tazena === i ? 'opacity-30' : ''
                   } ${
-                    /* Zlatá čára ukazuje, kam ikona spadne. Kreslí se na
-                       kraj sousední dlaždice, protože v mřížce by vložený
-                       prvek posunul celý zbytek řádku. */
-                    tah.znackaPred(i) ? 'shadow-[inset_3px_0_0_0_var(--color-znacka)]' : ''
-                  } ${
-                    tah.znackaNaKonci(nabidka.length) && i === nabidka.length - 1
-                      ? 'shadow-[inset_-3px_0_0_0_var(--color-znacka)]' : ''
+                    /* Místo, které ikona zabere, se obtáhne celé. Čára
+                       mezi dlaždicemi by v mřížce nebylo poznat, ke které
+                       z nich patří. */
+                    cil === i && tazena !== i ? 'bg-znacka-tlum ring-2 ring-znacka-okraj' : ''
                   }`}
                 >
                   {/* Barevná dlaždice s vlastní barvou nástroje; otevřená

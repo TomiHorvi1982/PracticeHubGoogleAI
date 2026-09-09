@@ -5,6 +5,7 @@ import { MusicalProvider, useMusicalContext } from './context/MusicalContext';
 import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
 import { PlochaSekci } from './components/plocha/PlochaSekci';
+import { Tone3000Sekce } from './components/Tone3000Sekce';
 import { zaregistruj } from './services/hlas/vykonavac';
 import { najdiPisenProSoubor } from './services/priradKPisni';
 import { LoginModal } from './components/LoginModal';
@@ -423,6 +424,7 @@ function AppContent() {
     zalozky: <ZalozkySection />,
 
     liveamp: <LiveGuitarAmp />,
+    tone3000: <Tone3000Sekce />,
     aikapela: <AiKapelaSection />,
 
     alphatab: (

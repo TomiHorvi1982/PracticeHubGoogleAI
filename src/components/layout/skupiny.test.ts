@@ -10,8 +10,8 @@ import { SKUPINY, PRIME, STRANOU, skupinaSekce, dosazitelneSekce, viditelnePoloz
  */
 const OCEKAVANE = [
   'songbook', 'podium', 'alphatab', 'texty', 'practise', 'instruments',
-  'practice', 'tuner', 'stemmixer', 'liveamp', 'library', 'zalozky',
-  'vitejte', 'settings',
+  'practice', 'tuner', 'stemmixer', 'liveamp', 'tone3000', 'library',
+  'zalozky', 'vitejte', 'settings',
 ];
 
 test('seskupením se neztratila žádná sekce', () => {

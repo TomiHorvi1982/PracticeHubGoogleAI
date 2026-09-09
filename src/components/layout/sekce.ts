@@ -12,6 +12,7 @@ export type MainTabType =
   | 'playlist'
   | 'alphatab'
   | 'liveamp'
+  | 'tone3000'
   | 'instruments'
   | 'youtube'
   | 'mediacenter'
@@ -41,6 +42,8 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'guitar pro': 'alphatab',
   'live guitar amp': 'liveamp',
   'aparát': 'liveamp',
+  'tone tři tisíce': 'tone3000',
+  'katalog aparátů': 'tone3000',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
   // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.
