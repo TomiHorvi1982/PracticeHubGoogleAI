@@ -660,6 +660,25 @@ class KytaraVMixu {
   /** Analyzér za řetězem — pro spektrum. `null`, dokud kytara neběží. */
   public dejSpektrum(): AnalyserNode | null { return this.spektrum; }
 
+  /**
+   * Odbočka pro nahrávání DI.
+   *
+   * Vrací signál za bránou, ale před aparátem — tedy čistou kytaru,
+   * jak přišla ze zvukovky, jen bez šumu mezi frázemi. Právě takový
+   * záznam se dá později přehnat jiným modelem z TONE3000, jinou bednou
+   * nebo jinými efekty; nahrávka už zkreslená aparátem je hotová věc,
+   * kterou nikdo nevrátí.
+   *
+   * Brána je v ní schválně: nahrát šum jen proto, aby ho pak zesílil
+   * aparát, nemá cenu.
+   */
+  public dejDI(): AudioNode | null {
+    return this.branaUzel || this.vstupGain;
+  }
+
+  /** Odbočka za celým řetězem — kytara i s aparátem, bednou a EQ. */
+  public dejVystup(): AudioNode | null { return this.vystupGain; }
+
   public async nactiModel(json: string, jmeno: string): Promise<boolean> {
     const ok = await namAparat.nactiModel(json, jmeno);
     if (ok) {

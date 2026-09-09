@@ -5,6 +5,7 @@ import { stemAudioService } from '../../services/stemAudioService';
 import { zvukovaKarta, StavKarty } from '../../services/zvukovaKarta';
 import { authorizedFetch, assetLibraryService } from '../../services/assetLibraryService';
 import { platnyNamModel } from '../../services/namModel';
+import { NahravaniDI } from './NahravaniDI';
 import { SpektrumKytary } from './SpektrumKytary';
 import { EkvalizerKytary } from './EkvalizerKytary';
 import { PresetyKytary } from './PresetyKytary';
@@ -139,13 +140,6 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
       } catch { /* seznam zůstane prázdný, načíst se dá ze souboru */ }
     })();
   }, []);
-
-  const zapni = async () => {
-    setHlaska(null);
-    if (stav.bezi) { stemAudioService.odpojKytaru(); return; }
-    const ok = await stemAudioService.pripojKytaru();
-    if (!ok) setHlaska(kytaraVMixu.getStav().chyba || 'Kytaru se nepodařilo spustit.');
-  };
 
   const nactiZDisku = async (a: Aparat) => {
     setHlaska(null);
@@ -302,15 +296,18 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
       <div className="flex items-center gap-1.5">
         <Guitar className="w-3.5 h-3.5 text-znacka shrink-0" />
         <span className="text-stitek font-bold text-white flex-1">Kytara živě</span>
-        <button
-          onClick={() => void zapni()}
-          aria-pressed={stav.bezi}
-          className={`px-2 py-0.5 rounded text-stitek font-bold cursor-pointer ${
-            stav.bezi ? 'bg-uspech text-black' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+        {/* Zapíná se z lišty, ne odsud.
+            Dvě tlačítka na totéž nutí hádat, které je to správné —
+            a kytara hraje napříč celou aplikací, takže její vypínač
+            patří tam, kde je vidět odevšud. Tady zbývá jen stav. */}
+        <span
+          className={`px-2 py-0.5 rounded text-stitek font-bold ${
+            stav.bezi ? 'bg-uspech/20 text-uspech' : 'bg-plocha-3 text-pismo-slaby'
           }`}
+          title={stav.bezi ? 'Kytara běží' : 'Kytaru zapneš ikonkou v horní liště'}
         >
-          {stav.bezi ? 'běží' : 'zapnout'}
-        </button>
+          {stav.bezi ? 'běží' : 'vypnutá'}
+        </span>
       </div>
 
       {/* Vstupní zařízení. Bere se ze společného výběru aplikace,
@@ -434,6 +431,11 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
           i efekty. Podle něj se pozná, jestli je zvuk zablácený dole
           nebo řezavý nahoře, dřív než se to začne hledat uchem. */}
       <SpektrumKytary analyzer={kytaraVMixu.dejSpektrum()} bezi={stav.bezi} vyska={104} />
+
+      {/* Nahrávání. Fader zůstal v pultu právě kvůli tomuhle: zapnutí,
+          vstup a brána se ovládají z lišty napříč aplikací, ale nahrát
+          stopu má smysl jedině tady, kde jsou ostatní stopy. */}
+      <NahravaniDI bezi={stav.bezi} />
 
       {/* OZVĚNA A DOZVUK
 
