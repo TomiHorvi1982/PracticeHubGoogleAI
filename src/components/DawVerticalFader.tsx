@@ -38,7 +38,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
   isLoading = false,
   onUpdate,
   colorTheme = {
-    accent: '#FF9F0A',
+    accent: '#FFD166',
     badge: 'bg-znacka',
     bg: 'from-znacka/10 to-amber-950/20',
     border: 'border-znacka/30',

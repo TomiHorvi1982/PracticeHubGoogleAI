@@ -55,7 +55,7 @@ export const KlavirDiagram: React.FC<Props> = ({
             width={sirkaBile - 1}
             height={vyska}
             rx={2}
-            fill={sviti ? '#FF9F0A' : '#F2F2F2'}
+            fill={sviti ? '#FFD166' : '#F2F2F2'}
             stroke="#1a1a1a"
             strokeWidth={0.6}
             onClick={onKlik ? () => onKlik(k.midi) : undefined}

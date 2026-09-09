@@ -279,7 +279,7 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
             disabled={!zapnuto}
             onChange={(e) => j.zmen(Number(e.target.value))}
             className="flex-1 min-w-0 h-1 cursor-pointer disabled:opacity-40"
-            style={{ accentColor: '#BF5AF2' }}
+            style={{ accentColor: '#6E5CDE' }}
           />
           <span className="text-stitek text-pismo-tlum w-11 text-right tabular-nums shrink-0">
             {j.popis}
@@ -354,7 +354,7 @@ export const KanalKytary: React.FC<Props> = ({ presety, onPresety, idPisne }) =>
                   onChange={(e) => kytaraVMixu.nastavEq(i, { db: Number(e.target.value) })}
                   title={`${Math.round(pasmo.hz)} Hz — ${pasmo.db > 0 ? '+' : ''}${pasmo.db} dB`}
                   className="w-full h-1 cursor-pointer"
-                  style={{ accentColor: '#FF9F0A' }}
+                  style={{ accentColor: '#FFD166' }}
                 />
                 <span className="text-stitek text-pismo-slaby tabular-nums">
                   {pasmo.hz >= 1000 ? `${Math.round(pasmo.hz / 100) / 10}k` : Math.round(pasmo.hz)}

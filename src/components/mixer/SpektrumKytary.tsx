@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useKreslit } from '../../hooks/useKreslit';
 import { Pasmo, novaSpicka, pasma, popisHz, vyskaPasma } from '../../services/pasmaSpektra';
 
 /**
@@ -9,8 +10,9 @@ import { Pasmo, novaSpicka, pasma, popisHz, vyskaPasma } from '../../services/pa
  * což by znamenalo zveřejnit zdroják celé appky; zbylé řeší něco jiného.
  * Vlastní kód je tu navíc doma — vlnovky stop se kreslí stejně.
  *
- * Běží na `requestAnimationFrame`, ne na časovači: prohlížeč ho sám
- * uspí, když se na kartu nikdo nedívá, takže to nežere v pozadí.
+ * Běží na `requestAnimationFrame`, ne na časovači. Prohlížeč ho sám uspí,
+ * když je v pozadí celá karta — na okno schované pod jiným oknem to ale
+ * nestačí, a proto se ptáme i `useKreslit`.
  */
 
 interface Props {
@@ -28,8 +30,12 @@ export const SpektrumKytary: React.FC<Props> = ({ analyzer, bezi, vyska = 120 })
   const platno = useRef<HTMLCanvasElement>(null);
   const obal = useRef<HTMLDivElement>(null);
   const spicky = useRef<number[]>([]);
+  const kreslit = useKreslit(obal);
 
   useEffect(() => {
+    // Nekreslí se: smyčka se ani nespustí a plátno zůstane, jak bylo.
+    // Prázdné by při vytažení okna dopředu bliklo.
+    if (!kreslit) return;
     const c = platno.current;
     const box = obal.current;
     if (!c || !box) return;
@@ -89,9 +95,9 @@ export const SpektrumKytary: React.FC<Props> = ({ analyzer, bezi, vyska = 120 })
         // Barva podle výšky: klidné pásmo zeleně, špička k oranžové
         // a do červené — stejná řeč jako měřáky na faderech.
         const pruh = ctx.createLinearGradient(0, vyska, 0, vyska - h);
-        pruh.addColorStop(0, '#30D158');
-        pruh.addColorStop(0.65, '#FF9F0A');
-        pruh.addColorStop(1, '#FF453A');
+        pruh.addColorStop(0, '#00B878');
+        pruh.addColorStop(0.65, '#FFD166');
+        pruh.addColorStop(1, '#E54870');
         ctx.fillStyle = pruh;
         ctx.fillRect(x, vyska - h, sirkaSloupce, h);
 
@@ -115,7 +121,7 @@ export const SpektrumKytary: React.FC<Props> = ({ analyzer, bezi, vyska = 120 })
       cancelAnimationFrame(bezec);
       pozorovatel.disconnect();
     };
-  }, [analyzer, bezi, vyska]);
+  }, [analyzer, bezi, vyska, kreslit]);
 
   return (
     <div

@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Grid2X2, LayoutGrid, Save, Trash2, X } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
+import { KresleniOkna } from '../../hooks/useKreslit';
 import { PlovouciOkno } from '../songbook/PlovouciOkno';
 import {
   OknoSekce, Plocha, dlazdice, dlazdicove, dopredu, otevri, prectiAktualni,
-  pocetOken, prectiPlochy, srovnejOkno, ulozAktualni, ulozPlochu, ulozPlochy, zavri,
+  pocetOken, prectiPlochy, srovnejOkno, ulozAktualni, ulozPlochu, ulozPlochy,
+  zakryte, zavri,
 } from '../../services/plochaSekci';
 
 interface Props {
@@ -246,7 +248,12 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
               onZavrit={(id) => setOkna((p) => zavri(p, id))}
               onDopredu={(id) => setOkna((p) => dopredu(p, id))}
             >
-              {obsah[o.sekce]}
+              {/* Zakryté okno přestane kreslit. Prohlížeč to sám
+                  nepozná — plátno pod jiným oknem je z jeho pohledu
+                  pořád na obrazovce. */}
+              <KresleniOkna.Provider value={!zakryte(o, okna)}>
+                {obsah[o.sekce]}
+              </KresleniOkna.Provider>
             </PlovouciOkno>
           );
         })}

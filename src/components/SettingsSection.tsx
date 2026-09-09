@@ -34,7 +34,7 @@ const POPIS: Record<string, string> = {
 };
 
 /** Barvy jen pro odlišení pruhů; pořadí odpovídá pořadí kategorií. */
-const BARVY = ['#FF9F0A', '#30D158', '#0A84FF', '#BF5AF2', '#FF453A', '#FFD60A', '#64D2FF', '#AC8E68'];
+const BARVY = ['#FFD166', '#00B878', '#0EAEBE', '#6E5CDE', '#E54870', '#FF9F43', '#64D2FF', '#AC8E68'];
 
 function velikost(b: number): string {
   if (b >= 1073741824) return `${(b / 1073741824).toFixed(2)} GB`;

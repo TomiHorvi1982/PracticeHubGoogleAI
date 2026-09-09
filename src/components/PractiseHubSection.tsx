@@ -20,7 +20,7 @@ const MISTNOSTI: { id: Mistnost; nazev: string; popis: string; ikona: typeof Fla
   {
     id: 'rozcvicka', nazev: 'Heating Room',
     popis: 'Rozehřát ruce a projít rytmy, než se začne hrát',
-    ikona: Flame, barva: '#FF9F0A',
+    ikona: Flame, barva: '#FFD166',
   },
   {
     id: 'stupnice', nazev: 'Stupnice & Techniky',
@@ -32,12 +32,12 @@ const MISTNOSTI: { id: Mistnost; nazev: string; popis: string; ikona: typeof Fla
     // uz ho cely obsahoval — vedly do teze veci dvoje dvere.
     id: 'sola', nazev: 'SoloGuitar & Riffstation',
     popis: 'Sóla i riffy: úseky z tabulatury, smyčka, zpomalení a kontrola tóniny',
-    ikona: Target, barva: '#30D158',
+    ikona: Target, barva: '#00B878',
   },
   {
     id: 'test', nazev: 'Testing Room',
     popis: 'Kvíz, trefování tónů podle detekce a zkoušení rytmu',
-    ikona: Brain, barva: '#BF5AF2',
+    ikona: Brain, barva: '#6E5CDE',
   },
 ];
 

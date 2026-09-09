@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useKreslit } from '../../hooks/useKreslit';
 import { Play, Square, Loader2, AlertCircle } from 'lucide-react';
 
 interface Props {
@@ -24,6 +25,18 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
   const [pozice, setPozice] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const obalRef = useRef<HTMLDivElement>(null);
+  /*
+   * Kurzor se překresluje jen tam, kam je vidět.
+   *
+   * Smyčka běží dál, jen se z ní vynechá přepis pozice — a s ním celé
+   * překreslení. Zvuk hraje bez ohledu na to a poloha se po návratu
+   * dopočítá z času zvukového kontextu, ne z počtu snímků, takže se
+   * kurzor vrátí tam, kde má být.
+   */
+  const kreslit = useKreslit(obalRef);
+  const kreslitRef = useRef(true);
+  kreslitRef.current = kreslit;
   const ctxRef = useRef<AudioContext | null>(null);
   const bufferRef = useRef<AudioBuffer | null>(null);
   const zdrojRef = useRef<AudioBufferSourceNode | null>(null);
@@ -103,7 +116,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
     obalky.forEach((o, i) => {
       const x = i * krok;
       // Část, která už zazněla, je zvýrazněná — to je ten posuvník.
-      g.fillStyle = x / sirka <= podil ? '#FF9F0A' : 'rgba(255,255,255,0.28)';
+      g.fillStyle = x / sirka <= podil ? '#FFD166' : 'rgba(255,255,255,0.28)';
       const y1 = stred - o.max * stred * 0.92;
       const y2 = stred - o.min * stred * 0.92;
       g.fillRect(x, y1, Math.max(1, krok - 0.5), Math.max(1, y2 - y1));
@@ -114,7 +127,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
     g.fillRect(0, stred, sirka, 1);
 
     if (hraje) {
-      g.fillStyle = '#30D158';
+      g.fillStyle = '#00B878';
       g.fillRect(podil * sirka, 0, 1.5, vyska);
     }
   }, [obalky, pozice, delka, hraje]);
@@ -150,7 +163,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
 
     const tik = () => {
       if (!ctxRef.current || zdrojRef.current !== zdroj) return;
-      setPozice(ctxRef.current.currentTime - zacatekRef.current);
+      if (kreslitRef.current) setPozice(ctxRef.current.currentTime - zacatekRef.current);
       snimekRef.current = requestAnimationFrame(tik);
     };
     snimekRef.current = requestAnimationFrame(tik);
@@ -178,7 +191,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
     setHraje(true);
     const tik = () => {
       if (!ctxRef.current || zdrojRef.current !== zdroj) return;
-      setPozice(ctxRef.current.currentTime - zacatekRef.current);
+      if (kreslitRef.current) setPozice(ctxRef.current.currentTime - zacatekRef.current);
       snimekRef.current = requestAnimationFrame(tik);
     };
     snimekRef.current = requestAnimationFrame(tik);
@@ -187,7 +200,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
   useEffect(() => () => zastav(), []);
 
   return (
-    <div className="bg-black/40 border border-white/10 rounded-2xl p-3 space-y-2">
+    <div ref={obalRef} className="bg-black/40 border border-kresba rounded-2xl p-3 space-y-2">
       <div className="flex items-center gap-2">
         <button
           onClick={prehraj}

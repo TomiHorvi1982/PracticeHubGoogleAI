@@ -334,8 +334,8 @@ export const PracticeAssistant: React.FC = () => {
                 className={`w-5 h-5 -mt-2 rounded-full border border-black shadow-lg transition-all ${
                   flashTick
                     ? accentBeats[currentBeat]
-                      ? 'bg-chyba shadow-[0_0_15px_#FF453A]'
-                      : 'bg-uspech shadow-[0_0_12px_#30D158]'
+                      ? 'bg-chyba shadow-[0_0_15px_#E54870]'
+                      : 'bg-uspech shadow-[0_0_12px_#00B878]'
                     : 'bg-white'
                 }`}
               />
@@ -348,8 +348,8 @@ export const PracticeAssistant: React.FC = () => {
               className={`w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center transition-all duration-100 ${
                 isPlayingMetro && flashTick
                   ? accentBeats[currentBeat]
-                    ? 'bg-chyba border-white text-white scale-105 shadow-[0_0_40px_rgba(255,69,58,0.8)]'
-                    : 'bg-uspech border-white text-black scale-105 shadow-[0_0_35px_rgba(48,209,88,0.8)]'
+                    ? 'bg-chyba border-white text-white scale-105 shadow-[0_0_40px_rgba(229,72,112,0.8)]'
+                    : 'bg-uspech border-white text-black scale-105 shadow-[0_0_35px_rgba(0,184,120,0.8)]'
                   : isPlayingMetro
                   ? 'bg-white/10 border-white/20 text-white'
                   : 'bg-white/[0.02] border-white/10 text-pismo-slaby'
@@ -459,8 +459,8 @@ export const PracticeAssistant: React.FC = () => {
                     className={`flex-1 min-w-[60px] h-16 rounded-xl border p-1.5 flex flex-col justify-between items-center transition-all cursor-pointer font-sans ${
                       isActive
                         ? isAccented
-                          ? 'bg-chyba text-white border-white scale-105 shadow-[0_0_15px_#FF453A]'
-                          : 'bg-uspech text-black border-white scale-105 shadow-[0_0_12px_#30D158]'
+                          ? 'bg-chyba text-white border-white scale-105 shadow-[0_0_15px_#E54870]'
+                          : 'bg-uspech text-black border-white scale-105 shadow-[0_0_12px_#00B878]'
                         : isAccented
                         ? 'bg-znacka/15 text-znacka border-znacka/40 hover:bg-znacka/25'
                         : 'bg-black/30 text-pismo-tlum border-white/5 hover:bg-white/5 hover:text-white'

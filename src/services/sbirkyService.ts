@@ -31,8 +31,8 @@ export interface Sbirka {
  * hledá se podle názvu.
  */
 export const BARVY = [
-  '#FF9F0A', '#30D158', '#0A84FF', '#BF5AF2', '#FF453A',
-  '#FFD60A', '#64D2FF', '#AC8E68', '#FF375F', '#5AC8FA',
+  '#FFD166', '#00B878', '#0EAEBE', '#6E5CDE', '#E54870',
+  '#FF9F43', '#64D2FF', '#AC8E68', '#E54870', '#5AC8FA',
 ];
 
 function hlavicky(): Record<string, string> {

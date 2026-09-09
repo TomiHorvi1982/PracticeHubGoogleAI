@@ -165,7 +165,7 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                   <FileSpreadsheet className="w-6 h-6 text-znacka" />
                   <FileTextIcon className="w-6 h-6 text-chyba" />
                   <Layers className="w-6 h-6 text-uspech" />
-                  <ImageIcon className="w-6 h-6 text-[#FF375F]" />
+                  <ImageIcon className="w-6 h-6 text-[#E54870]" />
                   <Music2 className="w-6 h-6 text-info" />
                 </div>
 

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   OknoSekce, dlazdice, dlazdicove, dopredu, noveOkno, otevri, srovnejOkno,
-  pocetOken, ulozPlochu, zavri,
+  pocetOken, ulozPlochu, zakryte, zavri,
 } from './plochaSekci';
 
 const okno = (id: string, sekce: any, poradi = 0): OknoSekce => ({
@@ -133,4 +133,37 @@ test('počet oken se skloňuje česky', () => {
   assert.equal(pocetOken(4), '4 okna');
   assert.equal(pocetOken(5), '5 oken');
   assert.equal(pocetOken(11), '11 oken');
+});
+
+test('okno pod větším oknem je zakryté a nemusí kreslit', () => {
+  const spodni = { ...okno('a', 'stemmixer', 0), x: 100, y: 100, sirka: 300, vyska: 200 };
+  const vrchni = { ...okno('b', 'texty', 1), x: 50, y: 50, sirka: 500, vyska: 400 };
+  assert.equal(zakryte(spodni, [spodni, vrchni]), true);
+  // Opačně to neplatí: vrchní okno je vidět.
+  assert.equal(zakryte(vrchni, [spodni, vrchni]), false);
+});
+
+test('okno zakryté jen zčásti kreslí dál', () => {
+  const spodni = { ...okno('a', 'stemmixer', 0), x: 100, y: 100, sirka: 300, vyska: 200 };
+  const vrchni = { ...okno('b', 'texty', 1), x: 150, y: 150, sirka: 500, vyska: 400 };
+  assert.equal(zakryte(spodni, [spodni, vrchni]), false, 'kus okna je vidět');
+});
+
+test('sbalené okno nic nezakrývá — je z něj jen záhlaví', () => {
+  const spodni = { ...okno('a', 'stemmixer', 0), x: 100, y: 100, sirka: 300, vyska: 200 };
+  const vrchni = { ...okno('b', 'texty', 1), x: 50, y: 50, sirka: 500, vyska: 400, sbalene: true };
+  assert.equal(zakryte(spodni, [spodni, vrchni]), false);
+});
+
+test('okno pod sebou samým ani pod nižším oknem zakryté není', () => {
+  const a = { ...okno('a', 'stemmixer', 5), x: 100, y: 100, sirka: 300, vyska: 200 };
+  const pod = { ...okno('b', 'texty', 1), x: 0, y: 0, sirka: 900, vyska: 900 };
+  assert.equal(zakryte(a, [a]), false);
+  assert.equal(zakryte(a, [a, pod]), false, 'okno pod ním ho zakrýt nemůže');
+});
+
+test('okno přesně stejné velikosti nad ním ho zakryje', () => {
+  const a = { ...okno('a', 'tuner', 0), x: 10, y: 10, sirka: 200, vyska: 100 };
+  const b = { ...okno('b', 'texty', 1), x: 10, y: 10, sirka: 200, vyska: 100 };
+  assert.equal(zakryte(a, [a, b]), true);
 });

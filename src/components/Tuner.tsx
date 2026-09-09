@@ -341,9 +341,9 @@ export const Tuner: React.FC = () => {
           <div
             className={`w-1 h-28 origin-bottom transition-transform duration-100 rounded-full shadow-lg ${
               isInTune
-                ? 'bg-uspech shadow-[0_0_12px_#30D158]'
+                ? 'bg-uspech shadow-[0_0_12px_#00B878]'
                 : pitch
-                ? 'bg-znacka shadow-[0_0_12px_#FF9F0A]'
+                ? 'bg-znacka shadow-[0_0_12px_#FFD166]'
                 : 'bg-white/20'
             }`}
             style={{
@@ -533,8 +533,8 @@ export const Tuner: React.FC = () => {
                 className={`w-4 h-4 rounded-full transition-all duration-100 ${
                   isCurrent
                     ? isFirst
-                      ? 'bg-chyba scale-125 shadow-[0_0_10px_#FF453A]'
-                      : 'bg-znacka scale-110 shadow-[0_0_8px_#FF9F0A]'
+                      ? 'bg-chyba scale-125 shadow-[0_0_10px_#E54870]'
+                      : 'bg-znacka scale-110 shadow-[0_0_8px_#FFD166]'
                     : 'bg-white/10'
                 }`}
               />

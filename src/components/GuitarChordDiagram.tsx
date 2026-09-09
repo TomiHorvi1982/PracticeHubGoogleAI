@@ -101,7 +101,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
           <text
             x={startX - 5}
             y={startY + config.fretHeight / 1.5}
-            fill="#FF9F0A"
+            fill="#FFD166"
             fontSize={config.fontSize}
             fontWeight="bold"
             textAnchor="end"
@@ -151,7 +151,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
             width={endX - startX}
             height={config.fretHeight * 0.5}
             rx={config.dotRadius * 0.6}
-            fill="#FF9F0A"
+            fill="#FFD166"
             opacity={0.85}
           />
         )}
@@ -186,7 +186,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
                 cy={y}
                 r={config.dotRadius * 0.55}
                 fill="none"
-                stroke="#30D158"
+                stroke="#00B878"
                 strokeWidth={1.5}
               />
             );
@@ -211,7 +211,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
                 cx={x}
                 cy={y}
                 r={config.dotRadius}
-                fill="#FF9F0A"
+                fill="#FFD166"
                 stroke="#FFFFFF"
                 strokeWidth={1.5}
               />

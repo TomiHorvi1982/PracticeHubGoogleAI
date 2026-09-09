@@ -398,7 +398,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
                       {/* Note Marker */}
                       {isChordFret && (
                         <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md zlata-plocha shadow-[0_0_10px_#FF9F0A]"
+                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md zlata-plocha shadow-[0_0_10px_#FFD166]"
                           title={`Tón ${noteName} na ${fret}. pražci`}
                         >
                           {noteName}

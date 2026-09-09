@@ -28,9 +28,9 @@ interface Preset {
 /** Barva podle role článku, ať je řetězec čitelný na první pohled. */
 const BARVA: Record<string, string> = {
   amp: 'text-znacka border-znacka/30 bg-znacka/10',
-  cab: 'text-[#FF375F] border-[#FF375F]/30 bg-[#FF375F]/10',
+  cab: 'text-[#E54870] border-[#E54870]/30 bg-[#E54870]/10',
   reverb: 'text-info border-info/30 bg-info/10',
-  delay: 'text-[#5E5CE6] border-[#5E5CE6]/30 bg-[#5E5CE6]/10',
+  delay: 'text-[#6E5CDE] border-[#6E5CDE]/30 bg-[#6E5CDE]/10',
   dynamics: 'text-uspech border-uspech/30 bg-uspech/10',
   modulation: 'text-nastroj border-nastroj/30 bg-nastroj/10',
 };

@@ -14,10 +14,10 @@ import { useMusicalContext } from '../context/MusicalContext';
  */
 
 const CLENOVE: { id: Clen; nazev: string; popis: string; barva: string }[] = [
-  { id: 'bicí', nazev: 'Bubeník', popis: 'drží tempo a styl', barva: '#0A84FF' },
-  { id: 'basa', nazev: 'Basák', popis: 'kořeny a průchody', barva: '#30D158' },
-  { id: 'klavesy', nazev: 'Klávesák', popis: 'drží akordy', barva: '#BF5AF2' },
-  { id: 'kytara', nazev: 'Rytmika', popis: 'rozklad akordů', barva: '#FF9F0A' },
+  { id: 'bicí', nazev: 'Bubeník', popis: 'drží tempo a styl', barva: '#0EAEBE' },
+  { id: 'basa', nazev: 'Basák', popis: 'kořeny a průchody', barva: '#00B878' },
+  { id: 'klavesy', nazev: 'Klávesák', popis: 'drží akordy', barva: '#6E5CDE' },
+  { id: 'kytara', nazev: 'Rytmika', popis: 'rozklad akordů', barva: '#FFD166' },
 ];
 
 export const AiKapelaSection: React.FC = () => {
@@ -302,7 +302,7 @@ export const AiKapelaSection: React.FC = () => {
           Když služba neběží, řekne se to a kapela hraje dál bez něj. */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#FF375F]" />
+          <Sparkles className="w-4 h-4 text-[#E54870]" />
           <h3 className="text-sm font-bold text-white">AI sólista</h3>
           <span className="text-drobne text-pismo-slaby">
             Magenta RealTime — běží na tomhle Macu, ne v prohlížeči
@@ -335,7 +335,7 @@ export const AiKapelaSection: React.FC = () => {
             }}
             onBlur={() => solista.stav === 'hraje' && aiSolista.zmenStyl(stylSolisty)}
             placeholder="anglicky, třeba „bluesy slide guitar, slow"
-            className="flex-1 min-w-[220px] bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#FF375F]"
+            className="flex-1 min-w-[220px] bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#E54870]"
           />
           <button
             onClick={() =>
@@ -344,7 +344,7 @@ export const AiKapelaSection: React.FC = () => {
                 : void aiSolista.start(stylSolisty)
             }
             className={`px-4 py-2 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 ${
-              solista.stav === 'hraje' ? 'bg-chyba text-white' : 'bg-[#FF375F] text-white hover:bg-[#FF375F]/85'
+              solista.stav === 'hraje' ? 'bg-chyba text-white' : 'bg-[#E54870] text-white hover:bg-[#E54870]/85'
             }`}
           >
             {solista.stav === 'pripojuji' ? (
@@ -445,9 +445,9 @@ export const AiKapelaSection: React.FC = () => {
             step={0.5}
             value={solista.drzeniAkordu}
             onChange={(e) => aiSolista.nastavDrzeniAkordu(Number(e.target.value))}
-            className="flex-1 min-w-[160px] accent-[#FF375F] cursor-pointer"
+            className="flex-1 min-w-[160px] accent-[#E54870] cursor-pointer"
           />
-          <span className="text-xs font-mono font-bold text-[#FF375F] tabular-nums w-8">
+          <span className="text-xs font-mono font-bold text-[#E54870] tabular-nums w-8">
             {solista.drzeniAkordu}
           </span>
           {solista.posledniAkord && (

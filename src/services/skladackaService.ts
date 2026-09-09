@@ -512,6 +512,6 @@ export function pozadiPolicka(
   const kde = Math.round(Math.max(0, Math.min(1, postup)) * 100);
   return {
     backgroundImage:
-      `linear-gradient(to right, rgba(48,209,88,0.5) ${kde}%, rgba(255,255,255,0.05) ${kde}%)`,
+      `linear-gradient(to right, rgba(0,184,120,0.5) ${kde}%, rgba(255,255,255,0.05) ${kde}%)`,
   };
 }

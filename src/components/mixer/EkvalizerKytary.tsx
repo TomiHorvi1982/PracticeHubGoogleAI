@@ -98,7 +98,7 @@ export const EkvalizerKytary: React.FC<Props> = ({ eq, bypass, bezi, vyska = 84 
       const y = naY(Math.max(-ROZSAH_DB, Math.min(ROZSAH_DB, db[x])));
       if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     }
-    ctx.strokeStyle = bezi ? '#FF9F0A' : 'rgba(255,209,102,0.55)';
+    ctx.strokeStyle = bezi ? '#FFD166' : 'rgba(255,209,102,0.55)';
     ctx.lineWidth = 2;
     ctx.stroke();
 

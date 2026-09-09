@@ -108,7 +108,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
       ctx.fillStyle = 'rgba(255,209,102,0.15)';
       ctx.fillRect(od, 0, doo - od, h);
-      ctx.strokeStyle = '#FF9F0A';
+      ctx.strokeStyle = '#FFD166';
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(od, 0); ctx.lineTo(od, h);
@@ -116,7 +116,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
       ctx.stroke();
 
       // Úchyty, aby bylo vidět, že se za hrany dá vzít.
-      ctx.fillStyle = '#FF9F0A';
+      ctx.fillStyle = '#FFD166';
       for (const x of [od, doo]) {
         ctx.fillRect(x - 4, 0, 8, 10);
         ctx.fillRect(x - 4, h - 10, 8, 10);
@@ -125,7 +125,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
       // Kde jsme
       const x = naPodil(stav.pozice) * w;
       if (x >= 0 && x <= w) {
-        ctx.strokeStyle = '#30D158';
+        ctx.strokeStyle = '#00B878';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(x, 0); ctx.lineTo(x, h);

@@ -798,7 +798,7 @@ export const VirtualInstruments: React.FC = () => {
                     </div>
                     <div className="w-full bg-black/50 h-1.5 rounded-full overflow-hidden p-0.5 border border-uspech/20">
                       <div 
-                        className="bg-gradient-to-r from-uspech to-[#00F5A0] h-full transition-all duration-200 rounded-full shadow-[0_0_8px_#30D158]"
+                        className="bg-gradient-to-r from-uspech to-[#00F5A0] h-full transition-all duration-200 rounded-full shadow-[0_0_8px_#00B878]"
                         style={{ width: `${sfProgress}%` }}
                       />
                     </div>
@@ -985,9 +985,9 @@ export const VirtualInstruments: React.FC = () => {
                         disabled={isDisabledByFilter}
                         className={`plocha-nastroje w-8 h-32 -mx-4 z-10 rounded-b-md flex flex-col justify-between items-center py-2 px-0.5 border transition-all active:scale-95 cursor-pointer shadow-md ${
                           isActivePressed
-                            ? 'zlata-plocha border-znacka shadow-[0_0_15px_#FF9F0A]'
+                            ? 'zlata-plocha border-znacka shadow-[0_0_15px_rgba(255,209,102,0.55)]'
                             : isScaleNote && selectedScaleIndex !== null
-                            ? 'bg-[#1C2E20] hover:bg-[#28422E] text-uspech border-uspech/60 shadow-[0_0_8px_rgba(48,209,88,0.2)]'
+                            ? 'bg-plocha-3 hover:bg-plocha-nad text-uspech border-uspech/45'
                             : isDisabledByFilter
                             ? 'bg-podklad text-neutral-700 border-white/5 opacity-20'
                             : 'bg-plocha-3 hover:bg-plocha-nad text-pismo hover:text-white border-black'
@@ -995,7 +995,7 @@ export const VirtualInstruments: React.FC = () => {
                         title={`${fullNoteName} [Klávesa PC: ${keyObj.keyShortcut.toUpperCase()}]`}
                       >
                         {isScaleNote && selectedScaleIndex !== null ? (
-                          <span className="text-stitek font-extrabold bg-uspech text-black px-1 rounded-full">
+                          <span className="text-stitek font-extrabold bg-uspech/20 text-uspech border border-uspech/40 px-1 rounded-full">
                             {scaleDegree}.
                           </span>
                         ) : (
@@ -1021,9 +1021,9 @@ export const VirtualInstruments: React.FC = () => {
                       disabled={isDisabledByFilter}
                       className={`w-11 h-46 rounded-b-xl flex flex-col justify-between items-center py-3 px-1 border transition-all active:scale-95 cursor-pointer shadow-sm ${
                         isActivePressed
-                          ? 'zlata-plocha border-znacka shadow-[0_0_15px_#FF9F0A]'
+                          ? 'zlata-plocha border-znacka shadow-[0_0_15px_rgba(255,209,102,0.55)]'
                           : isScaleNote && selectedScaleIndex !== null
-                          ? 'bg-[#EDFDF0] hover:bg-white text-black border-2 border-uspech shadow-[0_0_10px_rgba(48,209,88,0.3)]'
+                          ? 'bg-neutral-200 hover:bg-white text-black border-2 border-uspech/70'
                           : isDisabledByFilter
                           ? 'bg-plocha-2/40 text-pismo-slaby border-white/5 opacity-20'
                           : 'bg-neutral-200 hover:bg-white text-black border-kresba/50'
@@ -1031,7 +1031,7 @@ export const VirtualInstruments: React.FC = () => {
                       title={`${fullNoteName} [Klávesa PC: ${keyObj.keyShortcut.toUpperCase()}]`}
                     >
                       {isScaleNote && selectedScaleIndex !== null ? (
-                        <span className="text-stitek font-extrabold bg-uspech text-black px-1.5 py-0.5 rounded-md shadow-xs">
+                        <span className="text-stitek font-extrabold bg-uspech/15 text-uspech border border-uspech/40 px-1.5 py-0.5 rounded-md">
                           {scaleDegree}. stupeň
                         </span>
                       ) : (

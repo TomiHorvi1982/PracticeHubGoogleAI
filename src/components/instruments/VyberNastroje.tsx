@@ -24,9 +24,9 @@ const NASTROJE: {
   Obrazek: React.FC<{ className?: string }>;
   barva: string;
 }[] = [
-  { id: 'piano', nazev: 'Klavír', popis: 'Klaviatura, akordy a stupnice', Obrazek: ObrazekKlavir, barva: '#FF9F0A' },
-  { id: 'drums', nazev: 'Samples', popis: 'Skládačka ze samplů', Obrazek: ObrazekBici, barva: '#30D158' },
-  { id: 'fretboard', nazev: 'Hmatník', popis: 'Akordy, stupnice a poslech kytary', Obrazek: ObrazekHmatnik, barva: '#BF5AF2' },
+  { id: 'piano', nazev: 'Klavír', popis: 'Klaviatura, akordy a stupnice', Obrazek: ObrazekKlavir, barva: '#FFD166' },
+  { id: 'drums', nazev: 'Samples', popis: 'Skládačka ze samplů', Obrazek: ObrazekBici, barva: '#00B878' },
+  { id: 'fretboard', nazev: 'Hmatník', popis: 'Akordy, stupnice a poslech kytary', Obrazek: ObrazekHmatnik, barva: '#6E5CDE' },
 ];
 
 /** Klávesnice počítače je vždycky po ruce, i bez jediného MIDI zařízení. */

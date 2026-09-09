@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useKreslit } from '../hooks/useKreslit';
 import { Midi } from '@tonejs/midi';
 import { audioSynth, InstrumentProfile } from '../services/audioSynth';
 import {
@@ -31,6 +32,15 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
   const [isLooping, setIsLooping] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  /*
+   * Piano roll se kreslí, jen když je vidět.
+   *
+   * Zbytek smyčky běží dál — jsou v ní i spouštěné tóny, a ty se
+   * vynechat nesmí. Vypadává tedy jen překreslení plátna.
+   */
+  const kreslit = useKreslit(canvasRef);
+  const kreslitRef = useRef(true);
+  kreslitRef.current = kreslit;
   const animationFrameRef = useRef<number | null>(null);
   const lastTickTimeRef = useRef<number>(0);
   const currentTimeRef = useRef<number>(0);
@@ -261,7 +271,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
         }
       });
 
-      renderPianoRoll();
+      if (kreslitRef.current) renderPianoRoll();
       animationFrameRef.current = requestAnimationFrame(loop);
     };
 
@@ -354,7 +364,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
   useEffect(() => {
     renderPianoRoll();
-  }, [midiData, currentTime]);
+  }, [midiData, currentTime, kreslit]);
 
   const totalDuration = midiData?.duration || 0;
   const initialBpm = midiData?.header?.tempos?.[0]?.bpm ? Math.round(midiData.header.tempos[0].bpm) : 120;

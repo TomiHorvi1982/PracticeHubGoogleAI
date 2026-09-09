@@ -490,9 +490,9 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                               zrovnaZni
                                 ? 'bg-uspech text-black ring-2 ring-white scale-125'
                                 : isRoot
-                                ? 'zlata-plocha shadow-[0_0_10px_#FF9F0A]'
+                                ? 'zlata-plocha shadow-[0_0_10px_#FFD166]'
                                 : isChordFret
-                                ? 'bg-uspech text-black shadow-[0_0_8px_#30D158]'
+                                ? 'bg-uspech text-black shadow-[0_0_8px_#00B878]'
                                 : 'bg-white text-black'
                             }`}
                             title={`Zahrát ${noteName} na ${fret}. pražci`}
@@ -563,8 +563,8 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                     className={`w-6 h-20 -mx-3 z-10 rounded-b-md border border-black/80 flex flex-col justify-end items-center pb-1.5 transition-all active:scale-95 cursor-pointer ${
                       isHighlighted
                         ? isRoot
-                          ? 'zlata-plocha font-extrabold shadow-[0_0_10px_#FF9F0A]'
-                          : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#30D158]'
+                          ? 'zlata-plocha font-extrabold shadow-[0_0_10px_#FFD166]'
+                          : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#00B878]'
                         : 'bg-plocha-3 hover:bg-plocha-nad text-pismo-tlum hover:text-white'
                     }`}
                     title={`Přehrát tón ${noteName} na piano`}
@@ -581,8 +581,8 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                   className={`w-9 h-32 rounded-b-lg border border-kresba/50 flex flex-col justify-end items-center pb-2.5 font-mono text-stitek font-bold transition-all active:scale-95 cursor-pointer ${
                     isHighlighted
                       ? isRoot
-                        ? 'zlata-plocha font-extrabold shadow-[0_0_10px_#FF9F0A]'
-                        : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#30D158]'
+                        ? 'zlata-plocha font-extrabold shadow-[0_0_10px_#FFD166]'
+                        : 'bg-uspech text-black font-extrabold shadow-[0_0_10px_#00B878]'
                       : 'bg-neutral-200 hover:bg-white text-black'
                   }`}
                   title={`Přehrát tón ${noteName} na piano`}

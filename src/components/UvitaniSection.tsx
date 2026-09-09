@@ -24,13 +24,13 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
         <svg viewBox="0 0 200 96" className="w-full h-full">
           <rect x="12" y="12" width="120" height="14" rx="7" fill="#ffffff10" />
           <circle cx="22" cy="19" r="3.5" stroke="#8a8a96" strokeWidth="1.4" fill="none" />
-          <rect x="140" y="12" width="48" height="14" rx="7" fill="#FF9F0A" />
+          <rect x="140" y="12" width="48" height="14" rx="7" fill="#FFD166" />
           {[0, 1, 2].map((i) => (
             <g key={i}>
               <rect x="12" y={38 + i * 18} width="14" height="14" rx="3" fill="#ffffff14" />
               <rect x="32" y={42 + i * 18} width={90 - i * 18} height="6" rx="3" fill="#ffffff20" />
-              <circle cx="170" cy={45 + i * 18} r="6" fill="#30D15833" />
-              <path d={`M167 ${45 + i * 18} h6 M170 ${42 + i * 18} v6`} stroke="#30D158" strokeWidth="1.4" />
+              <circle cx="170" cy={45 + i * 18} r="6" fill="#00B87833" />
+              <path d={`M167 ${45 + i * 18} h6 M170 ${42 + i * 18} v6`} stroke="#00B878" strokeWidth="1.4" />
             </g>
           ))}
         </svg>
@@ -45,7 +45,7 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
           <rect x="12" y="10" width="176" height="10" rx="3" fill="#ffffff08" />
           {[0, 1, 2, 3].map((i) => (
             <g key={i}>
-              <rect x="12" y={26 + i * 16} width="70" height="7" rx="3" fill={i === 1 ? '#FF9F0A' : '#ffffff24'} />
+              <rect x="12" y={26 + i * 16} width="70" height="7" rx="3" fill={i === 1 ? '#FFD166' : '#ffffff24'} />
               <rect x="96" y={26 + i * 16} width="40" height="7" rx="3" fill="#ffffff14" />
               <rect x="148" y={26 + i * 16} width="24" height="7" rx="3" fill="#ffffff14" />
             </g>
@@ -82,7 +82,7 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
     return (
       <div className={ram}>
         <svg viewBox="0 0 200 96" className="w-full h-full">
-          <circle cx="100" cy="20" r="11" fill="#FF9F0A" />
+          <circle cx="100" cy="20" r="11" fill="#FFD166" />
           <path d="M97 15 l8 5 l-8 5 z" fill="#0E0E12" />
           <rect x="72" y="16" width="9" height="9" rx="2" fill="#ffffff20" />
           <rect x="119" y="16" width="9" height="9" rx="2" fill="#ffffff20" />
@@ -90,7 +90,7 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
           <rect x="20" y="48" width="50" height="4" rx="2" fill="#ffffff28" />
           <rect x="20" y="56" width="62" height="4" rx="2" fill="#ffffff18" />
           <rect x="20" y="64" width="40" height="4" rx="2" fill="#ffffff18" />
-          <rect x="104" y="36" width="82" height="46" rx="5" fill="#ffffff08" stroke="#FF9F0A44" />
+          <rect x="104" y="36" width="82" height="46" rx="5" fill="#ffffff08" stroke="#FFD16644" />
           <rect x="110" y="42" width="70" height="26" rx="3" fill="#ffffff10" />
         </svg>
       </div>
@@ -107,11 +107,11 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
           {[0, 1, 2, 3].map((i) => (
             <line key={i} x1={14 + i * 28} y1="16" x2={14 + i * 28} y2="76" stroke="#3a3a42" strokeWidth="1" />
           ))}
-          <circle cx="42" cy="42" r="5" fill="#FF9F0A" />
-          <circle cx="70" cy="53" r="5" fill="#FF9F0A" />
-          <circle cx="98" cy="31" r="5" fill="#FF9F0A" />
+          <circle cx="42" cy="42" r="5" fill="#FFD166" />
+          <circle cx="70" cy="53" r="5" fill="#FFD166" />
+          <circle cx="98" cy="31" r="5" fill="#FFD166" />
           {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-            <rect key={i} x={132 + i * 8} y="30" width="7" height="40" rx="1" fill={i === 0 || i === 2 || i === 4 ? '#FF9F0A' : '#F2F2F2'} />
+            <rect key={i} x={132 + i * 8} y="30" width="7" height="40" rx="1" fill={i === 0 || i === 2 || i === 4 ? '#FFD166' : '#F2F2F2'} />
           ))}
         </svg>
       </div>
@@ -123,7 +123,7 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
       <div className={ram}>
         <svg viewBox="0 0 200 96" className="w-full h-full">
           {['Intro', 'Sloka', 'Refrén'].map((c, i) => (
-            <rect key={c} x={56 + i * 46} y="12" width="42" height="10" rx="3" fill={i === 1 ? '#FF9F0A' : '#ffffff14'} />
+            <rect key={c} x={56 + i * 46} y="12" width="42" height="10" rx="3" fill={i === 1 ? '#FFD166' : '#ffffff14'} />
           ))}
           {[0, 1, 2].map((r) => (
             <g key={r}>
@@ -136,8 +136,8 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
                   width="42"
                   height="12"
                   rx="3"
-                  fill={(r + c) % 2 === 0 ? '#30D15833' : '#ffffff08'}
-                  stroke={(r + c) % 2 === 0 ? '#30D15866' : '#ffffff12'}
+                  fill={(r + c) % 2 === 0 ? '#00B87833' : '#ffffff08'}
+                  stroke={(r + c) % 2 === 0 ? '#00B87866' : '#ffffff12'}
                 />
               ))}
             </g>
@@ -164,7 +164,7 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
                 x={Number(x)}
                 y={26 + Number(r) * 11}
                 fontSize="9"
-                fill="#FF9F0A"
+                fill="#FFD166"
                 textAnchor="middle"
                 fontFamily="monospace"
               >
@@ -185,12 +185,12 @@ const Nahled: React.FC<{ druh: string }> = ({ druh }) => {
     <div className={ram}>
       <svg viewBox="0 0 200 96" className="w-full h-full">
         <path d="M20 60 h160" stroke="#ffffff14" strokeWidth="1.5" />
-        <path d="M100 60 v-30" stroke="#FF9F0A" strokeWidth="2.5" />
-        <circle cx="100" cy="60" r="4" fill="#FF9F0A" />
+        <path d="M100 60 v-30" stroke="#FFD166" strokeWidth="2.5" />
+        <circle cx="100" cy="60" r="4" fill="#FFD166" />
         {[-60, -30, 0, 30, 60].map((d) => (
           <line key={d} x1={100 + d} y1="56" x2={100 + d} y2="64" stroke="#5a5a66" strokeWidth="1.2" />
         ))}
-        <text x="100" y="82" fontSize="9" fill="#30D158" textAnchor="middle" fontFamily="monospace">
+        <text x="100" y="82" fontSize="9" fill="#00B878" textAnchor="middle" fontFamily="monospace">
           E — 440 Hz
         </text>
       </svg>

@@ -22,14 +22,14 @@ export interface Pad {
 }
 
 export const PADY: Pad[] = [
-  { id: 'kick', nazev: 'Kopák', klavesa: 'Q', midi: 36, barva: '#FF453A' },
-  { id: 'snare', nazev: 'Virbl', klavesa: 'W', midi: 38, barva: '#FF9F0A' },
-  { id: 'hihat_closed', nazev: 'Hi-hat', klavesa: 'E', midi: 42, barva: '#FFD60A' },
-  { id: 'hihat_open', nazev: 'Hi-hat otevř.', klavesa: 'R', midi: 46, barva: '#30D158' },
+  { id: 'kick', nazev: 'Kopák', klavesa: 'Q', midi: 36, barva: '#E54870' },
+  { id: 'snare', nazev: 'Virbl', klavesa: 'W', midi: 38, barva: '#FFD166' },
+  { id: 'hihat_closed', nazev: 'Hi-hat', klavesa: 'E', midi: 42, barva: '#FF9F43' },
+  { id: 'hihat_open', nazev: 'Hi-hat otevř.', klavesa: 'R', midi: 46, barva: '#00B878' },
   { id: 'tom_low', nazev: 'Tom nízký', klavesa: 'A', midi: 45, barva: '#5AC8FA' },
-  { id: 'tom_high', nazev: 'Tom vysoký', klavesa: 'S', midi: 48, barva: '#0A84FF' },
-  { id: 'crash', nazev: 'Crash', klavesa: 'D', midi: 49, barva: '#BF5AF2' },
-  { id: 'ride', nazev: 'Ride', klavesa: 'F', midi: 51, barva: '#FF375F' },
+  { id: 'tom_high', nazev: 'Tom vysoký', klavesa: 'S', midi: 48, barva: '#0EAEBE' },
+  { id: 'crash', nazev: 'Crash', klavesa: 'D', midi: 49, barva: '#6E5CDE' },
+  { id: 'ride', nazev: 'Ride', klavesa: 'F', midi: 51, barva: '#E54870' },
 ];
 
 export const KROKU = 16;

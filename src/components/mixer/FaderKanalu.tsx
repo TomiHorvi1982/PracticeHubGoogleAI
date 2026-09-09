@@ -75,7 +75,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
               className="absolute inset-x-0 bottom-0 transition-[height] duration-75"
               style={{
                 height: `${Math.min(100, (uroven || 0) * 100)}%`,
-                background: preburacene ? '#FF453A' : barva,
+                background: preburacene ? '#E54870' : barva,
               }}
             />
             {spicka !== undefined && spicka > 0.01 && (

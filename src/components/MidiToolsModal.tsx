@@ -284,7 +284,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                       return (
                         <div
                           key={noteNum}
-                          className="bg-uspech text-black border border-black p-2 rounded-xl shadow-[0_0_15px_rgba(48,209,88,0.4)] animate-bounce flex flex-col items-center min-w-[50px]"
+                          className="bg-uspech text-black border border-black p-2 rounded-xl shadow-[0_0_15px_rgba(0,184,120,0.4)] animate-bounce flex flex-col items-center min-w-[50px]"
                         >
                           <span className="font-extrabold text-xs">{name}</span>
                           <span className="text-stitek font-mono">Vel: {Math.round(vel * 127)}</span>

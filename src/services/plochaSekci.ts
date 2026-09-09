@@ -217,6 +217,31 @@ export function otevri(okna: OknoSekce[], sekce: MainTabType): OknoSekce[] {
   return [...okna, noveOkno(sekce, okna)];
 }
 
+/**
+ * Je okno úplně zakryté jiným?
+ *
+ * Zakryté okno nemá co kreslit. Spektrum, vlnovky a přehrávací kurzory
+ * jedou na `requestAnimationFrame`, který prohlížeč uspí jen tehdy, když
+ * je celá karta v pozadí — okno schované pod jiným oknem pořád počítá
+ * a kreslí do plátna, které nikdo nevidí. Při hraní naživo tahle práce
+ * soupeří o procesor se zvukovým vláknem a je slyšet.
+ *
+ * Počítá se jen zakrytí jedním oknem, ne skládankou z několika. Tři
+ * okna, která dohromady zakryjí čtvrté, jsou vzácný případ; kdežto
+ * „přes pult jsem si položil tabulaturu" je to, co se děje pořád.
+ */
+export function zakryte(o: OknoSekce, vsechna: OknoSekce[]): boolean {
+  return vsechna.some((j) => (
+    j.id !== o.id
+    && j.poradi > o.poradi
+    && !j.sbalene
+    && j.x <= o.x
+    && j.y <= o.y
+    && j.x + j.sirka >= o.x + o.sirka
+    && j.y + j.vyska >= o.y + o.vyska
+  ));
+}
+
 export function zavri(okna: OknoSekce[], id: string): OknoSekce[] {
   return okna.filter((o) => o.id !== id);
 }

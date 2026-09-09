@@ -75,7 +75,7 @@ const Vlnovka: React.FC<{ id: string; postup: number }> = ({ id, postup }) => {
             y={(20 - vyska) / 2}
             width={0.7}
             height={vyska}
-            fill={i < kde ? 'rgba(48,209,88,0.55)' : 'rgba(255,255,255,0.11)'}
+            fill={i < kde ? 'rgba(0,184,120,0.55)' : 'rgba(255,255,255,0.11)'}
           />
         );
       })}

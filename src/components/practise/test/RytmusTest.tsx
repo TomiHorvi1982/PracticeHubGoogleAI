@@ -161,7 +161,7 @@ export const RytmusTest: React.FC = () => {
             <Cislo
               hodnota={`± ${hodnoceni.rozptyl} ms`}
               popis="rozkolísanost"
-              barva={hodnoceni.rozptyl < 25 ? '#30D158' : hodnoceni.rozptyl < 50 ? '#FF9F0A' : '#FF453A'}
+              barva={hodnoceni.rozptyl < 25 ? '#00B878' : hodnoceni.rozptyl < 50 ? '#FFD166' : '#E54870'}
             />
             <Cislo hodnota={hodnoceni.sMetronomem != null ? `± ${hodnoceni.sMetronomem} ms` : '—'} popis="s metronomem" />
             <Cislo hodnota={hodnoceni.bezMetronomu != null ? `± ${hodnoceni.bezMetronomu} ms` : '—'} popis="bez metronomu" />

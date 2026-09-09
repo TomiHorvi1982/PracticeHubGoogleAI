@@ -34,7 +34,7 @@ export const KytaraFader: React.FC<{
   return (
     <FaderKanalu
       nazev="Kytara (vstup)"
-      barva="#30D158"
+      barva="#00B878"
       hlasitost={stav.hlasitost}
       onHlasitost={(v) => kytaraKanal.nastav({ hlasitost: v })}
       uroven={stav.bezi ? stav.uroven : 0}

@@ -69,7 +69,7 @@ export const HmatnikTukani: React.FC<Props> = ({
               y={y + 3.5}
               fontSize={10}
               textAnchor="middle"
-              fill={prahy[si] === 0 ? '#30D158' : prahy[si] < 0 ? '#FF453A' : '#6a6a76'}
+              fill={prahy[si] === 0 ? '#00B878' : prahy[si] < 0 ? '#E54870' : '#6a6a76'}
               className="cursor-pointer font-mono"
               onClick={() => onZmena(prahy.map((p, i) => (i === si ? (p === 0 ? -1 : 0) : p)))}
             >
@@ -86,8 +86,8 @@ export const HmatnikTukani: React.FC<Props> = ({
                   cx={cx}
                   cy={y}
                   r={6}
-                  fill={aktivni ? '#FF9F0A' : 'transparent'}
-                  stroke={aktivni ? '#FF9F0A' : '#ffffff14'}
+                  fill={aktivni ? '#FFD166' : 'transparent'}
+                  stroke={aktivni ? '#FFD166' : '#ffffff14'}
                   strokeWidth={1}
                   className="cursor-pointer"
                   onClick={() => nastav(si, praha)}

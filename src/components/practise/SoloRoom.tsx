@@ -170,7 +170,7 @@ export const SoloRoom: React.FC = () => {
         <div className="flex flex-wrap gap-3">
           <FaderKanalu
             nazev="Stopa (sólo)"
-            barva="#0A84FF"
+            barva="#0EAEBE"
             hlasitost={cviceni.hlasitost}
             onHlasitost={(v) => prehravacCviceni.nastavHlasitost(v)}
             uroven={cviceni.uroven}

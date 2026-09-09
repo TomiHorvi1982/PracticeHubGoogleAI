@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { metronomService } from '../../services/metronomService';
+import { useKreslit } from '../../hooks/useKreslit';
 
 /**
  * Rytmický vzor s běžcem.
@@ -24,11 +25,15 @@ interface Props {
 }
 
 export const PasRytmu: React.FC<Props> = ({ vzor, bezi, dobVTaktu = 4 }) => {
+  const obal = useRef<HTMLDivElement>(null);
   const bezec = useRef<HTMLDivElement>(null);
   const zvyraznene = useRef<HTMLDivElement[]>([]);
+  // Na pruh, který není vidět, se čára počítat nemusí — metronom hraje
+  // dál a po návratu se dopočítá z jeho času, ne z počitadla snímků.
+  const kreslit = useKreslit(obal);
 
   useEffect(() => {
-    if (!bezi) {
+    if (!bezi || !kreslit) {
       if (bezec.current) bezec.current.style.transform = 'translateX(0)';
       zvyraznene.current.forEach((e) => e?.classList.remove('ring-2', 'ring-white'));
       return;
@@ -51,10 +56,10 @@ export const PasRytmu: React.FC<Props> = ({ vzor, bezi, dobVTaktu = 4 }) => {
     };
     krok();
     return () => cancelAnimationFrame(id);
-  }, [bezi, vzor, dobVTaktu]);
+  }, [bezi, vzor, dobVTaktu, kreslit]);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={obal}>
       <div className="flex gap-1">
         {vzor.map((zni, i) => (
           <div

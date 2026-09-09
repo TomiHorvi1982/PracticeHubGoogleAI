@@ -30,11 +30,11 @@ export interface Vzkaz {
  * najednou mluvil někdo jiný.
  */
 const BARVY = [
-  { text: 'text-[#FF9F0A]', pozadi: 'bg-[#FF9F0A]/10', okraj: 'border-[#FF9F0A]/30' },
-  { text: 'text-[#30D158]', pozadi: 'bg-[#30D158]/10', okraj: 'border-[#30D158]/30' },
+  { text: 'text-[#FFD166]', pozadi: 'bg-[#FFD166]/10', okraj: 'border-[#FFD166]/30' },
+  { text: 'text-[#00B878]', pozadi: 'bg-[#00B878]/10', okraj: 'border-[#00B878]/30' },
   { text: 'text-info', pozadi: 'bg-info/10', okraj: 'border-info/30' },
-  { text: 'text-[#FF453A]', pozadi: 'bg-[#FF453A]/10', okraj: 'border-[#FF453A]/30' },
-  { text: 'text-[#BF5AF2]', pozadi: 'bg-[#BF5AF2]/10', okraj: 'border-[#BF5AF2]/30' },
+  { text: 'text-[#E54870]', pozadi: 'bg-[#E54870]/10', okraj: 'border-[#E54870]/30' },
+  { text: 'text-[#6E5CDE]', pozadi: 'bg-[#6E5CDE]/10', okraj: 'border-[#6E5CDE]/30' },
   { text: 'text-[#5AC8FA]', pozadi: 'bg-[#5AC8FA]/10', okraj: 'border-[#5AC8FA]/30' },
 ];
 

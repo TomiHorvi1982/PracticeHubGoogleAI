@@ -87,13 +87,13 @@ const ZnackyDostupnosti: React.FC<{ song: Song }> = ({ song }) => {
 
   type Ikona = React.FC<{ className?: string; style?: React.CSSProperties }>;
   const IKONY: Record<string, { I: Ikona; barva: string }> = {
-    text: { I: FileText, barva: '#0A84FF' },
-    akordy: { I: Music4, barva: '#FF9F0A' },
-    taby: { I: FileCode, barva: '#FFD60A' },
-    video: { I: Youtube, barva: '#FF453A' },
-    audio: { I: Volume2, barva: '#30D158' },
+    text: { I: FileText, barva: '#0EAEBE' },
+    akordy: { I: Music4, barva: '#FFD166' },
+    taby: { I: FileCode, barva: '#FF9F43' },
+    video: { I: Youtube, barva: '#E54870' },
+    audio: { I: Volume2, barva: '#00B878' },
     stopy: { I: Sliders, barva: '#64D2FF' },
-    midi: { I: Piano, barva: '#BF5AF2' },
+    midi: { I: Piano, barva: '#6E5CDE' },
   };
 
   return (

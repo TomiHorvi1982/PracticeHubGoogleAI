@@ -27,7 +27,7 @@ export interface Sekce {
  * žádná nesplývala s oranžovou přehrávací hlavou.
  */
 export const BARVY_SEKCI = [
-  '#5E9EFF', '#BF5AF2', '#30D158', '#FF9F0A', '#FF6482', '#40C8E0',
+  '#5E9EFF', '#6E5CDE', '#00B878', '#FFD166', '#FF6482', '#40C8E0',
 ];
 
 /** Jména, která se nabízejí — pokrývají skoro každou skladbu. */
