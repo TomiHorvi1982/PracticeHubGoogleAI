@@ -26,7 +26,7 @@ export const SamplyModul: React.FC = () => {
           onClick={() => (stav.hraje ? skladackaService.stop() : void skladackaService.prehraj())}
           disabled={stav.nacita || prazdna}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed ${
-            stav.hraje ? 'bg-chyba text-white' : 'bg-znacka text-black hover:bg-znacka/85'
+            stav.hraje ? 'bg-chyba text-white' : 'zlata-plocha hover:bg-znacka/85'
           }`}
         >
           {stav.nacita ? (
@@ -59,7 +59,7 @@ export const SamplyModul: React.FC = () => {
               key={r.id}
               onClick={() => skladackaService.nastavRezim(r.id)}
               className={`px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 cursor-pointer ${
-                stav.rezim === r.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
+                stav.rezim === r.id ? 'bg-white/[0.14] text-white' : 'text-pismo-slaby hover:text-white'
               }`}
             >
               <Ikona className="w-3 h-3" /> {r.popis}
@@ -69,7 +69,7 @@ export const SamplyModul: React.FC = () => {
       </div>
 
       {prazdna ? (
-        <div className="flex-1 flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-drobne text-center px-4">
+        <div className="flex-1 flex flex-col items-center justify-center gap-1.5 text-pismo-slaby text-drobne text-center px-4">
           <Layers className="w-5 h-5 text-neutral-700" />
           Skládačka je prázdná. Poskládej si ji ve Virtual Instruments → Samples; objeví se tady.
         </div>
@@ -86,8 +86,8 @@ export const SamplyModul: React.FC = () => {
                 onClick={() => skladackaService.vyberCast(c.id)}
                 className={`px-1 py-0.5 rounded text-stitek font-bold cursor-pointer truncate ${
                   stav.aktivniCast === c.id
-                    ? 'bg-znacka text-black'
-                    : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                    ? 'zlata-plocha'
+                    : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
                 }`}
               >
                 {c.nazev}
@@ -105,7 +105,7 @@ export const SamplyModul: React.FC = () => {
                 <button
                   onClick={() => skladackaService.nastavStopu(stopa.id, { ztlumena: !stopa.ztlumena })}
                   className={`p-0.5 rounded cursor-pointer ${
-                    stopa.ztlumena ? 'text-chyba' : 'text-neutral-500 hover:text-white'
+                    stopa.ztlumena ? 'text-chyba' : 'text-pismo-slaby hover:text-white'
                   }`}
                 >
                   {stopa.ztlumena ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}

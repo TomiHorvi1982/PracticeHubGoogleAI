@@ -57,7 +57,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
           <button
             onClick={onZtlumit}
             className={`px-1.5 py-0.5 rounded text-stitek font-bold cursor-pointer ${
-              ztlumeno ? 'bg-chyba text-white' : 'bg-white/[0.08] text-neutral-400 hover:text-white'
+              ztlumeno ? 'bg-chyba text-white' : 'bg-white/[0.08] text-pismo-tlum hover:text-white'
             }`}
             title="Ztlumit"
           >
@@ -103,17 +103,17 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
 
         <div className="flex-1 space-y-2 text-stitek">
           <div>
-            <span className="text-neutral-500">Hlasitost</span>
+            <span className="text-pismo-slaby">Hlasitost</span>
             <div className="font-mono font-bold tabular-nums" style={{ color: barva }}>
               {Math.round(hlasitost * 100)} %
             </div>
           </div>
           {maMerak && (
             <div>
-              <span className="text-neutral-500">Špička</span>
+              <span className="text-pismo-slaby">Špička</span>
               <div
                 className={`font-mono tabular-nums ${
-                  preburacene ? 'text-chyba font-bold' : 'text-neutral-300'
+                  preburacene ? 'text-chyba font-bold' : 'text-pismo'
                 }`}
               >
                 {dB(spicka || 0)}
@@ -127,7 +127,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
         <label className="block space-y-0.5">
           <span className="stitek-pole flex justify-between">
             <span>Gain</span>
-            <span className="font-mono text-neutral-300">{gain.toFixed(1)}×</span>
+            <span className="font-mono text-pismo">{gain.toFixed(1)}×</span>
           </span>
           <input
             type="range" min={10} max={800} value={Math.round(gain * 100)}
@@ -141,7 +141,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
         <label className="block space-y-0.5">
           <span className="stitek-pole flex justify-between">
             <span>Panorama</span>
-            <span className="font-mono text-neutral-300">
+            <span className="font-mono text-pismo">
               {panorama === 0 ? 'střed' : panorama < 0 ? `L ${Math.round(-panorama * 100)}` : `P ${Math.round(panorama * 100)}`}
             </span>
           </span>
@@ -157,7 +157,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
         <label className="block space-y-0.5">
           <span className="stitek-pole flex justify-between">
             <span>Šířka</span>
-            <span className="font-mono text-neutral-300">{Math.round(sirka * 100)} %</span>
+            <span className="font-mono text-pismo">{Math.round(sirka * 100)} %</span>
           </span>
           <input
             type="range" min={0} max={100} value={Math.round(sirka * 100)}

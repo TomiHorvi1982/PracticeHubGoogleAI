@@ -300,7 +300,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 <span className="odznak bg-chyba text-white px-2 py-0.5 rounded-md">
                   YouTube
                 </span>
-                <span className="text-xs text-neutral-400 font-medium">Vyhledávač &amp; Importér</span>
+                <span className="text-xs text-pismo-tlum font-medium">Vyhledávač &amp; Importér</span>
               </div>
               <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
                 Kytarová videa, backing tracky a tutoriály
@@ -309,7 +309,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           </div>
           <button
             onClick={() => setIsSearchPanelOpen(!isSearchPanelOpen)}
-            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-neutral-300 hover:text-white cursor-pointer transition-all"
+            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-pismo hover:text-white cursor-pointer transition-all"
           >
             {isSearchPanelOpen ? 'Skrýt panel' : 'Zobrazit panel'}
           </button>
@@ -319,13 +319,13 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           <div className="space-y-3">
             <form onSubmit={handleDirectSearch} className="flex gap-2.5">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-pismo-tlum absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Zadejte dotaz pro vyhledání videa na YouTube (např. Coldplay Yellow acoustic, Kabát Pohoda)..."
                   value={youtubeQuery}
                   onChange={(e) => setYoutubeQuery(e.target.value)}
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl text-white pl-10 pr-4 py-3 text-sm placeholder:text-neutral-500 focus:outline-none focus:border-chyba transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl text-white pl-10 pr-4 py-3 text-sm placeholder:text-pismo-slaby focus:outline-none focus:border-chyba transition-colors"
                 />
               </div>
               <button
@@ -362,13 +362,13 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             <h4 className="text-sm font-bold text-chyba uppercase border-b border-white/5 pb-2 flex items-center gap-2">
               <Type className="w-4 h-4" /> Pojmenujte novou skladbu v knihovně skladeb
             </h4>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-pismo-tlum">
               Tato skladba bude uložena do vaší kytarové knihovny. Později si pod ní můžete nahrát vlastní akordy a GP tabulatury.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-neutral-300">Název písně:</label>
+                <label className="text-xs font-semibold text-pismo">Název písně:</label>
                 <input
                   type="text"
                   value={importSongTitle}
@@ -378,7 +378,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-neutral-300">Interpret / Kapela:</label>
+                <label className="text-xs font-semibold text-pismo">Interpret / Kapela:</label>
                 <input
                   type="text"
                   value={importSongArtist}
@@ -392,7 +392,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setImportingVideo(null)}
-                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-neutral-300 hover:text-white cursor-pointer transition-all"
+                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-pismo hover:text-white cursor-pointer transition-all"
               >
                 Zrušit
               </button>
@@ -412,7 +412,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           <div className="space-y-3 bg-black/40 border border-white/5 rounded-2xl p-4 max-h-[440px] overflow-y-auto">
             <h4 className="nadpis-panelu border-b border-white/5 pb-2 flex items-center justify-between">
               <span className="text-chyba">Nalezené video výsledky ({directYtResults.length}):</span>
-              <span className="text-drobne text-neutral-400 font-normal lowercase">klikněte pro přehrání náhledu nebo uložte do zpěvníku</span>
+              <span className="text-drobne text-pismo-tlum font-normal lowercase">klikněte pro přehrání náhledu nebo uložte do zpěvníku</span>
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -444,7 +444,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                       {video.title}
                     </p>
                     <div className="flex items-center justify-between mt-1">
-                      <span className="text-stitek text-neutral-400 font-mono">ID: {video.id}</span>
+                      <span className="text-stitek text-pismo-tlum font-mono">ID: {video.id}</span>
                       <button
                         type="button"
                         onClick={(e) => {
@@ -480,7 +480,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 Interaktivní YouTube Studio
               </h2>
             </div>
-            <p className="text-xs text-neutral-400 mt-1">
+            <p className="text-xs text-pismo-tlum mt-1">
               Vybraná píseň:{' '}
               {activeSong ? (
                 <span className="text-uspech font-semibold">
@@ -535,8 +535,8 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
       </div>
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-red-300 text-xs font-semibold flex items-center gap-2.5">
-          <AlertCircle className="w-4 h-4 shrink-0 text-red-400" />
+        <div className="bg-chyba/10 border border-chyba/30 rounded-2xl p-4 text-chyba-svetla text-xs font-semibold flex items-center gap-2.5">
+          <AlertCircle className="w-4 h-4 shrink-0 text-chyba" />
           <span>{error}</span>
         </div>
       )}
@@ -558,7 +558,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             <button
               type="button"
               onClick={() => setIsAddFormOpen(false)}
-              className="text-xs text-neutral-400 hover:text-white cursor-pointer"
+              className="text-xs text-pismo-tlum hover:text-white cursor-pointer"
             >
               ✕ Zavřít
             </button>
@@ -566,7 +566,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-1.5">
-              <label className="text-xs font-semibold text-neutral-300">YouTube URL nebo ID videa:</label>
+              <label className="text-xs font-semibold text-pismo">YouTube URL nebo ID videa:</label>
               <input
                 type="text"
                 placeholder="Např. https://www.youtube.com/watch?v=6hzrDeceEKc..."
@@ -578,7 +578,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-neutral-300">Typ stopy:</label>
+              <label className="text-xs font-semibold text-pismo">Typ stopy:</label>
               <select
                 value={newVideoType}
                 onChange={(e) => setNewVideoType(e.target.value as any)}
@@ -593,7 +593,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-neutral-300">Název odkazu (volitelné):</label>
+            <label className="text-xs font-semibold text-pismo">Název odkazu (volitelné):</label>
             <input
               type="text"
               placeholder={`Př. ${activeSong.title} - Akustický cover`}
@@ -638,7 +638,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                   href={selectedVideo.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white px-3 py-1.5 border border-white/10 rounded-xl flex items-center gap-1.5 font-medium transition-all"
+                  className="text-xs bg-white/5 hover:bg-white/10 text-pismo hover:text-white px-3 py-1.5 border border-white/10 rounded-xl flex items-center gap-1.5 font-medium transition-all"
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-chyba" />
                   <span>Otevřít na YouTube</span>
@@ -656,11 +656,11 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               </div>
 
               <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex items-center justify-between text-xs">
-                <span className="text-neutral-400 font-mono">ID: {selectedVideo.id}</span>
+                <span className="text-pismo-tlum font-mono">ID: {selectedVideo.id}</span>
                 {activeSong && (
                   <button
                     onClick={() => handleDeleteVideo(selectedVideo.id)}
-                    className="p-1.5 text-red-400 hover:text-white hover:bg-red-500/20 rounded-xl transition-all cursor-pointer"
+                    className="p-1.5 text-chyba hover:text-white hover:bg-chyba/20 rounded-xl transition-all cursor-pointer"
                     title="Smazat video"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -674,7 +674,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 <Youtube className="w-8 h-8" />
               </div>
               <p className="text-sm font-bold text-white">Žádné aktivní video k přehrání</p>
-              <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+              <p className="text-xs text-pismo-tlum max-w-sm mx-auto">
                 Zadejte dotaz nahoře, spusťte náhled, uložte si píseň s videem nebo zvolte píseň ze seznamu.
               </p>
             </div>
@@ -692,7 +692,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             </div>
 
             {videos.length === 0 ? (
-              <div className="p-6 text-center text-neutral-400 text-xs border border-dashed border-white/10 rounded-2xl">
+              <div className="p-6 text-center text-pismo-tlum text-xs border border-dashed border-white/10 rounded-2xl">
                 Žádná uložená kytarová videa. Použijte automatické vyhledání výše.
               </div>
             ) : (
@@ -704,7 +704,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                       key={vid.id}
                       onClick={() => setSelectedVideo(vid)}
                       className={`p-3 rounded-2xl border cursor-pointer transition-all flex items-start justify-between gap-2.5 ${
-                        isSelected ? 'bg-chyba/10 border-chyba/40 text-white' : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300'
+                        isSelected ? 'bg-chyba/10 border-chyba/40 text-white' : 'bg-white/5 hover:bg-white/10 border-white/10 text-pismo'
                       }`}
                     >
                       <div className="overflow-hidden">
@@ -721,7 +721,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                           e.stopPropagation();
                           handleDeleteVideo(vid.id);
                         }}
-                        className="p-1.5 text-neutral-400 hover:text-red-400 rounded-lg hover:bg-white/5 transition-all"
+                        className="p-1.5 text-pismo-tlum hover:text-chyba rounded-lg hover:bg-white/5 transition-all"
                         title="Smazat video"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

@@ -107,7 +107,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
         <AlertCircle className="w-4 h-4 text-chyba shrink-0 mt-0.5" />
         <div>
           <p className="text-drobne text-chyba font-semibold">PDF se nepodařilo zobrazit</p>
-          <p className="text-drobne text-neutral-400 mt-0.5">{chyba}</p>
+          <p className="text-drobne text-pismo-tlum mt-0.5">{chyba}</p>
           <a
             href={url}
             target="_blank"
@@ -127,17 +127,17 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
         <button
           onClick={() => setStrana((s) => Math.max(1, s - 1))}
           disabled={strana <= 1}
-          className="p-1 rounded-lg hover:bg-white/10 text-neutral-300 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
+          className="p-1 rounded-lg hover:bg-white/10 text-pismo disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
-        <span className="text-drobne font-mono text-neutral-300 min-w-[64px] text-center">
+        <span className="text-drobne font-mono text-pismo min-w-[64px] text-center">
           {nacitam ? '…' : `${strana} / ${stran}`}
         </span>
         <button
           onClick={() => setStrana((s) => Math.min(stran, s + 1))}
           disabled={strana >= stran}
-          className="p-1 rounded-lg hover:bg-white/10 text-neutral-300 disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
+          className="p-1 rounded-lg hover:bg-white/10 text-pismo disabled:opacity-25 disabled:cursor-not-allowed cursor-pointer"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -145,16 +145,16 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
         <div className="ml-auto flex items-center gap-1">
           <button
             onClick={() => setZvetseni((z) => Math.max(0.5, z - 0.2))}
-            className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 cursor-pointer"
+            className="p-1 rounded-lg hover:bg-white/10 text-pismo-tlum cursor-pointer"
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
-          <span className="text-stitek font-mono text-neutral-500 w-9 text-center">
+          <span className="text-stitek font-mono text-pismo-slaby w-9 text-center">
             {Math.round(zvetseni * 100)}%
           </span>
           <button
             onClick={() => setZvetseni((z) => Math.min(3, z + 0.2))}
-            className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 cursor-pointer"
+            className="p-1 rounded-lg hover:bg-white/10 text-pismo-tlum cursor-pointer"
           >
             <ZoomIn className="w-3.5 h-3.5" />
           </button>
@@ -162,7 +162,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
             href={url}
             target="_blank"
             rel="noreferrer"
-            className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 cursor-pointer"
+            className="p-1 rounded-lg hover:bg-white/10 text-pismo-tlum cursor-pointer"
             title={`Otevřít ${nazev} v novém okně`}
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -172,7 +172,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
 
       <div className="bg-black/40 rounded-2xl border border-white/10 overflow-auto max-h-[560px] flex justify-center p-3">
         {nacitam ? (
-          <div className="flex items-center gap-2 text-drobne text-neutral-400 py-16">
+          <div className="flex items-center gap-2 text-drobne text-pismo-tlum py-16">
             <Loader2 className="w-4 h-4 animate-spin" /> Otevírám PDF…
           </div>
         ) : (

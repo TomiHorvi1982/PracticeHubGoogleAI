@@ -104,7 +104,7 @@ export const KytaraJakoNastroj: React.FC = () => {
           ))}
         </select>
 
-        {nacitaZvuk && <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />}
+        {nacitaZvuk && <Loader2 className="w-4 h-4 animate-spin text-pismo-tlum" />}
       </div>
 
       <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export const KytaraJakoNastroj: React.FC = () => {
 
       {/* Zpětná vazba přes reproduktory je tady horší než jinde: nástroj
           hraje tóny, které mikrofon zase uslyší a zahraje znovu. */}
-      <p className="text-drobne text-amber-500/80 flex items-start gap-1.5 leading-relaxed">
+      <p className="text-drobne text-znacka/80 flex items-start gap-1.5 leading-relaxed">
         <Headphones className="w-3.5 h-3.5 shrink-0 mt-0.5" />
         Pusť si to do sluchátek. Z reproduktorů mikrofon uslyší i zvolený nástroj a bude ho
         hrát znovu dokola.
@@ -144,14 +144,14 @@ export const KytaraJakoNastroj: React.FC = () => {
             Co slyším
           </div>
           {posledni.length === 0 ? (
-            <p className="text-drobne text-neutral-600">Zatím ticho — zahraj tón.</p>
+            <p className="text-drobne text-pismo-slaby">Zatím ticho — zahraj tón.</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {posledni.map((t, i) => (
                 <span
                   key={`${t}-${i}`}
                   className={`px-2 py-1 rounded-lg text-drobne font-bold tabular-nums ${
-                    i === 0 ? 'bg-nastroj text-white' : 'bg-white/[0.06] text-neutral-400'
+                    i === 0 ? 'bg-nastroj text-white' : 'bg-white/[0.06] text-pismo-tlum'
                   }`}
                 >
                   {t}

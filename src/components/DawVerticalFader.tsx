@@ -39,9 +39,9 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
   onUpdate,
   colorTheme = {
     accent: '#FF9F0A',
-    badge: 'bg-amber-500',
-    bg: 'from-amber-500/10 to-amber-950/20',
-    border: 'border-amber-500/30',
+    badge: 'bg-znacka',
+    bg: 'from-znacka/10 to-amber-950/20',
+    border: 'border-znacka/30',
   },
   compact = false,
   vybrany,
@@ -126,10 +126,10 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
       onPointerDownCapture={onVybrat}
       className={`rounded-3xl border ${
         channel.isSolo
-          ? 'border-amber-400/90 shadow-[0_0_20px_rgba(255,159,10,0.25)] bg-[#1c1a16]'
+          ? 'border-znacka/90 shadow-[0_0_20px_rgba(255,209,102,0.25)] bg-[var(--color-plocha-2)]'
           : vybrany
             ? 'border-znacka bg-znacka/[0.07]'
-            : `${colorTheme.border} bg-gradient-to-b from-slate-900/95 via-slate-900/90 to-slate-950/95`
+            : `${colorTheme.border} bg-gradient-to-b from-plocha-1/95 via-slate-900/90 to-podklad/95`
       } p-3.5 flex flex-col justify-between select-none shadow-xl transition-all relative overflow-hidden`}
     >
       {/* Channel Top Header: Name & Track Type Badge */}
@@ -148,7 +148,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
             className={`w-6 h-6 rounded-md font-black text-stitek flex items-center justify-center transition-all cursor-pointer border ${
               channel.isMuted
                 ? 'bg-rose-600 text-white border-rose-400 shadow-[0_0_8px_rgba(225,29,72,0.6)]'
-                : 'bg-neutral-800/80 text-neutral-400 hover:text-white border-neutral-700 hover:bg-neutral-700'
+                : 'bg-plocha-2/80 text-pismo-tlum hover:text-white border-kresba hover:bg-plocha-3'
             }`}
             title={channel.isMuted ? 'Ztlumeno (Mute)' : 'Ztlumit stopu'}
           >
@@ -158,8 +158,8 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
             onClick={() => onUpdate({ isSolo: !channel.isSolo })}
             className={`w-6 h-6 rounded-md font-black text-stitek flex items-center justify-center transition-all cursor-pointer border ${
               channel.isSolo
-                ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.8)]'
-                : 'bg-neutral-800/80 text-neutral-400 hover:text-amber-300 border-neutral-700 hover:bg-neutral-700'
+                ? 'zlata-plocha border-znacka-svetla shadow-[0_0_10px_rgba(251,191,36,0.8)]'
+                : 'bg-plocha-2/80 text-pismo-tlum hover:text-znacka-svetla border-kresba hover:bg-plocha-3'
             }`}
             title={channel.isSolo ? 'Solo aktivní' : 'Aktivovat Solo pro tuto stopu'}
           >
@@ -171,12 +171,12 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
       {/* Main Center Area: Vertical DAW Fader + LED VU Meter */}
       <div className="my-3 flex items-center justify-center gap-3 px-1">
         {/* dB Tick Marks */}
-        <div className="flex flex-col justify-between h-48 py-1 text-stitek font-mono text-neutral-500 select-none text-right w-6">
+        <div className="flex flex-col justify-between h-48 py-1 text-stitek font-mono text-pismo-slaby select-none text-right w-6">
           {ticks.map((t) => (
             <span
               key={t.label}
               onClick={() => onUpdate({ volume: t.db })}
-              className="cursor-pointer hover:text-neutral-300 transition-colors"
+              className="cursor-pointer hover:text-pismo transition-colors"
             >
               {t.label}
             </span>
@@ -190,15 +190,15 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onDoubleClick={handleResetVolume}
-          className="relative w-8 h-48 bg-podklad rounded-xl border border-neutral-800 shadow-inner flex items-center justify-center cursor-ns-resize group"
+          className="relative w-8 h-48 bg-podklad rounded-xl border border-kresba shadow-inner flex items-center justify-center cursor-ns-resize group"
           title="Tažením nahoru/dolů měníte hlasitost (Dvojklik = 0 dB)"
         >
           {/* Center Track Slot Groove */}
-          <div className="absolute top-3 bottom-3 w-1.5 bg-podklad rounded-full border-r border-b border-neutral-800 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]" />
+          <div className="absolute top-3 bottom-3 w-1.5 bg-podklad rounded-full border-r border-b border-kresba shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)]" />
 
           {/* 0 dB Center Zero Mark Line */}
           <div
-            className="absolute left-0 right-0 h-[1px] bg-neutral-700 pointer-events-none"
+            className="absolute left-0 right-0 h-[1px] bg-plocha-3 pointer-events-none"
             style={{ bottom: `${((0 - minDb) / dbSpan) * 100}%` }}
           />
 
@@ -212,13 +212,13 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
             }}
           >
             {/* Grip Ridges */}
-            <div className="w-4 h-[1px] bg-neutral-600 mb-0.5" />
+            <div className="w-4 h-[1px] bg-plocha-nad mb-0.5" />
             {/* Center Bright Indicator Line */}
             <div
               className="w-5 h-[2px] rounded-full shadow-[0_0_4px_currentColor]"
               style={{ backgroundColor: colorTheme.accent }}
             />
-            <div className="w-4 h-[1px] bg-neutral-600 mt-0.5" />
+            <div className="w-4 h-[1px] bg-plocha-nad mt-0.5" />
           </div>
         </div>
 
@@ -235,7 +235,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           />
 
           {/* Vertical Multi-segment LED Bar */}
-          <div className="w-2.5 h-44 bg-podklad border border-neutral-800 rounded-sm overflow-hidden relative flex flex-col-reverse shadow-inner">
+          <div className="w-2.5 h-44 bg-podklad border border-kresba rounded-sm overflow-hidden relative flex flex-col-reverse shadow-inner">
             {/* Active meter level bar */}
             <div
               className="w-full transition-all duration-75"
@@ -259,11 +259,11 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
       {/* DIGITAL READOUT DISPLAY */}
       <div
         onDoubleClick={handleResetVolume}
-        className="bg-[#0a0a0c] border border-white/10 rounded-xl py-1 px-2 text-center shadow-inner cursor-pointer hover:border-amber-500/40 transition-colors relative"
+        className="bg-[var(--color-vhloubeni)] border border-white/10 rounded-xl py-1 px-2 text-center shadow-inner cursor-pointer hover:border-znacka/40 transition-colors relative"
         title="Dvojklikem resetujete na 0.0 dB"
       >
         {isLoading ? (
-          <div className="flex items-center justify-center gap-1 text-drobne font-mono text-amber-400 font-bold animate-pulse">
+          <div className="flex items-center justify-center gap-1 text-drobne font-mono text-znacka font-bold animate-pulse">
             <RotateCcw className="w-3 h-3 animate-spin" />
             <span>SYNC...</span>
           </div>
@@ -273,8 +273,8 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
               channel.isMuted
                 ? 'text-rose-400'
                 : channel.volume > 0
-                ? 'text-amber-400'
-                : 'text-emerald-400'
+                ? 'text-znacka'
+                : 'text-uspech'
             }`}
           >
             {formatDb(channel.volume)}
@@ -287,9 +287,9 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
         <div className="mt-3 space-y-2.5 pt-2.5 border-t border-white/[0.08] text-xs">
           {/* Pan Rotary / Slider */}
           <div className="bg-black/40 p-2 rounded-xl border border-white/[0.06] space-y-1">
-            <div className="flex justify-between text-stitek font-mono text-neutral-400">
+            <div className="flex justify-between text-stitek font-mono text-pismo-tlum">
               <span>Pan</span>
-              <span className="font-bold text-emerald-400">
+              <span className="font-bold text-uspech">
                 {channel.pan === 0
                   ? 'Center'
                   : channel.pan < 0
@@ -304,15 +304,15 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
               step="0.05"
               value={channel.pan}
               onChange={(e) => onUpdate({ pan: parseFloat(e.target.value) })}
-              className="w-full accent-emerald-500 h-1.5 bg-neutral-900 rounded-lg cursor-pointer"
+              className="w-full accent-emerald-500 h-1.5 bg-plocha-1 rounded-lg cursor-pointer"
             />
           </div>
 
           {/* Pitch Transpose */}
           <div className="bg-black/40 p-2 rounded-xl border border-white/[0.06] space-y-1">
-            <div className="flex justify-between text-stitek font-mono text-neutral-400">
+            <div className="flex justify-between text-stitek font-mono text-pismo-tlum">
               <span>Pitch</span>
-              <span className="font-bold text-purple-400">
+              <span className="font-bold text-nastroj">
                 {channel.pitchSemi > 0 ? `+${channel.pitchSemi}` : channel.pitchSemi} st
               </span>
             </div>
@@ -330,7 +330,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
                 step="1"
                 value={channel.pitchSemi}
                 onChange={(e) => onUpdate({ pitchSemi: parseInt(e.target.value, 10) })}
-                className="flex-1 accent-purple-500 h-1.5 bg-neutral-900 rounded-lg cursor-pointer"
+                className="flex-1 accent-purple-500 h-1.5 bg-plocha-1 rounded-lg cursor-pointer"
               />
               <button
                 onClick={() => onUpdate({ pitchSemi: Math.min(12, channel.pitchSemi + 1) })}
@@ -343,9 +343,9 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
 
           {/* Guitar Mid/Side Processing Matrix */}
           {isGuitar && (
-            <div className="bg-amber-500/10 p-2 rounded-xl border border-amber-500/20 space-y-1.5">
+            <div className="bg-znacka/10 p-2 rounded-xl border border-znacka/20 space-y-1.5">
               <div className="flex items-center justify-between text-stitek">
-                <span className="font-bold text-amber-400 flex items-center gap-1">
+                <span className="font-bold text-znacka flex items-center gap-1">
                   <Radio className="w-3 h-3" /> M/S Šířka
                 </span>
                 <button
@@ -353,16 +353,16 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
                   className={`px-1.5 py-0.5 rounded text-stitek font-mono font-bold border cursor-pointer ${
                     channel.isMono
                       ? 'bg-blue-600 text-white border-blue-400'
-                      : 'bg-black/60 text-amber-300 border-amber-500/40'
+                      : 'bg-black/60 text-znacka-svetla border-znacka/40'
                   }`}
                 >
                   {channel.isMono ? 'MONO' : 'STEREO'}
                 </button>
               </div>
 
-              <div className="flex justify-between text-stitek font-mono text-neutral-300">
+              <div className="flex justify-between text-stitek font-mono text-pismo">
                 <span>Side Gain:</span>
-                <span className="font-bold text-amber-400">
+                <span className="font-bold text-znacka">
                   {(channel.isMono ? 0 : channel.stereoWidth * 100).toFixed(0)}%
                 </span>
               </div>
@@ -374,7 +374,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
                 disabled={channel.isMono}
                 value={channel.isMono ? 0 : channel.stereoWidth}
                 onChange={(e) => onUpdate({ stereoWidth: parseFloat(e.target.value) })}
-                className="w-full accent-amber-400 h-1.5 bg-black/60 rounded-lg cursor-pointer disabled:opacity-30"
+                className="w-full accent-znacka h-1.5 bg-black/60 rounded-lg cursor-pointer disabled:opacity-30"
               />
             </div>
           )}

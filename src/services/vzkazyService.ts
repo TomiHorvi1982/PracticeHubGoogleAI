@@ -32,7 +32,7 @@ export interface Vzkaz {
 const BARVY = [
   { text: 'text-[#FF9F0A]', pozadi: 'bg-[#FF9F0A]/10', okraj: 'border-[#FF9F0A]/30' },
   { text: 'text-[#30D158]', pozadi: 'bg-[#30D158]/10', okraj: 'border-[#30D158]/30' },
-  { text: 'text-[#0A84FF]', pozadi: 'bg-[#0A84FF]/10', okraj: 'border-[#0A84FF]/30' },
+  { text: 'text-info', pozadi: 'bg-info/10', okraj: 'border-info/30' },
   { text: 'text-[#FF453A]', pozadi: 'bg-[#FF453A]/10', okraj: 'border-[#FF453A]/30' },
   { text: 'text-[#BF5AF2]', pozadi: 'bg-[#BF5AF2]/10', okraj: 'border-[#BF5AF2]/30' },
   { text: 'text-[#5AC8FA]', pozadi: 'bg-[#5AC8FA]/10', okraj: 'border-[#5AC8FA]/30' },

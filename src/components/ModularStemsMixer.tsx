@@ -44,12 +44,12 @@ const ROLE_FADERU: { id: string; popis: string }[] = [
 
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string }> = {
   vocals: { accent: '#f43f5e', badge: 'bg-rose-500', bg: 'from-rose-500/10 to-rose-950/20', border: 'border-rose-500/30' },
-  guitar: { accent: '#f59e0b', badge: 'bg-amber-500', bg: 'from-amber-500/15 to-amber-950/20', border: 'border-amber-500/40' },
+  guitar: { accent: '#f59e0b', badge: 'bg-znacka', bg: 'from-znacka/15 to-amber-950/20', border: 'border-znacka/40' },
   lead: { accent: '#fb7185', badge: 'bg-rose-400', bg: 'from-rose-400/15 to-rose-950/20', border: 'border-rose-400/40' },
-  bass: { accent: '#10b981', badge: 'bg-emerald-500', bg: 'from-emerald-500/10 to-emerald-950/20', border: 'border-emerald-500/30' },
+  bass: { accent: '#10b981', badge: 'bg-uspech', bg: 'from-emerald-500/10 to-emerald-950/20', border: 'border-uspech/30' },
   drums: { accent: '#3b82f6', badge: 'bg-blue-500', bg: 'from-blue-500/10 to-blue-950/20', border: 'border-blue-500/30' },
-  metronome: { accent: '#94a3b8', badge: 'bg-slate-400', bg: 'from-slate-400/10 to-slate-900/20', border: 'border-slate-400/30' },
-  other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30' },
+  metronome: { accent: '#94a3b8', badge: 'bg-slate-400', bg: 'from-slate-400/10 to-plocha-1/20', border: 'border-slate-400/30' },
+  other: { accent: '#a855f7', badge: 'bg-nastroj', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30' },
 };
 
 export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
@@ -94,7 +94,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col space-y-3.5 text-slate-100">
+    <div className="flex-1 flex flex-col space-y-3.5 text-pismo">
       {/* MASTER TRANSPORT & SONG SELECTOR BAR */}
       <div className="bg-black/60 border border-white/[0.08] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-inner">
         {/* Play/Pause Button & Active Song Info */}
@@ -105,7 +105,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
             className={`w-10 h-10 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center shadow-lg ${
               isPlaying
                 ? 'bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/20'
-                : 'bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-amber-400/20'
+                : 'zlata-plocha shadow-amber-400/20'
             } disabled:opacity-40`}
             title={isPlaying ? 'Pozastavit přehrávání' : 'Přehrát všechny stopy'}
           >
@@ -124,12 +124,12 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                 {selectedSong ? selectedSong.title : 'Vyberte stopovou skladbu'}
               </span>
               {selectedSong && (
-                <span className="text-stitek px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-md font-semibold">
+                <span className="text-stitek px-1.5 py-0.2 bg-uspech/20 text-uspech border border-uspech/30 rounded-md font-semibold">
                   6-Stem
                 </span>
               )}
             </div>
-            <p className="text-stitek text-neutral-400">
+            <p className="text-stitek text-pismo-tlum">
               {selectedSong ? `${selectedSong.artist} • ${selectedSong.stems.length} stop` : 'Propojeno se Stem Studiem'}
             </p>
           </div>
@@ -144,7 +144,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                 const found = songs.find((s) => s.id === e.target.value);
                 if (found) stemAudioService.selectSong(found);
               }}
-              className="bg-neutral-900 border border-white/10 text-white text-xs rounded-xl px-2.5 py-1.5 outline-none cursor-pointer"
+              className="bg-plocha-1 border border-white/10 text-white text-xs rounded-xl px-2.5 py-1.5 outline-none cursor-pointer"
             >
               {songs.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -170,7 +170,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
 
         {/* Time Progress Seek Bar */}
         <div className="flex-1 max-w-xs space-y-1 mx-2">
-          <div className="flex justify-between text-stitek font-mono text-neutral-400">
+          <div className="flex justify-between text-stitek font-mono text-pismo-tlum">
             <span>{formatTime(currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
@@ -181,21 +181,21 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
             step="0.5"
             value={currentTime}
             onChange={(e) => stemAudioService.seek(parseFloat(e.target.value))}
-            className="w-full accent-amber-400 h-1.5 bg-neutral-900 rounded-lg cursor-pointer"
+            className="w-full accent-znacka h-1.5 bg-plocha-1 rounded-lg cursor-pointer"
           />
         </div>
 
         {/* Global Pitch Transpose */}
-        <div className="flex items-center gap-1.5 bg-neutral-900/80 px-2.5 py-1 rounded-xl border border-white/10 text-xs">
-          <Music className="w-3.5 h-3.5 text-emerald-400" />
-          <span className="text-drobne text-neutral-400">Transpozice:</span>
+        <div className="flex items-center gap-1.5 bg-plocha-1/80 px-2.5 py-1 rounded-xl border border-white/10 text-xs">
+          <Music className="w-3.5 h-3.5 text-uspech" />
+          <span className="text-drobne text-pismo-tlum">Transpozice:</span>
           <button
             onClick={() => stemAudioService.setGlobalPitch(Math.max(-12, globalPitch - 1))}
             className="w-5 h-5 bg-white/10 hover:bg-white/20 rounded text-white font-bold text-stitek"
           >
             -
           </button>
-          <span className="w-7 text-center font-mono font-bold text-amber-400 text-drobne">
+          <span className="w-7 text-center font-mono font-bold text-znacka text-drobne">
             {globalPitch > 0 ? `+${globalPitch}` : globalPitch} st
           </span>
           <button
@@ -217,8 +217,8 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                 onClick={() => setCilovyFader(r.id)}
                 className={`px-2 py-1 rounded-lg text-stitek font-bold cursor-pointer transition-all ${
                   cilovyFader === r.id
-                    ? 'bg-znacka text-black'
-                    : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                    ? 'zlata-plocha'
+                    : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
                 }`}
               >
                 {r.popis}
@@ -256,7 +256,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
             <div className="border-t border-white/[0.06] pt-2 space-y-1">
               <div className="stitek-pole">Na faderech</div>
               {vlastni.map((v) => (
-                <div key={v.role} className="flex items-center gap-2 text-drobne text-neutral-300">
+                <div key={v.role} className="flex items-center gap-2 text-drobne text-pismo">
                   <span className="text-stitek font-bold text-znacka w-14 shrink-0 uppercase">
                     {ROLE_FADERU.find((r) => r.id === v.role)?.popis || v.role}
                   </span>
@@ -267,7 +267,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
                       setVlastni(nove);
                       stemAudioService.pouzijVlastniStopy(nove);
                     }}
-                    className="p-1 rounded text-neutral-600 hover:text-chyba cursor-pointer"
+                    className="p-1 rounded text-pismo-slaby hover:text-chyba cursor-pointer"
                     title="Sundat z faderu"
                   >
                     ×
@@ -314,9 +314,9 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
         </div>
       ) : (
         <div className="text-center py-10 bg-black/30 border border-white/[0.06] rounded-2xl p-6 space-y-3">
-          <Sliders className="w-8 h-8 text-neutral-500 mx-auto" />
+          <Sliders className="w-8 h-8 text-pismo-slaby mx-auto" />
           <h4 className="text-sm font-bold text-white">Žádné separované stopy pro tuto skladbu</h4>
-          <p className="text-xs text-neutral-400 max-w-md mx-auto">
+          <p className="text-xs text-pismo-tlum max-w-md mx-auto">
             Můžete si vybrat jinou připravenou skladbu ze seznamu nahoře nebo přejít do AI Stem Studia a oddělit stopy z YouTube.
           </p>
         </div>

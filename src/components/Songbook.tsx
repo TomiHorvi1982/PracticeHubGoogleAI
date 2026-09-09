@@ -402,10 +402,10 @@ export const Songbook: React.FC<SongbookProps> = ({
   const getSongContentBadges = (song: Song) => {
     const badges = [];
     if ((song.youtubeVideos?.length || 0) > 0) {
-      badges.push({ id: 'yt', label: 'YouTube', icon: '🎥', color: 'bg-red-500/20 text-red-300 border-red-500/30' });
+      badges.push({ id: 'yt', label: 'YouTube', icon: '🎥', color: 'bg-chyba/20 text-chyba-svetla border-chyba/30' });
     }
     if (song.content && song.content.trim().length > 0) {
-      badges.push({ id: 'txt', label: 'Text', icon: '📝', color: 'bg-amber-500/20 text-amber-300 border-amber-500/30' });
+      badges.push({ id: 'txt', label: 'Text', icon: '📝', color: 'bg-znacka/20 text-znacka-svetla border-znacka/30' });
     }
     if ((song.chordsUsed?.length || 0) > 0 || /\[[^\]]+\]/.test(song.content || '')) {
       badges.push({ id: 'chords', label: 'Akordy', icon: '🎸', color: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30' });
@@ -418,13 +418,13 @@ export const Songbook: React.FC<SongbookProps> = ({
       badges.push({ id: 'tabs', label: 'Tabs', icon: '📑', color: 'bg-orange-500/20 text-orange-300 border-orange-500/30' });
     }
     if ((song.midiFiles?.length || 0) > 0 || song.attachments?.some((a) => a.type === 'midi')) {
-      badges.push({ id: 'midi', label: 'Midi', icon: '🎹', color: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' });
+      badges.push({ id: 'midi', label: 'Midi', icon: '🎹', color: 'bg-uspech/20 text-uspech-svetla border-uspech/30' });
     }
     if ((song.sheetMusic?.length || 0) > 0 || song.attachments?.some((a) => a.type === 'pdf')) {
-      badges.push({ id: 'notes', label: 'Noty', icon: '🎼', color: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/30' });
+      badges.push({ id: 'notes', label: 'Noty', icon: '🎼', color: 'bg-info/20 text-cyan-300 border-cyan-500/30' });
     }
     if ((song.images?.length || 0) > 0 || song.attachments?.some((a) => a.type === 'image')) {
-      badges.push({ id: 'img', label: 'Obrázky', icon: '🖼️', color: 'bg-purple-500/20 text-purple-300 border-purple-500/30' });
+      badges.push({ id: 'img', label: 'Obrázky', icon: '🖼️', color: 'bg-nastroj/20 text-purple-300 border-purple-500/30' });
     }
     if ((song.links?.length || 0) > 0) {
       badges.push({ id: 'links', label: 'Odkazy', icon: '🔗', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' });
@@ -483,13 +483,13 @@ export const Songbook: React.FC<SongbookProps> = ({
             <h2 className="stitek-pole">
               Objevit novou skladbu
             </h2>
-            <span className="text-stitek text-neutral-500">Last.fm — hledá venku, ne ve tvé knihovně</span>
+            <span className="text-stitek text-pismo-slaby">Last.fm — hledá venku, ne ve tvé knihovně</span>
             {/* Jedna ikona pro obojí: otočená šipka říká, kterým směrem
                 se panel chystá jít. Křížek vedle šipky na otevírání jen
                 nutil hledat, který ovladač je ten správný. */}
             <button
               onClick={() => setLevaOtevrena(false)}
-              className="ml-auto p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+              className="ml-auto p-1 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer shrink-0"
               title="Sbalit objevování"
             >
               <ChevronRight className="w-4 h-4 rotate-90 transition-transform" />
@@ -546,7 +546,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             <span className="stitek-pole">
               Objevit novou skladbu
             </span>
-            <ChevronRight className="w-3.5 h-3.5 text-neutral-500 ml-auto" />
+            <ChevronRight className="w-3.5 h-3.5 text-pismo-slaby ml-auto" />
           </button>
         )}
 
@@ -563,7 +563,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               </div>
               <button
                 onClick={() => setPravaOtevrena(false)}
-                className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+                className="p-1 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer shrink-0"
                 title="Sbalit vlastní knihovnu"
               >
                 <ChevronRight className="w-4 h-4 rotate-90 transition-transform" />
@@ -573,13 +573,13 @@ export const Songbook: React.FC<SongbookProps> = ({
 
             {/* Search Bar */}
             <div className="relative">
-              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-pismo-tlum absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Hledat ve svých skladbách…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-znacka/50 focus:bg-white/[0.08] placeholder-neutral-500 transition-all"
+                className="w-full bg-white/[0.06] border border-white/[0.08] text-white rounded-2xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-znacka/50 focus:bg-white/[0.08] placeholder-pismo-slaby transition-all"
               />
             </div>
 
@@ -597,7 +597,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                   setSongs(songDatabaseService.getSongs());
                   setObalkyPostup(null);
                 }}
-                className="w-full mt-2 px-3 py-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-drobne font-semibold text-neutral-300 hover:text-white cursor-pointer truncate"
+                className="w-full mt-2 px-3 py-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 text-drobne font-semibold text-pismo hover:text-white cursor-pointer truncate"
                 title="Najde obal alba a fotku interpreta a uloží je k písni"
               >
                 {obalkyPostup
@@ -644,7 +644,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             <span className="stitek-pole">
               Moje skladby ({songs.length})
             </span>
-            <ChevronRight className="w-3.5 h-3.5 text-neutral-500 ml-auto" />
+            <ChevronRight className="w-3.5 h-3.5 text-pismo-slaby ml-auto" />
           </button>
         )}
         </div>
@@ -675,7 +675,7 @@ export const Songbook: React.FC<SongbookProps> = ({
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
-                  <label className="block text-drobne text-neutral-400 mb-1">Název skladby</label>
+                  <label className="block text-drobne text-pismo-tlum mb-1">Název skladby</label>
                   <input
                     type="text"
                     value={editTitle}
@@ -685,7 +685,7 @@ export const Songbook: React.FC<SongbookProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-drobne text-neutral-400 mb-1">Interpret</label>
+                  <label className="block text-drobne text-pismo-tlum mb-1">Interpret</label>
                   <input
                     type="text"
                     value={editArtist}
@@ -697,7 +697,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               </div>
 
               <div>
-                <label className="block text-drobne text-neutral-400 mb-1">Ladění kytary</label>
+                <label className="block text-drobne text-pismo-tlum mb-1">Ladění kytary</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <select
                     onChange={(e) => {
@@ -727,7 +727,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               </div>
 
               <div>
-                <label className="block text-drobne text-neutral-400 mb-1">
+                <label className="block text-drobne text-pismo-tlum mb-1">
                   Text s akordy v hranatých závorkách (např. [G]Když se u [C]nás)
                 </label>
                 <textarea
@@ -741,7 +741,7 @@ export const Songbook: React.FC<SongbookProps> = ({
               <div className="flex justify-end gap-2.5 pt-2">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-neutral-300 rounded-xl text-xs font-medium cursor-pointer"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 text-pismo rounded-xl text-xs font-medium cursor-pointer"
                 >
                   Zrušit
                 </button>

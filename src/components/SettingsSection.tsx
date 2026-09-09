@@ -133,7 +133,7 @@ export const SettingsSection: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex items-center gap-2 mb-1">
-          <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
+          <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
             Nastavení
           </span>
         </div>
@@ -149,8 +149,8 @@ export const SettingsSection: React.FC = () => {
         <h3 className="nadpis-panelu flex items-center gap-2">
           <HardDrive className="w-4 h-4 text-uspech" /> Úložiště
         </h3>
-        <p className="text-drobne text-neutral-400 mt-1">
-          Kolik místa co zabírá, najdete v sekci <strong className="text-neutral-200">Soubory</strong> —
+        <p className="text-drobne text-pismo-tlum mt-1">
+          Kolik místa co zabírá, najdete v sekci <strong className="text-pismo">Soubory</strong> —
           spolu se složkami knihovny a mazáním.
         </p>
       </div>
@@ -162,7 +162,7 @@ export const SettingsSection: React.FC = () => {
             <h3 className="nadpis-panelu flex items-center gap-2">
               <Laptop className="w-4 h-4 text-info" /> MIDI hardware a mapování zvuků
             </h3>
-            <p className="text-drobne text-neutral-400">
+            <p className="text-drobne text-pismo-tlum">
               Připojené klávesy, kanály a přiřazení zvuků kapele.
             </p>
           </div>
@@ -184,7 +184,7 @@ export const SettingsSection: React.FC = () => {
           <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-uspech" /> Zvuková karta
           </h3>
-          <p className="text-drobne text-neutral-400">
+          <p className="text-drobne text-pismo-tlum">
             Odkud se poslouchá kytara a kam se hraje. Týká se poslechu v Hmatníku a ladičky.
           </p>
         </div>
@@ -205,7 +205,7 @@ export const SettingsSection: React.FC = () => {
             <select
               value={karta.vstup || ''}
               onChange={(e) => zvukovaKarta.nastavVstup(e.target.value || null)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-pismo cursor-pointer"
             >
               <option value="">Výchozí zařízení systému</option>
               {karta.vstupy.map((z) => (
@@ -219,7 +219,7 @@ export const SettingsSection: React.FC = () => {
             <select
               value={karta.vystup || ''}
               onChange={(e) => zvukovaKarta.nastavVystup(e.target.value || null)}
-              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer"
+              className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-pismo cursor-pointer"
             >
               <option value="">Výchozí zařízení systému</option>
               {karta.vystupy.map((z) => (
@@ -229,7 +229,7 @@ export const SettingsSection: React.FC = () => {
           </label>
         </div>
 
-        <p className="text-drobne text-neutral-500">
+        <p className="text-drobne text-pismo-slaby">
           Volba výstupu funguje jen v prohlížečích, které to umí — kde ne, hraje se do
           systémového výstupu. Při hraní z reproduktorů slyší mikrofon i vlastní výstup;
           do sluchátek je to čisté.
@@ -245,7 +245,7 @@ export const SettingsSection: React.FC = () => {
           <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-znacka" /> Hlasové ovládání
           </h3>
-          <p className="text-drobne text-neutral-400">
+          <p className="text-drobne text-pismo-tlum">
             Mikrofon je v horní liště, takže mluvit jde odkudkoli. Tady se nastavuje, na co appka slyší.
           </p>
         </div>
@@ -262,29 +262,29 @@ export const SettingsSection: React.FC = () => {
             <h3 className="nadpis-panelu flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-znacka" /> Ultimate Guitar Pro
             </h3>
-            <p className="text-drobne text-neutral-400">
+            <p className="text-drobne text-pismo-tlum">
               Když máš u nich předplatné, stahují se Guitar Pro soubory rovnou do knihovny.
               Jen pro správce.
             </p>
           </div>
 
-          <div className="text-drobne text-neutral-400 bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
-            <p className="text-neutral-300 font-semibold">Kde cookie vzít — jeden řádek, ne skládačka</p>
-            <p>1. Přihlas se na <strong className="text-neutral-300">ultimate-guitar.com</strong> ve svém prohlížeči.</p>
-            <p>2. Otevři vývojářské nástroje: <strong className="text-neutral-300">⌥⌘I</strong> (Chrome) nebo ⌥⌘C (Safari).</p>
-            <p>3. Záložka <strong className="text-neutral-300">Network</strong>, pak obnov stránku (⌘R).</p>
+          <div className="text-drobne text-pismo-tlum bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
+            <p className="text-pismo font-semibold">Kde cookie vzít — jeden řádek, ne skládačka</p>
+            <p>1. Přihlas se na <strong className="text-pismo">ultimate-guitar.com</strong> ve svém prohlížeči.</p>
+            <p>2. Otevři vývojářské nástroje: <strong className="text-pismo">⌥⌘I</strong> (Chrome) nebo ⌥⌘C (Safari).</p>
+            <p>3. Záložka <strong className="text-pismo">Network</strong>, pak obnov stránku (⌘R).</p>
             <p>4. Klikni na první požadavek v seznamu (jmenuje se jako ta stránka).</p>
             <p>
-              5. Vpravo <strong className="text-neutral-300">Headers → Request Headers</strong>, najdi řádek{' '}
+              5. Vpravo <strong className="text-pismo">Headers → Request Headers</strong>, najdi řádek{' '}
               <code className="text-znacka">cookie:</code> a zkopíruj <em>celou</em> hodnotu za dvojtečkou.
             </p>
             <p>6. Vlož ji sem a dej Uložit.</p>
-            <p className="text-neutral-500 pt-1 border-t border-white/[0.06] mt-1.5">
+            <p className="text-pismo-slaby pt-1 border-t border-white/[0.06] mt-1.5">
               Přes <strong>Application → Cookies</strong> to jde taky, ale musel bys skládat
               <code className="mx-1">název=hodnota</code> ručně a na něco zapomenout je snadné.
               Network dá celý řetězec naráz.
             </p>
-            <p className="text-neutral-500">
+            <p className="text-pismo-slaby">
               Heslo sem nedávej — appka ho nepotřebuje a neuložila by ho. Cookie zneplatníš
               kdykoli odhlášením na UG.
             </p>
@@ -301,23 +301,23 @@ export const SettingsSection: React.FC = () => {
             <button
               onClick={() => void ulozUg(ugCookie)}
               disabled={!ugCookie.trim()}
-              className="px-3 py-2 rounded-xl bg-znacka text-black text-xs font-bold cursor-pointer disabled:opacity-40"
+              className="px-3 py-2 rounded-xl zlata-plocha text-xs font-bold cursor-pointer disabled:opacity-40"
             >
               Uložit
             </button>
             {ugUlozeno && (
               <button
                 onClick={() => void ulozUg('')}
-                className="px-3 py-2 rounded-xl bg-white/[0.06] text-neutral-300 text-xs font-bold cursor-pointer"
+                className="px-3 py-2 rounded-xl bg-white/[0.06] text-pismo text-xs font-bold cursor-pointer"
               >
                 Zapomenout
               </button>
             )}
-            <span className={`text-drobne ${ugUlozeno ? 'text-uspech' : 'text-neutral-500'}`}>
+            <span className={`text-drobne ${ugUlozeno ? 'text-uspech' : 'text-pismo-slaby'}`}>
               {ugUlozeno ? 'přihlášení uloženo' : 'nepřihlášeno'}
             </span>
           </div>
-          {ugHlaska && <p className="text-drobne text-neutral-300">{ugHlaska}</p>}
+          {ugHlaska && <p className="text-drobne text-pismo">{ugHlaska}</p>}
         </div>
       )}
 

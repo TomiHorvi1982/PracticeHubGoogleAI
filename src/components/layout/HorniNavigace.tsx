@@ -55,7 +55,7 @@ export const HorniNavigace: React.FC<Props> = ({
 }) => (
   <nav
     aria-label="Hlavní navigace"
-    className="bg-plocha-1 border-b border-kresba px-2 sm:px-3 flex items-stretch gap-0.5 shrink-0"
+    className="bg-plocha-1/70 backdrop-blur-xl border-b border-kresba px-2 sm:px-3 flex items-stretch gap-0.5 shrink-0"
   >
     {VSE.map((p) => {
       const Ikona = IKONY[p.id] || Compass;
@@ -70,7 +70,7 @@ export const HorniNavigace: React.FC<Props> = ({
             px-1.5 py-1.5 min-h-dotyk lg:min-h-0 text-drobne font-medium transition-colors cursor-pointer
             focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-znacka ${
             aktivni
-              ? 'bg-znacka-tlum text-znacka'
+              ? 'bg-znacka-tlum text-znacka ring-1 ring-znacka-okraj'
               : 'text-pismo-tlum hover:text-pismo hover:bg-plocha-2'
           }`}
         >
@@ -95,7 +95,7 @@ export const HorniNavigace: React.FC<Props> = ({
         className={`shrink-0 inline-flex items-center justify-center rounded-prvek px-2
           min-h-dotyk lg:min-h-0 lg:py-1.5 transition-colors cursor-pointer
           focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-znacka ${
-          rezimPlochy ? 'bg-znacka-tlum text-znacka' : 'text-pismo-slaby hover:text-pismo hover:bg-plocha-2'
+          rezimPlochy ? 'bg-znacka-tlum text-znacka ring-1 ring-znacka-okraj' : 'text-pismo-slaby hover:text-pismo hover:bg-plocha-2'
         }`}
       >
         <LayoutGrid className="w-4 h-4" />
@@ -114,7 +114,7 @@ export const HorniNavigace: React.FC<Props> = ({
           className={`shrink-0 inline-flex items-center justify-center rounded-prvek px-2
             min-h-dotyk lg:min-h-0 lg:py-1.5 transition-colors cursor-pointer
             focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-znacka ${
-            aktivni ? 'bg-znacka-tlum text-znacka' : 'text-pismo-slaby hover:text-pismo hover:bg-plocha-2'
+            aktivni ? 'bg-znacka-tlum text-znacka ring-1 ring-znacka-okraj' : 'text-pismo-slaby hover:text-pismo hover:bg-plocha-2'
           }`}
         >
           <Ikona className="w-4 h-4" />

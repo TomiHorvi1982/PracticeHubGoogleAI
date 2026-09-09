@@ -158,7 +158,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
         <div
           className={`rounded-2xl border p-3 text-xs flex items-start gap-2 ${
             moznosti.odesilaVen
-              ? 'bg-amber-500/[0.08] border-amber-500/30 text-amber-200'
+              ? 'bg-znacka/[0.08] border-znacka/30 text-znacka-svetla'
               : 'bg-uspech/[0.06] border-uspech/30 text-uspech'
           }`}
         >
@@ -183,7 +183,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
 
         <div>
           <div className="flex items-center justify-between text-drobne mb-1">
-            <span className="text-neutral-300">Přísnost rozpoznávání</span>
+            <span className="text-pismo">Přísnost rozpoznávání</span>
             <span className="font-mono text-znacka tabular-nums">
               {Math.round(nastaveni.prah * 100)} %
             </span>
@@ -196,13 +196,13 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             onChange={(e) => zmen({ prah: Number(e.target.value) / 100 })}
             className="w-full accent-znacka cursor-pointer"
           />
-          <p className="text-stitek text-neutral-500 leading-relaxed mt-1">
+          <p className="text-stitek text-pismo-slaby leading-relaxed mt-1">
             Níž znamená ochotnější rozpoznávání za cenu občasného omylu, výš naopak.
             Na pódiu bývá lepší nerozumět než udělat něco jiného.
           </p>
         </div>
 
-        <label className="flex items-start gap-2 text-drobne text-neutral-300 cursor-pointer">
+        <label className="flex items-start gap-2 text-drobne text-pismo cursor-pointer">
           <input
             type="checkbox"
             checked={nastaveni.potvrzovatHlasem}
@@ -211,13 +211,13 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           />
           <span>
             Potvrzovat nahlas
-            <span className="block text-stitek text-neutral-500">
+            <span className="block text-stitek text-pismo-slaby">
               Appka řekne, co spustila. Na pódiu, kde se na obrazovku nedíváš.
             </span>
           </span>
         </label>
 
-        <label className="flex items-start gap-2 text-drobne text-neutral-300 cursor-pointer">
+        <label className="flex items-start gap-2 text-drobne text-pismo cursor-pointer">
           <input
             type="checkbox"
             checked={nastaveni.ukazovatSlysene}
@@ -226,7 +226,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           />
           <span>
             Ukazovat, co jsem slyšel
-            <span className="block text-stitek text-neutral-500">
+            <span className="block text-stitek text-pismo-slaby">
               I když příkaz nenajdu. Bez toho není poznat, jestli jsi špatně vyslovil,
               nebo takový příkaz není.
             </span>
@@ -237,7 +237,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       {/* Katalog — co appka umí a co zatím ne */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
         <h3 className="text-sm font-bold text-znacka mb-1">Co hlasem jde</h3>
-        <p className="text-drobne text-neutral-400 mb-3">
+        <p className="text-drobne text-pismo-tlum mb-3">
           Nezapojené akce zná katalog, ale zatím je nikdo neobsluhuje — hlasem nic neudělají.
         </p>
         <div className="space-y-3">
@@ -251,13 +251,13 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                     <div key={a.id} className="flex items-start gap-2 text-xs">
                       {zapojena
                         ? <CircleDot className="w-3.5 h-3.5 text-uspech mt-0.5 shrink-0" />
-                        : <Circle className="w-3.5 h-3.5 text-neutral-600 mt-0.5 shrink-0" />}
+                        : <Circle className="w-3.5 h-3.5 text-pismo-slaby mt-0.5 shrink-0" />}
                       <div className="min-w-0">
-                        <span className={zapojena ? 'text-white' : 'text-neutral-500'}>{a.nazev}</span>
-                        <span className="text-neutral-500"> — {a.popis}</span>
-                        <div className="text-drobne text-neutral-600 truncate">
+                        <span className={zapojena ? 'text-white' : 'text-pismo-slaby'}>{a.nazev}</span>
+                        <span className="text-pismo-slaby"> — {a.popis}</span>
+                        <div className="text-drobne text-pismo-slaby truncate">
                           „{a.vychoziFraze.join('", „')}"
-                          {!zapojena && <span className="text-amber-500/80"> · zatím nezapojeno</span>}
+                          {!zapojena && <span className="text-znacka/80"> · zatím nezapojeno</span>}
                         </div>
                       </div>
                     </div>
@@ -285,17 +285,17 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
 
         <div className="space-y-1.5 mb-3">
           {prikazy.filter((p) => p.vlastni).length === 0 && (
-            <p className="text-drobne text-neutral-500">Zatím žádný vlastní příkaz — appka zná jen ty vestavěné.</p>
+            <p className="text-drobne text-pismo-slaby">Zatím žádný vlastní příkaz — appka zná jen ty vestavěné.</p>
           )}
           {prikazy.filter((p) => p.vlastni).map((p) => (
             <div key={p.id} className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-semibold truncate">{p.nazev}</div>
-                <div className="text-drobne text-neutral-500 truncate">„{p.fraze.join('", „')}" · {p.kroky.length} krok(y)</div>
+                <div className="text-drobne text-pismo-slaby truncate">„{p.fraze.join('", „')}" · {p.kroky.length} krok(y)</div>
               </div>
               <button
                 onClick={() => void smaz(p)}
-                className="p-1.5 rounded-lg text-neutral-500 hover:text-chyba cursor-pointer shrink-0"
+                className="p-1.5 rounded-lg text-pismo-slaby hover:text-chyba cursor-pointer shrink-0"
                 title="Smazat příkaz"
               >
                 <Trash2 className="w-3.5 h-3.5" />
@@ -338,7 +338,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                   {navrh.fraze.length > 1 && (
                     <button
                       onClick={() => setNavrh({ ...navrh, fraze: navrh.fraze.filter((_, x) => x !== i) })}
-                      className="p-2 rounded-xl text-neutral-500 hover:text-chyba cursor-pointer"
+                      className="p-2 rounded-xl text-pismo-slaby hover:text-chyba cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -347,7 +347,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
               ))}
               <button
                 onClick={() => setNavrh({ ...navrh, fraze: [...navrh.fraze, ''] })}
-                className="text-drobne text-neutral-400 hover:text-white cursor-pointer"
+                className="text-drobne text-pismo-tlum hover:text-white cursor-pointer"
               >
                 + další způsob, jak to říct
               </button>
@@ -373,7 +373,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                   {prekladaSe ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
                 </button>
               </div>
-              <p className="text-stitek text-amber-500/70">
+              <p className="text-stitek text-znacka/70">
                 Popis se posílá Googlu k překladu. Nahrávky ani hotové příkazy ven nechodí.
               </p>
             </div>
@@ -424,7 +424,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                     {navrh.kroky.length > 1 && (
                       <button
                         onClick={() => setNavrh({ ...navrh, kroky: navrh.kroky.filter((_, x) => x !== i) })}
-                        className="p-2 rounded-xl text-neutral-500 hover:text-chyba cursor-pointer"
+                        className="p-2 rounded-xl text-pismo-slaby hover:text-chyba cursor-pointer"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -434,14 +434,14 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
               })}
               <button
                 onClick={() => setNavrh({ ...navrh, kroky: [...navrh.kroky, { akce: '', hodnoty: {} }] })}
-                className="text-drobne text-neutral-400 hover:text-white cursor-pointer"
+                className="text-drobne text-pismo-tlum hover:text-white cursor-pointer"
               >
                 + další krok
               </button>
             </div>
 
             {jsemSpravce && (
-              <label className="flex items-center gap-2 text-drobne text-neutral-300 cursor-pointer">
+              <label className="flex items-center gap-2 text-drobne text-pismo cursor-pointer">
                 <input
                   type="checkbox"
                   checked={navrh.spolecny}

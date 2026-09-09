@@ -124,15 +124,15 @@ export const NahravaniSouboru: React.FC<{
           <FolderUp className="w-4 h-4" /> Vybrat složku
         </button>
 
-        <span className="text-drobne text-neutral-500">
-          nebo sem přetáhni · zařadí se do <strong className="text-neutral-300">{cil}</strong>
+        <span className="text-drobne text-pismo-slaby">
+          nebo sem přetáhni · zařadí se do <strong className="text-pismo">{cil}</strong>
         </span>
 
         {children}
 
         <button
           onClick={() => setRozbaleno((r) => !r)}
-          className="ml-auto text-drobne text-neutral-400 hover:text-white cursor-pointer flex items-center gap-1"
+          className="ml-auto text-drobne text-pismo-tlum hover:text-white cursor-pointer flex items-center gap-1"
         >
           {rozbaleno ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           Kam a odkud

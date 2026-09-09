@@ -111,13 +111,13 @@ interface StemMixerSectionProps {
 
 const stemColors: Record<string, { accent: string; badge: string; bg: string; border: string; label: string }> = {
   vocals: { accent: '#f43f5e', badge: 'bg-rose-500', bg: 'from-rose-500/10 to-rose-950/20', border: 'border-rose-500/30', label: 'Zpěv' },
-  guitar: { accent: '#f59e0b', badge: 'bg-amber-500', bg: 'from-amber-500/15 to-amber-950/20', border: 'border-amber-500/40', label: 'Kytara' },
+  guitar: { accent: '#f59e0b', badge: 'bg-znacka', bg: 'from-znacka/15 to-amber-950/20', border: 'border-znacka/40', label: 'Kytara' },
   lead: { accent: '#fb7185', badge: 'bg-rose-400', bg: 'from-rose-400/15 to-rose-950/20', border: 'border-rose-400/40', label: 'Sólo kytara' },
-  bass: { accent: '#10b981', badge: 'bg-emerald-500', bg: 'from-emerald-500/10 to-emerald-950/20', border: 'border-emerald-500/30', label: 'Baskytara' },
+  bass: { accent: '#10b981', badge: 'bg-uspech', bg: 'from-emerald-500/10 to-emerald-950/20', border: 'border-uspech/30', label: 'Baskytara' },
   drums: { accent: '#3b82f6', badge: 'bg-blue-500', bg: 'from-blue-500/10 to-blue-950/20', border: 'border-blue-500/30', label: 'Bicí' },
   piano: { accent: '#6366f1', badge: 'bg-indigo-500', bg: 'from-indigo-500/10 to-indigo-950/20', border: 'border-indigo-500/30', label: 'Piano' },
-  metronome: { accent: '#94a3b8', badge: 'bg-slate-400', bg: 'from-slate-400/10 to-slate-900/20', border: 'border-slate-400/30', label: 'Metronom' },
-  other: { accent: '#a855f7', badge: 'bg-purple-500', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30', label: 'Synth / Ostatní' },
+  metronome: { accent: '#94a3b8', badge: 'bg-slate-400', bg: 'from-slate-400/10 to-plocha-1/20', border: 'border-slate-400/30', label: 'Metronom' },
+  other: { accent: '#a855f7', badge: 'bg-nastroj', bg: 'from-purple-500/10 to-purple-950/20', border: 'border-purple-500/30', label: 'Synth / Ostatní' },
 };
 
 export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser, vOkne, pisen }) => {
@@ -688,7 +688,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
   const activeProcessingSong = songs.find((s) => s.status === 'processing') || (selectedSong?.status === 'processing' ? selectedSong : null);
 
   return (
-    <div className="max-w-7xl mx-auto space-y-5 p-4 sm:p-6 text-slate-100">
+    <div className="max-w-7xl mx-auto space-y-5 p-4 sm:p-6 text-pismo">
 
       {/* Hlavička místo původního hero bloku: ten měl gradient,
           dekorativní ikonu 256×256 a odstavec, dohromady přes 300px,
@@ -716,7 +716,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
             Zůstalo jen nahrávání do knihovny — to není výběr stopy, ale
             uložení souboru, a jinde v pultu není. */}
         <div className={`flex-wrap items-center gap-2 ${vOkne ? 'hidden' : 'flex'}`}>
-          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-prvek bg-plocha-3 border border-kresba text-drobne text-neutral-200 hover:border-kresba-silna cursor-pointer transition-colors">
+          <label className="inline-flex items-center gap-1.5 px-3 py-2 rounded-prvek bg-plocha-3 border border-kresba text-drobne text-pismo hover:border-kresba-silna cursor-pointer transition-colors">
             <Upload className="w-3.5 h-3.5 text-znacka" />
             Nahrát stopy do knihovny
             <input
@@ -728,11 +728,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
             />
           </label>
           {nahrava && (
-            <span className="text-drobne text-neutral-400 tabular-nums">
+            <span className="text-drobne text-pismo-tlum tabular-nums">
               Nahrávám {nahrava.hotovo} z {nahrava.celkem}…
             </span>
           )}
-          <span className="text-stitek text-neutral-600">
+          <span className="text-stitek text-pismo-slaby">
             Vybrat, co na kterém faderu hraje, jde pod ním.
           </span>
         </div>
@@ -763,23 +763,23 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
 
       {selectedSong && selectedSong.status === 'completed'
         && (loadingAudio || (!audioReady && !!selectedSong.stems?.length)) && (
-        <div className="bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-900 border border-amber-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 animate-in fade-in duration-300">
+        <div className="bg-gradient-to-r from-plocha-1 via-slate-900/95 to-plocha-1 border border-znacka/30 rounded-3xl p-6 sm:p-7 shadow-2xl space-y-4 animate-in fade-in duration-300">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+              <div className="w-10 h-10 rounded-xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-znacka">
                 <RotateCcw className="w-5 h-5 animate-spin" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-white flex items-center gap-2">
                   Načítání zvukových stop do Web Audio DAW mixéru...
                 </h4>
-                <p className="text-xs text-slate-400">
-                  Inicializace vícekanálového směrování, ekvalizérů a Mid/Side procesoru pro skladbu <span className="text-amber-300 font-semibold">{selectedSong.title}</span>
+                <p className="text-xs text-pismo-tlum">
+                  Inicializace vícekanálového směrování, ekvalizérů a Mid/Side procesoru pro skladbu <span className="text-znacka-svetla font-semibold">{selectedSong.title}</span>
                 </p>
               </div>
             </div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-drobne font-mono text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-podklad border border-kresba text-drobne font-mono text-pismo">
+              <span className="w-2 h-2 rounded-full bg-znacka animate-ping" />
               Tone.js Engine Sync
             </div>
           </div>
@@ -791,18 +791,18 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               return (
                 <div
                   key={stem.id}
-                  className="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 flex items-center justify-between gap-2"
+                  className="bg-podklad/70 border border-kresba rounded-xl p-2.5 flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span
                       className="w-2 h-2 rounded-full shrink-0 animate-pulse"
                       style={{ backgroundColor: theme.accent }}
                     />
-                    <span className="text-xs font-semibold text-slate-200 truncate">
+                    <span className="text-xs font-semibold text-pismo truncate">
                       {theme.label}
                     </span>
                   </div>
-                  <RotateCcw className="w-3.5 h-3.5 text-amber-400 animate-spin shrink-0" />
+                  <RotateCcw className="w-3.5 h-3.5 text-znacka animate-spin shrink-0" />
                 </div>
               );
             })}
@@ -816,9 +816,9 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           u čtyřicetimegabajtového wavu chvíli píše a načíst ho
           v půlce by dalo useknutou stopu. */}
       {noveSady.length > 0 && (
-        <div className="bg-emerald-500/10 border border-emerald-500/40 rounded-2xl p-4 flex flex-wrap items-center gap-2">
-          <Layers className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span className="text-sm text-emerald-300 mr-1">
+        <div className="bg-uspech/10 border border-uspech/40 rounded-2xl p-4 flex flex-wrap items-center gap-2">
+          <Layers className="w-5 h-5 text-uspech shrink-0" />
+          <span className="text-sm text-uspech-svetla mr-1">
             {noveSady.length === 1 ? 'Ve složce přibyla sada:' : 'Ve složce přibyly sady:'}
           </span>
           {noveSady.map((n) => {
@@ -831,7 +831,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                   if (sk) nactiSadu(sk);
                   setNoveSady((p) => p.filter((x) => x !== n));
                 }}
-                className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 max-w-[18rem] truncate"
+                className="px-3 py-1.5 rounded-xl bg-uspech hover:bg-emerald-400 text-slate-950 text-xs font-bold cursor-pointer disabled:opacity-40 max-w-[18rem] truncate"
                 title={`Načíst „${n}" na fadery`}
               >
                 {n || '(bez názvu)'} → na fadery
@@ -840,7 +840,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           })}
           <button
             onClick={() => setNoveSady([])}
-            className="ml-auto p-1 rounded text-emerald-400/60 hover:text-emerald-300 cursor-pointer"
+            className="ml-auto p-1 rounded text-uspech/60 hover:text-uspech-svetla cursor-pointer"
             title="Skrýt"
           >
             ×
@@ -859,7 +859,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           Přiřazení jde z konce názvu souboru: Neural Mix věší za název
           skladby štítek stopy (`01. Arise-harmonic.wav`). Vlastní JSON
           k exportu nepřikládá, takže rozhoduje jméno. */}
-      <div className="bg-[#121217] border border-slate-800 rounded-3xl p-5 sm:p-6 text-white shadow-2xl space-y-4">
+      <div className="bg-[#121217] border border-kresba rounded-3xl p-5 sm:p-6 text-white shadow-2xl space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <FolderOpen className="w-5 h-5 text-info shrink-0" />
           <h3 className="nadpis-panelu">Složka se stopami</h3>
@@ -962,11 +962,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           Při cvičení je půlka informace v tom, co ruce dělají. Zvuk si
           řídíš v přehrávači YouTube — hraje vedle stop, ne místo nich. */}
       {(
-        <div className="bg-[#121217] border border-slate-800 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
+        <div className="bg-[#121217] border border-kresba rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
           {/* Kdo hraje. */}
           <div className="flex items-baseline gap-3 flex-wrap">
             <h2 className="text-xl font-bold">{selectedSong?.title || 'Mixážní pult'}</h2>
-            <p className="text-xs text-slate-400 truncate">
+            <p className="text-xs text-pismo-tlum truncate">
               {selectedSong?.artist || 'Vyber soubory na fadery níž'}
             </p>
           </div>
@@ -977,7 +977,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               nahrál z počítače. Co se spočítat nedá, se neukazuje —
               prázdné místo je poctivější než vymyšlená hodnota. */}
           {rozbor && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-3 space-y-2">
+            <div className="rounded-2xl border border-kresba bg-podklad/40 p-3 space-y-2">
               <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {[
                   ['Tónina', rozbor.tonina ? rozbor.tonina.popis : null,
@@ -995,13 +995,13 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                       {hodnota ?? <span className="text-slate-700">—</span>}
                     </div>
                     {pod && hodnota && (
-                      <div className="text-stitek text-slate-500">{pod}</div>
+                      <div className="text-stitek text-pismo-slaby">{pod}</div>
                     )}
                   </div>
                 ))}
 
                 {rozbor.pocita && (
-                  <div className="flex items-center gap-1.5 text-drobne text-amber-400 self-center">
+                  <div className="flex items-center gap-1.5 text-drobne text-znacka self-center">
                     <RotateCcw className="w-3 h-3 animate-spin" />
                     počítám z audia…
                   </div>
@@ -1012,14 +1012,14 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                   u šesti stop by proti součtu měla každá sotva dvacet
                   procent i tam, kde je zřetelně slyšet. */}
               {Object.keys(rozbor.zastoupeni).length > 0 && (
-                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-slate-800/70">
+                <div className="flex flex-wrap gap-x-4 gap-y-1 pt-2 border-t border-kresba/70">
                   {ROLE_FADERU.filter((r) => rozbor.zastoupeni[r.id] !== undefined).map((r) => {
                     const p = rozbor.zastoupeni[r.id];
                     const barva = (stemColors[r.id] || stemColors['other']).accent;
                     return (
                       <div key={r.id} className="flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 rounded-full" style={{ background: barva }} />
-                        <span className="text-stitek text-slate-400">{r.popis}</span>
+                        <span className="text-stitek text-pismo-tlum">{r.popis}</span>
                         <span className="text-stitek font-mono font-bold tabular-nums" style={{ color: barva }}>
                           {p} %
                         </span>
@@ -1051,11 +1051,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                 disabled={zoom <= MIN_ZOOM}
                 title="Oddálit"
                 aria-label="Oddálit vlnovku"
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-lg bg-plocha-2 hover:bg-plocha-3 text-pismo font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 −
               </button>
-              <span className="text-stitek text-slate-400 tabular-nums w-10 text-center">
+              <span className="text-stitek text-pismo-tlum tabular-nums w-10 text-center">
                 {zoom < 1.05 ? 'celá' : `${zoom.toFixed(1)}×`}
               </span>
               <button
@@ -1063,7 +1063,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                 disabled={zoom >= MAX_ZOOM}
                 title="Přiblížit"
                 aria-label="Přiblížit vlnovku"
-                className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                className="w-8 h-8 rounded-lg bg-plocha-2 hover:bg-plocha-3 text-pismo font-bold cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
               >
                 +
               </button>
@@ -1095,7 +1095,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                   className={`flex items-center gap-1 text-stitek px-2 h-8 rounded-lg cursor-pointer disabled:opacity-50 ${
                     pultUlozen
                       ? 'bg-uspech/20 border border-uspech/40 text-uspech'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                      : 'bg-plocha-2 hover:bg-plocha-3 text-pismo'
                   }`}
                 >
                   {pultUlozen ? 'Uloženo' : ukladaPult ? 'Ukládám…' : 'Uložit ke skladbě'}
@@ -1109,7 +1109,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               className={`w-11 h-11 rounded-2xl transition-all cursor-pointer flex items-center justify-center shadow-lg shrink-0 ${
                 isPlaying
                   ? 'bg-rose-500 hover:bg-rose-600 text-white'
-                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                  : 'zlata-plocha'
               } disabled:opacity-40`}
               title={isPlaying ? 'Pauza' : 'Přehrát'}
             >
@@ -1125,21 +1125,21 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
             <button
               onClick={() => { stemAudioService.stop(); stemAudioService.seek(0); }}
               disabled={!audioReady}
-              className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
+              className="w-9 h-9 rounded-xl bg-plocha-2 hover:bg-plocha-3 text-pismo flex items-center justify-center cursor-pointer disabled:opacity-40 shrink-0"
               title="Zastavit a na začátek"
             >
               <Square className="w-3.5 h-3.5 fill-current" />
             </button>
 
-            <span className="font-mono text-sm text-slate-300 tabular-nums shrink-0">
+            <span className="font-mono text-sm text-pismo tabular-nums shrink-0">
               {formatTime(currentTime)}
-              <span className="text-slate-600"> / {formatTime(duration)}</span>
+              <span className="text-pismo-slaby"> / {formatTime(duration)}</span>
             </span>
 
             <button
               onClick={() => stemAudioService.setDokola(!dokola)}
               className={`px-3 h-9 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                dokola ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                dokola ? 'zlata-plocha' : 'bg-plocha-2 text-pismo hover:bg-plocha-3'
               }`}
               title="Přehrávat pořád dokola"
             >
@@ -1151,13 +1151,13 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
             {/* Šest rychlostí v jedné neroztržitelné řadě mělo 310px
                 v místě širokém 269. `shrink-0` jim navíc bránilo
                 ustoupit, takže se řada ořízla místo zalomení. */}
-            <div className="flex flex-wrap items-center gap-1 bg-slate-950 border border-slate-800 rounded-xl p-1">
+            <div className="flex flex-wrap items-center gap-1 bg-podklad border border-kresba rounded-xl p-1">
               {RYCHLOSTI.map((rr) => (
                 <button
                   key={rr}
                   onClick={() => stemAudioService.setRychlost(rr)}
                   className={`px-2 py-1 rounded-lg text-drobne font-mono cursor-pointer ${
-                    rychlost === rr ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-400 hover:text-white'
+                    rychlost === rr ? 'zlata-plocha font-bold' : 'text-pismo-tlum hover:text-white'
                   }`}
                 >
                   {rr}×
@@ -1165,21 +1165,21 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               ))}
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-950 px-3 h-9 rounded-xl border border-slate-800 text-xs shrink-0">
-              <Music className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-slate-400">Transpozice</span>
+            <div className="flex items-center gap-2 bg-podklad px-3 h-9 rounded-xl border border-kresba text-xs shrink-0">
+              <Music className="w-3.5 h-3.5 text-uspech" />
+              <span className="text-pismo-tlum">Transpozice</span>
               <button
                 onClick={() => stemAudioService.setGlobalPitch(Math.max(-12, globalPitch - 1))}
-                className="w-6 h-6 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold cursor-pointer"
+                className="w-6 h-6 bg-plocha-2 hover:bg-plocha-3 rounded text-pismo font-bold cursor-pointer"
               >
                 −
               </button>
-              <span className="w-9 text-center font-mono font-bold text-amber-400 tabular-nums">
+              <span className="w-9 text-center font-mono font-bold text-znacka tabular-nums">
                 {globalPitch > 0 ? `+${globalPitch}` : globalPitch} st
               </span>
               <button
                 onClick={() => stemAudioService.setGlobalPitch(Math.min(12, globalPitch + 1))}
-                className="w-6 h-6 bg-slate-800 hover:bg-slate-700 rounded text-slate-200 font-bold cursor-pointer"
+                className="w-6 h-6 bg-plocha-2 hover:bg-plocha-3 rounded text-pismo font-bold cursor-pointer"
               >
                 +
               </button>
@@ -1189,11 +1189,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           <div
             ref={plochaStop}
             id="stopy-vlnovky"
-            className="rounded-2xl border border-slate-800 overflow-hidden bg-slate-950/40"
+            className="rounded-2xl border border-kresba overflow-hidden bg-podklad/40"
           >
-            <div className="flex items-stretch bg-slate-900/60">
+            <div className="flex items-stretch bg-plocha-1/60">
               <div
-                className="stitek-pole shrink-0 border-r border-slate-800/70 px-3 h-7 flex items-center"
+                className="stitek-pole shrink-0 border-r border-kresba/70 px-3 h-7 flex items-center"
                 style={{ width: SIRKA_OVLADANI }}
               >
                 Mixér
@@ -1222,7 +1222,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                 kde začínají vlnovky. */}
             <div className="flex items-stretch">
               <div
-                className="shrink-0 border-r border-slate-800/70 bg-slate-900/50 border-b border-b-slate-800/70 px-3 flex items-center stitek-pole"
+                className="shrink-0 border-r border-kresba/70 bg-plocha-1/50 border-b border-b-slate-800/70 px-3 flex items-center stitek-pole"
                 style={{ width: SIRKA_OVLADANI }}
               >
                 Sekce
@@ -1286,7 +1286,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                 Sedí pod stopami a začíná až za sloupcem s názvy, aby
                 jeho délka odpovídala ploše, kterou posouvá. */}
             {jdePosouvat && (
-              <div className="flex items-stretch border-t border-slate-800/70 bg-slate-900/40">
+              <div className="flex items-stretch border-t border-kresba/70 bg-plocha-1/40">
                 <div className="shrink-0" style={{ width: SIRKA_OVLADANI }} />
                 <div
                   ref={listaPosuvniku}
@@ -1330,10 +1330,10 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                     window.addEventListener('pointermove', tahni);
                     window.addEventListener('pointerup', pust);
                   }}
-                  className="relative flex-1 min-w-0 h-3 cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-1 focus-visible:ring-amber-400/70"
+                  className="relative flex-1 min-w-0 h-3 cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-1 focus-visible:ring-znacka/70"
                 >
                   <div
-                    className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-slate-600 hover:bg-slate-500 transition-colors pointer-events-none"
+                    className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-plocha-nad hover:bg-slate-500 transition-colors pointer-events-none"
                     style={{
                       left: `${(pohled.od / duration) * 100}%`,
                       width: `${Math.max(4, podilVidet * 100)}%`,
@@ -1470,15 +1470,15 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
         {/* Náhled videa až pod fadery: při mixu se kouká na stopy,
             video je kontrola, ne to hlavní. V okně na Pódiu se
             nevykresluje — video má na ploše vlastní okno. */}
-    <div className={`bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-3 shadow-xl ${vOkne ? 'hidden' : ''}`}>
+    <div className={`bg-plocha-1/90 border border-kresba rounded-3xl p-5 space-y-3 shadow-xl ${vOkne ? 'hidden' : ''}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <Music2 className="w-5 h-5 text-amber-400 shrink-0" />
+        <Music2 className="w-5 h-5 text-znacka shrink-0" />
         <h3 className="text-base font-bold text-white">Náhled videa</h3>
-        <span className="text-xs text-slate-400">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
+        <span className="text-xs text-pismo-tlum">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
         {videoId && (
           <button
             onClick={() => setVideoId(null)}
-            className="ml-auto px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-drobne cursor-pointer"
+            className="ml-auto px-2.5 py-1 rounded-lg bg-plocha-2 hover:bg-plocha-3 text-pismo text-drobne cursor-pointer"
           >
             Zavřít video
           </button>
@@ -1489,7 +1489,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
         <select
           value={videoId ?? ''}
           onChange={(e) => setVideoId(e.target.value || null)}
-          className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-amber-500 outline-none"
+          className="flex-1 min-w-[200px] bg-podklad border border-kresba rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-znacka outline-none"
         >
           <option value="">— skladba ze zpěvníku —</option>
           {pisne
@@ -1508,12 +1508,12 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           onChange={(e) => setOdkazVidea(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
           placeholder="…nebo vlož odkaz na YouTube"
-          className="flex-1 min-w-[200px] bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 outline-none"
+          className="flex-1 min-w-[200px] bg-podklad border border-kresba rounded-xl px-3 py-2 text-xs text-white placeholder-pismo-slaby focus:border-znacka outline-none"
         />
         <button
           onClick={zobrazOdkaz}
           disabled={!odkazVidea.trim()}
-          className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold cursor-pointer disabled:opacity-40"
+          className="px-3 py-2 rounded-xl bg-plocha-2 hover:bg-plocha-3 text-pismo text-xs font-bold cursor-pointer disabled:opacity-40"
         >
           Zobrazit
         </button>
@@ -1522,7 +1522,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
       {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
 
       {videoId && (
-        <div className="relative w-full overflow-hidden rounded-2xl border border-slate-800" style={{ paddingBottom: '56.25%' }}>
+        <div className="relative w-full overflow-hidden rounded-2xl border border-kresba" style={{ paddingBottom: '56.25%' }}>
           <iframe
             className="absolute inset-0 w-full h-full"
             src={`https://www.youtube.com/embed/${videoId}`}
@@ -1536,26 +1536,26 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
 
       {/* PROCESSING STATE DAW WORKSPACE PREVIEW (when active selected song is processing) */}
       {selectedSong && selectedSong.status === 'processing' && (
-        <div className="bg-[#121217] border-2 border-amber-500/30 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6 relative overflow-hidden">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+        <div className="bg-[#121217] border-2 border-znacka/30 rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-kresba pb-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold">
+              <div className="w-12 h-12 rounded-2xl bg-znacka/20 border border-znacka/40 text-znacka flex items-center justify-center font-bold">
                 <RotateCcw className="w-6 h-6 animate-spin" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl font-bold">{selectedSong.title}</h2>
-                  <span className="text-stitek font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                  <span className="text-stitek font-bold px-2 py-0.5 rounded-full bg-znacka/20 text-znacka border border-znacka/30">
                     {selectedSong.progressPercentage}% HOTOVO
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-pismo-tlum">
                   {selectedSong.artist} — Příprava 5 samostatných stop pro svislý DAW mixážní pult
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono bg-slate-950 px-3.5 py-2 rounded-2xl border border-slate-800 text-amber-400">
+            <div className="flex items-center gap-2 text-xs font-mono bg-podklad px-3.5 py-2 rounded-2xl border border-kresba text-znacka">
               <Sparkles className="w-4 h-4 animate-pulse" />
               <span>Automatické odemčení po dokončení</span>
             </div>
@@ -1568,7 +1568,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               return (
                 <div
                   key={stem.id}
-                  className="rounded-3xl border border-slate-800/80 bg-slate-950/60 p-4 flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  className="rounded-3xl border border-kresba/80 bg-podklad/60 p-4 flex flex-col justify-between space-y-4 relative overflow-hidden"
                 >
                   {/* Channel Header */}
                   <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/[0.05]">
@@ -1577,16 +1577,16 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                         className="w-2.5 h-2.5 rounded-full animate-pulse"
                         style={{ backgroundColor: theme.accent }}
                       />
-                      <span className="font-bold text-xs text-slate-200">
+                      <span className="font-bold text-xs text-pismo">
                         {theme.label}
                       </span>
                     </div>
-                    <RotateCcw className="w-3.5 h-3.5 text-amber-400/80 animate-spin" />
+                    <RotateCcw className="w-3.5 h-3.5 text-znacka/80 animate-spin" />
                   </div>
 
                   {/* Fader Track Shimmer Graphic */}
-                  <div className="h-44 bg-podklad rounded-2xl border border-slate-800/60 flex items-center justify-center relative overflow-hidden p-3">
-                    <div className="w-1.5 h-full bg-slate-800 rounded-full" />
+                  <div className="h-44 bg-podklad rounded-2xl border border-kresba/60 flex items-center justify-center relative overflow-hidden p-3">
+                    <div className="w-1.5 h-full bg-plocha-2 rounded-full" />
                     {/* Pulsing Fader Cap Placeholder */}
                     <div
                       className="absolute w-8 h-8 rounded-xl border border-white/20 flex items-center justify-center shadow-lg transition-all duration-700"
@@ -1604,11 +1604,11 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
 
                   {/* Stem Separation Progress Bar */}
                   <div className="space-y-1.5">
-                    <div className="flex justify-between text-stitek font-mono text-slate-400">
+                    <div className="flex justify-between text-stitek font-mono text-pismo-tlum">
                       <span>Stav stopy</span>
-                      <span className="text-amber-400 font-bold">{selectedSong.progressPercentage}%</span>
+                      <span className="text-znacka font-bold">{selectedSong.progressPercentage}%</span>
                     </div>
-                    <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-plocha-1 h-1.5 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{

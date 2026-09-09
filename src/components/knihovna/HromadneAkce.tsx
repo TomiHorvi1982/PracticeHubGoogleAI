@@ -104,7 +104,7 @@ export const HromadneAkce: React.FC<{
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => onZmenaVyberu((p) => (viditelne.every((id) => p.has(id)) ? new Set() : new Set(viditelne)))}
-          className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-drobne font-bold cursor-pointer flex items-center gap-1.5"
+          className="px-2.5 py-1.5 rounded-lg bg-white/[0.06] text-pismo hover:text-white text-drobne font-bold cursor-pointer flex items-center gap-1.5"
           title="Označit nebo odznačit všechno, co je vidět"
         >
           {vseOznaceno ? <CheckSquare className="w-3.5 h-3.5" /> : <Square className="w-3.5 h-3.5" />}
@@ -158,7 +158,7 @@ export const HromadneAkce: React.FC<{
 
             <button
               onClick={() => onZmenaVyberu(() => new Set())}
-              className="px-2.5 py-1.5 rounded-lg text-neutral-500 hover:text-white text-drobne cursor-pointer"
+              className="px-2.5 py-1.5 rounded-lg text-pismo-slaby hover:text-white text-drobne cursor-pointer"
             >
               Zrušit výběr
             </button>

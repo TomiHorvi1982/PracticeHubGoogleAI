@@ -120,13 +120,13 @@ export const StopaVodorovne: React.FC<Props> = ({
   return (
     <div
       onPointerDownCapture={onVybrat}
-      className="flex items-stretch border-t border-slate-800/70"
+      className="flex items-stretch border-t border-kresba/70"
       style={{ height: vyska }}
     >
       {/* OVLÁDÁNÍ */}
       <div
-        className={`relative shrink-0 px-3 py-2 flex flex-col justify-center gap-1.5 overflow-hidden border-r border-slate-800/70 ${
-          jeCil ? 'bg-amber-500/[0.07]' : ''
+        className={`relative shrink-0 px-3 py-2 flex flex-col justify-center gap-1.5 overflow-hidden border-r border-kresba/70 ${
+          jeCil ? 'bg-znacka/[0.07]' : ''
         }`}
         style={{ width: SIRKA_OVLADANI }}
       >
@@ -136,7 +136,7 @@ export const StopaVodorovne: React.FC<Props> = ({
             onClick={onVybrat}
             title={naNem || 'Vyber sem soubor'}
             className={`text-drobne font-bold truncate cursor-pointer text-left flex-1 min-w-0 ${
-              jeCil ? 'text-amber-400' : obsazeno ? 'text-white' : 'text-slate-500'
+              jeCil ? 'text-znacka' : obsazeno ? 'text-white' : 'text-pismo-slaby'
             }`}
           >
             {popis}
@@ -145,7 +145,7 @@ export const StopaVodorovne: React.FC<Props> = ({
             onClick={() => onUpdate({ isMuted: !channel.isMuted })}
             title={channel.isMuted ? 'Zrušit ztlumení' : 'Ztlumit'}
             className={`p-1 rounded cursor-pointer ${
-              channel.isMuted ? 'bg-rose-500/25 text-rose-400' : 'text-slate-500 hover:text-slate-300'
+              channel.isMuted ? 'bg-rose-500/25 text-rose-400' : 'text-pismo-slaby hover:text-pismo'
             }`}
           >
             {channel.isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
@@ -154,7 +154,7 @@ export const StopaVodorovne: React.FC<Props> = ({
             onClick={() => onUpdate({ isSolo: !channel.isSolo })}
             title="Pustit jen tuhle stopu"
             className={`p-1 rounded cursor-pointer ${
-              channel.isSolo ? 'bg-amber-500/25 text-amber-400' : 'text-slate-500 hover:text-slate-300'
+              channel.isSolo ? 'bg-znacka/25 text-znacka' : 'text-pismo-slaby hover:text-pismo'
             }`}
           >
             <Headphones className="w-3 h-3" />
@@ -173,12 +173,12 @@ export const StopaVodorovne: React.FC<Props> = ({
             style={{ accentColor: barva }}
             title="Hlasitost"
           />
-          <span className="text-stitek font-mono text-slate-400 w-12 text-right tabular-nums shrink-0">
+          <span className="text-stitek font-mono text-pismo-tlum w-12 text-right tabular-nums shrink-0">
             {channel.volume <= -60 ? '−∞' : `${channel.volume > 0 ? '+' : ''}${channel.volume.toFixed(1)}`} dB
           </span>
         </div>
 
-        <div className="text-stitek text-slate-600 truncate">{naNem || 'prázdný'}</div>
+        <div className="text-stitek text-pismo-slaby truncate">{naNem || 'prázdný'}</div>
 
         {/* ÚCHYT VÝŠKY
 
@@ -206,7 +206,7 @@ export const StopaVodorovne: React.FC<Props> = ({
           title="Tažením změníš výšku stop, dvojklikem ji vrátíš"
           className="absolute left-0 right-0 bottom-0 h-1.5 cursor-ns-resize group"
         >
-          <div className="absolute inset-x-3 bottom-0 h-px bg-transparent group-hover:bg-amber-400/60 transition-colors" />
+          <div className="absolute inset-x-3 bottom-0 h-px bg-transparent group-hover:bg-znacka/60 transition-colors" />
         </div>
       </div>
 
@@ -232,7 +232,7 @@ export const StopaVodorovne: React.FC<Props> = ({
         />
         {delka > 0 && (
           <div
-            className="absolute top-0 bottom-0 w-px bg-amber-400/80 pointer-events-none"
+            className="absolute top-0 bottom-0 w-px bg-znacka/80 pointer-events-none"
             style={{ left: x }}
           />
         )}

@@ -52,7 +52,7 @@ export const KytaraFader: React.FC<{
           <button
             onClick={() => (stav.bezi ? kytaraKanal.stop() : void kytaraKanal.start())}
             className={`flex-1 px-2 py-1.5 rounded-lg text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer ${
-              stav.bezi ? 'bg-uspech text-black' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
+              stav.bezi ? 'bg-uspech text-black' : 'bg-white/[0.06] text-pismo hover:text-white'
             }`}
           >
             {stav.bezi ? <Mic className="w-3 h-3" /> : <MicOff className="w-3 h-3" />}
@@ -63,7 +63,7 @@ export const KytaraFader: React.FC<{
             onClick={() => kytaraKanal.nastav({ odposlech: !stav.odposlech })}
             disabled={!stav.bezi}
             className={`px-2 py-1.5 rounded-lg cursor-pointer disabled:opacity-30 ${
-              stav.odposlech ? 'bg-znacka text-black' : 'bg-white/[0.06] text-neutral-400 hover:text-white'
+              stav.odposlech ? 'zlata-plocha' : 'bg-white/[0.06] text-pismo-tlum hover:text-white'
             }`}
             title="Poslouchat sám sebe. Jen do sluchátek — z beden se to rozeřve zpětnou vazbou."
           >
@@ -91,7 +91,7 @@ export const KytaraFader: React.FC<{
               }}
               disabled={!stav.bezi}
               className={`w-full px-2 py-1.5 rounded-lg text-stitek font-bold flex items-center justify-center gap-1 cursor-pointer disabled:opacity-30 ${
-                stav.nahrava ? 'bg-chyba text-white' : 'bg-white/[0.06] text-neutral-300 hover:text-white'
+                stav.nahrava ? 'bg-chyba text-white' : 'bg-white/[0.06] text-pismo hover:text-white'
               }`}
             >
               {stav.nahrava ? <Square className="w-3 h-3 fill-current" /> : <Circle className="w-3 h-3 fill-current" />}
@@ -122,7 +122,7 @@ export const KytaraFader: React.FC<{
                       URL.revokeObjectURL(url);
                     })
                   }
-                  className="px-2 py-1.5 rounded-lg bg-white/[0.06] text-neutral-300 cursor-pointer"
+                  className="px-2 py-1.5 rounded-lg bg-white/[0.06] text-pismo cursor-pointer"
                   title="Stáhnout nahrávku"
                 >
                   <Download className="w-3 h-3" />

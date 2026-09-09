@@ -115,23 +115,23 @@ export const HraniTest: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Zahraj, co ti zadám</h3>
-            <p className="text-drobne text-neutral-400">
+            <p className="text-drobne text-pismo-tlum">
               Trefu ověří detekce tónu — z kytary, z MIDI kláves i z klávesnice.
             </p>
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>
               <div className="text-lg font-bold text-uspech tabular-nums">{splneno}</div>
-              <div className="text-stitek text-neutral-500">splněno</div>
+              <div className="text-stitek text-pismo-slaby">splněno</div>
             </div>
             <div>
               <div className="text-lg font-bold text-chyba tabular-nums">{chyby}</div>
-              <div className="text-stitek text-neutral-500">chyb</div>
+              <div className="text-stitek text-pismo-slaby">chyb</div>
             </div>
             {centy !== null && (
               <div>
                 <div className="text-lg font-bold text-znacka tabular-nums">{centy}¢</div>
-                <div className="text-stitek text-neutral-500">intonace</div>
+                <div className="text-stitek text-pismo-slaby">intonace</div>
               </div>
             )}
           </div>
@@ -146,7 +146,7 @@ export const HraniTest: React.FC = () => {
               onClick={() => { setDruh(d.id); zadej(d.id, zpusob); }}
               title={d.popis}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                druh === d.id ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                druh === d.id ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
               }`}
             >
               {d.nazev}
@@ -162,7 +162,7 @@ export const HraniTest: React.FC = () => {
                   setZpusob(z);
                   zadej(druh, z);
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-neutral-200 cursor-pointer flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-pismo cursor-pointer flex items-center gap-1.5"
               >
                 {zpusob === 'napsane' ? <Eye className="w-3.5 h-3.5" /> : <Ear className="w-3.5 h-3.5" />}
                 {zpusob === 'napsane' ? 'Napsané' : 'Po sluchu'}
@@ -170,7 +170,7 @@ export const HraniTest: React.FC = () => {
             )}
             <button
               onClick={() => setNastroj(nastroj === 'kytara' ? 'klavesy' : 'kytara')}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-neutral-200 cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-pismo cursor-pointer flex items-center gap-1.5"
             >
               {nastroj === 'kytara' ? <Guitar className="w-3.5 h-3.5" /> : <PianoIkona className="w-3.5 h-3.5" />}
               {nastroj === 'kytara' ? 'Hmatník' : 'Klávesy'}
@@ -190,7 +190,7 @@ export const HraniTest: React.FC = () => {
               <h4 className="text-2xl font-bold text-white">
                 {odhaleno ? ukol.nazev : '? ? ?'}
               </h4>
-              <p className="text-drobne text-neutral-500 mt-0.5">
+              <p className="text-drobne text-pismo-slaby mt-0.5">
                 {ukol.druh === 'podklad'
                   ? 'Improvizuj do kadence — počítají se tóny mimo tóninu.'
                   : odhaleno
@@ -201,21 +201,21 @@ export const HraniTest: React.FC = () => {
 
             <button
               onClick={() => prehrajUkol(ukol)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-neutral-200 cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-pismo cursor-pointer flex items-center gap-1.5"
             >
               <Play className="w-3.5 h-3.5" /> Přehrát znovu
             </button>
             {!odhaleno && (
               <button
                 onClick={() => setOdhaleno(true)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-neutral-200 cursor-pointer"
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white/[0.06] text-pismo cursor-pointer"
               >
                 Vzdát to
               </button>
             )}
             <button
               onClick={() => zadej()}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-znacka text-black cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl text-xs font-bold zlata-plocha cursor-pointer flex items-center gap-1.5"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Další
             </button>
@@ -224,7 +224,7 @@ export const HraniTest: React.FC = () => {
           {hotovo && (
             <div className="flex items-center gap-2 text-uspech text-sm font-bold">
               <Check className="w-4 h-4" /> Sedí — {ukol.nazev}
-              {chyby > 0 && <span className="text-neutral-500 font-normal">({chyby}× vedle)</span>}
+              {chyby > 0 && <span className="text-pismo-slaby font-normal">({chyby}× vedle)</span>}
             </div>
           )}
 
@@ -257,7 +257,7 @@ export const HraniTest: React.FC = () => {
                       ? 'bg-uspech/20 text-uspech'
                       : t.minulO > 0
                         ? 'bg-chyba/20 text-chyba'
-                        : 'bg-white/[0.06] text-neutral-500'
+                        : 'bg-white/[0.06] text-pismo-slaby'
                   }`}
                   title={t.minulO > 0 ? `vedle o ${t.minulO} půltónů` : t.ton}
                 >
@@ -270,7 +270,7 @@ export const HraniTest: React.FC = () => {
         </div>
       ) : (
         <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-8 text-center space-y-3">
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-pismo-tlum">
             Zapni si vstup, vyber druh úkolu a spusť zadání.
           </p>
           <button

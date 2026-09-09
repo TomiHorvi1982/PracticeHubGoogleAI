@@ -251,7 +251,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                 setIsSearchOpen(false);
                 setIsUrlAddOpen(false);
               }}
-              className="bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white border border-white/[0.08] px-3.5 py-2 text-xs font-medium rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+              className="bg-white/[0.06] hover:bg-white/[0.12] text-pismo hover:text-white border border-white/[0.08] px-3.5 py-2 text-xs font-medium rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <Music className="w-3.5 h-3.5 text-uspech" />
               <span>Ze zpěvníku</span>
@@ -264,14 +264,14 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           
           {/* Playback Mode Selectors */}
           <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06]">
-            <span className="text-drobne text-neutral-400 font-medium px-2">Režim:</span>
+            <span className="text-drobne text-pismo-tlum font-medium px-2">Režim:</span>
             
             <button
               onClick={() => onChangePlaybackMode('normal')}
               className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                 playbackMode === 'normal'
                   ? 'bg-white/20 text-white font-semibold'
-                  : 'text-neutral-400 hover:text-white'
+                  : 'text-pismo-tlum hover:text-white'
               }`}
             >
               V pořadí
@@ -280,8 +280,8 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               onClick={() => onChangePlaybackMode('loop-all')}
               className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all flex items-center gap-1 cursor-pointer ${
                 playbackMode === 'loop-all'
-                  ? 'bg-znacka text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'zlata-plocha font-semibold'
+                  : 'text-pismo-tlum hover:text-white'
               }`}
             >
               <Repeat className="w-3 h-3" />
@@ -291,8 +291,8 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               onClick={() => onChangePlaybackMode('loop-one')}
               className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all flex items-center gap-1 cursor-pointer ${
                 playbackMode === 'loop-one'
-                  ? 'bg-znacka text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white'
+                  ? 'zlata-plocha font-semibold'
+                  : 'text-pismo-tlum hover:text-white'
               }`}
             >
               <Repeat className="w-3 h-3" />
@@ -303,7 +303,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               className={`px-2.5 py-1 rounded-xl text-xs font-medium transition-all flex items-center gap-1 cursor-pointer ${
                 playbackMode === 'shuffle'
                   ? 'bg-uspech text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white'
+                  : 'text-pismo-tlum hover:text-white'
               }`}
             >
               <Shuffle className="w-3 h-3" />
@@ -312,7 +312,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           </div>
 
           {/* Stats & Live Status */}
-          <div className="flex items-center gap-4 text-neutral-400 text-xs">
+          <div className="flex items-center gap-4 text-pismo-tlum text-xs">
             <div className="flex items-center gap-1.5">
               <ListMusic className="w-3.5 h-3.5 text-znacka" />
               <span>Celkem: <strong className="text-white">{playlist.length} skladeb</strong></span>
@@ -338,7 +338,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             </div>
             <button
               onClick={() => setIsSearchOpen(false)}
-              className="text-neutral-400 hover:text-white text-xs p-1 cursor-pointer"
+              className="text-pismo-tlum hover:text-white text-xs p-1 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -364,8 +364,8 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           </form>
 
           {searchError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-300 p-3 rounded-2xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <div className="bg-chyba/10 border border-chyba/20 text-chyba-svetla p-3 rounded-2xl text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-chyba shrink-0" />
               <span>{searchError}</span>
             </div>
           )}
@@ -373,7 +373,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           {/* Results list */}
           {searchResults.length > 0 && (
             <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-              <div className="text-xs text-neutral-400 font-medium">Nalezeno {searchResults.length} výsledků:</div>
+              <div className="text-xs text-pismo-tlum font-medium">Nalezeno {searchResults.length} výsledků:</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {searchResults.map((video) => (
                   <div
@@ -389,7 +389,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                       />
                       <div className="min-w-0">
                         <div className="text-xs font-semibold text-white truncate">{video.title}</div>
-                        <div className="text-stitek text-neutral-400 truncate">{video.artist || 'YouTube Video'}</div>
+                        <div className="text-stitek text-pismo-tlum truncate">{video.artist || 'YouTube Video'}</div>
                       </div>
                     </div>
 
@@ -419,21 +419,21 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             </div>
             <button
               onClick={() => setIsUrlAddOpen(false)}
-              className="text-neutral-400 hover:text-white text-xs p-1 cursor-pointer"
+              className="text-pismo-tlum hover:text-white text-xs p-1 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
 
           {urlAddError && (
-            <div className="bg-red-500/10 border border-red-500/20 text-red-300 p-3 rounded-2xl text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <div className="bg-chyba/10 border border-chyba/20 text-chyba-svetla p-3 rounded-2xl text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-chyba shrink-0" />
               <span>{urlAddError}</span>
             </div>
           )}
 
           <div>
-            <label className="block text-xs text-neutral-400 mb-1">YouTube URL nebo ID videa *</label>
+            <label className="block text-xs text-pismo-tlum mb-1">YouTube URL nebo ID videa *</label>
             <input
               type="text"
               value={manualUrl}
@@ -446,7 +446,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-neutral-400 mb-1">Název skladby (volitelné)</label>
+              <label className="block text-xs text-pismo-tlum mb-1">Název skladby (volitelné)</label>
               <input
                 type="text"
                 value={manualTitle}
@@ -456,7 +456,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               />
             </div>
             <div>
-              <label className="block text-xs text-neutral-400 mb-1">Interpret (volitelné)</label>
+              <label className="block text-xs text-pismo-tlum mb-1">Interpret (volitelné)</label>
               <input
                 type="text"
                 value={manualArtist}
@@ -489,7 +489,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             </div>
             <button
               onClick={() => setIsSongbookPickerOpen(false)}
-              className="text-neutral-400 hover:text-white text-xs p-1 cursor-pointer"
+              className="text-pismo-tlum hover:text-white text-xs p-1 cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -504,7 +504,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
               >
                 <div>
                   <div className="text-xs font-semibold text-white">{song.title}</div>
-                  <div className="text-drobne text-neutral-400">{song.artist} ({song.key})</div>
+                  <div className="text-drobne text-pismo-tlum">{song.artist} ({song.key})</div>
                 </div>
                 <Plus className="w-4 h-4 text-uspech shrink-0" />
               </button>
@@ -517,7 +517,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
         
         {/* Table Header */}
-        <div className="bg-white/[0.02] border-b border-white/[0.06] px-5 py-3 flex items-center justify-between text-xs font-semibold text-neutral-400">
+        <div className="bg-white/[0.02] border-b border-white/[0.06] px-5 py-3 flex items-center justify-between text-xs font-semibold text-pismo-tlum">
           <div className="flex items-center gap-4">
             <span className="w-6 text-center">#</span>
             <span>Skladba v playlistu</span>
@@ -531,11 +531,11 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         {/* Empty State */}
         {playlist.length === 0 && (
           <div className="p-16 text-center space-y-3">
-            <Youtube className="w-12 h-12 text-neutral-600 mx-auto" />
-            <div className="text-sm font-semibold text-neutral-300">
+            <Youtube className="w-12 h-12 text-pismo-slaby mx-auto" />
+            <div className="text-sm font-semibold text-pismo">
               Váš playlist je zatím prázdný
             </div>
-            <p className="text-xs text-neutral-500 max-w-sm mx-auto">
+            <p className="text-xs text-pismo-slaby max-w-sm mx-auto">
               Vyhledejte skladby na YouTube nebo vložte odkaz a vytvořte nepřetržitý kapelní set.
             </p>
             <button
@@ -581,7 +581,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                         <span className="w-1 bg-znacka h-4/5 animate-bounce [animation-delay:0.4s] rounded-full"></span>
                       </div>
                     ) : (
-                      <span className={`text-xs font-semibold ${isCurrent ? 'text-znacka' : 'text-neutral-500'}`}>
+                      <span className={`text-xs font-semibold ${isCurrent ? 'text-znacka' : 'text-pismo-slaby'}`}>
                         {index + 1}
                       </span>
                     )}
@@ -615,21 +615,21 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                         {item.title}
                       </button>
                       {isCurrent && (
-                        <span className="odznak bg-znacka text-black px-1.5 py-0.5 rounded-md shrink-0">
+                        <span className="odznak zlata-plocha px-1.5 py-0.5 rounded-md shrink-0">
                           Hraje
                         </span>
                       )}
                     </div>
                     
-                    <div className="flex items-center gap-2 text-xs text-neutral-400 mt-0.5 truncate">
-                      {item.artist && <span className="text-neutral-300 font-medium">{item.artist}</span>}
+                    <div className="flex items-center gap-2 text-xs text-pismo-tlum mt-0.5 truncate">
+                      {item.artist && <span className="text-pismo font-medium">{item.artist}</span>}
                     </div>
                   </div>
                 </div>
 
                 {/* Right: Added by & Control Buttons */}
                 <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-2">
-                  <span className="text-xs text-neutral-400 hidden sm:inline truncate max-w-[100px]">
+                  <span className="text-xs text-pismo-tlum hidden sm:inline truncate max-w-[100px]">
                     {item.addedByName || 'Kapela'}
                   </span>
 
@@ -640,7 +640,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                     <button
                       onClick={(e) => handleMoveUp(index, e)}
                       disabled={index === 0}
-                      className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-20 hover:bg-white/10 rounded-lg cursor-pointer"
+                      className="p-1.5 text-pismo-tlum hover:text-white disabled:opacity-20 hover:bg-white/10 rounded-lg cursor-pointer"
                       title="Posunout nahoru"
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
@@ -648,7 +648,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                     <button
                       onClick={(e) => handleMoveDown(index, e)}
                       disabled={index === playlist.length - 1}
-                      className="p-1.5 text-neutral-400 hover:text-white disabled:opacity-20 hover:bg-white/10 rounded-lg cursor-pointer"
+                      className="p-1.5 text-pismo-tlum hover:text-white disabled:opacity-20 hover:bg-white/10 rounded-lg cursor-pointer"
                       title="Posunout dolů"
                     >
                       <ArrowDown className="w-3.5 h-3.5" />
@@ -661,7 +661,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
                       e.stopPropagation();
                       onRemoveItem(item.id);
                     }}
-                    className="p-1.5 text-neutral-400 hover:text-chyba hover:bg-red-500/10 rounded-lg cursor-pointer"
+                    className="p-1.5 text-pismo-tlum hover:text-chyba hover:bg-chyba/10 rounded-lg cursor-pointer"
                     title="Odebrat z playlistu"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

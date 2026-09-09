@@ -79,7 +79,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
             a musí jít použít i ve sbaleném stavu. */}
         <button
           onClick={() => setOtevreno((o) => !o)}
-          className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+          className="p-1 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer shrink-0"
           title={otevreno ? 'Sbalit set list' : 'Rozbalit set list'}
         >
           {otevreno ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -88,7 +88,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
         <h2 className="stitek-pole">
           Set list{vSetu.length > 0 ? ` (${vSetu.length})` : ''}
         </h2>
-        <span className="text-stitek text-neutral-500">pořadí, ve kterém se bude hrát</span>
+        <span className="text-stitek text-pismo-slaby">pořadí, ve kterém se bude hrát</span>
 
         {sety.length > 1 && (
           <select
@@ -115,14 +115,14 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
       {/* Sbalený set ukazuje aspoň začátek programu — prázdné místo by
           vypadalo, jako by v setu nic nebylo. */}
       {!otevreno && vSetu.length > 0 && (
-        <p className="text-drobne text-neutral-500 truncate">
+        <p className="text-drobne text-pismo-slaby truncate">
           {vSetu.slice(0, 3).map((s) => s.title).join(' · ')}
           {vSetu.length > 3 ? ` · a další ${vSetu.length - 3}` : ''}
         </p>
       )}
 
       {otevreno && (vSetu.length === 0 ? (
-        <p className="text-drobne text-neutral-600">
+        <p className="text-drobne text-pismo-slaby">
           Set je prázdný. Přidej skladby ikonou v seznamu vpravo.
         </p>
       ) : (
@@ -141,8 +141,8 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               {tah.znackaPred(i) && (
                 <span className="absolute left-0 right-0 -top-px h-0.5 bg-znacka rounded-full" aria-hidden="true" />
               )}
-              <GripVertical className="w-3.5 h-3.5 text-neutral-600 shrink-0 cursor-grab active:cursor-grabbing" />
-              <span className="w-5 text-stitek font-mono text-neutral-600 tabular-nums shrink-0">
+              <GripVertical className="w-3.5 h-3.5 text-pismo-slaby shrink-0 cursor-grab active:cursor-grabbing" />
+              <span className="w-5 text-stitek font-mono text-pismo-slaby tabular-nums shrink-0">
                 {i + 1}.
               </span>
 
@@ -150,7 +150,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
 
               <div className="min-w-0 flex-1">
                 <div className="text-drobne font-semibold text-white truncate">{s.title}</div>
-                <div className="text-stitek text-neutral-500 truncate">
+                <div className="text-stitek text-pismo-slaby truncate">
                   {s.artist}
                   {s.bpm ? <span className="ml-1.5 tabular-nums">{s.bpm} BPM</span> : null}
                   {s.key ? <span className="ml-1.5">{s.key}</span> : null}
@@ -164,7 +164,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               <button
                 onClick={() => presun(i, i - 1)}
                 disabled={i === 0}
-                className="lg:hidden p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                className="lg:hidden p-1 rounded-md hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="Posunout výš"
               >
                 <ChevronUp className="w-3.5 h-3.5" />
@@ -172,14 +172,14 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
               <button
                 onClick={() => presun(i, i + 1)}
                 disabled={i === vSetu.length - 1}
-                className="lg:hidden p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
+                className="lg:hidden p-1 rounded-md hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer disabled:opacity-20 disabled:cursor-not-allowed"
                 title="Posunout níž"
               >
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => set && void setListy.odeber(set.id, s.id)}
-                className="p-1 rounded-md hover:bg-chyba/20 text-neutral-500 hover:text-chyba cursor-pointer"
+                className="p-1 rounded-md hover:bg-chyba/20 text-pismo-slaby hover:text-chyba cursor-pointer"
                 title="Odebrat ze setu"
               >
                 <X className="w-3.5 h-3.5" />

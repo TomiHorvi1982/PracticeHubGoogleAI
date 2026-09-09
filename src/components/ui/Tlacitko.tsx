@@ -16,7 +16,7 @@ export type DruhTlacitka = 'hlavni' | 'vedlejsi' | 'tichy' | 'nebezpecny';
 export type VelikostTlacitka = 'drobne' | 'bezne' | 'velke';
 
 const DRUHY: Record<DruhTlacitka, string> = {
-  hlavni: 'bg-znacka text-podklad font-semibold hover:brightness-110 active:brightness-95',
+  hlavni: 'zlata-plocha font-semibold hover:brightness-110 active:brightness-95',
   vedlejsi: 'bg-plocha-3 text-pismo border border-kresba hover:border-kresba-silna hover:bg-plocha-nad',
   tichy: 'text-pismo-tlum hover:text-pismo hover:bg-plocha-2',
   nebezpecny: 'bg-transparent text-chyba border border-chyba/35 hover:bg-chyba/10',

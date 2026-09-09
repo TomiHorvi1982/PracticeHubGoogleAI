@@ -114,10 +114,10 @@ export const PasSekci: React.FC<Props> = ({
       ref={pas}
       onPointerDown={zacniKreslit}
       title="Tažením nakreslíš sekci"
-      className="relative h-6 bg-slate-900/50 border-b border-slate-800/70 overflow-hidden select-none cursor-crosshair"
+      className="relative h-6 bg-plocha-1/50 border-b border-kresba/70 overflow-hidden select-none cursor-crosshair"
     >
       {!sekce.length && !tazeni && (
-        <span className="absolute inset-0 flex items-center px-2 text-stitek text-slate-600 pointer-events-none">
+        <span className="absolute inset-0 flex items-center px-2 text-stitek text-pismo-slaby pointer-events-none">
           Tažením sem nakreslíš sekci — sloku, refrén, sólo
         </span>
       )}
@@ -156,7 +156,7 @@ export const PasSekci: React.FC<Props> = ({
                     if (e.key === 'Escape') setPrejmenovava(null);
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="w-full bg-slate-950 text-stitek text-white px-1 rounded outline-none"
+                  className="w-full bg-podklad text-stitek text-white px-1 rounded outline-none"
                 />
               ) : (
                 <span
@@ -173,7 +173,7 @@ export const PasSekci: React.FC<Props> = ({
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); onSmycka(s.od, s.do); }}
               title="Přehrávat tuhle sekci dokola"
-              className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:block text-stitek text-slate-300 hover:text-white cursor-pointer"
+              className="absolute right-4 top-1/2 -translate-y-1/2 hidden group-hover:block text-stitek text-pismo hover:text-white cursor-pointer"
             >
               ⟲
             </button>
@@ -181,7 +181,7 @@ export const PasSekci: React.FC<Props> = ({
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); smaz(s.id); }}
               title="Smazat sekci"
-              className="absolute right-0.5 top-1/2 -translate-y-1/2 hidden group-hover:block text-slate-400 hover:text-rose-400 cursor-pointer"
+              className="absolute right-0.5 top-1/2 -translate-y-1/2 hidden group-hover:block text-pismo-tlum hover:text-rose-400 cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
@@ -202,7 +202,7 @@ export const PasSekci: React.FC<Props> = ({
       {/* Náhled kreslené sekce. */}
       {tazeni?.druh === 'nova' && (
         <div
-          className="absolute top-0 bottom-0 bg-amber-400/25 border-x border-amber-400 pointer-events-none"
+          className="absolute top-0 bottom-0 bg-znacka/25 border-x border-znacka pointer-events-none"
           style={{
             left: naX(Math.min(tazeni.od, tazeni.do)),
             width: Math.max(1, Math.abs(naX(tazeni.do) - naX(tazeni.od))),
@@ -231,7 +231,7 @@ export const SekceZeSmycky: React.FC<{
         barva: barvaProPoradi(sekce.length),
       }], delka))}
       title="Ze smyčky udělat sekci"
-      className="flex items-center gap-1 text-stitek px-2 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+      className="flex items-center gap-1 text-stitek px-2 h-8 rounded-lg bg-plocha-2 hover:bg-plocha-3 text-pismo cursor-pointer"
     >
       <Plus className="w-3 h-3" />Sekce ze smyčky
     </button>

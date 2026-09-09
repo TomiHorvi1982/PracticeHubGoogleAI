@@ -46,13 +46,13 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Rychlý klavír a pomůcka</h2>
-              <p className="text-xs text-neutral-400">Přehrajte si melodie, tóny nebo akordy přímo z lišty</p>
+              <p className="text-xs text-pismo-tlum">Přehrajte si melodie, tóny nebo akordy přímo z lišty</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-white/10 text-neutral-400 hover:text-white rounded-xl transition-all cursor-pointer"
+            className="p-1.5 hover:bg-white/10 text-pismo-tlum hover:text-white rounded-xl transition-all cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -62,7 +62,7 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
         <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
           {/* Instrument switcher */}
           <div className="flex items-center gap-2">
-            <span className="text-neutral-400 font-medium">Nástroj:</span>
+            <span className="text-pismo-tlum font-medium">Nástroj:</span>
             <select
               value={instrument}
               onChange={(e) => setInstrument(e.target.value as any)}
@@ -76,7 +76,7 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
 
           {/* Octave Selector */}
           <div className="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-xl border border-white/10">
-            <span className="text-neutral-400 font-medium">Základní oktáva:</span>
+            <span className="text-pismo-tlum font-medium">Základní oktáva:</span>
             <button
               onClick={() => setOctave((o) => Math.max(1, o - 1))}
               className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg cursor-pointer"
@@ -106,9 +106,9 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
                     <button
                       key={noteName}
                       onClick={() => playKey(noteName)}
-                      className={`w-9 sm:w-11 h-40 sm:h-44 rounded-b-xl border border-neutral-700 font-bold text-xs flex items-end justify-center pb-3 cursor-pointer transition-all ${
+                      className={`w-9 sm:w-11 h-40 sm:h-44 rounded-b-xl border border-kresba font-bold text-xs flex items-end justify-center pb-3 cursor-pointer transition-all ${
                         isDown
-                          ? 'bg-znacka text-black translate-y-1.5 shadow-inner'
+                          ? 'zlata-plocha translate-y-1.5 shadow-inner'
                           : 'bg-white hover:bg-neutral-100 text-neutral-800 active:bg-neutral-200'
                       }`}
                     >
@@ -133,8 +133,8 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
                       style={{ left: `${leftPx}px` }}
                       className={`absolute top-0 w-7 h-24 sm:h-28 rounded-b-lg font-bold text-stitek flex items-end justify-center pb-2 cursor-pointer z-10 transition-all ${
                         isDown
-                          ? 'bg-znacka text-black translate-y-1'
-                          : 'bg-neutral-900 hover:bg-neutral-800 text-white border border-neutral-700 shadow-md'
+                          ? 'zlata-plocha translate-y-1'
+                          : 'bg-plocha-1 hover:bg-plocha-2 text-white border border-kresba shadow-md'
                       }`}
                     >
                       {note}
@@ -147,7 +147,7 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer info */}
-        <div className="flex items-center justify-between text-drobne text-neutral-400 px-1">
+        <div className="flex items-center justify-between text-drobne text-pismo-tlum px-1">
           <span>Stisknutím klávesy se přehraje tón v reálném čase.</span>
           <button
             onClick={onClose}

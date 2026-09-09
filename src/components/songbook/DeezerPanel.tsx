@@ -150,18 +150,18 @@ export const DeezerPanel: React.FC<{
     <div className="space-y-3">
       <form onSubmit={hledej} className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-pismo-slaby absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={dotaz}
             onChange={(e) => setDotaz(e.target.value)}
             placeholder="Interpret a název — třeba „Sepultura Refuse Resist“"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-znacka"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-pismo-slaby outline-none focus:border-znacka"
           />
         </div>
         <button
           type="submit"
           disabled={hledam || !dotaz.trim()}
-          className="px-4 py-2 rounded-xl bg-znacka text-black text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+          className="px-4 py-2 rounded-xl zlata-plocha text-xs font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
         >
           {hledam ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
           Hledat
@@ -175,7 +175,7 @@ export const DeezerPanel: React.FC<{
       )}
 
       {nalezene.length === 0 && !hledam && (
-        <p className="text-drobne text-neutral-600">
+        <p className="text-drobne text-pismo-slaby">
           Najde název, interpreta, album, délku a u části skladeb i tempo. Poslechnout jde
           třicetivteřinová ukázka, kterou Deezer nabízí veřejně.
         </p>
@@ -189,7 +189,7 @@ export const DeezerPanel: React.FC<{
             )}
             <div className="min-w-0 flex-1">
               <div className="text-drobne font-bold text-white truncate">{album.info.nazev}</div>
-              <div className="text-stitek text-neutral-500 truncate">
+              <div className="text-stitek text-pismo-slaby truncate">
                 {album.info.interpret}
                 {album.info.rok && ` · ${album.info.rok}`}
                 {` · ${album.stopy.length} skladeb`}
@@ -215,7 +215,7 @@ export const DeezerPanel: React.FC<{
             </button>
             <button
               onClick={() => setAlbum(null)}
-              className="p-1.5 rounded-lg text-neutral-500 hover:text-white cursor-pointer shrink-0"
+              className="p-1.5 rounded-lg text-pismo-slaby hover:text-white cursor-pointer shrink-0"
               title="Zavřít album"
             >
               <X className="w-3.5 h-3.5" />
@@ -225,10 +225,10 @@ export const DeezerPanel: React.FC<{
           <div className="space-y-0.5 max-h-[36vh] overflow-y-auto pr-1">
             {album.stopy.map((t) => (
               <div key={t.id} className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-white/[0.04]">
-                <span className="text-stitek text-neutral-600 tabular-nums w-6 shrink-0">{t.poradi}.</span>
+                <span className="text-stitek text-pismo-slaby tabular-nums w-6 shrink-0">{t.poradi}.</span>
                 <span className="text-drobne text-white truncate flex-1">{t.nazev}</span>
                 {t.delka > 0 && (
-                  <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{cas(t.delka)}</span>
+                  <span className="text-stitek text-pismo-slaby tabular-nums shrink-0">{cas(t.delka)}</span>
                 )}
                 <button
                   onClick={async () => {
@@ -265,7 +265,7 @@ export const DeezerPanel: React.FC<{
             <button
               onClick={() => prehraj(s)}
               disabled={!s.ukazka}
-              className="p-1.5 rounded-lg text-neutral-400 hover:text-white cursor-pointer disabled:opacity-25 shrink-0"
+              className="p-1.5 rounded-lg text-pismo-tlum hover:text-white cursor-pointer disabled:opacity-25 shrink-0"
               title={s.ukazka ? 'Přehrát ukázku' : 'Ukázka není'}
             >
               {hraje === s.id ? (
@@ -277,7 +277,7 @@ export const DeezerPanel: React.FC<{
 
             <div className="flex-1 min-w-0">
               <div className="text-drobne text-white truncate">{s.nazev}</div>
-              <div className="text-stitek text-neutral-500 truncate">
+              <div className="text-stitek text-pismo-slaby truncate">
                 {s.interpret}
                 {s.album && ` · ${s.album}`}
                 {s.rok && ` · ${s.rok}`}
@@ -292,7 +292,7 @@ export const DeezerPanel: React.FC<{
                 <Gauge className="w-3 h-3" /> {s.bpm}
               </span>
             )}
-            <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{cas(s.delka)}</span>
+            <span className="text-stitek text-pismo-slaby tabular-nums shrink-0">{cas(s.delka)}</span>
 
             <DoPlaylistuTlacitko
               nazev={s.nazev}
@@ -305,7 +305,7 @@ export const DeezerPanel: React.FC<{
               onClick={() => void otevriAlbum(s)}
               disabled={nacitamAlbum === s.id}
               title={`Ukázat celé album „${s.album}"`}
-              className="px-2 py-1 rounded-lg bg-white/[0.06] text-neutral-300 hover:text-white text-stitek font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1 shrink-0"
+              className="px-2 py-1 rounded-lg bg-white/[0.06] text-pismo hover:text-white text-stitek font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1 shrink-0"
             >
               {nacitamAlbum === s.id
                 ? <Loader2 className="w-3 h-3 animate-spin" />

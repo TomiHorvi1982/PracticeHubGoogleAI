@@ -32,7 +32,7 @@ export const PrazdnyModul: React.FC<Props> = ({ song, modulId, onUpdateSong, nah
   if (prijima.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center text-center p-4">
-        <p className="text-drobne text-neutral-500">{nahradniText || 'Zatím tu nic není.'}</p>
+        <p className="text-drobne text-pismo-slaby">{nahradniText || 'Zatím tu nic není.'}</p>
       </div>
     );
   }
@@ -87,16 +87,16 @@ export const PrazdnyModul: React.FC<Props> = ({ song, modulId, onUpdateSong, nah
       {nahravam ? (
         <>
           <Loader2 className="w-5 h-5 text-znacka animate-spin" />
-          <p className="text-drobne text-neutral-300">Nahrávám…</p>
+          <p className="text-drobne text-pismo">Nahrávám…</p>
         </>
       ) : (
         <>
-          <Upload className={`w-5 h-5 ${nadSebou ? 'text-znacka' : 'text-neutral-500'}`} />
-          <p className="text-drobne font-semibold text-neutral-300">
+          <Upload className={`w-5 h-5 ${nadSebou ? 'text-znacka' : 'text-pismo-slaby'}`} />
+          <p className="text-drobne font-semibold text-pismo">
             {nadSebou ? 'Pusť to sem' : 'Přetáhni soubor nebo klikni'}
           </p>
-          <p className="text-stitek text-neutral-600">{prijima.join(' · ')}</p>
-          <p className="text-stitek text-neutral-600">Uloží se ke skladbě — příště se načte sám.</p>
+          <p className="text-stitek text-pismo-slaby">{prijima.join(' · ')}</p>
+          <p className="text-stitek text-pismo-slaby">Uloží se ke skladbě — příště se načte sám.</p>
         </>
       )}
 

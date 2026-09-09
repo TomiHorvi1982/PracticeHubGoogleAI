@@ -71,11 +71,11 @@ export const PractiseHubSection: React.FC = () => {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <Ikona className="w-4 h-4 shrink-0" style={{ color: je ? m.barva : '#8e8e93' }} />
-                  <span className={`text-xs font-bold ${je ? 'text-white' : 'text-neutral-400'}`}>
+                  <span className={`text-xs font-bold ${je ? 'text-white' : 'text-pismo-tlum'}`}>
                     {m.nazev}
                   </span>
                 </div>
-                <p className="text-stitek text-neutral-500 leading-snug">{m.popis}</p>
+                <p className="text-stitek text-pismo-slaby leading-snug">{m.popis}</p>
               </button>
             );
           })}

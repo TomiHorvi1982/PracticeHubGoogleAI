@@ -57,7 +57,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
     <div
       onClick={onClick}
       className={`inline-flex flex-col items-center bg-plocha-3 border border-white/[0.08] rounded-xl p-2 font-sans transition-all select-none shadow-sm ${
-        onClick ? 'cursor-pointer hover:border-white/20 hover:bg-[#252528] active:scale-[0.98]' : ''
+        onClick ? 'cursor-pointer hover:border-white/20 hover:bg-[var(--color-plocha-3)] active:scale-[0.98]' : ''
       } ${className}`}
     >
       {/* Title & Play Header */}
@@ -69,7 +69,7 @@ export const GuitarChordDiagram: React.FC<GuitarChordDiagramProps> = ({
           {showPlayButton && (
             <button
               onClick={handlePlaySound}
-              className="p-1 text-neutral-400 hover:text-znacka hover:bg-white/10 rounded-md transition-colors cursor-pointer"
+              className="p-1 text-pismo-tlum hover:text-znacka hover:bg-white/10 rounded-md transition-colors cursor-pointer"
               title="Přehrát akord"
             >
               <Volume2 className="w-3.5 h-3.5" />

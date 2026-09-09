@@ -77,7 +77,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
         onClick={handleClick}
         className={`inline-block font-semibold px-2.5 py-0.5 mx-0.5 cursor-pointer rounded-lg border transition-all select-none shadow-sm ${
           isActiveLine
-            ? 'bg-znacka text-black border-znacka scale-105 shadow-md z-10 font-bold'
+            ? 'zlata-plocha border-znacka scale-105 shadow-md z-10 font-bold'
             : 'bg-white/10 text-white hover:bg-znacka hover:text-black border-white/15'
         }`}
         style={{ fontSize: `${Math.max(13, fontSize * 0.92)}px` }}
@@ -129,7 +129,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                 className="flex flex-col items-center bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/20 p-1.5 cursor-pointer transition-all rounded-xl group"
                 title={`Přehrát ${v.label}`}
               >
-                <span className="text-stitek font-medium text-neutral-400 mb-1 text-center truncate w-full group-hover:text-white">
+                <span className="text-stitek font-medium text-pismo-tlum mb-1 text-center truncate w-full group-hover:text-white">
                   {i === 0 ? 'Základní' : i === 1 ? 'Barre E' : 'Barre A'}
                 </span>
                 <GuitarChordDiagram
@@ -138,7 +138,7 @@ export const ChordHoverPill: React.FC<ChordHoverPillProps> = ({
                   showTitle={false}
                   showPlayButton={false}
                 />
-                <span className="text-stitek text-neutral-400 group-hover:text-znacka mt-1 font-medium flex items-center gap-0.5">
+                <span className="text-stitek text-pismo-tlum group-hover:text-znacka mt-1 font-medium flex items-center gap-0.5">
                   <Volume2 className="w-2.5 h-2.5" /> Hrát
                 </span>
               </div>

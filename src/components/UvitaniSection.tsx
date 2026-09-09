@@ -303,13 +303,13 @@ const KDYKOLI: { nadpis: string; popis: string; kam: MainTabType }[] = [
 export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
   <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6">
     <div className="bg-gradient-to-br from-znacka/15 to-transparent border border-znacka/25 rounded-3xl p-6 sm:p-8">
-      <span className="odznak bg-znacka text-black px-2.5 py-0.5 rounded-md">
-        NeverLate Studio
+      <span className="odznak zlata-plocha px-2.5 py-0.5 rounded-md">
+        Neverlast Studio
       </span>
       <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mt-3">
         {jmeno ? `Vítej, ${jmeno}.` : 'Vítej.'}
       </h1>
-      <p className="text-sm text-neutral-300 mt-2 max-w-2xl leading-relaxed">
+      <p className="text-sm text-pismo mt-2 max-w-2xl leading-relaxed">
         Zkušebna pro kapelu na jednom místě: od nalezení písně přes přípravu materiálů až po
         odehrání na pódiu. Níž je cesta, jak se to používá — sedm kroků, každý s tlačítkem
         rovnou tam.
@@ -330,12 +330,12 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
         >
           <Nahled druh={k.nahled} />
           <div className="flex items-start gap-2.5 flex-1">
-            <span className="w-6 h-6 rounded-lg bg-znacka text-black text-xs font-extrabold flex items-center justify-center shrink-0">
+            <span className="w-6 h-6 rounded-lg zlata-plocha text-xs font-extrabold flex items-center justify-center shrink-0">
               {k.cislo}
             </span>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-white">{k.nadpis}</h3>
-              <p className="text-drobne text-neutral-400 leading-relaxed mt-1">{k.popis}</p>
+              <p className="text-drobne text-pismo-tlum leading-relaxed mt-1">{k.popis}</p>
             </div>
           </div>
           <button
@@ -360,7 +360,7 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
             className="text-left px-3 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-znacka/50 cursor-pointer transition-all"
           >
             <div className="text-drobne font-bold text-white">{v.nadpis}</div>
-            <div className="text-stitek text-neutral-500 leading-snug mt-0.5">{v.popis}</div>
+            <div className="text-stitek text-pismo-slaby leading-snug mt-0.5">{v.popis}</div>
           </button>
         ))}
       </div>

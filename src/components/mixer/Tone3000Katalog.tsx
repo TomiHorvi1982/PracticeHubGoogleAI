@@ -253,7 +253,7 @@ export const Tone3000Katalog: React.FC = () => {
         {hlavicka}
         <div className="px-3 py-4 space-y-3">
           <p className="text-drobne text-pismo-tlum">
-            NeverLate Studio je propojený s TONE3000 — knihovnou nasnímaných aparátů
+            Neverlast Studio je propojené s TONE3000 — knihovnou nasnímaných aparátů
             (Neural Amp Modeler) a impulzů beden ze skutečné techniky, kterou plní
             muzikanti z celého světa.
           </p>

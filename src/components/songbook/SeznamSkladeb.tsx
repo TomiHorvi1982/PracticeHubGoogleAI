@@ -333,7 +333,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
             className={`px-2.5 py-1 rounded-lg text-stitek font-semibold border cursor-pointer transition-all ${
               vyberRezim
                 ? 'bg-znacka/15 text-znacka border-znacka/40'
-                : 'bg-white/[0.04] text-neutral-400 border-white/10 hover:text-white'
+                : 'bg-white/[0.04] text-pismo-tlum border-white/10 hover:text-white'
             }`}
           >
             {vyberRezim ? 'Zrušit výběr' : 'Vybrat víc skladeb'}
@@ -341,7 +341,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
 
           {vyberRezim && (
             <>
-              <span className="text-stitek text-neutral-500">
+              <span className="text-stitek text-pismo-slaby">
                 {oznacene.size === 0 ? 'nic nevybráno' : `vybráno ${oznacene.size}`}
               </span>
               <button
@@ -455,7 +455,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
               className={`px-2 py-1 rounded-lg text-stitek font-semibold border cursor-pointer transition-all flex items-center gap-1.5 ${
                 zap
                   ? 'bg-znacka/15 text-znacka border-znacka/40'
-                  : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
+                  : 'bg-white/[0.04] text-pismo-tlum border-white/[0.08] hover:text-white'
               }`}
               title={zap ? `Skrýt sloupec ${m.popis}` : `Ukázat sloupec ${m.popis}`}
             >
@@ -475,7 +475,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
         {/* Hlavička drží u horního okraje, aby se při rolování vědělo,
             který sloupec je který. */}
         <div
-          className="odznak grid gap-2 px-3 py-1.5 sticky top-0 z-10 bg-[#101014] border-b border-white/[0.08] text-neutral-500"
+          className="odznak grid gap-2 px-3 py-1.5 sticky top-0 z-10 bg-[#101014] border-b border-white/[0.08] text-pismo-slaby"
           style={mrizka}
         >
           {vyberRezim && (
@@ -487,7 +487,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     : new Set(serazene.map((x) => x.id)),
                 )
               }
-              className="text-neutral-400 hover:text-white cursor-pointer"
+              className="text-pismo-tlum hover:text-white cursor-pointer"
               title={oznacene.size === serazene.length ? 'Zrušit výběr' : 'Vybrat všechny'}
             >
               {oznacene.size === serazene.length && serazene.length > 0 ? '☑' : '☐'}
@@ -513,7 +513,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
         </div>
 
         {serazene.length === 0 && (
-          <div className="p-6 text-center text-drobne text-neutral-500">Zatím tu nic není.</div>
+          <div className="p-6 text-center text-drobne text-pismo-slaby">Zatím tu nic není.</div>
         )}
 
         {serazene.map((s) => {
@@ -549,7 +549,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       });
                     }}
                     className={`text-drobne cursor-pointer ${
-                      oznacene.has(s.id) ? 'text-znacka' : 'text-neutral-600 hover:text-white'
+                      oznacene.has(s.id) ? 'text-znacka' : 'text-pismo-slaby hover:text-white'
                     }`}
                   >
                     {oznacene.has(s.id) ? '☑' : '☐'}
@@ -597,7 +597,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   <span
                     key={k}
                     className={`text-drobne truncate ${
-                      razeni === k ? 'text-neutral-200' : 'text-neutral-500'
+                      razeni === k ? 'text-pismo' : 'text-pismo-slaby'
                     } ${k === 'tempo' ? 'tabular-nums' : ''}`}
                   >
                     {hodnota(s, k) || <span className="text-neutral-700">—</span>}
@@ -615,7 +615,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       rozbal(s.id);
                     }}
                     className={`p-1.5 rounded-lg hover:bg-white/10 cursor-pointer transition-all ${
-                      otevreny ? 'text-znacka' : 'text-neutral-500 hover:text-white'
+                      otevreny ? 'text-znacka' : 'text-pismo-slaby hover:text-white'
                     }`}
                     title={otevreny ? 'Skrýt detail' : 'Ukázat detail'}
                   >
@@ -633,7 +633,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     className={`p-1.5 rounded-lg cursor-pointer transition-all ${
                       doplnovana === s.id
                         ? 'bg-uspech/15 text-uspech'
-                        : 'hover:bg-white/10 text-neutral-500 hover:text-uspech'
+                        : 'hover:bg-white/10 text-pismo-slaby hover:text-uspech'
                     }`}
                     title="Doplnit materiály — tabulatury, text, MIDI, stopy…"
                   >
@@ -649,7 +649,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                       className={`p-1.5 rounded-lg cursor-pointer transition-all disabled:cursor-default ${
                         videoHotovo.has(s.id)
                           ? 'text-uspech'
-                          : 'hover:bg-white/10 text-neutral-500 hover:text-chyba'
+                          : 'hover:bg-white/10 text-pismo-slaby hover:text-chyba'
                       }`}
                       title={videoHotovo.has(s.id)
                         ? 'Zařazeno — video se dohledá na pozadí'
@@ -662,7 +662,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                     <button
                       onClick={(e) => void stahni(s, e)}
                       disabled={stahujeSe === s.id}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-info cursor-pointer transition-all disabled:opacity-40"
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-info cursor-pointer transition-all disabled:opacity-40"
                       title={`Stáhnout do počítače (${souboru(s.attachments!.length)})`}
                     >
                       <Download className={`w-3.5 h-3.5 ${stahujeSe === s.id ? 'animate-pulse' : ''}`} />
@@ -671,7 +671,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   {onNahratAudio && (
                     <label
                       onClick={(e) => e.stopPropagation()}
-                      className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-nastroj cursor-pointer transition-all inline-flex"
+                      className="p-1.5 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-nastroj cursor-pointer transition-all inline-flex"
                       title="Přidat k písni zvuk z počítače — uloží se i do knihovny"
                     >
                       <Music className="w-3.5 h-3.5" />
@@ -695,14 +695,14 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   )}
                   <button
                     onClick={(e) => onDoPlaylistu(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-znacka cursor-pointer transition-all"
+                    className="p-1.5 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-znacka cursor-pointer transition-all"
                     title="Přidat do playlistu"
                   >
                     <ListPlus className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={(e) => onSmazat(s, e)}
-                    className="p-1.5 rounded-lg hover:bg-chyba/20 text-neutral-500 hover:text-chyba cursor-pointer transition-all"
+                    className="p-1.5 rounded-lg hover:bg-chyba/20 text-pismo-slaby hover:text-chyba cursor-pointer transition-all"
                     title="Smazat"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -754,17 +754,17 @@ export const SeznamSkladeb: React.FC<Props> = ({
                   {otevreny && (
                     <div className="flex flex-wrap gap-1">
                       {jazyk && (
-                        <span className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
+                        <span className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-pismo-tlum">
                           {jazyk}
                         </span>
                       )}
                       {(s.attachments?.length || 0) > 0 && (
-                        <span className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
+                        <span className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-pismo-tlum">
                           {s.attachments!.length}× příloha
                         </span>
                       )}
                       {s.nazevAlba && (
-                        <span className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400">
+                        <span className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-pismo-tlum">
                           album: {s.nazevAlba}
                         </span>
                       )}

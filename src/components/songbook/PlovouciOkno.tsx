@@ -103,11 +103,11 @@ export function PlovouciOkno<T extends Geometrie>({
         height: okno.sbalene ? undefined : okno.vyska,
         zIndex: 10 + okno.poradi,
       }}
-      className="absolute bg-plocha-2 border border-white/[0.12] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+      className="absolute karta flex flex-col overflow-hidden"
     >
       <div
         onMouseDown={(e) => start(e, 'posun')}
-        className="h-8 px-2.5 flex items-center gap-2 bg-black/40 border-b border-white/[0.08] cursor-grab active:cursor-grabbing select-none shrink-0"
+        className="h-8 px-2.5 flex items-center gap-2 bg-podklad/60 border-b border-kresba cursor-grab active:cursor-grabbing select-none shrink-0"
       >
         <span className="text-sm leading-none">{popis.ikona}</span>
         <span className="text-drobne font-bold text-white truncate flex-1">{popis.nazev}</span>
@@ -116,7 +116,7 @@ export function PlovouciOkno<T extends Geometrie>({
             e.stopPropagation();
             onZmena({ ...okno, sbalene: !okno.sbalene });
           }}
-          className="p-1 rounded hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
+          className="p-1 rounded hover:bg-white/10 text-pismo-tlum hover:text-white cursor-pointer"
           title={okno.sbalene ? 'Rozbalit' : 'Sbalit'}
         >
           {okno.sbalene ? <Square className="w-3 h-3" /> : <Minus className="w-3 h-3" />}
@@ -126,7 +126,7 @@ export function PlovouciOkno<T extends Geometrie>({
             e.stopPropagation();
             onZavrit(okno.id);
           }}
-          className="p-1 rounded hover:bg-chyba/25 text-neutral-400 hover:text-chyba cursor-pointer"
+          className="p-1 rounded hover:bg-chyba/25 text-pismo-tlum hover:text-chyba cursor-pointer"
           title="Zavřít"
         >
           <X className="w-3 h-3" />

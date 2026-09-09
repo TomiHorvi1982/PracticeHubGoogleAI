@@ -285,7 +285,7 @@ export const Podium: React.FC<Props> = ({
       <button
         onClick={() => prepni(-1)}
         disabled={vPlaylistu.length === 0}
-        className={`rounded-xl bg-white/[0.06] hover:bg-white/[0.14] text-neutral-300 hover:text-white cursor-pointer transition-all disabled:opacity-25 disabled:cursor-not-allowed ${
+        className={`rounded-xl bg-white/[0.06] hover:bg-white/[0.14] text-pismo hover:text-white cursor-pointer transition-all disabled:opacity-25 disabled:cursor-not-allowed ${
           velke ? 'p-3' : 'p-2'
         }`}
         title="Předchozí skladba"
@@ -297,7 +297,7 @@ export const Podium: React.FC<Props> = ({
         onClick={spust}
         disabled={!aktivni}
         className={`rounded-2xl font-bold flex items-center justify-center cursor-pointer transition-all disabled:opacity-30 ${
-          hraje ? 'bg-uspech text-black' : 'bg-znacka text-black hover:bg-znacka/85'
+          hraje ? 'bg-uspech text-black' : 'zlata-plocha hover:bg-znacka/85'
         } ${velke ? 'w-20 h-20' : 'w-11 h-11'}`}
         title={hraje ? 'Zastavit' : `Spustit s odpočtem ${TAKTY_ODPOCTU} taktů`}
       >
@@ -315,7 +315,7 @@ export const Podium: React.FC<Props> = ({
       <button
         onClick={() => prepni(1)}
         disabled={vPlaylistu.length === 0}
-        className={`rounded-xl bg-white/[0.06] hover:bg-white/[0.14] text-neutral-300 hover:text-white cursor-pointer transition-all disabled:opacity-25 disabled:cursor-not-allowed ${
+        className={`rounded-xl bg-white/[0.06] hover:bg-white/[0.14] text-pismo hover:text-white cursor-pointer transition-all disabled:opacity-25 disabled:cursor-not-allowed ${
           velke ? 'p-3' : 'p-2'
         }`}
         title="Další skladba"
@@ -352,7 +352,7 @@ export const Podium: React.FC<Props> = ({
   const seznam = (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
       {vPlaylistu.length === 0 ? (
-        <p className="text-drobne text-neutral-600">
+        <p className="text-drobne text-pismo-slaby">
           Set list je prázdný. Přidej skladby ikonou v seznamu vpravo.
         </p>
       ) : (
@@ -385,15 +385,15 @@ export const Podium: React.FC<Props> = ({
                     : 'K téhle písni sis ještě nic nenastavil'
                 }
               >
-                <span className="text-stitek font-mono text-neutral-600 tabular-nums w-4 shrink-0 text-right">
+                <span className="text-stitek font-mono text-pismo-slaby tabular-nums w-4 shrink-0 text-right">
                   {i + 1}
                 </span>
                 <ObalkyPisne song={s} />
                 <span className="min-w-0 flex-1">
-                  <span className={`block truncate text-drobne ${je ? 'text-white font-bold' : 'text-neutral-300'}`}>
+                  <span className={`block truncate text-drobne ${je ? 'text-white font-bold' : 'text-pismo'}`}>
                     {s.title}
                   </span>
-                  <span className="flex items-center gap-1.5 text-stitek text-neutral-500">
+                  <span className="flex items-center gap-1.5 text-stitek text-pismo-slaby">
                     <span className="truncate">{s.artist}</span>
                     {s.bpm ? <span className="font-mono tabular-nums shrink-0">{s.bpm}</span> : null}
                     {/* Fajfka říká, že u téhle písně už je naklikáno, co
@@ -411,7 +411,7 @@ export const Podium: React.FC<Props> = ({
                   <button
                     onClick={() => onPresunoutVSetu(playlist.id, i, i - 1)}
                     disabled={i === 0}
-                    className="px-1 rounded text-neutral-600 hover:text-white hover:bg-white/10 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    className="px-1 rounded text-pismo-slaby hover:text-white hover:bg-white/10 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                     title={`Posunout „${s.title}" výš`}
                     aria-label={`Posunout ${s.title} výš`}
                   >
@@ -420,7 +420,7 @@ export const Podium: React.FC<Props> = ({
                   <button
                     onClick={() => onPresunoutVSetu(playlist.id, i, i + 1)}
                     disabled={i === vPlaylistu.length - 1}
-                    className="px-1 rounded text-neutral-600 hover:text-white hover:bg-white/10 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
+                    className="px-1 rounded text-pismo-slaby hover:text-white hover:bg-white/10 cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed"
                     title={`Posunout „${s.title}" níž`}
                     aria-label={`Posunout ${s.title} níž`}
                   >
@@ -432,7 +432,7 @@ export const Podium: React.FC<Props> = ({
               {onOdebratZeSetu && playlist && (
                 <button
                   onClick={() => onOdebratZeSetu(playlist.id, s)}
-                  className="p-1.5 rounded-lg text-neutral-600 hover:text-chyba hover:bg-chyba/10 cursor-pointer shrink-0 transition-all"
+                  className="p-1.5 rounded-lg text-pismo-slaby hover:text-chyba hover:bg-chyba/10 cursor-pointer shrink-0 transition-all"
                   title={`Odebrat „${s.title}" ze setu`}
                   aria-label={`Odebrat ${s.title} ze setu`}
                 >
@@ -451,7 +451,7 @@ export const Podium: React.FC<Props> = ({
       <div className="flex items-center gap-2 min-w-0">
         <button
           onClick={() => setSeznamOtevreny((o) => !o)}
-          className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+          className="p-1 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer shrink-0"
           title={seznamOtevreny ? 'Sbalit seznam' : 'Rozbalit seznam'}
         >
           {seznamOtevreny ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
@@ -493,13 +493,13 @@ export const Podium: React.FC<Props> = ({
       <div className="fixed inset-0 z-[100] bg-podklad text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <span className="odznak bg-znacka text-black px-2.5 py-0.5 rounded-md">
+            <span className="odznak zlata-plocha px-2.5 py-0.5 rounded-md">
               Pódiový režim
             </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5 truncate">
               {aktivni?.title || 'Vyber skladbu'}
             </h1>
-            <p className="text-xs text-neutral-400">{aktivni?.artist}</p>
+            <p className="text-xs text-pismo-tlum">{aktivni?.artist}</p>
           </div>
 
           {/* Ovládání uprostřed nahoře — na pódiu se hledá palcem, ne očima. */}
@@ -541,7 +541,7 @@ export const Podium: React.FC<Props> = ({
             <h1 className="text-lg sm:text-2xl font-bold text-white tracking-tight truncate">
               {aktivni?.title || 'Vyber skladbu z playlistu'}
             </h1>
-            <p className="text-xs text-neutral-400 truncate">{aktivni?.artist}</p>
+            <p className="text-xs text-pismo-tlum truncate">{aktivni?.artist}</p>
           </div>
 
           {mimoSet && onPridatDoSetu && (

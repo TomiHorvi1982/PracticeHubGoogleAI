@@ -95,11 +95,11 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between mb-3 border-b border-kresba pb-2">
           <div className="flex items-center gap-2">
-            <span className="odznak bg-[#00FF41] text-black px-2 py-0.5">
+            <span className="odznak bg-[var(--color-uspech)] text-black px-2 py-0.5">
               ONLINE_API
             </span>
             <h2 className="nadpis-panelu flex items-center gap-1.5">
-              <Globe className="w-4 h-4 text-[#00FF41]" />
+              <Globe className="w-4 h-4 text-[var(--color-uspech)]" />
               ONLINE HLEDÁNÍ AKORDŮ (FREETAR.DE & PISNICKY-AKORDY.CZ)
             </h2>
           </div>
@@ -121,13 +121,13 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                 placeholder="ZADEJTE NÁZEV PÍSNĚ NEBO VLOŽTE LINK Z FREETAR.DE / PISNICKY-AKORDY.CZ..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                className="w-full bg-vhloubeni border border-kresba text-white pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#00FF41] uppercase"
+                className="w-full bg-vhloubeni border border-kresba text-white pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[var(--color-uspech)] uppercase"
               />
             </div>
             <button
               type="submit"
               disabled={isLoading || !query.trim()}
-              className="px-4 py-2 bg-[#00FF41] hover:bg-white disabled:opacity-40 text-black font-extrabold text-xs uppercase flex items-center gap-1.5 transition-none shrink-0"
+              className="px-4 py-2 bg-[var(--color-uspech)] hover:bg-white disabled:opacity-40 text-black font-extrabold text-xs uppercase flex items-center gap-1.5 transition-none shrink-0"
             >
               {isLoading ? (
                 <>
@@ -158,7 +158,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                 key={q}
                 type="button"
                 onClick={() => handleQuickSearch(q)}
-                className="px-2 py-0.5 bg-[#141414] hover:bg-kresba text-pismo-tlum hover:text-white border border-kresba uppercase whitespace-nowrap"
+                className="px-2 py-0.5 bg-[var(--color-plocha-2)] hover:bg-kresba text-pismo-tlum hover:text-white border border-kresba uppercase whitespace-nowrap"
               >
                 {q}
               </button>
@@ -168,7 +168,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
         {/* Error Notification */}
         {error && (
-          <div className="odznak bg-[#2B0000] border border-[#FF3E00] p-2.5 text-[#FF3E00] mb-3 font-mono">
+          <div className="odznak bg-[var(--color-plocha-1)] border border-[var(--color-pozor)] p-2.5 text-[var(--color-pozor)] mb-3 font-mono">
             {error}
           </div>
         )}
@@ -177,7 +177,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
         <div className="flex-1 overflow-y-auto space-y-3 pr-1 min-h-[250px]">
           {isLoading && (
             <div className="p-8 text-center space-y-3 text-pismo-tlum">
-              <Loader2 className="w-8 h-8 text-[#00FF41] animate-spin mx-auto" />
+              <Loader2 className="w-8 h-8 text-[var(--color-uspech)] animate-spin mx-auto" />
               <p className="text-xs font-mono uppercase">
                 PŘIPOJOVÁNÍ K WEBU FREETAR.DE / PISNICKY-AKORDY.CZ A FORMÁTOVÁNÍ AKORDŮ...
               </p>
@@ -186,7 +186,7 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
 
           {!isLoading && results.length === 0 && !error && (
             <div className="p-8 text-center text-[#555] border border-dashed border-kresba bg-vhloubeni">
-              <Globe className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#00FF41]" />
+              <Globe className="w-8 h-8 mx-auto mb-2 opacity-30 text-[var(--color-uspech)]" />
               <p className="stitek-pole">
                 VYHLEDEJTE PÍSNIČKU NEBO VLOŽTE URL ADRESU S AKORDY
               </p>
@@ -199,14 +199,14 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
           {results.map((song, idx) => (
             <div
               key={idx}
-              className="bg-vhloubeni border border-kresba hover:border-[#00FF41] p-4 space-y-3 transition-none"
+              className="bg-vhloubeni border border-kresba hover:border-[var(--color-uspech)] p-4 space-y-3 transition-none"
             >
               {/* Song Title & Meta Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-plocha-2 pb-2">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="nadpis-panelu">{song.title}</h3>
-                    <span className="odznak text-[#00FF41] bg-[#002B0E] px-2 py-0.5 border border-[#00FF41]/40">
+                    <span className="odznak text-[var(--color-uspech)] bg-[var(--color-plocha-1)] px-2 py-0.5 border border-[var(--color-uspech)]/40">
                       TÓNINA: {song.key}
                     </span>
                     {song.youtubeVideos && song.youtubeVideos.length > 0 && (
@@ -223,8 +223,8 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
                   onClick={() => importSong(song)}
                   className={`px-4 py-2 font-extrabold text-xs uppercase flex items-center gap-1.5 border transition-none shrink-0 ${
                     importedId
-                      ? 'bg-[#002B0E] border-[#00FF41] text-[#00FF41]'
-                      : 'bg-[#FF3E00] hover:bg-white text-black border-black'
+                      ? 'bg-[var(--color-plocha-1)] border-[var(--color-uspech)] text-[var(--color-uspech)]'
+                      : 'bg-[var(--color-pozor)] hover:bg-white text-black border-black'
                   }`}
                 >
                   {importedId ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -235,14 +235,14 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               {/* Source Tag */}
               {song.sourceName && (
                 <div className="flex items-center gap-1 text-stitek text-pismo-slaby">
-                  <ExternalLink className="w-3 h-3 text-[#00FF41]" />
+                  <ExternalLink className="w-3 h-3 text-[var(--color-uspech)]" />
                   <span>ZDROJ: {song.sourceName}</span>
                   {song.sourceUrl && (
                     <a
                       href={song.sourceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-pismo-tlum hover:text-[#00FF41] underline ml-1 truncate max-w-xs"
+                      className="text-pismo-tlum hover:text-[var(--color-uspech)] underline ml-1 truncate max-w-xs"
                     >
                       {song.sourceUrl}
                     </a>

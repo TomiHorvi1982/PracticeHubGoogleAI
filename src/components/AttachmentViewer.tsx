@@ -108,13 +108,13 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'pdf':
-        return <FileText className="w-4 h-4 text-[#FF3E00]" />;
+        return <FileText className="w-4 h-4 text-[var(--color-pozor)]" />;
       case 'midi':
-        return <Music className="w-4 h-4 text-[#00E5FF]" />;
+        return <Music className="w-4 h-4 text-[var(--color-info)]" />;
       case 'guitarpro':
         return <FileSpreadsheet className="w-4 h-4 text-[#FFD700]" />;
       case 'txt':
-        return <Layers className="w-4 h-4 text-[#00FF41]" />;
+        return <Layers className="w-4 h-4 text-[var(--color-uspech)]" />;
       case 'image':
         return <ImageIcon className="w-4 h-4 text-[#FF0055]" />;
       default:
@@ -148,7 +148,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-3 py-1.5 bg-[#141414] hover:bg-plocha-2 border border-kresba-silna hover:border-[#FF3E00] text-[#FF3E00] font-bold text-xs uppercase inline-flex items-center gap-1.5"
+            className="px-3 py-1.5 bg-[var(--color-plocha-2)] hover:bg-plocha-2 border border-kresba-silna hover:border-[var(--color-pozor)] text-[var(--color-pozor)] font-bold text-xs uppercase inline-flex items-center gap-1.5"
           >
             <FileUp className="w-3.5 h-3.5" /> PŘIPOJIT SOUBOR S TABULATUROU NEBO PDF
           </button>
@@ -171,7 +171,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                 onClick={() => setSelectedAttId(att.id)}
                 className={`px-2.5 py-1 text-xs font-bold uppercase flex items-center gap-1.5 border transition-none shrink-0 ${
                   isSelected
-                    ? 'bg-plocha-2 border-[#00FF41] text-[#00FF41]'
+                    ? 'bg-plocha-2 border-[var(--color-uspech)] text-[var(--color-uspech)]'
                     : 'bg-vhloubeni border-kresba text-pismo-tlum hover:text-white'
                 }`}
               >
@@ -185,7 +185,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
         {onOpenImportModal && (
           <button
             onClick={onOpenImportModal}
-            className="px-2 py-1 bg-plocha-2 hover:bg-kresba border border-kresba-silna text-stitek font-bold text-[#FF3E00] uppercase flex items-center gap-1 shrink-0"
+            className="px-2 py-1 bg-plocha-2 hover:bg-kresba border border-kresba-silna text-stitek font-bold text-[var(--color-pozor)] uppercase flex items-center gap-1 shrink-0"
           >
             <FileUp className="w-3 h-3" /> PŘIDAT SOUBOR
           </button>
@@ -210,7 +210,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               <a
                 href={activeAtt.dataUrl}
                 download={activeAtt.name}
-                className="px-2.5 py-1 bg-[#141414] hover:bg-plocha-2 border border-kresba-silna text-[#00FF41] text-stitek font-bold uppercase flex items-center gap-1"
+                className="px-2.5 py-1 bg-[var(--color-plocha-2)] hover:bg-plocha-2 border border-kresba-silna text-[var(--color-uspech)] text-stitek font-bold uppercase flex items-center gap-1"
               >
                 <Download className="w-3 h-3" /> STÁHNOUT SOUBOR
               </a>
@@ -218,7 +218,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               {onDeleteAttachment && (
                 <button
                   onClick={() => onDeleteAttachment(activeAtt.id)}
-                  className="p-1 text-pismo-slaby hover:text-[#FF3E00] border border-kresba hover:border-[#FF3E00]"
+                  className="p-1 text-pismo-slaby hover:text-[var(--color-pozor)] border border-kresba hover:border-[var(--color-pozor)]"
                   title="Smazat přílohu"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
               </div>
               {activeAtt.parsedData?.extractedText && (
                 <details className="bg-vhloubeni border border-kresba p-2 text-drobne text-pismo-tlum">
-                  <summary className="cursor-pointer font-bold uppercase text-[#00FF41]">
+                  <summary className="cursor-pointer font-bold uppercase text-[var(--color-uspech)]">
                     ZOBRAZIT EXTRACTOVANÝ TEXT Z PDF
                   </summary>
                   <pre className="mt-2 whitespace-pre-wrap font-mono text-stitek text-pismo-tlum">
@@ -251,12 +251,12 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
           )}
 
           {activeAtt.type === 'midi' && (
-            <div className="bg-[#00141D] border border-[#00E5FF]/40 p-4 space-y-3">
+            <div className="bg-[var(--color-plocha-1)] border border-[var(--color-info)]/40 p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Volume2 className="w-5 h-5 text-[#00E5FF]" />
+                  <Volume2 className="w-5 h-5 text-[var(--color-info)]" />
                   <div>
-                    <span className="text-xs font-extrabold text-[#00E5FF] uppercase">
+                    <span className="text-xs font-extrabold text-[var(--color-info)] uppercase">
                       INTERAKTIVNÍ MIDI PŘEHRÁVAČ
                     </span>
                     <p className="text-stitek text-[#A0F5FF]">
@@ -269,8 +269,8 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                   onClick={handleToggleMidiPlay}
                   className={`px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all ${
                     isPlayingMidi
-                      ? 'bg-[#FF3E00] text-black animate-pulse shadow-[0_0_15px_#FF3E00]'
-                      : 'bg-[#00E5FF] hover:bg-white text-black shadow-[0_0_15px_rgba(0,229,255,0.3)]'
+                      ? 'bg-[var(--color-pozor)] text-black animate-pulse shadow-[0_0_15px_rgba(255,159,67,0.6)]'
+                      : 'bg-[var(--color-info)] hover:bg-white text-black shadow-[0_0_15px_rgba(0,229,255,0.3)]'
                   }`}
                 >
                   {isPlayingMidi ? (
@@ -287,15 +287,15 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
 
               {/* Progress bar */}
               <div className="space-y-1">
-                <div className="w-full bg-vhloubeni h-2 border border-[#00E5FF]/30 relative overflow-hidden">
+                <div className="w-full bg-vhloubeni h-2 border border-[var(--color-info)]/30 relative overflow-hidden">
                   <div
-                    className="bg-[#00E5FF] h-full transition-all"
+                    className="bg-[var(--color-info)] h-full transition-all"
                     style={{
                       width: `${midiDuration > 0 ? (midiProgress / midiDuration) * 100 : 0}%`,
                     }}
                   />
                 </div>
-                <div className="flex justify-between text-stitek text-[#00E5FF]">
+                <div className="flex justify-between text-stitek text-[var(--color-info)]">
                   <span>{Math.floor(midiProgress)}s</span>
                   <span>{Math.floor(midiDuration)}s</span>
                 </div>
@@ -303,7 +303,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
 
               {/* MIDI Track List */}
               {activeAtt.parsedData?.trackNames && activeAtt.parsedData.trackNames.length > 0 && (
-                <div className="text-stitek text-[#A0F5FF] bg-black/40 p-2 border border-[#00E5FF]/20">
+                <div className="text-stitek text-[#A0F5FF] bg-black/40 p-2 border border-[var(--color-info)]/20">
                   <span className="font-bold uppercase block mb-1">
                     STOPY A NÁSTROJE SOUBORU ({activeAtt.parsedData.trackNames.length}):
                   </span>
@@ -311,7 +311,7 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     {activeAtt.parsedData.trackNames.map((trk, idx) => (
                       <span
                         key={idx}
-                        className="odznak bg-[#002D3A] px-2 py-0.5 border border-[#00E5FF]/40 text-white font-mono"
+                        className="odznak bg-plocha-1 px-2 py-0.5 border border-[var(--color-info)]/40 text-white font-mono"
                       >
                         🎹 {trk}
                       </span>
@@ -383,13 +383,13 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                   href={activeAtt.dataUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-stitek text-[#00FF41] hover:underline flex items-center gap-1 font-bold"
+                  className="text-stitek text-[var(--color-uspech)] hover:underline flex items-center gap-1 font-bold"
                 >
                   <ExternalLink className="w-3 h-3" /> PLNÁ VELIKOST
                 </a>
               </div>
 
-              <div className="w-full max-h-[500px] overflow-auto bg-[#000] border border-kresba-silna flex items-center justify-center p-2">
+              <div className="w-full max-h-[500px] overflow-auto bg-vhloubeni border border-kresba-silna flex items-center justify-center p-2">
                 <img
                   src={activeAtt.dataUrl}
                   alt={activeAtt.name}

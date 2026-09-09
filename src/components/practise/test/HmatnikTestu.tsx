@@ -46,7 +46,7 @@ export const HmatnikTestu: React.FC<{
             <span
               key={p}
               className={`text-center text-stitek tabular-nums ${
-                ZNACKY.includes(p) ? 'text-znacka font-bold' : 'text-neutral-600'
+                ZNACKY.includes(p) ? 'text-znacka font-bold' : 'text-pismo-slaby'
               }`}
             >
               {p}
@@ -60,7 +60,7 @@ export const HmatnikTestu: React.FC<{
             className="grid gap-[3px] mb-[3px]"
             style={{ gridTemplateColumns: `26px repeat(${PRAZCU + 1}, minmax(0,1fr))` }}
           >
-            <span className="text-stitek font-bold text-neutral-500 self-center">{s.nazev}</span>
+            <span className="text-stitek font-bold text-pismo-slaby self-center">{s.nazev}</span>
             {Array.from({ length: PRAZCU + 1 }, (_, prazec) => {
               const trida = Note.pitchClass(Note.fromMidi(s.midi + prazec));
               const jeCil = cilove.some((c) => stejnyTon(c, trida));

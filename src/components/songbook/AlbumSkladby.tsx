@@ -83,7 +83,7 @@ export const AlbumSkladby: React.FC<Props> = ({ interpret, nazev, drobne }) => {
         className={`rounded-lg shrink-0 transition-colors cursor-pointer inline-flex items-center justify-center
           min-h-dotyk min-w-dotyk lg:min-h-0 lg:min-w-0 p-1.5
           focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka ${
-          otevreno ? 'text-info bg-info/10' : 'text-neutral-500 hover:text-info hover:bg-info/10'
+          otevreno ? 'text-info bg-info/10' : 'text-pismo-slaby hover:text-info hover:bg-info/10'
         }`}
       >
         {nacitam
@@ -93,7 +93,7 @@ export const AlbumSkladby: React.FC<Props> = ({ interpret, nazev, drobne }) => {
 
       {otevreno && !nacitam && (
         <div className="basis-full mt-1.5 rounded-panel border border-kresba bg-plocha-1 p-3">
-          {chyba && <p className="text-drobne text-neutral-500">{chyba}</p>}
+          {chyba && <p className="text-drobne text-pismo-slaby">{chyba}</p>}
 
           {album && (
             <>
@@ -103,7 +103,7 @@ export const AlbumSkladby: React.FC<Props> = ({ interpret, nazev, drobne }) => {
                 )}
                 <div className="min-w-0">
                   <p className="text-drobne font-semibold text-white truncate">{album.nazev}</p>
-                  <p className="text-stitek text-neutral-500 tabular-nums">
+                  <p className="text-stitek text-pismo-slaby tabular-nums">
                     {album.stopy.length} {album.stopy.length === 1 ? 'skladba' : album.stopy.length < 5 ? 'skladby' : 'skladeb'}
                   </p>
                 </div>
@@ -115,15 +115,15 @@ export const AlbumSkladby: React.FC<Props> = ({ interpret, nazev, drobne }) => {
                   const tahle = s.nazev.toLowerCase() === nazev.toLowerCase();
                   return (
                     <div key={s.id} className="flex items-center gap-2 py-1">
-                      <span className="w-5 text-stitek font-mono text-neutral-600 tabular-nums shrink-0 text-right">
+                      <span className="w-5 text-stitek font-mono text-pismo-slaby tabular-nums shrink-0 text-right">
                         {s.poradi}
                       </span>
                       <span className={`flex-1 min-w-0 truncate text-drobne ${
-                        tahle ? 'text-znacka font-semibold' : 'text-neutral-300'
+                        tahle ? 'text-znacka font-semibold' : 'text-pismo'
                       }`}>
                         {s.nazev}
                       </span>
-                      <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{cas(s.delka)}</span>
+                      <span className="text-stitek text-pismo-slaby tabular-nums shrink-0">{cas(s.delka)}</span>
                       <DoPlaylistuTlacitko nazev={s.nazev} interpret={s.interpret || interpret} obal={album.obal} />
                     </div>
                   );

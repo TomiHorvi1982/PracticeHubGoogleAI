@@ -86,7 +86,7 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
   };
 
   return (
-    <div className="fixed inset-0 top-[112px] bg-[#0b0d12] flex flex-col">
+    <div className="fixed inset-0 top-[112px] bg-podklad flex flex-col">
       {/* Lišta plochy. Drží se nad okny, ať se k uložení dostaneš,
           i když máš plochu zaskládanou. */}
       <div className="shrink-0 flex flex-wrap items-center gap-1.5 px-3 py-2 border-b border-kresba bg-plocha-2/70">
@@ -129,7 +129,7 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
             />
             <button
               onClick={uloz}
-              className="px-2.5 py-1.5 rounded-xl text-drobne font-bold bg-znacka text-black cursor-pointer"
+              className="px-2.5 py-1.5 rounded-xl text-drobne font-bold zlata-plocha cursor-pointer"
             >
               Uložit
             </button>

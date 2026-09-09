@@ -74,13 +74,13 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
 
       <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0 pr-1">
         {nacitam && (
-          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
             <Loader2 className="w-3 h-3 animate-spin" /> Načítám vzkazy…
           </p>
         )}
 
         {!nacitam && vzkazy.length === 0 && (
-          <div className="text-center py-6 text-neutral-600 text-drobne flex flex-col items-center gap-1.5">
+          <div className="text-center py-6 text-pismo-slaby text-drobne flex flex-col items-center gap-1.5">
             <MessageSquare className="w-5 h-5 text-neutral-700" />
             Zatím tu nic není. Napiš, na co si u téhle písně dát pozor.
           </div>
@@ -96,7 +96,7 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
             >
               <div className="flex items-baseline gap-1.5">
                 <span className={`text-drobne font-bold ${b.text}`}>{v.author_name || 'Někdo'}</span>
-                <span className="text-stitek text-neutral-600 font-mono">{cas(v.created_at)}</span>
+                <span className="text-stitek text-pismo-slaby font-mono">{cas(v.created_at)}</span>
                 {moje && (
                   <button
                     onClick={() => {
@@ -109,7 +109,7 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
                   </button>
                 )}
               </div>
-              <p className="text-drobne text-neutral-200 whitespace-pre-wrap break-words">{v.body}</p>
+              <p className="text-drobne text-pismo whitespace-pre-wrap break-words">{v.body}</p>
             </div>
           );
         })}
@@ -127,7 +127,7 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
             }
           }}
           placeholder="Napiš vzkaz ke skladbě…"
-          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 text-drobne text-white placeholder-neutral-600 outline-none focus:border-znacka"
+          className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-1.5 text-drobne text-white placeholder-pismo-slaby outline-none focus:border-znacka"
         />
         <button
           onClick={() => void posli()}

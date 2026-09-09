@@ -88,13 +88,13 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
 
     switch (interval) {
       case 0:
-        return { label: 'R', role: 'Základní tón (Root)', color: 'bg-amber-500 text-slate-950 shadow-[0_0_12px_rgba(245,158,11,0.8)] border-amber-300' };
+        return { label: 'R', role: 'Základní tón (Root)', color: 'zlata-plocha shadow-[0_0_12px_rgba(245,158,11,0.8)] border-znacka-svetla' };
       case 1:
         return { label: 'b9', role: 'Malá nona (b9)', color: 'bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.6)] border-rose-300' };
       case 2:
-        return { label: '9', role: 'Velká nona / sekunda (9)', color: 'bg-cyan-500 text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.6)] border-cyan-300' };
+        return { label: '9', role: 'Velká nona / sekunda (9)', color: 'bg-info text-slate-950 shadow-[0_0_8px_rgba(6,182,212,0.6)] border-cyan-300' };
       case 3:
-        return { label: 'm3', role: 'Malá tercie (m3)', color: 'bg-emerald-500 text-slate-950 shadow-[0_0_10px_rgba(16,185,129,0.7)] border-emerald-300' };
+        return { label: 'm3', role: 'Malá tercie (m3)', color: 'bg-uspech text-slate-950 shadow-[0_0_10px_rgba(16,185,129,0.7)] border-emerald-300' };
       case 4:
         return { label: '3', role: 'Velká tercie (3)', color: 'bg-emerald-400 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.7)] border-emerald-200' };
       case 5:
@@ -104,7 +104,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
       case 7:
         return { label: '5', role: 'Čistá kvinta (5)', color: 'bg-blue-500 text-white shadow-[0_0_10px_rgba(59,130,246,0.7)] border-blue-300' };
       case 8:
-        return { label: '#5', role: 'Zvětšená kvinta (#5 / b13)', color: 'bg-purple-500 text-white shadow-[0_0_8px_rgba(168,85,247,0.6)] border-purple-300' };
+        return { label: '#5', role: 'Zvětšená kvinta (#5 / b13)', color: 'bg-nastroj text-white shadow-[0_0_8px_rgba(168,85,247,0.6)] border-purple-300' };
       case 9:
         return { label: '6', role: 'Sexta / 13 (6)', color: 'bg-indigo-400 text-slate-950 shadow-[0_0_8px_rgba(129,140,248,0.6)] border-indigo-200' };
       case 10:
@@ -232,11 +232,11 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
   }, [chordDef, getIntervalRole]);
 
   return (
-    <div className="flex-1 flex flex-col gap-3.5 text-slate-100 select-none">
+    <div className="flex-1 flex flex-col gap-3.5 text-pismo select-none">
       {/* 1. CHORD QUICK SELECTOR STRIP */}
       {songChords.length > 0 && (
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
-          <span className="text-drobne font-bold text-amber-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+          <span className="text-drobne font-bold text-znacka uppercase tracking-wider shrink-0 flex items-center gap-1">
             <Music className="w-3 h-3" /> Akordy písně:
           </span>
           <div className="flex items-center gap-1.5 flex-nowrap">
@@ -248,8 +248,8 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
                   onClick={() => handleSelectChord(chordName)}
                   className={`px-3 py-1 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer border ${
                     isSelected
-                      ? 'bg-amber-500 text-slate-950 border-amber-300 shadow-md shadow-amber-500/30 scale-105'
-                      : 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border-white/10 hover:border-white/20'
+                      ? 'zlata-plocha border-znacka-svetla shadow-md shadow-znacka/30 scale-105'
+                      : 'bg-white/[0.04] hover:bg-white/[0.08] text-pismo border-white/10 hover:border-white/20'
                   }`}
                   title={`Zobrazit akord ${chordName} na klaviatuře`}
                 >
@@ -262,17 +262,17 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
       )}
 
       {/* 2. CHORD ANALYSIS & PLAYBACK TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-inner">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-plocha-1/90 border border-kresba rounded-2xl shadow-inner">
         {/* Left: Active Chord Info & Notes */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-mono font-black text-base shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-znacka font-mono font-black text-base shadow-sm">
             {selectedChord || '—'}
           </div>
           <div>
             <div className="text-xs font-bold text-white flex items-center gap-2">
               <span>{chordDef ? `${chordDef.name} (${chordDef.type})` : 'Zvolte akord'}</span>
               {songKey && (
-                <span className="text-stitek px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
+                <span className="text-stitek px-1.5 py-0.5 rounded bg-plocha-2 text-pismo-tlum font-mono">
                   Tónina: {songKey}
                 </span>
               )}
@@ -297,7 +297,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
           {/* Play Chord Button */}
           <button
             onClick={() => playChordPreview(selectedChord || 'C')}
-            className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+            className="px-3 py-1.5 bg-gradient-to-r from-znacka to-znacka-tmava hover:from-znacka hover:to-znacka-tmava text-slate-950 font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
             title="Přehrát akord"
           >
             <Play className="w-3.5 h-3.5 fill-current" />
@@ -311,34 +311,34 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
             className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/10 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             title="Přehrát rozložený akord (arpeggio)"
           >
-            <Sparkles className={`w-3.5 h-3.5 text-amber-400 ${isPlayingArp ? 'animate-spin' : ''}`} />
+            <Sparkles className={`w-3.5 h-3.5 text-znacka ${isPlayingArp ? 'animate-spin' : ''}`} />
             <span>Arpeggio</span>
           </button>
 
           {/* Octave Range Selector */}
-          <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-xl border border-slate-800 text-xs">
-            <span className="text-drobne text-slate-400 font-medium">Oktáva:</span>
+          <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-xl border border-kresba text-xs">
+            <span className="text-drobne text-pismo-tlum font-medium">Oktáva:</span>
             <button
               onClick={() => setBaseOctave((o) => Math.max(2, o - 1))}
-              className="w-5 h-5 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-white font-bold rounded cursor-pointer"
+              className="w-5 h-5 flex items-center justify-center bg-plocha-2 hover:bg-plocha-3 text-white font-bold rounded cursor-pointer"
             >
               -
             </button>
-            <span className="font-mono font-bold text-amber-400 w-4 text-center">{baseOctave}</span>
+            <span className="font-mono font-bold text-znacka w-4 text-center">{baseOctave}</span>
             <button
               onClick={() => setBaseOctave((o) => Math.min(6, o + 1))}
-              className="w-5 h-5 flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-white font-bold rounded cursor-pointer"
+              className="w-5 h-5 flex items-center justify-center bg-plocha-2 hover:bg-plocha-3 text-white font-bold rounded cursor-pointer"
             >
               +
             </button>
           </div>
 
           {/* Display Mode Toggle */}
-          <div className="flex items-center bg-black/40 p-0.5 rounded-xl border border-slate-800 text-drobne">
+          <div className="flex items-center bg-black/40 p-0.5 rounded-xl border border-kresba text-drobne">
             <button
               onClick={() => setDisplayMode('both')}
               className={`px-2 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                displayMode === 'both' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
+                displayMode === 'both' ? 'zlata-plocha' : 'text-pismo-tlum hover:text-white'
               }`}
               title="Zobrazit tóny i intervaly"
             >
@@ -347,7 +347,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
             <button
               onClick={() => setDisplayMode('notes')}
               className={`px-2 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
-                displayMode === 'notes' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
+                displayMode === 'notes' ? 'zlata-plocha' : 'text-pismo-tlum hover:text-white'
               }`}
               title="Zobrazit pouze názvy tónů"
             >
@@ -358,8 +358,8 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
       </div>
 
       {/* 3. INTERACTIVE PIANO KEYBOARD STAGE */}
-      <div className="bg-[#0b0f19] border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center justify-center overflow-x-auto min-h-[220px] relative">
-        <div className="flex relative select-none shadow-2xl rounded-2xl overflow-hidden p-1 bg-[#151b2b] border border-slate-800">
+      <div className="bg-plocha-1 border border-kresba rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center justify-center overflow-x-auto min-h-[220px] relative">
+        <div className="flex relative select-none shadow-2xl rounded-2xl overflow-hidden p-1 bg-[#151b2b] border border-kresba">
           {octavesList.map((oct) => (
             <div key={oct} className="flex relative">
               {/* WHITE KEYS */}
@@ -375,20 +375,20 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
                   <button
                     key={noteName}
                     onClick={() => playKey(noteName)}
-                    className={`w-10 sm:w-12 h-40 sm:h-44 rounded-b-xl border border-neutral-800/80 font-bold flex flex-col justify-between items-center pb-2.5 pt-2 cursor-pointer transition-all duration-75 relative group ${
+                    className={`w-10 sm:w-12 h-40 sm:h-44 rounded-b-xl border border-kresba/80 font-bold flex flex-col justify-between items-center pb-2.5 pt-2 cursor-pointer transition-all duration-75 relative group ${
                       isDown
-                        ? 'bg-amber-400 text-slate-950 translate-y-1.5 shadow-inner'
+                        ? 'zlata-plocha translate-y-1.5 shadow-inner'
                         : isChordNote
                         ? isRoot
-                          ? 'bg-gradient-to-b from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 text-slate-950 border-amber-400 shadow-[0_4px_15px_rgba(245,158,11,0.25)] ring-2 ring-amber-400/40'
-                          : 'bg-gradient-to-b from-slate-100 to-amber-50/70 hover:from-white hover:to-amber-100 text-slate-900 border-amber-300/60 shadow-[0_4px_10px_rgba(245,158,11,0.15)] ring-1 ring-amber-400/30'
+                          ? 'bg-gradient-to-b from-amber-50 to-amber-100 hover:from-amber-100 hover:to-amber-200 text-slate-950 border-znacka shadow-[0_4px_15px_rgba(245,158,11,0.25)] ring-2 ring-znacka/40'
+                          : 'bg-gradient-to-b from-slate-100 to-amber-50/70 hover:from-white hover:to-amber-100 text-slate-900 border-znacka-svetla/60 shadow-[0_4px_10px_rgba(245,158,11,0.15)] ring-1 ring-znacka/30'
                         : 'bg-gradient-to-b from-white via-slate-100 to-slate-200 hover:bg-slate-100 text-neutral-700'
                     }`}
                   >
                     {/* Top Active LED bar */}
                     <div className="w-full px-1">
                       {isChordNote ? (
-                        <div className={`h-1.5 rounded-full ${isRoot ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-emerald-500'}`} />
+                        <div className={`h-1.5 rounded-full ${isRoot ? 'bg-znacka shadow-[0_0_8px_#f59e0b]' : 'bg-uspech'}`} />
                       ) : (
                         <div className="h-1.5 opacity-0" />
                       )}
@@ -437,18 +437,18 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
                     }}
                     className={`absolute top-0 w-7 sm:w-8 h-26 sm:h-28 rounded-b-lg font-bold flex flex-col justify-between items-center pb-2 pt-1.5 cursor-pointer z-10 transition-all duration-75 shadow-2xl group ${
                       isDown
-                        ? 'bg-amber-400 text-slate-950 translate-y-1 shadow-inner'
+                        ? 'zlata-plocha translate-y-1 shadow-inner'
                         : isChordNote
                         ? isRoot
-                          ? 'bg-gradient-to-b from-amber-600 via-amber-700 to-amber-950 text-white border-2 border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.6)] ring-2 ring-amber-400/50'
-                          : 'bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 text-amber-400 border border-amber-400/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] ring-1 ring-amber-400/40'
-                        : 'bg-gradient-to-b from-neutral-800 via-neutral-900 to-black text-slate-400 border border-neutral-700 hover:bg-neutral-800'
+                          ? 'bg-gradient-to-b from-amber-600 via-amber-700 to-amber-950 text-white border-2 border-znacka shadow-[0_0_16px_rgba(245,158,11,0.6)] ring-2 ring-znacka/50'
+                          : 'bg-gradient-to-b from-plocha-2 via-slate-900 to-podklad text-znacka border border-znacka/80 shadow-[0_0_12px_rgba(245,158,11,0.4)] ring-1 ring-znacka/40'
+                        : 'bg-gradient-to-b from-neutral-800 via-neutral-900 to-black text-pismo-tlum border border-kresba hover:bg-plocha-2'
                     }`}
                   >
                     {/* Top Glow Bar */}
                     <div className="w-full px-1">
                       {isChordNote ? (
-                        <div className={`h-1 rounded-full ${isRoot ? 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' : 'bg-emerald-400'}`} />
+                        <div className={`h-1 rounded-full ${isRoot ? 'bg-znacka shadow-[0_0_6px_#f59e0b]' : 'bg-emerald-400'}`} />
                       ) : (
                         <div className="h-1 opacity-0" />
                       )}
@@ -477,22 +477,22 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
         </div>
 
         {/* Legend Footnote */}
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-drobne text-slate-400 border-t border-slate-800/80 pt-3 w-full">
+        <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-drobne text-pismo-tlum border-t border-kresba/80 pt-3 w-full">
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded-full bg-amber-500 border border-amber-300 inline-block"></span>
-            <span className="font-semibold text-slate-300">Základní tón (Root)</span>
+            <span className="w-3.5 h-3.5 rounded-full bg-znacka border border-znacka-svetla inline-block"></span>
+            <span className="font-semibold text-pismo">Základní tón (Root)</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="w-3.5 h-3.5 rounded-full bg-emerald-500 border border-emerald-300 inline-block"></span>
-            <span className="font-semibold text-slate-300">Tercie (3 / m3)</span>
+            <span className="w-3.5 h-3.5 rounded-full bg-uspech border border-emerald-300 inline-block"></span>
+            <span className="font-semibold text-pismo">Tercie (3 / m3)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded-full bg-blue-500 border border-blue-300 inline-block"></span>
-            <span className="font-semibold text-slate-300">Kvinta (5)</span>
+            <span className="font-semibold text-pismo">Kvinta (5)</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-3.5 h-3.5 rounded-full bg-fuchsia-500 border border-fuchsia-300 inline-block"></span>
-            <span className="font-semibold text-slate-300">Septima a rozšíření (7 / 9)</span>
+            <span className="font-semibold text-pismo">Septima a rozšíření (7 / 9)</span>
           </div>
         </div>
       </div>

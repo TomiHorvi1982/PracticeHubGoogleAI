@@ -111,9 +111,9 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
                 </option>
               ))}
             </select>
-            <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-3 h-3 text-pismo-slaby absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-          <span className="text-stitek font-mono text-neutral-600 shrink-0">
+          <span className="text-stitek font-mono text-pismo-slaby shrink-0">
             {vybrana + 1}/{prilohy.length}
           </span>
         </div>
@@ -123,7 +123,7 @@ export const TabulaturaModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }
         {chyba ? (
           <p className="text-drobne text-chyba p-4 text-center">{chyba}</p>
         ) : !adresa ? (
-          <p className="text-drobne text-neutral-500 p-4 text-center">Načítám z úložiště…</p>
+          <p className="text-drobne text-pismo-slaby p-4 text-center">Načítám z úložiště…</p>
         ) : !jeGuitarPro(priloha.name) ? (
           <TextovaTabulatura
             url={adresa}
@@ -187,11 +187,11 @@ const TextovaTabulatura: React.FC<TextProps> = ({ url, text, nacitam, onNacti })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [url]);
 
-  if (nacitam) return <p className="text-drobne text-neutral-500 p-4 text-center">Načítám text…</p>;
-  if (!text) return <p className="text-drobne text-neutral-500 p-4 text-center">Prázdný soubor.</p>;
+  if (nacitam) return <p className="text-drobne text-pismo-slaby p-4 text-center">Načítám text…</p>;
+  if (!text) return <p className="text-drobne text-pismo-slaby p-4 text-center">Prázdný soubor.</p>;
 
   return (
-    <pre className="whitespace-pre font-mono text-drobne text-neutral-300 leading-snug p-3 overflow-auto">
+    <pre className="whitespace-pre font-mono text-drobne text-pismo leading-snug p-3 overflow-auto">
       {text}
     </pre>
   );

@@ -179,14 +179,14 @@ export const AkordyPanel: React.FC<Props> = ({
           <span className="text-xs font-bold text-znacka font-mono">{nazev}</span>
           <button
             onClick={() => zahraj(midi, true)}
-            className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-znacka cursor-pointer"
+            className="p-1 rounded-md hover:bg-white/10 text-pismo-slaby hover:text-znacka cursor-pointer"
             title="Zahrát na kytaru"
           >
             <Guitar className="w-3 h-3" />
           </button>
           <button
             onClick={() => zahraj(midi, false)}
-            className="p-1 rounded-md hover:bg-white/10 text-neutral-500 hover:text-znacka cursor-pointer"
+            className="p-1 rounded-md hover:bg-white/10 text-pismo-slaby hover:text-znacka cursor-pointer"
             title="Zahrát na klavír"
           >
             <Piano className="w-3 h-3" />
@@ -194,7 +194,7 @@ export const AkordyPanel: React.FC<Props> = ({
           {jeVlastni && (
             <button
               onClick={() => smaz(nazev)}
-              className="p-1 rounded-md hover:bg-chyba/20 text-neutral-600 hover:text-chyba cursor-pointer"
+              className="p-1 rounded-md hover:bg-chyba/20 text-pismo-slaby hover:text-chyba cursor-pointer"
               title="Odebrat vlastní akord"
             >
               <Trash2 className="w-3 h-3" />
@@ -220,8 +220,8 @@ export const AkordyPanel: React.FC<Props> = ({
               onClick={() => nastavZobrazeni(z.id)}
               className={`px-2 py-1 rounded-lg text-stitek font-bold flex items-center gap-1 cursor-pointer transition-all ${
                 zobrazeni === z.id
-                  ? 'bg-znacka text-black'
-                  : 'bg-white/[0.04] text-neutral-400 hover:text-white'
+                  ? 'zlata-plocha'
+                  : 'bg-white/[0.04] text-pismo-tlum hover:text-white'
               }`}
             >
               <Ikona className="w-3 h-3" /> {z.popis}
@@ -249,7 +249,7 @@ export const AkordyPanel: React.FC<Props> = ({
                 key={n.id}
                 onClick={() => setNaCem(n.id)}
                 className={`px-2 py-1 rounded-lg text-stitek font-semibold cursor-pointer ${
-                  naCem === n.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
+                  naCem === n.id ? 'bg-white/[0.14] text-white' : 'text-pismo-slaby hover:text-white'
                 }`}
               >
                 {n.popis}
@@ -316,7 +316,7 @@ export const AkordyPanel: React.FC<Props> = ({
                 />
               )}
               {tukane.length > 0 && (
-                <div className="text-stitek text-neutral-400 font-mono">
+                <div className="text-stitek text-pismo-tlum font-mono">
                   {[...new Set(tukane.map((m) => ((m % 12) + 12) % 12))]
                     .sort((a, b) => a - b)
                     .map((t) => ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][t])
@@ -340,17 +340,17 @@ export const AkordyPanel: React.FC<Props> = ({
                   >
                     {rozpoznany.nazev}
                   </span>
-                  <span className="text-stitek text-neutral-500">{rozpoznany.popis}</span>
+                  <span className="text-stitek text-pismo-slaby">{rozpoznany.popis}</span>
                 </div>
               ) : (
-                <span className="text-drobne text-neutral-600">Naťukej aspoň dva tóny.</span>
+                <span className="text-drobne text-pismo-slaby">Naťukej aspoň dva tóny.</span>
               )}
             </div>
 
             {rozpoznany && (
               <button
                 onClick={() => zahraj(tukane, naCem === 'hmatnik')}
-                className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.14] text-neutral-300 cursor-pointer"
+                className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.14] text-pismo cursor-pointer"
                 title="Poslechnout"
               >
                 <Volume2 className="w-3.5 h-3.5" />
@@ -378,7 +378,7 @@ export const AkordyPanel: React.FC<Props> = ({
       {vsechny.length > 0 ? (
         <div className="flex flex-wrap gap-2 p-1">{vsechny.map(karta)}</div>
       ) : (
-        <div className="text-center py-8 text-neutral-400 text-xs">
+        <div className="text-center py-8 text-pismo-tlum text-xs">
           V textu nebyly rozpoznány žádné akordy. Přidej si je tlačítkem nahoře.
         </div>
       )}

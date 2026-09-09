@@ -99,7 +99,7 @@ export const StupniceRoom: React.FC = () => {
               key={id}
               onClick={() => { zastav(); setRezim(id); }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-drobne font-bold cursor-pointer transition-colors ${
-                rezim === id ? 'bg-znacka text-black' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+                rezim === id ? 'zlata-plocha' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
               }`}
             >
               <Ikona className="w-3.5 h-3.5" />{popis}
@@ -254,7 +254,7 @@ export const StupniceRoom: React.FC = () => {
                     key={p}
                     className={`flex-1 h-5 rounded-sm border text-stitek flex items-center justify-center tabular-nums ${
                       hraneTeď
-                        ? 'bg-znacka text-black border-znacka font-bold'
+                        ? 'zlata-plocha border-znacka font-bold'
                         : vCviku
                           ? 'bg-znacka/20 border-znacka-okraj text-znacka'
                           : 'bg-transparent border-kresba-jemna text-transparent'

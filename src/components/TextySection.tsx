@@ -90,7 +90,7 @@ export const TextySection: React.FC = () => {
           <button
             onClick={() => setZalozka('psani')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              zalozka === 'psani' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              zalozka === 'psani' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
             }`}
           >
             <PenLine className="w-3.5 h-3.5" /> Psaní
@@ -98,7 +98,7 @@ export const TextySection: React.FC = () => {
           <button
             onClick={() => setZalozka('prepis')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              zalozka === 'prepis' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              zalozka === 'prepis' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
             }`}
           >
             <Mic className="w-3.5 h-3.5" /> Přepis z nahrávky
@@ -106,7 +106,7 @@ export const TextySection: React.FC = () => {
           <button
             onClick={() => setZalozka('diktovani')}
             className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer ${
-              zalozka === 'diktovani' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              zalozka === 'diktovani' ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
             }`}
           >
             <Languages className="w-3.5 h-3.5" /> Diktování & překlad
@@ -160,7 +160,7 @@ export const TextySection: React.FC = () => {
         />
       ) : (
         <div className="space-y-3">
-          <label className="flex items-center gap-2 text-drobne text-neutral-400 cursor-pointer">
+          <label className="flex items-center gap-2 text-drobne text-pismo-tlum cursor-pointer">
             <input
               type="checkbox"
               checked={sCasy}

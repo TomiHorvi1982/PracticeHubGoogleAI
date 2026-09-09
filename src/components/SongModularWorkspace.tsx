@@ -820,11 +820,11 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
   const renderLyrics = () => {
     if (!songSections || songSections.length === 0) {
       return (
-        <div className="text-center py-12 text-neutral-400">
+        <div className="text-center py-12 text-pismo-tlum">
           <p className="text-sm">Žádný text písně zatím nebyl vložen.</p>
           <button
             onClick={() => setIsEditingText(true)}
-            className="mt-3 px-4 py-2 bg-znacka text-black font-bold rounded-xl text-xs"
+            className="mt-3 px-4 py-2 zlata-plocha font-bold rounded-xl text-xs"
           >
             Vložit text a akordy
           </button>
@@ -861,8 +861,8 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   }}
                   className={`text-stitek px-2 py-0.5 rounded-lg flex items-center gap-1 font-semibold cursor-pointer ${
                     selectedSectionId === section.id && isLoopActive
-                      ? 'bg-znacka text-black'
-                      : 'bg-white/5 text-neutral-400 hover:text-white'
+                      ? 'zlata-plocha'
+                      : 'bg-white/5 text-pismo-tlum hover:text-white'
                   }`}
                 >
                   <Repeat className="w-3 h-3" />
@@ -907,7 +907,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
               {/* Transposition & Capo */}
               <div className="flex items-center gap-1">
-                <span className="text-drobne text-neutral-400 font-medium">Tónina:</span>
+                <span className="text-drobne text-pismo-tlum font-medium">Tónina:</span>
                 <button
                   onClick={() => setTransposeSemitones((p) => p - 1)}
                   className="px-2 py-0.5 bg-white/10 hover:bg-white/20 text-white rounded-lg font-bold cursor-pointer"
@@ -924,7 +924,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   +1
                 </button>
                 <div className="border-l border-white/10 pl-2 ml-1 flex items-center gap-1">
-                  <span className="text-drobne text-neutral-400">Capo:</span>
+                  <span className="text-drobne text-pismo-tlum">Capo:</span>
                   <select
                     value={capoFret}
                     onChange={(e) => setCapoFret(parseInt(e.target.value, 10))}
@@ -948,7 +948,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   >
                     A-
                   </button>
-                  <span className="text-drobne text-neutral-300 px-1">{fontSize}px</span>
+                  <span className="text-drobne text-pismo px-1">{fontSize}px</span>
                   <button
                     onClick={() => setFontSize((p) => Math.min(36, p + 2))}
                     className="text-white hover:text-znacka font-bold px-1"
@@ -961,7 +961,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   onClick={() => setIsAutoScrolling(!isAutoScrolling)}
                   className={`px-2.5 py-1 rounded-xl font-semibold flex items-center gap-1 cursor-pointer transition-all ${
                     isAutoScrolling
-                      ? 'bg-znacka text-black font-bold'
+                      ? 'zlata-plocha font-bold'
                       : 'bg-white/10 hover:bg-white/20 text-white'
                   }`}
                 >
@@ -992,7 +992,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 />
                 <button
                   onClick={handleSaveText}
-                  className="py-2 bg-znacka text-black font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                  className="py-2 zlata-plocha font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
                   <Save className="w-4 h-4" /> Uložit text a akordy
                 </button>
@@ -1037,7 +1037,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8 text-neutral-400 text-xs space-y-3">
+              <div className="text-center py-8 text-pismo-tlum text-xs space-y-3">
                 <p>Žádné YouTube video není připojeno k této skladbě.</p>
               </div>
             )}
@@ -1082,10 +1082,10 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             {youtubeSearchStatus !== 'idle' && (
               <div className="mt-2 text-xs space-y-1">
                 {youtubeSearchStatus === 'queued' && (
-                  <p className="text-blue-400">Zařazeno na server, čekáme na zpracování…</p>
+                  <p className="text-info">Zařazeno na server, čekáme na zpracování…</p>
                 )}
                 {youtubeSearchStatus === 'searching' && (
-                  <p className="text-neutral-300">Prohledáváme YouTube…</p>
+                  <p className="text-pismo">Prohledáváme YouTube…</p>
                 )}
                 {youtubeSearchStatus === 'found' && (
                   <p className="text-znacka">YouTube video nalezeno a potvrzeno!</p>
@@ -1099,7 +1099,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   <p className="text-chyba">Na YouTube nebylo nalezeno žádné vhodné video.</p>
                 )}
                 {youtubeSearchStatus === 'skipped' && (
-                  <p className="text-neutral-500">{youtubeSearchMessage}</p>
+                  <p className="text-pismo-slaby">{youtubeSearchMessage}</p>
                 )}
                 {youtubeSearchStatus === 'error' && (
                   <p className="text-chyba">{youtubeSearchMessage}</p>
@@ -1207,12 +1207,12 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                       <LinkIcon className="w-3.5 h-3.5 text-znacka shrink-0" />
                       <span className="font-semibold text-white truncate">{link.title}</span>
                     </div>
-                    <ExternalLink className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white shrink-0" />
+                    <ExternalLink className="w-3.5 h-3.5 text-pismo-tlum group-hover:text-white shrink-0" />
                   </a>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-neutral-400 text-xs">
+              <div className="text-center py-6 text-pismo-tlum text-xs">
                 Zatím nebyly přidány žádné externí odkazové zdroje.
               </div>
             )}
@@ -1240,13 +1240,13 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowAddLink(false)}
-                    className="px-3 py-1 bg-white/10 text-neutral-300 rounded-xl text-xs cursor-pointer"
+                    className="px-3 py-1 bg-white/10 text-pismo rounded-xl text-xs cursor-pointer"
                   >
                     Zrušit
                   </button>
                   <button
                     type="submit"
-                    className="px-3 py-1 bg-znacka text-black font-bold rounded-xl text-xs cursor-pointer"
+                    className="px-3 py-1 zlata-plocha font-bold rounded-xl text-xs cursor-pointer"
                   >
                     Uložit odkaz
                   </button>

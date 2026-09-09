@@ -42,13 +42,13 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-vhloubeni border-2 border-[#FF3E00] w-full max-w-xl p-4 sm:p-5 space-y-4 font-mono shadow-2xl relative my-auto max-h-[90vh] flex flex-col"
+        className="bg-vhloubeni border-2 border-[var(--color-pozor)] w-full max-w-xl p-4 sm:p-5 space-y-4 font-mono shadow-2xl relative my-auto max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-kresba pb-3 shrink-0">
           <div className="flex items-center gap-2">
-            <span className="odznak bg-[#FF3E00] text-black px-2 py-0.5">
+            <span className="odznak bg-[var(--color-pozor)] text-black px-2 py-0.5">
               DETAIL AKORDU
             </span>
             <h3 className="text-lg font-black text-white tracking-wider">
@@ -69,7 +69,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
             onClick={() => setActiveTab('guitar')}
             className={`flex-1 py-1.5 px-2 text-drobne font-extrabold uppercase transition-none flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'guitar'
-                ? 'bg-[#FF3E00] text-black'
+                ? 'bg-[var(--color-pozor)] text-black'
                 : 'text-pismo-tlum hover:text-white'
             }`}
           >
@@ -91,7 +91,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
             onClick={() => setActiveTab('piano')}
             className={`flex-1 py-1.5 px-2 text-drobne font-extrabold uppercase transition-none flex items-center justify-center gap-1.5 whitespace-nowrap ${
               activeTab === 'piano'
-                ? 'bg-[#00FF41] text-black'
+                ? 'bg-[var(--color-uspech)] text-black'
                 : 'text-pismo-tlum hover:text-white'
             }`}
           >
@@ -140,7 +140,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                           {v.label}
                         </span>
                         {v.chord.barreFret && (
-                          <span className="odznak bg-[#FF3E00] text-black px-1.5 py-0.2">
+                          <span className="odznak bg-[var(--color-pozor)] text-black px-1.5 py-0.2">
                             BARRE {v.chord.barreFret}. FR
                           </span>
                         )}
@@ -175,13 +175,13 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
             <div className="bg-vhloubeni p-3 border border-kresba space-y-2">
               <div className="stitek-pole flex items-center justify-between border-b border-plocha-2 pb-1">
                 <span>KLÁVESNICE PIANA (1.5 OKTÁVY)</span>
-                <span className="text-[#00FF41]">
+                <span className="text-[var(--color-uspech)]">
                   TÓNY: {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(' - ')}
                 </span>
               </div>
 
               <div className="flex justify-center py-2 overflow-x-auto">
-                <div className="relative flex h-28 bg-[#000] p-1.5 border border-kresba-silna">
+                <div className="relative flex h-28 bg-vhloubeni p-1.5 border border-kresba-silna">
                   {Array.from({ length: 16 }).map((_, keyIdx) => {
                     const noteMidi = keyIdx % 12;
                     const noteName = ROOT_NOTES[noteMidi];
@@ -197,8 +197,8 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                           className={`w-5 h-16 -mx-2.5 z-10 border border-black flex flex-col justify-end items-center pb-1 transition-none active:scale-95 ${
                             isHighlighted
                               ? isRoot
-                                ? 'bg-[#FF3E00] text-black font-black'
-                                : 'bg-[#00FF41] text-black font-black'
+                                ? 'bg-[var(--color-pozor)] text-black font-black'
+                                : 'bg-[var(--color-uspech)] text-black font-black'
                               : 'bg-plocha-1 text-kresba-silna'
                           }`}
                           title={`Tón ${noteName}`}
@@ -215,8 +215,8 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                         className={`w-7 h-24 border border-kresba flex flex-col justify-end items-center pb-1 font-mono text-stitek font-bold transition-none active:scale-95 ${
                           isHighlighted
                             ? isRoot
-                              ? 'bg-[#FF3E00] text-black font-black'
-                              : 'bg-[#00FF41] text-black font-black'
+                              ? 'bg-[var(--color-pozor)] text-black font-black'
+                              : 'bg-[var(--color-uspech)] text-black font-black'
                             : 'bg-[#D1D1D1] text-black'
                         }`}
                         title={`Tón ${noteName}`}
@@ -243,7 +243,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
           </div>
           <div className="flex justify-between border-b border-plocha-2 py-0.5">
             <span className="stitek-pole">Tóny:</span>
-            <span className="text-[#00FF41] font-mono font-bold">
+            <span className="text-[var(--color-uspech)] font-mono font-bold">
               {chordDef.pianoKeys.map((k) => ROOT_NOTES[k % 12]).join(', ')}
             </span>
           </div>
@@ -253,7 +253,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
         <div className="grid grid-cols-2 gap-2 pt-1 shrink-0">
           <button
             onClick={() => handlePlayGuitar()}
-            className="py-2 px-2 bg-[#FF3E00] hover:bg-white text-black font-extrabold text-drobne uppercase flex items-center justify-center gap-1.5 transition-none"
+            className="py-2 px-2 bg-[var(--color-pozor)] hover:bg-white text-black font-extrabold text-drobne uppercase flex items-center justify-center gap-1.5 transition-none"
           >
             <Volume2 className="w-3.5 h-3.5 text-black" />
             <span>KYTARA AKORD</span>
@@ -261,7 +261,7 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
 
           <button
             onClick={handlePlayPiano}
-            className="py-2 px-2 bg-[#00FF41] hover:bg-white text-black font-black text-drobne uppercase flex items-center justify-center gap-1.5 transition-none"
+            className="py-2 px-2 bg-[var(--color-uspech)] hover:bg-white text-black font-black text-drobne uppercase flex items-center justify-center gap-1.5 transition-none"
           >
             <Volume2 className="w-3.5 h-3.5 text-black" />
             <span>KLAVÍR AKORD</span>

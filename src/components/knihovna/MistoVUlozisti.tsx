@@ -78,7 +78,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
 
   if (nacitam && !stav) {
     return (
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 text-drobne text-neutral-500 flex items-center gap-2">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 text-drobne text-pismo-slaby flex items-center gap-2">
         <Loader2 className="w-3.5 h-3.5 animate-spin" /> Počítám místo…
       </div>
     );
@@ -94,9 +94,9 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
       <div className="flex flex-wrap items-baseline gap-2">
         <HardDrive className="w-4 h-4 text-znacka shrink-0 self-center" />
         <span className="text-lg font-bold text-white tabular-nums">{velikost(stav.celkem)}</span>
-        <span className="text-drobne text-neutral-500">z {velikost(stav.limit)}</span>
-        <span className="ml-auto text-drobne text-neutral-500">
-          volných <strong className="text-neutral-300 tabular-nums">{velikost(volno)}</strong> · {stav.uloziste}
+        <span className="text-drobne text-pismo-slaby">z {velikost(stav.limit)}</span>
+        <span className="ml-auto text-drobne text-pismo-slaby">
+          volných <strong className="text-pismo tabular-nums">{velikost(volno)}</strong> · {stav.uloziste}
         </span>
         {/* Rozpis zabíral přes dvě stě pixelů nad stromem složek při
             každém otevření sekce. Pruh a varování o limitu zůstávají
@@ -105,7 +105,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
         <button
           onClick={() => setRozpis((r) => !r)}
           aria-expanded={rozpis}
-          className="text-drobne text-neutral-500 hover:text-neutral-200 transition-colors cursor-pointer px-2 rounded-prvek focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka"
+          className="text-drobne text-pismo-slaby hover:text-pismo transition-colors cursor-pointer px-2 rounded-prvek focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka"
         >
           {rozpis ? 'Skrýt rozpis' : 'Rozpis'}
         </button>
@@ -134,9 +134,9 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
               className="w-2.5 h-2.5 rounded-[3px] shrink-0"
               style={{ background: BARVY[i % BARVY.length] }}
             />
-            <span className="text-neutral-300">{nazevKategorie(k.nazev)}</span>
-            <span className="text-neutral-500 tabular-nums">{velikost(k.bajtu)}</span>
-            <span className="text-neutral-600 tabular-nums">· {k.souboru.toLocaleString('cs')}</span>
+            <span className="text-pismo">{nazevKategorie(k.nazev)}</span>
+            <span className="text-pismo-slaby tabular-nums">{velikost(k.bajtu)}</span>
+            <span className="text-pismo-slaby tabular-nums">· {k.souboru.toLocaleString('cs')}</span>
           </div>
         ))}
       </div>
@@ -145,7 +145,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
           vlastní tabulce a slouží automatickému dohledávání, ne ručnímu
           třídění. Bez téhle věty nesedí součet v grafu se stromem. */}
       {kusy.some((k) => k.nazev === 'sbírka tabulatur') && (
-        <p className="text-drobne text-neutral-500">
+        <p className="text-drobne text-pismo-slaby">
           Sbírka tabulatur se ve složkách níž neukazuje — appka v ní hledá sama a ručně
           se netřídí.
         </p>
@@ -156,7 +156,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
       {duplicity && (
         <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-white/[0.06]">
           <Copy className="w-3.5 h-3.5 text-pozor shrink-0" />
-          <span className="text-drobne text-neutral-300">
+          <span className="text-drobne text-pismo">
             {duplicity.smazatelnych.toLocaleString('cs')} souborů leží v knihovně víckrát,
             jen pod jiným názvem — zabírají {velikost(duplicity.bajtuNavic)} navíc.
           </span>
@@ -185,7 +185,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
                 );
                 void nacti();
               }}
-              className="text-drobne px-2.5 py-1 rounded-lg bg-white/[0.06] text-neutral-200 hover:bg-white/[0.12] cursor-pointer disabled:opacity-50"
+              className="text-drobne px-2.5 py-1 rounded-lg bg-white/[0.06] text-pismo hover:bg-white/[0.12] cursor-pointer disabled:opacity-50"
             >
               {uklizim ? 'Uklízím…' : 'Uklidit kopie'}
             </button>

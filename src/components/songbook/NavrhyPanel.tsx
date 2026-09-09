@@ -72,9 +72,9 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
         className="w-full flex items-center gap-2 text-left cursor-pointer"
       >
         {otevreno ? (
-          <ChevronDown className="w-4 h-4 text-neutral-400 shrink-0" />
+          <ChevronDown className="w-4 h-4 text-pismo-tlum shrink-0" />
         ) : (
-          <ChevronRight className="w-4 h-4 text-neutral-400 shrink-0" />
+          <ChevronRight className="w-4 h-4 text-pismo-tlum shrink-0" />
         )}
         <Sparkles className="w-4 h-4 text-znacka shrink-0" />
         <span className="text-sm font-bold text-white">
@@ -83,7 +83,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
       </button>
 
       {!otevreno && (
-        <p className="text-drobne text-neutral-400 pl-6">
+        <p className="text-drobne text-pismo-tlum pl-6">
           Klikni a vyber, co k písni patří. Co odmítneš, se znovu nenabídne.
         </p>
       )}
@@ -100,7 +100,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-drobne text-white truncate">{n.nazev}</div>
-                <div className="text-stitek text-neutral-500">
+                <div className="text-stitek text-pismo-slaby">
                   {n.zdroj} · shoda {Math.round(n.jistota * 100)} %
                 </div>
               </div>
@@ -117,7 +117,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
                   </button>
                   <button
                     onClick={() => void vyres(i, 'odmitnout')}
-                    className="p-1.5 rounded-lg bg-white/5 hover:bg-chyba/25 text-neutral-400 hover:text-chyba cursor-pointer transition-all shrink-0"
+                    className="p-1.5 rounded-lg bg-white/5 hover:bg-chyba/25 text-pismo-tlum hover:text-chyba cursor-pointer transition-all shrink-0"
                     title="Nepatří k písni"
                   >
                     <X className="w-3.5 h-3.5" />

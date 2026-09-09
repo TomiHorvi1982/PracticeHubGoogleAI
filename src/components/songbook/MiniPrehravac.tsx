@@ -175,7 +175,7 @@ export const MiniPrehravac: React.FC<Props> = ({
         <button
           onClick={() => skoc(0)}
           disabled={!pripraveno}
-          className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0 disabled:opacity-30"
+          className="p-1 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer shrink-0 disabled:opacity-30"
           title="Od začátku"
         >
           <RotateCcw className="w-3 h-3" />
@@ -184,7 +184,7 @@ export const MiniPrehravac: React.FC<Props> = ({
         {onZavrit && (
           <button
             onClick={onZavrit}
-            className="p-1 rounded-lg hover:bg-white/10 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+            className="p-1 rounded-lg hover:bg-white/10 text-pismo-slaby hover:text-white cursor-pointer shrink-0"
             title="Zavřít ukázku"
           >
             <X className="w-3.5 h-3.5" />
@@ -196,7 +196,7 @@ export const MiniPrehravac: React.FC<Props> = ({
         <p className="text-stitek text-chyba px-1">{chyba}</p>
       ) : (
         <div className="flex items-center gap-2 px-0.5">
-          <span className="text-stitek font-mono text-neutral-500 tabular-nums w-8 shrink-0">{cas(kde)}</span>
+          <span className="text-stitek font-mono text-pismo-slaby tabular-nums w-8 shrink-0">{cas(kde)}</span>
           <input
             type="range"
             min={0}
@@ -209,7 +209,7 @@ export const MiniPrehravac: React.FC<Props> = ({
             onChange={(e) => skoc(Number(e.target.value))}
             className="flex-1 h-1 accent-znacka cursor-pointer disabled:cursor-default"
           />
-          <span className="text-stitek font-mono text-neutral-500 tabular-nums w-8 shrink-0 text-right">
+          <span className="text-stitek font-mono text-pismo-slaby tabular-nums w-8 shrink-0 text-right">
             {cas(delka)}
           </span>
         </div>

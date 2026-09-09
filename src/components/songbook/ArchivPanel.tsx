@@ -192,19 +192,19 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
 
   return (
     <div className="space-y-3">
-      <p className="text-drobne text-neutral-500 leading-relaxed">
+      <p className="text-drobne text-pismo-slaby leading-relaxed">
         Koncertní nahrávky kapel, které nahrávání a nekomerční šíření samy povolily. Archiv je
         nabízí ke stažení, takže si je můžeš uložit i do zkušebny bez signálu.
       </p>
 
       <form onSubmit={hledej} className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-pismo-slaby absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={dotaz}
             onChange={(e) => setDotaz(e.target.value)}
             placeholder="Kapela, místo nebo datum — třeba „Grateful Dead 1977“"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-600 outline-none focus:border-uspech"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-pismo-slaby outline-none focus:border-uspech"
           />
         </div>
         <button
@@ -227,14 +227,14 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
         <div className="space-y-2">
           <button
             onClick={() => setOtevrena(null)}
-            className="text-drobne text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer"
+            className="text-drobne text-pismo-tlum hover:text-white flex items-center gap-1 cursor-pointer"
           >
             <ChevronLeft className="w-3.5 h-3.5" /> zpět na výsledky
           </button>
 
           <div className="bg-black/40 border border-uspech/25 rounded-2xl p-3">
             <div className="text-drobne font-bold text-white">{otevrena.nahravka.nazev}</div>
-            <div className="text-stitek text-neutral-500">
+            <div className="text-stitek text-pismo-slaby">
               {otevrena.nahravka.interpret}
               {otevrena.nahravka.rok && ` · ${otevrena.nahravka.rok}`}
               {` · ${otevrena.stopy.length} skladeb`}
@@ -250,7 +250,7 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                   licence: {otevrena.nahravka.licence.replace(/^https?:\/\//, '')}
                 </a>
               ) : (
-                <span className="text-amber-500/80">
+                <span className="text-znacka/80">
                   licence u téhle nahrávky uvedená není — kapela šíření povolila přijetím do sbírky,
                   ale konkrétní podmínky u položky nestojí
                 </span>
@@ -258,7 +258,7 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
             </div>
           </div>
 
-          <p className="text-stitek text-neutral-600">
+          <p className="text-stitek text-pismo-slaby">
             Poslechem se nic nestahuje — zvuk jde rovnou z archivu. Do knihovny se uloží až
             tlačítkem vpravo.
           </p>
@@ -267,10 +267,10 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
             {otevrena.stopy.map((s) => (
               <div key={s.soubor} className={`rounded-lg ${hraje === s.soubor ? 'bg-white/[0.05]' : 'hover:bg-white/[0.04]'}`}>
                 <div className="flex items-center gap-2 px-2 py-1.5">
-                <span className="text-stitek text-neutral-600 tabular-nums w-6 shrink-0">{s.poradi || '·'}.</span>
+                <span className="text-stitek text-pismo-slaby tabular-nums w-6 shrink-0">{s.poradi || '·'}.</span>
                 <button
                   onClick={() => prehraj(s)}
-                  className="p-1 rounded text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                  className="p-1 rounded text-pismo-tlum hover:text-white cursor-pointer shrink-0"
                   title={hraje === s.soubor ? 'Zastavit' : 'Poslechnout bez stahování'}
                 >
                   {nacitaSe === s.soubor ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -280,7 +280,7 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                 <span className={`text-drobne truncate flex-1 ${
                   hraje === s.soubor ? 'text-uspech font-semibold' : 'text-white'
                 }`}>{s.nazev}</span>
-                <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{mb(s.velikost)}</span>
+                <span className="text-stitek text-pismo-slaby tabular-nums shrink-0">{mb(s.velikost)}</span>
                 <DoPlaylistuTlacitko nazev={s.nazev} odkaz={s.soubor} />
 
                 <button
@@ -302,20 +302,20 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                   <div className="flex items-center gap-2 px-2 pb-1.5">
                     <button
                       onClick={() => skoc(-10)}
-                      className="p-1 rounded text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                      className="p-1 rounded text-pismo-tlum hover:text-white cursor-pointer shrink-0"
                       title="O 10 vteřin zpět"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => skoc(10)}
-                      className="p-1 rounded text-neutral-400 hover:text-white cursor-pointer shrink-0"
+                      className="p-1 rounded text-pismo-tlum hover:text-white cursor-pointer shrink-0"
                       title="O 10 vteřin vpřed"
                     >
                       <RotateCw className="w-3.5 h-3.5" />
                     </button>
 
-                    <span className="text-stitek text-neutral-500 tabular-nums shrink-0 w-9">
+                    <span className="text-stitek text-pismo-slaby tabular-nums shrink-0 w-9">
                       {cas(kde)}
                     </span>
                     <input
@@ -332,7 +332,7 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                       }}
                       className="flex-1 accent-uspech cursor-pointer"
                     />
-                    <span className="text-stitek text-neutral-500 tabular-nums shrink-0 w-9">
+                    <span className="text-stitek text-pismo-slaby tabular-nums shrink-0 w-9">
                       {cas(delka)}
                     </span>
                   </div>
@@ -344,7 +344,7 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
       ) : (
         <>
           {celkem > 0 && (
-            <p className="text-stitek text-neutral-600">
+            <p className="text-stitek text-pismo-slaby">
               {celkem.toLocaleString('cs')} nahrávek, ukazuje se {nalezene.length} nejstahovanějších
             </p>
           )}
@@ -359,13 +359,13 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
                 <Archive className="w-4 h-4 text-uspech shrink-0" />
                 <div className="flex-1 min-w-0">
                   <div className="text-drobne text-white truncate">{n.nazev}</div>
-                  <div className="text-stitek text-neutral-500 truncate">
+                  <div className="text-stitek text-pismo-slaby truncate">
                     {n.interpret}
                     {n.rok && ` · ${n.rok}`}
                     {n.licence && ' · s licencí'}
                   </div>
                 </div>
-                {nacitam ? <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-500 shrink-0" /> : null}
+                {nacitam ? <Loader2 className="w-3.5 h-3.5 animate-spin text-pismo-slaby shrink-0" /> : null}
               </button>
             ))}
           </div>

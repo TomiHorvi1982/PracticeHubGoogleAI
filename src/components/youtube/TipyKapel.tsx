@@ -120,7 +120,7 @@ export const TipyKapel: React.FC<{
   return (
     <div className="space-y-2 py-1 text-xs">
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-neutral-500 shrink-0 mr-1">Doporučeno</span>
+        <span className="text-pismo-slaby shrink-0 mr-1">Doporučeno</span>
         {DEKADY.map((d) => (
           <button
             key={d.rok}
@@ -128,8 +128,8 @@ export const TipyKapel: React.FC<{
             onClick={() => setDekada(d.rok)}
             className={`px-2.5 py-1 rounded-lg font-medium transition-all cursor-pointer ${
               dekada === d.rok
-                ? 'bg-znacka text-black'
-                : 'bg-white/5 hover:bg-white/10 text-neutral-400 border border-white/10'
+                ? 'zlata-plocha'
+                : 'bg-white/5 hover:bg-white/10 text-pismo-tlum border border-white/10'
             }`}
           >
             {d.popis}
@@ -143,7 +143,7 @@ export const TipyKapel: React.FC<{
         return (
           <div key={o.id} className="flex items-center gap-1.5">
             {zobrazene.length > 1 && (
-              <span className="text-neutral-400 font-medium shrink-0 w-12">{o.popis}</span>
+              <span className="text-pismo-tlum font-medium shrink-0 w-12">{o.popis}</span>
             )}
             <div
               onScroll={(e) => {
@@ -161,14 +161,14 @@ export const TipyKapel: React.FC<{
                   type="button"
                   onClick={() => onVybrat(t.jmeno)}
                   title={[t.popis, t.zacatek && `od ${t.zacatek}`].filter(Boolean).join(' · ') || undefined}
-                  className="px-3 py-1 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer shrink-0"
+                  className="px-3 py-1 bg-white/5 hover:bg-white/10 text-pismo hover:text-white border border-white/10 rounded-xl whitespace-nowrap font-medium transition-all cursor-pointer shrink-0"
                 >
                   {t.jmeno}
                 </button>
               ))}
 
               {s.nacita && (
-                <span className="flex items-center gap-1.5 text-neutral-500 shrink-0 px-2">
+                <span className="flex items-center gap-1.5 text-pismo-slaby shrink-0 px-2">
                   <Loader2 className="w-3 h-3 animate-spin" /> hledám…
                 </span>
               )}
@@ -176,7 +176,7 @@ export const TipyKapel: React.FC<{
                 <span className="text-chyba shrink-0 px-2">{s.chyba}</span>
               )}
               {!s.nacita && !s.chyba && s.tipy.length > 0 && !jeVic && (
-                <span className="text-neutral-600 shrink-0 px-2">to je z téhle dekády vše</span>
+                <span className="text-pismo-slaby shrink-0 px-2">to je z téhle dekády vše</span>
               )}
             </div>
           </div>

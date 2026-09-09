@@ -99,7 +99,7 @@ export const PrepisPanel: React.FC<{
           <Mic className="w-5 h-5 text-znacka" />
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Přepis z nahrávky</h3>
-            <p className="text-drobne text-neutral-400">
+            <p className="text-drobne text-pismo-tlum">
               Běží tady na počítači — nahrávka nikam neodchází. Ber to jako první nástřel, ne hotový text.
             </p>
           </div>
@@ -116,7 +116,7 @@ export const PrepisPanel: React.FC<{
           <button
             onClick={() => setOddelit(!oddelit)}
             className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer ${
-              oddelit ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+              oddelit ? 'bg-uspech text-black' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
             }`}
             title="Přes celou kapelu si přepis hodně domýšlí. Nad čistým zpěvem píše, co tam opravdu je."
           >
@@ -132,7 +132,7 @@ export const PrepisPanel: React.FC<{
               <option key={j.id} value={j.id}>{j.nazev}</option>
             ))}
           </select>
-          <span className="text-stitek text-neutral-500">
+          <span className="text-stitek text-pismo-slaby">
             {oddelit
               ? 'Přesnější, ale trvá to — počítej minutu na minutu písně navíc.'
               : 'Rychlé, ale přes kapelu si přepis dost domýšlí. Vyber, když už máš vokálovou stopu.'}
@@ -151,14 +151,14 @@ export const PrepisPanel: React.FC<{
             <button
               onClick={() => setNahravka(null)}
               disabled={bezi}
-              className="text-drobne text-neutral-500 hover:text-white cursor-pointer disabled:opacity-40"
+              className="text-drobne text-pismo-slaby hover:text-white cursor-pointer disabled:opacity-40"
             >
               změnit
             </button>
             <button
               onClick={() => void spust()}
               disabled={bezi || !pripraveno?.ok}
-              className="px-3 py-1.5 rounded-xl bg-znacka text-black text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-xl zlata-plocha text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
             >
               {bezi ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mic className="w-3.5 h-3.5" />}
               {bezi ? 'Běží…' : 'Přepsat'}
@@ -182,10 +182,10 @@ export const PrepisPanel: React.FC<{
         {stav && (
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-drobne">
-              <span className={stav.faze === 'chyba' ? 'text-chyba' : 'text-neutral-300'}>
+              <span className={stav.faze === 'chyba' ? 'text-chyba' : 'text-pismo'}>
                 {stav.chyba || stav.zprava}
               </span>
-              <span className="text-neutral-500 tabular-nums">{stav.postup} %</span>
+              <span className="text-pismo-slaby tabular-nums">{stav.postup} %</span>
             </div>
             <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
               <div
@@ -216,8 +216,8 @@ export const PrepisPanel: React.FC<{
           <div className="max-h-[40vh] overflow-y-auto space-y-0.5 pr-1">
             {stav.useky.map((u, i) => (
               <div key={i} className="flex gap-2 text-drobne py-0.5">
-                <span className="text-neutral-600 tabular-nums shrink-0 w-10">{cas(u.zacatek)}</span>
-                <span className="text-neutral-200">{u.text}</span>
+                <span className="text-pismo-slaby tabular-nums shrink-0 w-10">{cas(u.zacatek)}</span>
+                <span className="text-pismo">{u.text}</span>
               </div>
             ))}
           </div>

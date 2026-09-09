@@ -159,8 +159,8 @@ export class MediaCenterService {
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: track.title,
-          artist: track.artist || 'NeverLate Studio',
-          album: 'NeverLate Media Center',
+          artist: track.artist || 'Neverlast Studio',
+          album: 'Neverlast Media Center',
           artwork: [
             {
               src: track.thumbnailUrl || `https://img.youtube.com/vi/${track.youtubeId || 'default'}/hqdefault.jpg`,

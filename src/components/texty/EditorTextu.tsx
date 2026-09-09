@@ -60,7 +60,7 @@ export const EditorTextu: React.FC<{
       <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="text-sm font-bold text-white flex-1">Text</h3>
-          <span className="text-stitek text-neutral-500 tabular-nums">
+          <span className="text-stitek text-pismo-slaby tabular-nums">
             {radky.filter((r) => r.trim()).length} řádků · {celkem} slabik
           </span>
           {onUlozit && (
@@ -90,7 +90,7 @@ export const EditorTextu: React.FC<{
                 >
                   {schema[i]}
                 </span>
-                <span className={`w-5 tabular-nums ${i === radek ? 'text-white' : 'text-neutral-600'}`}>
+                <span className={`w-5 tabular-nums ${i === radek ? 'text-white' : 'text-pismo-slaby'}`}>
                   {pocty[i] || ''}
                 </span>
               </div>
@@ -105,14 +105,14 @@ export const EditorTextu: React.FC<{
             onClick={zjistiRadek}
             spellCheck={false}
             placeholder={'[Sloka]\nNebe nad městem hoří,\nptáci mlčí v korunách.'}
-            className="flex-1 min-h-[40vh] bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-drobne leading-6 text-white placeholder-neutral-700 outline-none focus:border-nastroj resize-none"
+            className="flex-1 min-h-[40vh] bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-drobne leading-6 text-white placeholder-pismo-slaby outline-none focus:border-nastroj resize-none"
           />
         </div>
 
-        <p className="text-stitek text-neutral-600">
+        <p className="text-stitek text-pismo-slaby">
           Písmeno vlevo je rýmová dvojice, číslo počet slabik. Sekce piš do hranatých závorek —
-          <span className="text-neutral-500"> [Sloka]</span>,
-          <span className="text-neutral-500"> [Refrén]</span> — do slabik se nepočítají.
+          <span className="text-pismo-slaby"> [Sloka]</span>,
+          <span className="text-pismo-slaby"> [Refrén]</span> — do slabik se nepočítají.
         </p>
       </div>
 
@@ -124,7 +124,7 @@ export const EditorTextu: React.FC<{
 
         {slovo ? (
           <>
-            <p className="text-drobne text-neutral-400">
+            <p className="text-drobne text-pismo-tlum">
               Na konci řádku je <strong className="text-white">{slovo}</strong>
               {pocty[radek] ? ` — ${pocty[radek]} slabik` : ''}
             </p>
@@ -134,7 +134,7 @@ export const EditorTextu: React.FC<{
                   <button
                     key={n}
                     onClick={() => { vloz(n); setZkopirovano(n); window.setTimeout(() => setZkopirovano(null), 900); }}
-                    className="px-2 py-1 rounded-lg bg-white/[0.06] text-drobne text-neutral-200 hover:bg-nastroj hover:text-white cursor-pointer flex items-center gap-1"
+                    className="px-2 py-1 rounded-lg bg-white/[0.06] text-drobne text-pismo hover:bg-nastroj hover:text-white cursor-pointer flex items-center gap-1"
                     title="Vložit na místo kurzoru"
                   >
                     {zkopirovano === n ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3 opacity-40" />}
@@ -143,14 +143,14 @@ export const EditorTextu: React.FC<{
                 ))}
               </div>
             ) : (
-              <p className="text-drobne text-neutral-600">
+              <p className="text-drobne text-pismo-slaby">
                 Ve vašich textech se na tohle slovo nic nerýmuje. Čím víc písní v knihovně, tím víc
                 slovník umí.
               </p>
             )}
           </>
         ) : (
-          <p className="text-drobne text-neutral-600">
+          <p className="text-drobne text-pismo-slaby">
             Klikni do řádku a nabídnou se slova, která se rýmují s jeho koncem.
           </p>
         )}

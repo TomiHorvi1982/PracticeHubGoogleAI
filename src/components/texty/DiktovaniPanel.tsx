@@ -96,7 +96,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
 
   if (moznosti && moznosti.cesta === 'zadna') {
     return (
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 text-xs text-neutral-400">
+      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 text-xs text-pismo-tlum">
         {moznosti.duvod}
       </div>
     );
@@ -108,7 +108,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
         <div
           className={`rounded-2xl border p-3 text-drobne flex items-start gap-2 ${
             moznosti.odesilaVen
-              ? 'bg-amber-500/[0.08] border-amber-500/30 text-amber-200'
+              ? 'bg-znacka/[0.08] border-znacka/30 text-znacka-svetla'
               : 'bg-uspech/[0.06] border-uspech/30 text-uspech'
           }`}
         >
@@ -144,19 +144,19 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
           className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 border cursor-pointer ${
             cistNahlas
               ? 'bg-uspech/15 border-uspech/40 text-uspech'
-              : 'bg-white/[0.06] border-white/10 text-neutral-300'
+              : 'bg-white/[0.06] border-white/10 text-pismo'
           }`}
         >
           {cistNahlas ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
           Číst anglicky
         </button>
 
-        {prekladaSe && <Loader2 className="w-4 h-4 animate-spin text-neutral-400" />}
+        {prekladaSe && <Loader2 className="w-4 h-4 animate-spin text-pismo-tlum" />}
 
         {(cesky || anglicky) && (
           <button
             onClick={() => { setCesky(''); setAnglicky(''); setCestaPrekladu(null); prestanCist(); }}
-            className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.06] border border-white/10 text-neutral-400 hover:text-white flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.06] border border-white/10 text-pismo-tlum hover:text-white flex items-center gap-1.5 cursor-pointer"
           >
             <Eraser className="w-3.5 h-3.5" /> Vymazat
           </button>
@@ -205,7 +205,7 @@ export const DiktovaniPanel: React.FC<Props> = ({ onVlozit }) => {
             value={anglicky}
             readOnly
             placeholder="Překlad se doplní sám."
-            className="w-full h-48 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs leading-relaxed resize-none outline-none text-neutral-300"
+            className="w-full h-48 bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-xs leading-relaxed resize-none outline-none text-pismo"
           />
         </div>
       </div>

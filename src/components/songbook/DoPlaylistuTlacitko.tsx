@@ -60,7 +60,7 @@ export const DoPlaylistuTlacitko: React.FC<Props> = ({
         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka ${
         stav === 'hotovo'
           ? 'text-uspech'
-          : 'text-neutral-500 hover:text-znacka hover:bg-znacka/10'
+          : 'text-pismo-slaby hover:text-znacka hover:bg-znacka/10'
       }`}
     >
       {stav === 'hotovo' ? <Check className={rozmer} /> : <ListPlus className={rozmer} />}

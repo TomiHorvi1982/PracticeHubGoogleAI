@@ -281,10 +281,10 @@ export const PracticeAssistant: React.FC = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
+                <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
                   Vizuální metronom
                 </span>
-                <span className="text-xs text-neutral-400 font-medium">{bpm} BPM • {beatsPerBar}/4 takt</span>
+                <span className="text-xs text-pismo-tlum font-medium">{bpm} BPM • {beatsPerBar}/4 takt</span>
               </div>
               <h2 className="text-lg font-bold text-white tracking-tight mt-0.5">
                 Přesný metronom s nastavením akcentů
@@ -297,7 +297,7 @@ export const PracticeAssistant: React.FC = () => {
             onClick={() => setIsMetroMuted(!isMetroMuted)}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               isMetroMuted
-                ? 'bg-red-500/10 text-red-400 border-red-500/30 hover:bg-red-500/20'
+                ? 'bg-chyba/10 text-chyba border-chyba/30 hover:bg-chyba/20'
                 : 'bg-uspech/10 text-uspech border-uspech/30 hover:bg-uspech/20'
             }`}
           >
@@ -312,14 +312,14 @@ export const PracticeAssistant: React.FC = () => {
           {/* Pendulum Swinging Arm Visual */}
           <div className="relative w-full max-w-md h-24 flex items-center justify-center border-b border-white/10">
             {/* Arc Scale Markers */}
-            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-stitek text-neutral-500 font-semibold">
+            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-stitek text-pismo-slaby font-semibold">
               <span>◄ 1. Doba</span>
               <span>Střed</span>
               <span>{beatsPerBar}. Doba ►</span>
             </div>
 
             {/* Pendulum Pivot Point */}
-            <div className="absolute bottom-0 w-3 h-3 bg-neutral-600 rounded-full z-10" />
+            <div className="absolute bottom-0 w-3 h-3 bg-plocha-nad rounded-full z-10" />
 
             {/* Pendulum Needle Arm */}
             <div
@@ -352,7 +352,7 @@ export const PracticeAssistant: React.FC = () => {
                     : 'bg-uspech border-white text-black scale-105 shadow-[0_0_35px_rgba(48,209,88,0.8)]'
                   : isPlayingMetro
                   ? 'bg-white/10 border-white/20 text-white'
-                  : 'bg-white/[0.02] border-white/10 text-neutral-500'
+                  : 'bg-white/[0.02] border-white/10 text-pismo-slaby'
               }`}
             >
               <span className="text-5xl font-bold font-mono tracking-tighter">
@@ -374,7 +374,7 @@ export const PracticeAssistant: React.FC = () => {
                   ? `Doba ${currentBeat + 1} z ${beatsPerBar} (${accentBeats[currentBeat] ? 'Přízvuk / Akcent' : 'Běžná doba'})`
                   : 'Metronom je připraven ke spuštění'}
               </span>
-              <span className="text-xs text-neutral-400 block mt-0.5">
+              <span className="text-xs text-pismo-tlum block mt-0.5">
                 Tempo: <strong className="text-uspech">{bpm} BPM</strong> | Takt: <strong className="text-white">{beatsPerBar}/4</strong>
               </span>
             </div>
@@ -410,7 +410,7 @@ export const PracticeAssistant: React.FC = () => {
                   className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                     beatsPerBar === sig.beats
                       ? 'bg-white text-black shadow-md font-bold'
-                      : 'text-neutral-400 hover:text-white'
+                      : 'text-pismo-tlum hover:text-white'
                   }`}
                 >
                   {sig.label}
@@ -422,7 +422,7 @@ export const PracticeAssistant: React.FC = () => {
           {/* Stepper for custom beat count */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400 font-medium">Počet dob v taktu:</span>
+              <span className="text-xs text-pismo-tlum font-medium">Počet dob v taktu:</span>
               <span className="text-base font-bold text-uspech px-2">{beatsPerBar} dob</span>
             </div>
 
@@ -444,7 +444,7 @@ export const PracticeAssistant: React.FC = () => {
 
           {/* Interactive Beat Cards Grid */}
           <div className="space-y-1.5">
-            <span className="text-xs text-neutral-400 font-medium block">
+            <span className="text-xs text-pismo-tlum font-medium block">
               Mřížka dob (klikněte pro zapnutí/vypnutí akcentu):
             </span>
             <div className="flex flex-wrap items-center gap-2 py-1">
@@ -463,7 +463,7 @@ export const PracticeAssistant: React.FC = () => {
                           : 'bg-uspech text-black border-white scale-105 shadow-[0_0_12px_#30D158]'
                         : isAccented
                         ? 'bg-znacka/15 text-znacka border-znacka/40 hover:bg-znacka/25'
-                        : 'bg-black/30 text-neutral-400 border-white/5 hover:bg-white/5 hover:text-white'
+                        : 'bg-black/30 text-pismo-tlum border-white/5 hover:bg-white/5 hover:text-white'
                     }`}
                   >
                     <span className="text-stitek opacity-70 font-semibold">Doba {i + 1}</span>
@@ -487,7 +487,7 @@ export const PracticeAssistant: React.FC = () => {
             {/* BPM Display Box */}
             <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 min-w-[180px] text-center shadow-inner">
               <div className="text-4xl font-bold font-mono text-white tracking-tight">
-                {bpm} <span className="text-xs text-neutral-400 font-normal">BPM</span>
+                {bpm} <span className="text-xs text-pismo-tlum font-normal">BPM</span>
               </div>
               <span className="text-drobne text-uspech font-semibold block mt-1">
                 {bpm < 60
@@ -504,7 +504,7 @@ export const PracticeAssistant: React.FC = () => {
 
             {/* Stepper Buttons & Slider */}
             <div className="flex-1 min-w-0 max-w-md space-y-2">
-              <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs text-neutral-400 font-medium">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 text-xs text-pismo-tlum font-medium">
                 <span>30 BPM</span>
                 <span>Nastavení tempa</span>
                 <span>280 BPM</span>
@@ -580,7 +580,7 @@ export const PracticeAssistant: React.FC = () => {
 
           {/* Quick Tempo Presets */}
           <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-white/5">
-            <span className="text-xs text-neutral-400 font-medium mr-1">Rychlé tempo:</span>
+            <span className="text-xs text-pismo-tlum font-medium mr-1">Rychlé tempo:</span>
             {TEMPO_PRESETS.map((preset) => (
               <button
                 key={preset.name}
@@ -588,7 +588,7 @@ export const PracticeAssistant: React.FC = () => {
                 className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                   bpm === preset.bpm
                     ? 'bg-white text-black font-bold shadow-md'
-                    : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                    : 'bg-white/5 text-pismo-tlum hover:text-white border border-white/5'
                 }`}
               >
                 {preset.name} ({preset.bpm})
@@ -614,7 +614,7 @@ export const PracticeAssistant: React.FC = () => {
                 <span className="odznak bg-uspech text-black px-2 py-0.5 rounded-md">
                   Doprovodný trenér
                 </span>
-                <span className="text-xs text-neutral-400 font-medium">{chordSequence.length} akordů ve smyčce</span>
+                <span className="text-xs text-pismo-tlum font-medium">{chordSequence.length} akordů ve smyčce</span>
               </div>
               <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
                 Vlastní Akordy &amp; Paterny Strummingu a Vybrnkávání
@@ -644,7 +644,7 @@ export const PracticeAssistant: React.FC = () => {
 
             {/* Presets dropdown */}
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xs text-neutral-400 font-medium">Presety:</span>
+              <span className="text-xs text-pismo-tlum font-medium">Presety:</span>
               <select
                 value={backingStyle}
                 onChange={(e) => setBackingStyle(e.target.value as any)}
@@ -680,7 +680,7 @@ export const PracticeAssistant: React.FC = () => {
                   <span className="text-sm font-bold">{chord}</span>
                   <button
                     onClick={() => handleRemoveChord(idx)}
-                    className="hover:text-red-400 text-neutral-400 ml-1 p-0.5 cursor-pointer"
+                    className="hover:text-chyba text-pismo-tlum ml-1 p-0.5 cursor-pointer"
                     title="Odebrat akord"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -690,7 +690,7 @@ export const PracticeAssistant: React.FC = () => {
             })}
 
             {chordSequence.length === 0 && (
-              <span className="text-xs text-red-400 font-medium">
+              <span className="text-xs text-chyba font-medium">
                 Žádné akordy! Přidejte akord níže.
               </span>
             )}
@@ -699,7 +699,7 @@ export const PracticeAssistant: React.FC = () => {
           {/* Quick Chord Selector & Custom Chord Input */}
           <div className="space-y-2 pt-3 border-t border-white/5">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs text-neutral-400 font-medium mr-1">Rychlé přidání:</span>
+              <span className="text-xs text-pismo-tlum font-medium mr-1">Rychlé přidání:</span>
               {QUICK_CHORDS.map((qChord) => (
                 <button
                   key={qChord}
@@ -746,7 +746,7 @@ export const PracticeAssistant: React.FC = () => {
               <button
                 onClick={() => setBackingMode('strum')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  backingMode === 'strum' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
+                  backingMode === 'strum' ? 'bg-white text-black font-bold shadow-md' : 'text-pismo-tlum hover:text-white'
                 }`}
               >
                 🎸 Strumming (Brnkání)
@@ -754,7 +754,7 @@ export const PracticeAssistant: React.FC = () => {
               <button
                 onClick={() => setBackingMode('picking')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  backingMode === 'picking' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
+                  backingMode === 'picking' ? 'bg-white text-black font-bold shadow-md' : 'text-pismo-tlum hover:text-white'
                 }`}
               >
                 🪕 Vybrnkávání (Arpeggio)
@@ -762,7 +762,7 @@ export const PracticeAssistant: React.FC = () => {
               <button
                 onClick={() => setBackingMode('piano')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  backingMode === 'piano' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
+                  backingMode === 'piano' ? 'bg-white text-black font-bold shadow-md' : 'text-pismo-tlum hover:text-white'
                 }`}
               >
                 🎹 Klavírní doprovod
@@ -772,7 +772,7 @@ export const PracticeAssistant: React.FC = () => {
 
           {/* Instrument Sound Selection */}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs bg-white/[0.02] p-3 rounded-xl border border-white/5">
-            <span className="text-xs text-neutral-400 font-medium">Zvuk nástroje:</span>
+            <span className="text-xs text-pismo-tlum font-medium">Zvuk nástroje:</span>
             <label className="flex items-center gap-2 cursor-pointer text-white">
               <input
                 type="radio"
@@ -816,21 +816,21 @@ export const PracticeAssistant: React.FC = () => {
                     className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                       selectedStrumId === p.id
                         ? 'bg-uspech/15 border-uspech/50 text-uspech shadow-md'
-                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300'
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-pismo'
                     }`}
                   >
                     <span className="font-bold text-xs text-white block">{p.name}</span>
                     <span className="text-xs font-mono font-bold text-uspech tracking-widest block my-1">
                       {p.pattern.join(' ')}
                     </span>
-                    <span className="text-drobne text-neutral-400 block">{p.desc}</span>
+                    <span className="text-drobne text-pismo-tlum block">{p.desc}</span>
                   </button>
                 ))}
               </div>
 
               {/* Custom Strum Grid */}
               <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5 space-y-2">
-                <span className="text-xs text-neutral-400 font-medium block">
+                <span className="text-xs text-pismo-tlum font-medium block">
                   Interaktivní mřížka brnkání (klikněte pro změnu: D=dolů, U=nahoru, M=tlumení, .=pauza):
                 </span>
                 <div className="flex items-center gap-2 overflow-x-auto py-1">
@@ -844,7 +844,7 @@ export const PracticeAssistant: React.FC = () => {
                           : 'border-white/10 bg-black/40 text-white hover:border-uspech'
                       }`}
                     >
-                      <span className="text-stitek text-neutral-500">#{sIdx + 1}</span>
+                      <span className="text-stitek text-pismo-slaby">#{sIdx + 1}</span>
                       <span>{stroke}</span>
                     </button>
                   ))}
@@ -864,14 +864,14 @@ export const PracticeAssistant: React.FC = () => {
                     className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
                       selectedPickingId === p.id
                         ? 'bg-uspech/15 border-uspech/50 text-uspech shadow-md'
-                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300'
+                        : 'bg-white/5 hover:bg-white/10 border-white/10 text-pismo'
                     }`}
                   >
                     <span className="font-bold text-xs text-white block">{p.name}</span>
                     <span className="text-xs font-mono font-bold text-uspech tracking-widest block my-1">
                       Struny: {p.sequence.join('-')}
                     </span>
-                    <span className="text-drobne text-neutral-400 block">{p.desc}</span>
+                    <span className="text-drobne text-pismo-tlum block">{p.desc}</span>
                   </button>
                 ))}
               </div>
@@ -884,7 +884,7 @@ export const PracticeAssistant: React.FC = () => {
               <span className="font-bold text-info block">
                 Klavírní doprovod (Reálné Piano Chord Voicing)
               </span>
-              <p className="text-neutral-400">
+              <p className="text-pismo-tlum">
                 Automaticky přehrává harmonické klavírní akordy ve zvoleném tempu BPM s autentickým akustickým zvukem.
               </p>
             </div>

@@ -66,7 +66,7 @@ export const ZdrojStopy: React.FC<Props> = ({
     <div ref={obal} className="relative mt-1.5">
       {naNem ? (
         <div className="flex items-center gap-1 bg-black/40 border border-kresba rounded-prvek px-1.5 py-1">
-          <span className="flex-1 min-w-0 truncate text-stitek text-neutral-300" title={naNem}>
+          <span className="flex-1 min-w-0 truncate text-stitek text-pismo" title={naNem}>
             {naNem}
           </span>
           {onOdebrat && (
@@ -74,7 +74,7 @@ export const ZdrojStopy: React.FC<Props> = ({
               onClick={onOdebrat}
               title="Sundat z faderu"
               aria-label={`Sundat ${naNem} z faderu`}
-              className="p-0.5 rounded text-neutral-600 hover:text-chyba cursor-pointer shrink-0"
+              className="p-0.5 rounded text-pismo-slaby hover:text-chyba cursor-pointer shrink-0"
             >
               <X className="w-3 h-3" />
             </button>
@@ -84,7 +84,7 @@ export const ZdrojStopy: React.FC<Props> = ({
         <button
           onClick={() => setOtevrene((o) => !o)}
           aria-expanded={otevrene}
-          className="w-full flex items-center justify-center gap-1 bg-black/30 border border-dashed border-kresba rounded-prvek px-1.5 py-1 text-stitek text-neutral-500 hover:text-neutral-200 hover:border-kresba-silna cursor-pointer transition-colors"
+          className="w-full flex items-center justify-center gap-1 bg-black/30 border border-dashed border-kresba rounded-prvek px-1.5 py-1 text-stitek text-pismo-slaby hover:text-pismo hover:border-kresba-silna cursor-pointer transition-colors"
         >
           Načíst stopu <ChevronDown className="w-3 h-3" />
         </button>
@@ -94,7 +94,7 @@ export const ZdrojStopy: React.FC<Props> = ({
         <button
           onClick={() => setOtevrene((o) => !o)}
           aria-expanded={otevrene}
-          className="mt-1 w-full flex items-center justify-center gap-1 text-stitek text-neutral-600 hover:text-neutral-300 cursor-pointer"
+          className="mt-1 w-full flex items-center justify-center gap-1 text-stitek text-pismo-slaby hover:text-pismo cursor-pointer"
         >
           Vyměnit <ChevronDown className="w-3 h-3" />
         </button>
@@ -106,7 +106,7 @@ export const ZdrojStopy: React.FC<Props> = ({
             <button
               onClick={() => setZalozka('knihovna')}
               className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-prvek text-stitek font-semibold cursor-pointer transition-colors ${
-                zalozka === 'knihovna' ? 'bg-znacka text-podklad' : 'text-neutral-400 hover:bg-plocha-nad'
+                zalozka === 'knihovna' ? 'zlata-plocha' : 'text-pismo-tlum hover:bg-plocha-nad'
               }`}
             >
               <Library className="w-3 h-3" /> Z databáze
@@ -114,7 +114,7 @@ export const ZdrojStopy: React.FC<Props> = ({
             <button
               onClick={() => setZalozka('pocitac')}
               className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-prvek text-stitek font-semibold cursor-pointer transition-colors ${
-                zalozka === 'pocitac' ? 'bg-znacka text-podklad' : 'text-neutral-400 hover:bg-plocha-nad'
+                zalozka === 'pocitac' ? 'zlata-plocha' : 'text-pismo-tlum hover:bg-plocha-nad'
               }`}
             >
               <FolderOpen className="w-3 h-3" /> Z počítače
@@ -129,13 +129,13 @@ export const ZdrojStopy: React.FC<Props> = ({
 
           {zalozka === 'pocitac' && (
             !mistniDostupne ? (
-              <p className="px-1 py-2 text-stitek text-neutral-500">
+              <p className="px-1 py-2 text-stitek text-pismo-slaby">
                 Appka běží na serveru, kde tvůj disk není. Stopy z počítače
                 se načtou, když ji spustíš u sebe.
               </p>
             ) : (
               <>
-                <p className="px-1 pb-1.5 text-stitek text-neutral-600 truncate" title={slozka}>
+                <p className="px-1 pb-1.5 text-stitek text-pismo-slaby truncate" title={slozka}>
                   {slozka}
                 </p>
                 {mistni.length > 8 && (
@@ -143,12 +143,12 @@ export const ZdrojStopy: React.FC<Props> = ({
                     value={hledani}
                     onChange={(e) => setHledani(e.target.value)}
                     placeholder="Hledat ve složce…"
-                    className="w-full bg-black/40 border border-kresba rounded-prvek px-2 py-1 mb-1 text-stitek text-white placeholder:text-neutral-600 focus:outline-none focus:border-znacka/60"
+                    className="w-full bg-black/40 border border-kresba rounded-prvek px-2 py-1 mb-1 text-stitek text-white placeholder:text-pismo-slaby focus:outline-none focus:border-znacka/60"
                   />
                 )}
                 <div className="max-h-64 overflow-y-auto">
                   {nalezene.length === 0 && (
-                    <p className="px-1 py-1.5 text-stitek text-neutral-600">
+                    <p className="px-1 py-1.5 text-stitek text-pismo-slaby">
                       {mistni.length ? 'Nic takového tu není.' : 'Ve složce nejsou žádné stopy.'}
                     </p>
                   )}
@@ -159,8 +159,8 @@ export const ZdrojStopy: React.FC<Props> = ({
                       className="w-full flex items-center gap-1.5 px-1.5 py-1.5 rounded-prvek text-left hover:bg-plocha-nad cursor-pointer"
                       title={m.cesta}
                     >
-                      <span className="flex-1 min-w-0 truncate text-stitek text-neutral-300">{m.jmeno}</span>
-                      <span className="text-stitek text-neutral-600 tabular-nums shrink-0">{mb(m.velikost)}</span>
+                      <span className="flex-1 min-w-0 truncate text-stitek text-pismo">{m.jmeno}</span>
+                      <span className="text-stitek text-pismo-slaby tabular-nums shrink-0">{mb(m.velikost)}</span>
                     </button>
                   ))}
                 </div>

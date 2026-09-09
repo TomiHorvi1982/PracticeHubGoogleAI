@@ -76,12 +76,12 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <span className="text-white font-bold text-base tracking-tight">
                 Uživatelský profil &amp; Nastavení
               </span>
-              <p className="text-xs text-neutral-400">Správa osobního účtu a oprávnění</p>
+              <p className="text-xs text-pismo-tlum">Správa osobního účtu a oprávnění</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-2 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
+            className="text-pismo-tlum hover:text-white p-2 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
           >
             ✕
           </button>
@@ -110,8 +110,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   </span>
                 )}
               </div>
-              <div className="text-xs text-neutral-400">{user.email}</div>
-              <div className="text-xs text-neutral-300 flex items-center gap-2 pt-1">
+              <div className="text-xs text-pismo-tlum">{user.email}</div>
+              <div className="text-xs text-pismo flex items-center gap-2 pt-1">
                 <span>Nástroj: <strong>{user.instrument || 'Kytara'}</strong></span>
                 <span>•</span>
                 <span>Stav: <strong className="text-uspech">Aktivní</strong></span>
@@ -125,19 +125,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               Přidělená práva v aplikaci:
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className={`flex items-center gap-2 ${user.permissions.canEditSongs ? 'text-uspech' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canEditSongs ? 'text-uspech' : 'text-pismo-slaby'}`}>
                 <span className="font-bold">{user.permissions.canEditSongs ? '✓' : '✕'}</span>
                 <span>Editace & tvorba písní</span>
               </div>
-              <div className={`flex items-center gap-2 ${user.permissions.canDeleteSongs ? 'text-red-400' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canDeleteSongs ? 'text-chyba' : 'text-pismo-slaby'}`}>
                 <span className="font-bold">{user.permissions.canDeleteSongs ? '✓' : '✕'}</span>
                 <span>Mazání písní</span>
               </div>
-              <div className={`flex items-center gap-2 ${user.permissions.canStartBandSession ? 'text-info' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canStartBandSession ? 'text-info' : 'text-pismo-slaby'}`}>
                 <span className="font-bold">{user.permissions.canStartBandSession ? '✓' : '✕'}</span>
                 <span>Zkouška kapely (Room)</span>
               </div>
-              <div className={`flex items-center gap-2 ${user.permissions.canManageUsers ? 'text-znacka' : 'text-neutral-500'}`}>
+              <div className={`flex items-center gap-2 ${user.permissions.canManageUsers ? 'text-znacka' : 'text-pismo-slaby'}`}>
                 <span className="font-bold">{user.permissions.canManageUsers ? '✓' : '✕'}</span>
                 <span>Správa uživatelů & pozvánky</span>
               </div>
@@ -167,20 +167,20 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 setErrorMsg(null);
                 setSuccessMsg(null);
               }}
-              className="w-full px-4 py-3 text-xs font-semibold text-neutral-300 hover:text-white flex items-center justify-between transition-colors cursor-pointer"
+              className="w-full px-4 py-3 text-xs font-semibold text-pismo hover:text-white flex items-center justify-between transition-colors cursor-pointer"
             >
               <span className="flex items-center gap-2.5">
                 <Key className="w-4 h-4 text-znacka" />
                 <span>Změnit přístupové heslo</span>
               </span>
-              <span className="text-neutral-400">{showPasswordChange ? '▲' : '▼'}</span>
+              <span className="text-pismo-tlum">{showPasswordChange ? '▲' : '▼'}</span>
             </button>
 
             {showPasswordChange && (
               <form onSubmit={handleChangePassword} className="p-4 border-t border-white/5 space-y-3">
                 {errorMsg && (
-                  <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-2.5 rounded-xl text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                  <div className="bg-chyba/10 border border-chyba/30 text-chyba-svetla p-2.5 rounded-xl text-xs flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-chyba shrink-0" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
@@ -193,7 +193,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 )}
 
                 <div className="space-y-1">
-                  <label className="block text-xs font-medium text-neutral-400">
+                  <label className="block text-xs font-medium text-pismo-tlum">
                     Současné heslo
                   </label>
                   <input
@@ -207,7 +207,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <label className="block text-xs font-medium text-neutral-400">
+                    <label className="block text-xs font-medium text-pismo-tlum">
                       Nové heslo
                     </label>
                     <input
@@ -219,7 +219,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-xs font-medium text-neutral-400">
+                    <label className="block text-xs font-medium text-pismo-tlum">
                       Potvrdit heslo
                     </label>
                     <input
@@ -234,7 +234,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full bg-znacka hover:bg-znacka-svetla text-black font-bold py-2 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
+                  className="w-full zlata-plocha font-bold py-2 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 cursor-pointer shadow-md transition-all active:scale-95"
                 >
                   <Check className="w-4 h-4" />
                   <span>Uložit nové heslo</span>
@@ -249,7 +249,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               onLogout();
               onClose();
             }}
-            className="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 py-2.5 rounded-xl text-xs font-bold uppercase flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
+            className="w-full bg-chyba/10 hover:bg-chyba/20 text-chyba border border-chyba/30 py-2.5 rounded-xl text-xs font-bold uppercase flex items-center justify-center gap-2 transition-all cursor-pointer active:scale-95"
           >
             <LogOut className="w-4 h-4" />
             <span>Odhlásit se z účtu</span>
@@ -258,9 +258,9 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/5 px-6 py-3 flex items-center justify-between text-xs text-neutral-500">
-          <span>NeverLate Studio // Účet aktivní</span>
-          <button onClick={onClose} className="text-neutral-400 hover:text-white cursor-pointer transition-colors">
+        <div className="border-t border-white/5 px-6 py-3 flex items-center justify-between text-xs text-pismo-slaby">
+          <span>Neverlast Studio // Účet aktivní</span>
+          <button onClick={onClose} className="text-pismo-tlum hover:text-white cursor-pointer transition-colors">
             Zavřít
           </button>
         </div>

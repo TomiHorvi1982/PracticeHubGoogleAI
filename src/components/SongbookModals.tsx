@@ -54,14 +54,14 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
             <ListPlus className="w-5 h-5 text-znacka" />
             <h3 className="font-bold text-sm text-white">Přidat skladbu do playlistu</h3>
           </div>
-          <button onClick={onClose} className="text-neutral-400 hover:text-white">
+          <button onClick={onClose} className="text-pismo-tlum hover:text-white">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         <div className="text-xs space-y-1">
           <p className="font-semibold text-white">{song.title}</p>
-          <p className="text-neutral-400">{song.artist}</p>
+          <p className="text-pismo-tlum">{song.artist}</p>
         </div>
 
         {/* Global Player Quick Add */}
@@ -102,7 +102,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
                     }`}
                   >
                     <span>{pl.name}</span>
-                    {isIncluded ? <Check className="w-4 h-4 text-uspech" /> : <Plus className="w-4 h-4 text-neutral-400" />}
+                    {isIncluded ? <Check className="w-4 h-4 text-uspech" /> : <Plus className="w-4 h-4 text-pismo-tlum" />}
                   </button>
                 );
               })}
@@ -122,7 +122,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
             />
             <button
               type="submit"
-              className="px-3 py-1.5 bg-znacka text-black font-bold text-xs rounded-xl cursor-pointer"
+              className="px-3 py-1.5 zlata-plocha font-bold text-xs rounded-xl cursor-pointer"
             >
               Vytvořit
             </button>
@@ -130,7 +130,7 @@ export const AddToPlaylistModal: React.FC<AddToPlaylistModalProps> = ({
         ) : (
           <button
             onClick={() => setShowNewInput(true)}
-            className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-300 hover:text-white rounded-xl text-xs font-medium flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-pismo hover:text-white rounded-xl text-xs font-medium flex items-center justify-center gap-1 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5 text-znacka" /> Vytvořit nový playlist
           </button>
@@ -166,20 +166,20 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-      <div className="bg-plocha-3 border border-red-500/30 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
+      <div className="bg-plocha-3 border border-chyba/30 text-white max-w-md w-full p-6 rounded-3xl shadow-2xl space-y-4">
         <div className="flex items-center justify-between border-b border-white/10 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-red-500/20 text-red-400 flex items-center justify-center border border-red-500/30">
+            <div className="w-9 h-9 rounded-2xl bg-chyba/20 text-chyba flex items-center justify-center border border-chyba/30">
               <Trash2 className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-sm text-white">Smazat skladbu ze zpěvníku</h3>
-              <p className="text-drobne text-neutral-400">Tato akce je nevratná</p>
+              <p className="text-drobne text-pismo-tlum">Tato akce je nevratná</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-pismo-tlum hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -187,13 +187,13 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
 
         <div className="bg-white/[0.04] border border-white/[0.08] p-3.5 rounded-2xl space-y-1">
           <p className="font-bold text-sm text-white">{song.title}</p>
-          <p className="text-xs text-neutral-400">{song.artist || 'Neznámý interpret'}</p>
+          <p className="text-xs text-pismo-tlum">{song.artist || 'Neznámý interpret'}</p>
           {song.tuning && (
-            <p className="text-stitek text-neutral-500 font-mono pt-1">🎸 Ladění: {song.tuning}</p>
+            <p className="text-stitek text-pismo-slaby font-mono pt-1">🎸 Ladění: {song.tuning}</p>
           )}
         </div>
 
-        <p className="text-xs text-neutral-300 leading-relaxed">
+        <p className="text-xs text-pismo leading-relaxed">
           Opravdu chcete tuto skladbu trvale smazat? Skladba bude odebrána ze zpěvníku, z knihovny i ze všech vytvořených playlistů.
         </p>
 
@@ -201,7 +201,7 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-neutral-300 hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-pismo hover:text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
           >
             Zrušit
           </button>
@@ -211,7 +211,7 @@ export const DeleteSongConfirmModal: React.FC<DeleteSongConfirmModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className="px-4 py-2.5 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-lg shadow-red-600/30 transition-all cursor-pointer"
+            className="px-4 py-2.5 bg-red-600 hover:bg-chyba text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-lg shadow-red-600/30 transition-all cursor-pointer"
           >
             <Trash2 className="w-4 h-4" />
             <span>Smazat skladbu</span>

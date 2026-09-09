@@ -607,10 +607,10 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
+              <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
                 Freetar.de
               </span>
-              <span className="text-xs text-neutral-400 font-medium">Oficiální repozitář tabulatur</span>
+              <span className="text-xs text-pismo-tlum font-medium">Oficiální repozitář tabulatur</span>
             </div>
             <h2 className="text-xl font-bold text-white tracking-tight mt-0.5">
               Integrovaný vyhledávač akordů &amp; tabů
@@ -627,7 +627,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
               activeMode === 'native_search'
                 ? 'bg-white text-black font-bold shadow-md'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-pismo-tlum hover:text-white'
             }`}
           >
             <Search className="w-3.5 h-3.5" /> Nativní vyhledávač
@@ -637,7 +637,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
               activeMode === 'sbirka'
                 ? 'bg-white text-black font-bold shadow-md'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-pismo-tlum hover:text-white'
             }`}
           >
             <Library className="w-3.5 h-3.5" /> Naše sbírka
@@ -647,7 +647,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
               activeMode === 'live_browser'
                 ? 'bg-white text-black font-bold shadow-md'
-                : 'text-neutral-400 hover:text-white'
+                : 'text-pismo-tlum hover:text-white'
             }`}
           >
             <Globe className="w-3.5 h-3.5" /> Živý prohlížeč Freetar
@@ -661,7 +661,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           className={`p-4 rounded-2xl text-xs font-semibold flex items-center justify-between border shadow-lg ${
             statusMessage.type === 'success'
               ? 'bg-uspech/10 border-uspech/30 text-uspech'
-              : 'bg-red-500/10 border-red-500/30 text-red-300'
+              : 'bg-chyba/10 border-chyba/30 text-chyba-svetla'
           }`}
         >
           <div className="flex items-center gap-2.5">
@@ -674,7 +674,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           </div>
           <button
             onClick={() => setStatusMessage(null)}
-            className="text-xs text-neutral-400 hover:text-white cursor-pointer"
+            className="text-xs text-pismo-tlum hover:text-white cursor-pointer"
           >
             ✕ Zavřít
           </button>
@@ -703,20 +703,20 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               className="flex flex-wrap gap-2.5"
             >
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3.5" />
+                <Search className="w-4 h-4 text-pismo-tlum absolute left-3.5 top-3.5" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Zadejte název písně nebo interpreta (např. Wonderwall, Pink Floyd, Kabát)..."
-                  className="w-full bg-black/40 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-neutral-500 focus:border-znacka outline-none transition-colors"
+                  className="w-full bg-black/40 border border-white/10 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-pismo-slaby focus:border-znacka outline-none transition-colors"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSearching}
-                className="px-6 py-3 bg-znacka hover:bg-znacka-svetla text-black font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
+                className="px-6 py-3 zlata-plocha font-bold text-xs uppercase rounded-2xl flex items-center gap-2 transition-all shadow-lg shrink-0 disabled:opacity-50 cursor-pointer active:scale-95"
               >
                 {isSearching ? (
                   <>
@@ -732,7 +732,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
             {/* Ukládání nálezů. Patří k vyhledávání, protože rozhoduje
                 o tom, co se stane hned po otevření tabulatury. */}
-            <label className="flex items-center gap-2 text-drobne text-neutral-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-drobne text-pismo cursor-pointer">
               <input
                 type="checkbox"
                 checked={ukladatSam}
@@ -761,13 +761,13 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
           {searchResults.length > 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 bg-black/40 p-3 rounded-2xl border border-white/5">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-xs text-neutral-400 font-medium mr-1">Filtrovat typ:</span>
+                <span className="text-xs text-pismo-tlum font-medium mr-1">Filtrovat typ:</span>
                 <button
                   onClick={() => setTypeFilter('all')}
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'all'
                       ? 'bg-white text-black font-bold shadow-md'
-                      : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                      : 'bg-white/5 text-pismo-tlum hover:text-white border border-white/5'
                   }`}
                 >
                   Vše ({searchResults.length})
@@ -777,7 +777,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'chords'
                       ? 'bg-uspech text-black font-bold shadow-md'
-                      : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                      : 'bg-white/5 text-pismo-tlum hover:text-white border border-white/5'
                   }`}
                 >
                   Akordy (Chords)
@@ -787,7 +787,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'tabs'
                       ? 'bg-info text-white font-bold shadow-md'
-                      : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                      : 'bg-white/5 text-pismo-tlum hover:text-white border border-white/5'
                   }`}
                 >
                   Kytarové Taby
@@ -796,8 +796,8 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   onClick={() => setTypeFilter('bass')}
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'bass'
-                      ? 'bg-znacka text-black font-bold shadow-md'
-                      : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                      ? 'zlata-plocha font-bold shadow-md'
+                      : 'bg-white/5 text-pismo-tlum hover:text-white border border-white/5'
                   }`}
                 >
                   Basa
@@ -807,14 +807,14 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                   className={`px-3 py-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
                     typeFilter === 'guitarpro'
                       ? 'bg-nastroj text-white font-bold shadow-md'
-                      : 'bg-white/5 text-neutral-400 hover:text-white border border-white/5'
+                      : 'bg-white/5 text-pismo-tlum hover:text-white border border-white/5'
                   }`}
                 >
                   Guitar Pro
                 </button>
               </div>
 
-              <div className="text-xs text-neutral-400 font-medium">
+              <div className="text-xs text-pismo-tlum font-medium">
                 Zobrazeno <strong className="text-white">{filteredResults.length}</strong> z {searchResults.length} výsledků
               </div>
             </div>
@@ -822,8 +822,8 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Search Error Alert */}
           {searchError && (
-            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 text-xs text-red-300 flex items-center gap-2.5 font-medium">
-              <AlertCircle className="w-5 h-5 shrink-0 text-red-400" />
+            <div className="bg-chyba/10 border border-chyba/30 rounded-2xl p-4 text-xs text-chyba-svetla flex items-center gap-2.5 font-medium">
+              <AlertCircle className="w-5 h-5 shrink-0 text-chyba" />
               <span>{searchError}</span>
             </div>
           )}
@@ -834,7 +834,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="bg-white/[0.02] border-b border-white/5 text-neutral-400 font-medium">
+                    <tr className="bg-white/[0.02] border-b border-white/5 text-pismo-tlum font-medium">
                       <th className="p-4">Interpret</th>
                       <th className="p-4">Název skladby</th>
                       <th className="p-4">Typ tabu</th>
@@ -869,14 +869,14 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                               {res.type}
                             </span>
                           </td>
-                          <td className="p-4 text-neutral-300">
+                          <td className="p-4 text-pismo">
                             {res.rating ? (
                               <span className="flex items-center gap-1">
                                 <Star className="w-3.5 h-3.5 text-znacka fill-current" />
                                 {res.rating}
                               </span>
                             ) : (
-                              <span className="text-neutral-600">—</span>
+                              <span className="text-pismo-slaby">—</span>
                             )}
                           </td>
                           <td className="p-4 text-right">
@@ -916,7 +916,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 <h3 className="text-lg font-bold text-white tracking-tight">
                   Vyhledávejte z desítek tisíc tabů a akordů na Freetar.de
                 </h3>
-                <p className="text-xs text-neutral-400 max-w-md mx-auto mt-1.5">
+                <p className="text-xs text-pismo-tlum max-w-md mx-auto mt-1.5">
                   Zadejte název oblíbené písně výše. Výsledky můžete okamžitě číst, transponovat nebo jedním kliknutím uložit do svého zpěvníku.
                 </p>
               </div>
@@ -960,7 +960,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               className="flex-1 min-w-[250px] flex gap-2"
             >
               <div className="relative flex-1">
-                <Globe className="w-4 h-4 text-neutral-400 absolute left-3 top-2.5" />
+                <Globe className="w-4 h-4 text-pismo-tlum absolute left-3 top-2.5" />
                 <input
                   type="text"
                   value={directInput || currentUrl}
@@ -1043,7 +1043,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 <h3 className="text-lg font-bold text-white tracking-tight">
                   {previewTab.artist} — {previewTab.title}
                 </h3>
-                <div className="flex items-center gap-3 text-xs text-neutral-400 mt-0.5">
+                <div className="flex items-center gap-3 text-xs text-pismo-tlum mt-0.5">
                   {previewTab.key && <span>Tónina: <strong className="text-uspech">{previewTab.key}</strong></span>}
                   {previewTab.capo && <span>Capo: <strong className="text-znacka">{previewTab.capo}</strong></span>}
                   {previewTab.tuning && <span>Ladění: <strong className="text-white">{previewTab.tuning}</strong></span>}
@@ -1059,7 +1059,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 </button>
                 <button
                   onClick={() => setPreviewTab(null)}
-                  className="p-2 text-neutral-400 hover:text-white rounded-xl hover:bg-white/5 cursor-pointer transition-all"
+                  className="p-2 text-pismo-tlum hover:text-white rounded-xl hover:bg-white/5 cursor-pointer transition-all"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1071,7 +1071,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               {/* Chords used pills */}
               {previewTab.chordsUsed && previewTab.chordsUsed.length > 0 && (
                 <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-neutral-400 font-medium">Použité akordy:</span>
+                  <span className="text-xs text-pismo-tlum font-medium">Použité akordy:</span>
                   {previewTab.chordsUsed.map((ch: string) => (
                     <span
                       key={ch}
@@ -1085,14 +1085,14 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
               {/* Tab text body */}
               <div className="bg-black/60 p-5 rounded-2xl border border-white/5">
-                <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-200 leading-relaxed select-text">
+                <pre className="whitespace-pre-wrap font-mono text-xs text-pismo leading-relaxed select-text">
                   {previewTab.content}
                 </pre>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between text-xs text-neutral-400">
+            <div className="p-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between text-xs text-pismo-tlum">
               <span>Zdroj: {previewTab.sourceName || 'Freetar.de'}</span>
               <button
                 onClick={() => setPreviewTab(null)}

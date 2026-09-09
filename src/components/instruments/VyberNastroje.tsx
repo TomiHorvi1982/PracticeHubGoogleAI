@@ -94,7 +94,7 @@ export const VyberNastroje: React.FC<{
                 </span>
               )}
             </div>
-            <p className="text-drobne text-neutral-500 leading-tight mb-2.5">{n.popis}</p>
+            <p className="text-drobne text-pismo-slaby leading-tight mb-2.5">{n.popis}</p>
 
             <label className="block">
               <span className="stitek-pole">Vstup</span>

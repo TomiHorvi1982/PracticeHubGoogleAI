@@ -54,7 +54,7 @@ export const SoundshedOvladani: React.FC = () => {
     return (
       <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
         <h3 className="text-xs font-bold text-white mb-1.5">Ovládání Soundshedu</h3>
-        <p className="text-drobne text-neutral-400">
+        <p className="text-drobne text-pismo-tlum">
           Tenhle prohlížeč Web MIDI neumí, takže odsud Soundshed ovládat nejde.
           Funguje to v Chrome a Edge.
         </p>
@@ -75,7 +75,7 @@ export const SoundshedOvladani: React.FC = () => {
             className={`text-stitek px-2 py-1 rounded-lg border transition-colors cursor-pointer flex items-center gap-1 ${
               uceni
                 ? 'bg-pozor/15 border-pozor/50 text-pozor'
-                : 'bg-black/30 border-white/[0.08] text-neutral-400 hover:border-white/25'
+                : 'bg-black/30 border-white/[0.08] text-pismo-tlum hover:border-white/25'
             }`}
           >
             <GraduationCap className="w-3 h-3" />
@@ -86,9 +86,9 @@ export const SoundshedOvladani: React.FC = () => {
 
       {!midi.pripojeno ? (
         <div className="space-y-2">
-          <p className="text-drobne text-neutral-400 leading-relaxed">
+          <p className="text-drobne text-pismo-tlum leading-relaxed">
             Soundshed se ovládá přes MIDI. Potřebuje to povolení prohlížeče
-            a zapnutý virtuální port <strong className="text-neutral-300">IAC Driver</strong>
+            a zapnutý virtuální port <strong className="text-pismo">IAC Driver</strong>
             {' '}v Audio MIDI Setupu.
           </p>
           <button
@@ -118,7 +118,7 @@ export const SoundshedOvladani: React.FC = () => {
             <option value="cc">CC</option>
             <option value="note">Noty</option>
           </select>
-          <label className="text-stitek text-neutral-500 flex items-center gap-1">
+          <label className="text-stitek text-pismo-slaby flex items-center gap-1">
             kanál
             <input
               type="number" min={1} max={16} value={nastaveni.kanal}
@@ -165,8 +165,8 @@ export const SoundshedOvladani: React.FC = () => {
                       return (
                         <div key={o.id} className="bg-black/20 border border-white/[0.06] rounded-xl px-3 py-2">
                           <div className="flex items-center justify-between gap-2 mb-1">
-                            <span className="text-stitek text-neutral-300 truncate">{o.nazev}</span>
-                            <span className="text-stitek text-neutral-600 shrink-0 tabular-nums">{v}</span>
+                            <span className="text-stitek text-pismo truncate">{o.nazev}</span>
+                            <span className="text-stitek text-pismo-slaby shrink-0 tabular-nums">{v}</span>
                           </div>
                           <input
                             type="range" min={0} max={127} value={v}
@@ -174,7 +174,7 @@ export const SoundshedOvladani: React.FC = () => {
                             className="w-full accent-uspech cursor-pointer"
                           />
                           {uceni && (
-                            <p className="text-stitek text-neutral-600 mt-1 truncate">
+                            <p className="text-stitek text-pismo-slaby mt-1 truncate">
                               {o.adresa} · {popisOvladace(o, nastaveni)}
                             </p>
                           )}
@@ -192,11 +192,11 @@ export const SoundshedOvladani: React.FC = () => {
                             : 'bg-black/20 border-white/[0.06] hover:border-white/25'
                         }`}
                       >
-                        <span className="text-drobne text-neutral-200 flex items-center gap-1 truncate">
+                        <span className="text-drobne text-pismo flex items-center gap-1 truncate">
                           {naposled === o.id && <Check className="w-3 h-3 text-uspech shrink-0" />}
                           {o.nazev}
                         </span>
-                        <span className="block text-stitek text-neutral-600 truncate">
+                        <span className="block text-stitek text-pismo-slaby truncate">
                           {uceni ? o.adresa : `${nastaveni.druh === 'cc' ? 'CC' : 'nota'} ${cislo}`}
                         </span>
                       </button>
@@ -209,7 +209,7 @@ export const SoundshedOvladani: React.FC = () => {
         </div>
       )}
 
-      <p className="text-stitek text-neutral-600 leading-relaxed">
+      <p className="text-stitek text-pismo-slaby leading-relaxed">
         Presety se přepínají přes setlist: v Soundshedu si do Performance Pads
         nalož osm presetů, nauč je na tyhle zprávy a dál už se přepíná odsud.
         Víc než osm presetů se vejde do dalších bank.

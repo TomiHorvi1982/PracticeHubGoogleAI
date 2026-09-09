@@ -190,7 +190,7 @@ export const TestRoom: React.FC = () => {
               onClick={() => setOkruh(o.id)}
               title={o.popis}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
-                okruh === o.id ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                okruh === o.id ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
               }`}
             >
               <Ikona className="w-3.5 h-3.5" /> {o.nazev}
@@ -209,25 +209,25 @@ export const TestRoom: React.FC = () => {
           <Brain className="w-5 h-5 text-nastroj" />
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-bold text-white">Zkoušení</h3>
-            <p className="text-drobne text-neutral-400">
+            <p className="text-drobne text-pismo-tlum">
               Otázky se skládají pokaždé znovu, takže se nedají naučit nazpaměť.
             </p>
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>
               <div className="text-lg font-bold text-uspech tabular-nums">{skore}</div>
-              <div className="text-stitek text-neutral-500">správně</div>
+              <div className="text-stitek text-pismo-slaby">správně</div>
             </div>
             <div>
               <div className="text-lg font-bold text-chyba tabular-nums">{chyb}</div>
-              <div className="text-stitek text-neutral-500">chyb</div>
+              <div className="text-stitek text-pismo-slaby">chyb</div>
             </div>
             {rekord > 0 && (
               <div>
                 <div className="text-lg font-bold text-znacka tabular-nums flex items-center gap-1">
                   <Trophy className="w-3.5 h-3.5" /> {rekord}
                 </div>
-                <div className="text-stitek text-neutral-500">rekord</div>
+                <div className="text-stitek text-pismo-slaby">rekord</div>
               </div>
             )}
           </div>
@@ -243,7 +243,7 @@ export const TestRoom: React.FC = () => {
                   setVybrane((v) => (je ? v.filter((x) => x !== d.id) : [...v, d.id]))
                 }
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                  je ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                  je ? 'bg-nastroj text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
                 }`}
               >
                 {d.nazev}
@@ -255,13 +255,13 @@ export const TestRoom: React.FC = () => {
             onClick={() => {
               setSkore(0); setChyb(0); setZbyva(60); setNaCas(true); dalsi();
             }}
-            className="ml-auto px-3 py-1.5 rounded-xl bg-znacka text-black text-xs font-bold cursor-pointer flex items-center gap-1.5"
+            className="ml-auto px-3 py-1.5 rounded-xl zlata-plocha text-xs font-bold cursor-pointer flex items-center gap-1.5"
           >
             <Timer className="w-3.5 h-3.5" /> Minuta na čas
           </button>
           <button
             onClick={() => { setNaCas(false); dalsi(); }}
-            className="px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 text-xs font-bold cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-white/[0.06] text-pismo text-xs font-bold cursor-pointer"
           >
             Bez času
           </button>
@@ -281,7 +281,7 @@ export const TestRoom: React.FC = () => {
         <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-6 space-y-4">
           <div>
             <h4 className="text-lg font-bold text-white">{otazka.zadani}</h4>
-            <p className="text-drobne text-neutral-500 mt-1">{otazka.napoveda}</p>
+            <p className="text-drobne text-pismo-slaby mt-1">{otazka.napoveda}</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -298,7 +298,7 @@ export const TestRoom: React.FC = () => {
                       ? 'bg-uspech/20 border border-uspech text-uspech'
                       : je
                       ? 'bg-chyba/20 border border-chyba text-chyba'
-                      : 'bg-white/[0.05] text-neutral-200 hover:bg-white/[0.10] disabled:opacity-50'
+                      : 'bg-white/[0.05] text-pismo hover:bg-white/[0.10] disabled:opacity-50'
                   }`}
                 >
                   {odpoved && spravna && <Check className="w-4 h-4 shrink-0" />}
@@ -311,7 +311,7 @@ export const TestRoom: React.FC = () => {
         </div>
       ) : (
         <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-8 text-center">
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-pismo-tlum">
             Vyber okruhy a spusť zkoušení — na čas, nebo v klidu.
           </p>
         </div>

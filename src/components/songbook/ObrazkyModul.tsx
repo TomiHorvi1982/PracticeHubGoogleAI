@@ -100,7 +100,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
 
       <div className="flex-1 overflow-y-auto min-h-0">
         {prilohy.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-drobne">
+          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-pismo-slaby text-drobne">
             <ImageOff className="w-5 h-5 text-neutral-700" />
             K téhle písni zatím žádný obrázek není.
           </div>
@@ -117,7 +117,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
                 ) : (
                   <div className="w-full aspect-video rounded-xl border border-white/10 bg-white/[0.03] flex items-center justify-center">
                     {nacitam ? (
-                      <Loader2 className="w-4 h-4 text-neutral-600 animate-spin" />
+                      <Loader2 className="w-4 h-4 text-pismo-slaby animate-spin" />
                     ) : (
                       <ImageOff className="w-4 h-4 text-neutral-700" />
                     )}
@@ -125,12 +125,12 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
                 )}
                 <button
                   onClick={() => odeber(p.id)}
-                  className="absolute top-1 right-1 p-1 rounded-lg bg-black/70 text-neutral-400 hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-1 right-1 p-1 rounded-lg bg-black/70 text-pismo-tlum hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                   title="Odpojit od písně"
                 >
                   <X className="w-3 h-3" />
                 </button>
-                <div className="text-stitek text-neutral-500 truncate mt-0.5">{p.name}</div>
+                <div className="text-stitek text-pismo-slaby truncate mt-0.5">{p.name}</div>
               </div>
             ))}
           </div>

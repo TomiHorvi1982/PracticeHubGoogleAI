@@ -94,12 +94,12 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
         className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-drobne cursor-pointer transition-all ${
           vybrana.kategorie === null && !vybrana.podkategorie
             ? 'bg-znacka/15 text-znacka font-bold'
-            : 'text-neutral-300 hover:bg-white/[0.05]'
+            : 'text-pismo hover:bg-white/[0.05]'
         }`}
       >
         <FolderOpen className="w-3.5 h-3.5 shrink-0" />
         <span className="flex-1 text-left">Celá knihovna</span>
-        <span className="text-stitek font-mono text-neutral-500 tabular-nums">
+        <span className="text-stitek font-mono text-pismo-slaby tabular-nums">
           {celkem.toLocaleString('cs')}
         </span>
       </button>
@@ -110,13 +110,13 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
           className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-drobne cursor-pointer transition-all ${
             vybrana.podkategorie === '__bez__' && vybrana.kategorie === null
               ? 'bg-znacka/15 text-znacka font-bold'
-              : 'text-neutral-400 hover:bg-white/[0.05]'
+              : 'text-pismo-tlum hover:bg-white/[0.05]'
           }`}
           title="Soubory, které ještě nikdo nezařadil"
         >
           <Inbox className="w-3.5 h-3.5 shrink-0" />
           <span className="flex-1 text-left">Nezařazené</span>
-          <span className="text-stitek font-mono text-neutral-500 tabular-nums">
+          <span className="text-stitek font-mono text-pismo-slaby tabular-nums">
             {nezarazenych.toLocaleString('cs')}
           </span>
         </button>
@@ -142,7 +142,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
             >
               <button
                 onClick={() => (maDeti ? prepni(k.id) : onVybrat(k.id, null))}
-                className="p-1.5 text-neutral-500 hover:text-white cursor-pointer shrink-0"
+                className="p-1.5 text-pismo-slaby hover:text-white cursor-pointer shrink-0"
                 aria-label={otevrena ? 'Sbalit' : 'Rozbalit'}
               >
                 {maDeti ? (
@@ -161,15 +161,15 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                 className={`flex-1 flex items-center gap-2 py-1.5 pr-2.5 text-drobne cursor-pointer text-left ${
                   vybrana.kategorie === k.id && !vybrana.podkategorie
                     ? 'text-znacka font-bold'
-                    : 'text-neutral-300'
+                    : 'text-pismo'
                 }`}
               >
                 <span className="shrink-0">{ikonaKategorie(k.id)}</span>
                 <span className="flex-1 truncate">{nazevKategorie(k.id)}</span>
-                <span className="text-stitek font-mono text-neutral-500 tabular-nums">
+                <span className="text-stitek font-mono text-pismo-slaby tabular-nums">
                   {k.souboru ? k.souboru.toLocaleString('cs') : ''}
                 </span>
-                <span className="text-stitek font-mono text-neutral-600 tabular-nums w-14 text-right">
+                <span className="text-stitek font-mono text-pismo-slaby tabular-nums w-14 text-right">
                   {k.souboru ? mb(k.bajtu) : 'prázdné'}
                 </span>
               </button>
@@ -193,11 +193,11 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                         className={`w-full flex items-center gap-2 px-2 py-1 text-drobne rounded-lg cursor-pointer ${
                           vybrana.kategorie === k.id && vybrana.podkategorie === d.podkategorie
                             ? 'bg-znacka/15 text-znacka font-bold'
-                            : 'text-neutral-400 hover:bg-white/[0.05]'
+                            : 'text-pismo-tlum hover:bg-white/[0.05]'
                         }`}
                       >
                         <span className="flex-1 truncate text-left">{d.podkategorie}</span>
-                        <span className="text-stitek font-mono text-neutral-600 tabular-nums">
+                        <span className="text-stitek font-mono text-pismo-slaby tabular-nums">
                           {d.souboru.toLocaleString('cs')}
                         </span>
                       </button>
@@ -216,7 +216,7 @@ export const StromKnihovny: React.FC<Props> = ({ uzly, vybrana, onVybrat, onPust
                         className={`px-2 py-1 text-drobne rounded-lg ${
                           nadKym === klic(k.id, p)
                             ? 'ring-1 ring-uspech bg-uspech/10 text-uspech'
-                            : 'text-neutral-600 italic'
+                            : 'text-pismo-slaby italic'
                         }`}
                         title="Zatím prázdné — přetáhni sem soubor"
                       >

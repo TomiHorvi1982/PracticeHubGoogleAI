@@ -946,13 +946,13 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
       case 'guitarpro':
         return <span className="bg-znacka/15 text-znacka border border-znacka/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Guitar Pro</span>;
       case 'pdf':
-        return <span className="bg-red-500/15 text-red-400 border border-red-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">PDF Noty</span>;
+        return <span className="bg-chyba/15 text-chyba border border-chyba/30 text-stitek font-semibold px-2 py-0.5 rounded-md">PDF Noty</span>;
       case 'txt':
         return <span className="bg-uspech/15 text-uspech border border-uspech/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Text / Akordy</span>;
       case 'image':
-        return <span className="bg-purple-500/15 text-purple-400 border border-purple-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Obrázek</span>;
+        return <span className="bg-nastroj/15 text-nastroj border border-purple-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">Obrázek</span>;
       case 'midi':
-        return <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">MIDI</span>;
+        return <span className="bg-blue-500/15 text-info border border-blue-500/30 text-stitek font-semibold px-2 py-0.5 rounded-md">MIDI</span>;
     }
   };
 
@@ -988,7 +988,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           className={`p-3.5 rounded-2xl text-xs font-semibold flex items-center justify-between border ${
             statusMessage.type === 'success'
               ? 'bg-uspech/10 border-uspech/30 text-uspech'
-              : 'bg-red-500/10 border-red-500/30 text-red-400'
+              : 'bg-chyba/10 border-chyba/30 text-chyba'
           }`}
         >
           <div className="flex items-center gap-2">
@@ -1001,7 +1001,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           </div>
           <button
             onClick={() => setStatusMessage(null)}
-            className="text-xs text-neutral-400 hover:text-white cursor-pointer"
+            className="text-xs text-pismo-tlum hover:text-white cursor-pointer"
           >
             ✕
           </button>
@@ -1043,7 +1043,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               se jen u vybrané složky — obecná rada u celé knihovny by
               platila pro všechno a tím pádem pro nic. */}
           {kategorieFiltr && PODLE_ID[kategorieFiltr]?.napoveda && (
-            <div className="bg-znacka/[0.07] border border-znacka/25 rounded-2xl px-3 py-2 text-drobne text-neutral-300">
+            <div className="bg-znacka/[0.07] border border-znacka/25 rounded-2xl px-3 py-2 text-drobne text-pismo">
               <span className="text-znacka font-bold">Pojmenování: </span>
               <span className="font-mono">{PODLE_ID[kategorieFiltr].napoveda}</span>
             </div>
@@ -1051,7 +1051,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
           {/* Search Box */}
           <div className="relative">
-            <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3" />
+            <Search className="w-4 h-4 text-pismo-slaby absolute left-3.5 top-3" />
             <input
               type="text"
               value={searchQuery}
@@ -1062,7 +1062,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 if (e.key === 'Enter' && searchQuery.trim()) sdilenyVyraz.nastav(searchQuery);
               }}
               placeholder="Vyhledat soubor, interpreta..."
-              className="w-full bg-plocha-2 border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:border-info outline-none transition-all shadow-sm"
+              className="w-full bg-plocha-2 border border-white/[0.08] rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-pismo-slaby focus:border-info outline-none transition-all shadow-sm"
             />
 
             {/* Sbírka je druhá osa: strom říká, CO soubor je, sbírka
@@ -1072,7 +1072,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               <select
                 value={sbirkaFiltr || ''}
                 onChange={(e) => setSbirkaFiltr(e.target.value || null)}
-                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-neutral-200 cursor-pointer outline-none focus:border-info shrink-0"
+                className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-pismo cursor-pointer outline-none focus:border-info shrink-0"
                 title="Filtrovat podle sbírky — odkud soubory přišly"
               >
                 <option value="">Všechny sbírky</option>
@@ -1084,7 +1084,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-2.5 text-xs text-neutral-400 hover:text-white cursor-pointer"
+                className="absolute right-3 top-2.5 text-xs text-pismo-tlum hover:text-white cursor-pointer"
               >
                 ✕
               </button>
@@ -1101,7 +1101,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           >
             {/* Zmenšování zvuků patří k nahrávání — rozhoduje o tom,
                 co se zrovna nahraje. */}
-            <label className="flex items-center gap-1.5 text-drobne text-neutral-400 cursor-pointer">
+            <label className="flex items-center gap-1.5 text-drobne text-pismo-tlum cursor-pointer">
               <input
                 type="checkbox"
                 checked={prevadetZvuk}
@@ -1120,7 +1120,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   setKvalitaMp3(v);
                   localStorage.setItem('neverlate_kvalita_mp3', String(v));
                 }}
-                className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-0.5 text-stitek text-neutral-300 outline-none disabled:opacity-40"
+                className="bg-black/40 border border-white/10 rounded-lg px-1.5 py-0.5 text-stitek text-pismo outline-none disabled:opacity-40"
               >
                 <option value={128}>128</option>
                 <option value={192}>192</option>
@@ -1156,7 +1156,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           {/* Files List */}
           <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-3 space-y-1.5 max-h-[600px] overflow-y-auto shadow-lg">
             {filteredItems.length === 0 ? (
-              <div className="p-8 text-center text-xs text-neutral-500">
+              <div className="p-8 text-center text-xs text-pismo-slaby">
                 Žádné soubory neodpovídají zadanému filtru
               </div>
             ) : (
@@ -1181,7 +1181,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       } ${
                         isSelected
                           ? 'bg-info/20 border border-info/40 text-white shadow-sm font-semibold'
-                          : 'bg-black/30 border border-white/5 hover:bg-white/5 hover:border-white/10 text-neutral-300'
+                          : 'bg-black/30 border border-white/5 hover:bg-white/5 hover:border-white/10 text-pismo'
                       }`}
                     >
                       {jsemSpravce && (
@@ -1224,8 +1224,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                           )}
                           {item.artist && (
                             <>
-                              <span className="text-neutral-500 font-normal shrink-0">—</span>
-                              <span className="text-neutral-400 text-drobne truncate">{item.artist}</span>
+                              <span className="text-pismo-slaby font-normal shrink-0">—</span>
+                              <span className="text-pismo-tlum text-drobne truncate">{item.artist}</span>
                             </>
                           )}
                         </div>
@@ -1238,7 +1238,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                               e.stopPropagation();
                               setPrejmenovavany({ id: item.id, nazev: item.name });
                             }}
-                            className="p-1 rounded text-neutral-600 hover:text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="p-1 rounded text-pismo-slaby hover:text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                             title="Přejmenovat"
                           >
                             <Pencil className="w-3 h-3" />
@@ -1296,8 +1296,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         {/* Zalamuje se: interpret, název, tempo, tónina, takt i velikost
                               se do jedné řádky na úzkém okně nevejdou a zbytek
                               se ořízl. Na širokém okně je řádka jedna jako dřív. */}
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-drobne text-neutral-400 mt-0.5">
-                          {item.artist && <span className="text-neutral-300 font-medium">{item.artist}</span>}
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-drobne text-pismo-tlum mt-0.5">
+                          {item.artist && <span className="text-pismo font-medium">{item.artist}</span>}
                           {item.songTitle && <span>• {item.songTitle}</span>}
                           {/* U smyčky rozhoduje tempo a tónina, ne datum
                               a velikost — proto stojí před nimi. Prázdné
@@ -1312,7 +1312,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                             <span className="text-nastroj font-mono">{(item as any).tonina}</span>
                           )}
                           {(item as any).takt && (
-                            <span className="text-neutral-500 font-mono">{(item as any).takt}</span>
+                            <span className="text-pismo-slaby font-mono">{(item as any).takt}</span>
                           )}
                           <span>• {Math.round(item.size / 1024)} KB</span>
                         </div>
@@ -1339,7 +1339,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               <button
                 onClick={() => void nactiKnihovnu(searchQuery, undefined, true)}
                 disabled={nacitamKnihovnu}
-                className="w-full py-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.11] border border-white/[0.08] text-xs font-semibold text-neutral-300 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-wait"
+                className="w-full py-2.5 rounded-2xl bg-white/[0.05] hover:bg-white/[0.11] border border-white/[0.08] text-xs font-semibold text-pismo cursor-pointer transition-all disabled:opacity-50 disabled:cursor-wait"
               >
                 {nacitamKnihovnu
                   ? 'Načítám…'
@@ -1367,7 +1367,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <h3 className="text-base font-bold text-white tracking-tight">
                       {activeItem.name}
                     </h3>
-                    <p className="text-xs text-neutral-400 mt-0.5">
+                    <p className="text-xs text-pismo-tlum mt-0.5">
                       {activeItem.artist ? `${activeItem.artist} — ` : ''}
                       {activeItem.songTitle || 'Knihovní soubor'} • {Math.round(activeItem.size / 1024)} KB
                     </p>
@@ -1389,7 +1389,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <a
                       href={activeItem.dataUrl}
                       download={activeItem.name}
-                      className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-200 hover:text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                      className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-pismo hover:text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" /> <span>Stáhnout</span>
                     </a>
@@ -1398,7 +1398,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   {/* Delete from library */}
                   <button
                     onClick={() => handleDeleteItem(activeItem.id)}
-                    className="p-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 text-neutral-400 hover:text-red-400 rounded-xl transition-all cursor-pointer"
+                    className="p-2 bg-white/5 hover:bg-chyba/20 border border-white/10 hover:border-chyba/30 text-pismo-tlum hover:text-chyba rounded-xl transition-all cursor-pointer"
                     title="Smazat z knihovny"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -1409,7 +1409,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               {/* Proč náhled nejde. Bez tohohle vypadá nedostupný soubor
                   úplně stejně jako soubor, který se ještě načítá. */}
               {shanimOdkaz && (
-                <div className="flex items-center gap-2 text-drobne text-neutral-400 bg-white/[0.03] border border-white/10 rounded-2xl px-3 py-2">
+                <div className="flex items-center gap-2 text-drobne text-pismo-tlum bg-white/[0.03] border border-white/10 rounded-2xl px-3 py-2">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-info" />
                   Sháním soubor z úložiště…
                 </div>
@@ -1431,7 +1431,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       </span>
                       <button
                         onClick={() => setZvukoveNahledy([])}
-                        className="text-stitek text-neutral-500 hover:text-white cursor-pointer ml-auto"
+                        className="text-stitek text-pismo-slaby hover:text-white cursor-pointer ml-auto"
                       >
                         zavřít všechny
                       </button>
@@ -1448,17 +1448,17 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       }`}
                     >
                       <div className="flex items-center gap-2 px-2 pt-1">
-                        <span className="text-drobne text-neutral-300 truncate flex-1">{n.name}</span>
+                        <span className="text-drobne text-pismo truncate flex-1">{n.name}</span>
                         <button
                           onClick={() => void doPlaylistu(n)}
-                          className="p-1 rounded text-neutral-500 hover:text-uspech cursor-pointer shrink-0"
+                          className="p-1 rounded text-pismo-slaby hover:text-uspech cursor-pointer shrink-0"
                           title="Zařadit do playlistu"
                         >
                           <ListPlus className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => setZvukoveNahledy((p) => p.filter((x) => x.id !== n.id))}
-                          className="p-1 rounded text-neutral-600 hover:text-chyba cursor-pointer shrink-0"
+                          className="p-1 rounded text-pismo-slaby hover:text-chyba cursor-pointer shrink-0"
                           title="Zavřít tenhle náhled"
                         >
                           <X className="w-3 h-3" />
@@ -1467,7 +1467,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       {n.dataUrl ? (
                         <WaveformPrehravac url={n.dataUrl} nazev={n.name} />
                       ) : (
-                        <p className="text-drobne text-neutral-600 px-2 pb-2">Načítám křivku…</p>
+                        <p className="text-drobne text-pismo-slaby px-2 pb-2">Načítám křivku…</p>
                       )}
                     </div>
                   ))}
@@ -1490,7 +1490,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       <p className="text-xs font-bold text-znacka uppercase">
                         Guitar Pro tabulatura připravena
                       </p>
-                      <p className="text-xs text-neutral-400 max-w-md mx-auto">
+                      <p className="text-xs text-pismo-tlum max-w-md mx-auto">
                         Nahrajte svůj vlastní .gp soubor výše nebo stáhněte z Freetar.de pro spuštění plného interaktivního AlphaTab syntezátoru.
                       </p>
                     </div>
@@ -1507,7 +1507,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <div className="bg-black/30 border border-white/10 rounded-2xl p-6 text-center space-y-2">
                       <FileText className="w-8 h-8 text-chyba mx-auto" />
                       <p className="text-xs font-bold text-white">{activeItem.name}</p>
-                      <p className="text-xs text-neutral-400">
+                      <p className="text-xs text-pismo-tlum">
                         Náhled PDF dokumentu nebo textového výpisu
                       </p>
                     </div>
@@ -1518,7 +1518,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       <span className="text-xs font-bold text-uspech block mb-2">
                         Extrahovaný text z PDF dokumentu:
                       </span>
-                      <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-300 max-h-[200px] overflow-y-auto">
+                      <pre className="whitespace-pre-wrap font-mono text-xs text-pismo max-h-[200px] overflow-y-auto">
                         {activeItem.extractedText}
                       </pre>
                     </div>
@@ -1531,7 +1531,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 <div className="space-y-3">
                   <div className="bg-black/40 border border-white/10 rounded-2xl p-3 flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-neutral-400">Transpozice:</span>
+                      <span className="text-xs text-pismo-tlum">Transpozice:</span>
                       <button
                         onClick={() => setTxtTranspose((p) => p - 1)}
                         className="px-2.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs font-bold cursor-pointer"
@@ -1549,13 +1549,13 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       </button>
                     </div>
 
-                    <div className="text-xs text-neutral-400">
+                    <div className="text-xs text-pismo-tlum">
                       Tónina: <strong className="text-white">{activeItem.key || 'C'}</strong>
                     </div>
                   </div>
 
                   <div className="bg-black/40 border border-white/10 rounded-2xl p-5 max-h-[450px] overflow-y-auto">
-                    <pre className="whitespace-pre-wrap font-mono text-xs text-neutral-200 leading-relaxed">
+                    <pre className="whitespace-pre-wrap font-mono text-xs text-pismo leading-relaxed">
                       {activeItem.extractedText || 'Žádný textový obsah'}
                     </pre>
                   </div>
@@ -1575,7 +1575,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       >
                         <ZoomOut className="w-3.5 h-3.5" />
                       </button>
-                      <span className="text-xs font-semibold px-2 text-neutral-300">
+                      <span className="text-xs font-semibold px-2 text-pismo">
                         {Math.round(imgZoom * 100)}%
                       </span>
                       <button
@@ -1596,8 +1596,8 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         onClick={() => setImgInvert((prev) => !prev)}
                         className={`px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                           imgInvert
-                            ? 'bg-purple-500/30 text-purple-300 border-purple-500/50'
-                            : 'bg-white/5 text-neutral-300 border-white/10'
+                            ? 'bg-nastroj/30 text-purple-300 border-purple-500/50'
+                            : 'bg-white/5 text-pismo border-white/10'
                         }`}
                         title="Vysoký kontrast (Inverze pro čtení)"
                       >
@@ -1646,7 +1646,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         <span className="text-sm font-bold text-white block">
                           Interaktivní MIDI přehrávač
                         </span>
-                        <p className="text-xs text-neutral-400">
+                        <p className="text-xs text-pismo-tlum">
                           Přehrávání tónů a doprovodu přímo přes webový syntetizér
                         </p>
                       </div>
@@ -1682,7 +1682,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         }}
                       />
                     </div>
-                    <div className="flex justify-between text-xs text-neutral-400">
+                    <div className="flex justify-between text-xs text-pismo-tlum">
                       <span>{Math.floor(midiProgress)}s</span>
                       <span>{Math.floor(midiDuration)}s</span>
                     </div>
@@ -1690,15 +1690,15 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
                   {/* Track names list */}
                   {activeItem.trackNames && activeItem.trackNames.length > 0 && (
-                    <div className="text-xs text-neutral-300 bg-black/40 p-3.5 rounded-xl border border-white/5 space-y-2">
-                      <span className="font-semibold block text-neutral-400">
+                    <div className="text-xs text-pismo bg-black/40 p-3.5 rounded-xl border border-white/5 space-y-2">
+                      <span className="font-semibold block text-pismo-tlum">
                         Stopy a nástroje v souboru ({activeItem.trackNames.length}):
                       </span>
                       <div className="flex flex-wrap gap-1.5">
                         {activeItem.trackNames.map((trk, idx) => (
                           <span
                             key={idx}
-                            className="bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 text-neutral-200 text-xs"
+                            className="bg-white/5 px-2.5 py-1 rounded-lg border border-white/10 text-pismo text-xs"
                           >
                             🎹 {trk}
                           </span>
@@ -1713,7 +1713,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           ) : (
             <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-16 text-center text-xs space-y-4 shadow-xl">
               <div className="flex justify-center">
-                <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-neutral-500">
+                <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-pismo-slaby">
                   <FolderArchive className="w-10 h-10" />
                 </div>
               </div>
@@ -1721,7 +1721,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 <p className="font-bold text-white text-base">
                   Vyberte soubor pro náhled nebo přehrání
                 </p>
-                <p className="text-xs text-neutral-400 leading-relaxed">
+                <p className="text-xs text-pismo-tlum leading-relaxed">
                   Knihovna podporuje Guitar Pro tabulatury, PDF noty, textové akordy, obrázky a MIDI soubory.
                 </p>
               </div>

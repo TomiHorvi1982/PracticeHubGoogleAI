@@ -153,14 +153,14 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
           <div className="text-center space-y-1">
             <div className="text-4xl font-black font-mono text-white flex items-baseline justify-center gap-1">
               <span>{pitchData.note}</span>
-              <span className="text-lg text-neutral-400 font-sans font-normal">{pitchData.octave}</span>
+              <span className="text-lg text-pismo-tlum font-sans font-normal">{pitchData.octave}</span>
             </div>
-            <div className="text-xs font-mono text-neutral-400">
+            <div className="text-xs font-mono text-pismo-tlum">
               {pitchData.frequency.toFixed(1)} Hz
             </div>
 
             {/* Gauge bar */}
-            <div className="w-48 h-2 bg-neutral-800 rounded-full mt-2 relative overflow-hidden">
+            <div className="w-48 h-2 bg-plocha-2 rounded-full mt-2 relative overflow-hidden">
               <div className="absolute inset-y-0 left-1/2 w-0.5 bg-white/40 -translate-x-1/2" />
               <div
                 className={`absolute top-0 bottom-0 w-3 rounded-full transition-all ${
@@ -177,9 +177,9 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
             </p>
           </div>
         ) : (
-          <div className="text-center py-2 text-neutral-400 text-xs">
-            <p className="font-semibold text-neutral-300">Připraveno k ladění ({activePreset.name})</p>
-            <p className="text-drobne text-neutral-500 mt-0.5">
+          <div className="text-center py-2 text-pismo-tlum text-xs">
+            <p className="font-semibold text-pismo">Připraveno k ladění ({activePreset.name})</p>
+            <p className="text-drobne text-pismo-slaby mt-0.5">
               Klikněte na strunu níže pro referenční tón nebo zapněte mikrofon.
             </p>
           </div>
@@ -198,12 +198,12 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
               onClick={() => playReferenceTone(freq, idx)}
               className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
                 isAct
-                  ? 'bg-znacka text-black border-znacka font-bold scale-105 shadow-md'
+                  ? 'zlata-plocha border-znacka font-bold scale-105 shadow-md'
                   : 'bg-white/[0.04] border-white/[0.08] hover:bg-white/[0.08] text-white'
               }`}
               title={`Přehrát referenční tón ${noteName}`}
             >
-              <div className="text-stitek text-neutral-400">{idx + 1}. struna</div>
+              <div className="text-stitek text-pismo-tlum">{idx + 1}. struna</div>
               <div className="text-sm font-bold font-mono text-znacka">{noteName}</div>
             </button>
           );
@@ -290,14 +290,14 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
       {/* Quick Chord Selector Pills */}
       <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-drobne text-neutral-400 font-medium">Akord na hmatníku:</span>
+          <span className="text-drobne text-pismo-tlum font-medium">Akord na hmatníku:</span>
           {songChords.map((ch) => (
             <button
               key={ch}
               onClick={() => handleChooseChord(ch)}
               className={`px-2 py-0.5 rounded-lg font-mono font-bold text-xs transition-all cursor-pointer ${
                 selectedChordName === ch
-                  ? 'bg-znacka text-black shadow-sm'
+                  ? 'zlata-plocha shadow-sm'
                   : 'bg-white/5 hover:bg-white/15 text-white'
               }`}
             >
@@ -322,7 +322,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
           )}
 
           <div className="flex items-center gap-1 text-drobne">
-            <span className="text-neutral-400">Pražce:</span>
+            <span className="text-pismo-tlum">Pražce:</span>
             <select
               value={activeFretLimit}
               onChange={(e) => setActiveFretLimit(parseInt(e.target.value, 10))}
@@ -338,7 +338,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
       {/* Interactive Fretboard Graphic Box */}
       <div className="flex-1 bg-black/50 p-3 sm:p-4 rounded-2xl border border-white/10 overflow-x-auto shadow-inner">
         {/* Fret Numbers Header */}
-        <div className="flex min-w-[650px] text-center text-stitek font-mono text-neutral-400 font-bold mb-2">
+        <div className="flex min-w-[650px] text-center text-stitek font-mono text-pismo-tlum font-bold mb-2">
           <span className="w-12 text-left">STRUNA</span>
           <span className="w-10">0</span>
           {Array.from({ length: activeFretLimit }).map((_, i) => (
@@ -363,7 +363,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
             return (
               <div key={stringIdx} className="flex items-center gap-0 border-b border-white/[0.04] pb-1">
                 {/* String Label */}
-                <span className="font-mono text-xs font-semibold text-neutral-400 w-12 shrink-0">
+                <span className="font-mono text-xs font-semibold text-pismo-tlum w-12 shrink-0">
                   {stringLabel}
                 </span>
 
@@ -398,7 +398,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
                       {/* Note Marker */}
                       {isChordFret && (
                         <div
-                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md bg-znacka text-black shadow-[0_0_10px_#FF9F0A]"
+                          className="w-5 h-5 rounded-full flex items-center justify-center font-bold text-stitek font-mono z-10 shadow-md zlata-plocha shadow-[0_0_10px_#FF9F0A]"
                           title={`Tón ${noteName} na ${fret}. pražci`}
                         >
                           {noteName}

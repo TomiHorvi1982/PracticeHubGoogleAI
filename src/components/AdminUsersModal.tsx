@@ -281,10 +281,10 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="odznak bg-znacka text-black px-2 py-0.5 rounded-md">
+                <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
                   Správa kapely
                 </span>
-                <span className="text-xs text-neutral-400 font-medium">{users.length} aktivních účtů</span>
+                <span className="text-xs text-pismo-tlum font-medium">{users.length} aktivních účtů</span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight mt-0.5">
                 Uživatelé, role a přístupová oprávnění
@@ -293,7 +293,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-neutral-400 hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+            className="p-2 text-pismo-tlum hover:text-white hover:bg-white/10 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -307,7 +307,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               className={`py-2 px-3.5 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
                 activeTab === 'list'
                   ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
+                  : 'text-pismo-tlum hover:text-white hover:bg-white/[0.04]'
               }`}
             >
               <Users className="w-4 h-4 text-znacka" />
@@ -319,7 +319,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               className={`py-2 px-3.5 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
                 activeTab === 'add'
                   ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
+                  : 'text-pismo-tlum hover:text-white hover:bg-white/[0.04]'
               }`}
             >
               <UserPlus className="w-4 h-4 text-uspech" />
@@ -331,7 +331,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               className={`py-2 px-3.5 text-xs font-semibold rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
                 activeTab === 'invites'
                   ? 'bg-white/15 text-white shadow-sm border border-white/10 font-bold'
-                  : 'text-neutral-400 hover:text-white hover:bg-white/[0.04]'
+                  : 'text-pismo-tlum hover:text-white hover:bg-white/[0.04]'
               }`}
             >
               <Key className="w-4 h-4 text-info" />
@@ -339,7 +339,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
             </button>
           </div>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-pismo-tlum">
             <span>Přihlášen:</span>
             <span className="text-znacka font-semibold">{currentUser.displayName}</span>
           </div>
@@ -378,7 +378,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               {/* Search & Role Filter Bar */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-plocha-3 p-3 rounded-2xl border border-white/[0.08]">
                 <div className="relative flex-1">
-                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-pismo-tlum" />
                   <input
                     type="text"
                     value={searchQuery}
@@ -389,7 +389,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-neutral-400 font-medium">Role:</span>
+                  <span className="text-xs text-pismo-tlum font-medium">Role:</span>
                   <select
                     value={roleFilter}
                     onChange={(e) => setRoleFilter(e.target.value)}
@@ -416,7 +416,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
               <div className="border border-white/[0.08] bg-plocha-2 rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-sans">
-                    <thead className="bg-white/[0.03] text-neutral-400 border-b border-white/[0.06] font-medium">
+                    <thead className="bg-white/[0.03] text-pismo-tlum border-b border-white/[0.06] font-medium">
                       <tr>
                         <th className="py-3 px-4">Uživatel / E-mail</th>
                         <th className="py-3 px-4">Role & Oprávnění</th>
@@ -453,12 +453,12 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                       </span>
                                     )}
                                     {isSelf && (
-                                      <span className="odznak bg-white/10 text-neutral-300 px-1.5 py-0.2 rounded">
+                                      <span className="odznak bg-white/10 text-pismo px-1.5 py-0.2 rounded">
                                         Vy
                                       </span>
                                     )}
                                   </div>
-                                  <div className="text-drobne text-neutral-400">{u.email}</div>
+                                  <div className="text-drobne text-pismo-tlum">{u.email}</div>
                                 </div>
                               </div>
                             </td>
@@ -469,7 +469,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                 <span className={`inline-block text-stitek font-bold px-2 py-0.5 rounded-md ${roleMeta.badgeBg}`}>
                                   {roleMeta.label}
                                 </span>
-                                <div className="flex flex-wrap gap-1 text-stitek text-neutral-400">
+                                <div className="flex flex-wrap gap-1 text-stitek text-pismo-tlum">
                                   {u.permissions.canEditSongs && <span className="text-uspech">✓Edit</span>}
                                   {u.permissions.canDeleteSongs && <span className="text-chyba">✓Mazat</span>}
                                   {u.permissions.canStartBandSession && <span className="text-info">✓Zkoušky</span>}
@@ -479,7 +479,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             </td>
 
                             {/* Instrument */}
-                            <td className="py-3.5 px-4 text-neutral-300">
+                            <td className="py-3.5 px-4 text-pismo">
                               {u.instrument || '—'}
                             </td>
 
@@ -506,7 +506,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             </td>
 
                             {/* Last login */}
-                            <td className="py-3.5 px-4 text-xs text-neutral-400">
+                            <td className="py-3.5 px-4 text-xs text-pismo-tlum">
                               {u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('cs-CZ') : 'Zatím nepřihlášen'}
                             </td>
 
@@ -531,7 +531,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                 {/* Reset Password Button */}
                                 <button
                                   onClick={() => handleResetPassword(u)}
-                                  className="px-2.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white border border-white/10 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
+                                  className="px-2.5 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] text-pismo hover:text-white border border-white/10 rounded-xl text-xs font-medium flex items-center gap-1.5 transition-all cursor-pointer"
                                   title="Vygenerovat nové heslo"
                                 >
                                   <Key className="w-3.5 h-3.5 text-znacka" />
@@ -545,7 +545,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                     className={`p-1.5 rounded-xl border text-xs transition-all cursor-pointer ${
                                       u.status === 'disabled'
                                         ? 'bg-uspech/10 border-uspech/30 text-uspech hover:bg-uspech/20'
-                                        : 'bg-white/[0.06] border-white/10 text-neutral-400 hover:text-chyba hover:bg-chyba/10'
+                                        : 'bg-white/[0.06] border-white/10 text-pismo-tlum hover:text-chyba hover:bg-chyba/10'
                                     }`}
                                     title={u.status === 'disabled' ? 'Odblokovat účet' : 'Zablokovat účet'}
                                   >
@@ -557,7 +557,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                                 {!isPrimaryAdmin && (
                                   <button
                                     onClick={() => handleDeleteUser(u)}
-                                    className="p-1.5 bg-white/[0.06] hover:bg-chyba/15 border border-white/10 hover:border-chyba/30 text-neutral-400 hover:text-chyba rounded-xl transition-all cursor-pointer"
+                                    className="p-1.5 bg-white/[0.06] hover:bg-chyba/15 border border-white/10 hover:border-chyba/30 text-pismo-tlum hover:text-chyba rounded-xl transition-all cursor-pointer"
                                     title="Smazat uživatele"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -590,7 +590,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                 </div>
                 <button
                   onClick={() => setEditingUser(null)}
-                  className="text-neutral-400 hover:text-white text-xs px-2.5 py-1 rounded-lg hover:bg-white/10 transition-colors"
+                  className="text-pismo-tlum hover:text-white text-xs px-2.5 py-1 rounded-lg hover:bg-white/10 transition-colors"
                 >
                   ✕ Zrušit
                 </button>
@@ -618,7 +618,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           className={`p-3.5 text-left rounded-2xl border transition-all flex flex-col justify-between cursor-pointer ${
                             isSelected
                               ? 'bg-white/[0.12] border-uspech text-white shadow-md'
-                              : 'bg-black/40 border-white/[0.08] text-neutral-400 hover:text-white hover:border-white/20'
+                              : 'bg-black/40 border-white/[0.08] text-pismo-tlum hover:text-white hover:border-white/20'
                           }`}
                         >
                           <div>
@@ -626,7 +626,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                               <span>{meta.label}</span>
                               {isSelected && <Check className="w-4 h-4 text-uspech" />}
                             </div>
-                            <div className="text-drobne text-neutral-400 leading-relaxed">
+                            <div className="text-drobne text-pismo-tlum leading-relaxed">
                               {meta.desc}
                             </div>
                           </div>
@@ -650,7 +650,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setEditPermissions({ ...editPermissions, canEditSongs: e.target.checked })}
                         className="accent-uspech w-4 h-4 rounded"
                       />
-                      <span className="text-neutral-200">Upravovat a vytvářet písně ve zpěvníku</span>
+                      <span className="text-pismo">Upravovat a vytvářet písně ve zpěvníku</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer text-xs">
@@ -660,7 +660,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setEditPermissions({ ...editPermissions, canDeleteSongs: e.target.checked })}
                         className="accent-chyba w-4 h-4 rounded"
                       />
-                      <span className="text-neutral-200">Mazat písně a nahrávky</span>
+                      <span className="text-pismo">Mazat písně a nahrávky</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer text-xs">
@@ -670,7 +670,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setEditPermissions({ ...editPermissions, canImportFiles: e.target.checked })}
                         className="accent-uspech w-4 h-4 rounded"
                       />
-                      <span className="text-neutral-200">Importovat taby (Guitar Pro, MIDI, PDF)</span>
+                      <span className="text-pismo">Importovat taby (Guitar Pro, MIDI, PDF)</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer text-xs">
@@ -680,7 +680,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setEditPermissions({ ...editPermissions, canStartBandSession: e.target.checked })}
                         className="accent-info w-4 h-4 rounded"
                       />
-                      <span className="text-neutral-200">Zakládat a ovládat živou zkušebnu kapely</span>
+                      <span className="text-pismo">Zakládat a ovládat živou zkušebnu kapely</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer text-xs">
@@ -690,7 +690,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         onChange={(e) => setEditPermissions({ ...editPermissions, canManageSetlists: e.target.checked })}
                         className="accent-uspech w-4 h-4 rounded"
                       />
-                      <span className="text-neutral-200">Spravovat koncertní setlisty</span>
+                      <span className="text-pismo">Spravovat koncertní setlisty</span>
                     </label>
 
                     <label className="flex items-center gap-3 cursor-pointer text-xs">
@@ -710,7 +710,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setEditingUser(null)}
-                    className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+                    className="px-4 py-2 bg-white/[0.06] hover:bg-white/[0.12] text-pismo hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                   >
                     Zrušit
                   </button>
@@ -738,7 +738,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     <UserPlus className="w-4 h-4 text-uspech" />
                     <span>Nový uživatel a vygenerování pozvánky</span>
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-xs text-pismo-tlum mt-1">
                     Zadejte údaje nového člena kapely. Systém pro něj vygeneruje přístupové heslo, roli a odkaz na pozvánku.
                   </p>
                 </div>
@@ -748,7 +748,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   {/* Name & Email Row */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-neutral-400 mb-1.5">
+                      <label className="block text-xs font-semibold text-pismo-tlum mb-1.5">
                         Jméno / Přezdívka *
                       </label>
                       <input
@@ -762,7 +762,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-neutral-400 mb-1.5">
+                      <label className="block text-xs font-semibold text-pismo-tlum mb-1.5">
                         E-mailová adresa *
                       </label>
                       <input
@@ -779,7 +779,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   {/* Instrument & Username */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-neutral-400 mb-1.5">
+                      <label className="block text-xs font-semibold text-pismo-tlum mb-1.5">
                         Nástroj v kapele
                       </label>
                       <input
@@ -792,7 +792,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-neutral-400 mb-1.5">
+                      <label className="block text-xs font-semibold text-pismo-tlum mb-1.5">
                         Přezdívka / Login (volitelné)
                       </label>
                       <input
@@ -807,7 +807,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                   {/* Role Selector */}
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-400 mb-1.5">
+                    <label className="block text-xs font-semibold text-pismo-tlum mb-1.5">
                       Přiřazená Role:
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -822,11 +822,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             className={`p-3 text-left rounded-xl border transition-all cursor-pointer ${
                               isSelected
                                 ? 'bg-white/[0.12] border-uspech text-white shadow-sm'
-                                : 'bg-black/40 border-white/[0.08] text-neutral-400 hover:text-white'
+                                : 'bg-black/40 border-white/[0.08] text-pismo-tlum hover:text-white'
                             }`}
                           >
                             <div className="text-xs font-bold">{meta.label.split(' ')[0]}</div>
-                            <div className="text-stitek text-neutral-400 truncate mt-0.5">{meta.desc.substring(0, 24)}...</div>
+                            <div className="text-stitek text-pismo-tlum truncate mt-0.5">{meta.desc.substring(0, 24)}...</div>
                           </button>
                         );
                       })}
@@ -835,7 +835,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                   {/* Permissions Customizer Accordion */}
                   <div className="bg-black/40 p-3.5 rounded-2xl border border-white/[0.08] space-y-2">
-                    <div className="text-xs font-semibold text-neutral-300 flex items-center justify-between">
+                    <div className="text-xs font-semibold text-pismo flex items-center justify-between">
                       <span>Pravidla & Oprávnění pro tuto pozvánku:</span>
                       <span className="text-drobne text-uspech font-bold">Role: {ROLE_LABELS[newRole].label}</span>
                     </div>
@@ -847,7 +847,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canEditSongs: e.target.checked })}
                           className="accent-uspech rounded"
                         />
-                        <span className="text-neutral-300">Vytvářet & upravovat písně</span>
+                        <span className="text-pismo">Vytvářet & upravovat písně</span>
                       </label>
                       <label className="flex items-center gap-2.5 cursor-pointer">
                         <input
@@ -856,7 +856,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canDeleteSongs: e.target.checked })}
                           className="accent-chyba rounded"
                         />
-                        <span className="text-neutral-300">Mazat písně a nahrávky</span>
+                        <span className="text-pismo">Mazat písně a nahrávky</span>
                       </label>
                       <label className="flex items-center gap-2.5 cursor-pointer">
                         <input
@@ -865,7 +865,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           onChange={(e) => setCustomPermissions({ ...customPermissions, canStartBandSession: e.target.checked })}
                           className="accent-info rounded"
                         />
-                        <span className="text-neutral-300">Řídit zkoušky kapely</span>
+                        <span className="text-pismo">Řídit zkoušky kapely</span>
                       </label>
                       <label className="flex items-center gap-2.5 cursor-pointer">
                         <input
@@ -882,11 +882,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   {/* Password configuration */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold text-neutral-400">
+                      <label className="text-xs font-semibold text-pismo-tlum">
                         Heslo pro první přihlášení:
                       </label>
                       <div className="flex items-center gap-3 text-xs">
-                        <label className="flex items-center gap-1.5 cursor-pointer text-neutral-300">
+                        <label className="flex items-center gap-1.5 cursor-pointer text-pismo">
                           <input
                             type="radio"
                             name="passOption"
@@ -896,7 +896,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           />
                           <span>Vygenerovat</span>
                         </label>
-                        <label className="flex items-center gap-1.5 cursor-pointer text-neutral-300">
+                        <label className="flex items-center gap-1.5 cursor-pointer text-pismo">
                           <input
                             type="radio"
                             name="passOption"
@@ -948,15 +948,15 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                     {/* Credentials Preview Box */}
                     <div className="bg-black/40 p-3.5 rounded-xl border border-white/[0.08] space-y-2 text-xs">
-                      <div className="flex justify-between items-center text-neutral-400">
+                      <div className="flex justify-between items-center text-pismo-tlum">
                         <span>Příjemce:</span>
                         <span className="font-semibold text-white">{lastCreatedInvite.user.displayName}</span>
                       </div>
-                      <div className="flex justify-between items-center text-neutral-400">
+                      <div className="flex justify-between items-center text-pismo-tlum">
                         <span>E-mail:</span>
                         <span className="font-semibold text-white">{lastCreatedInvite.user.email}</span>
                       </div>
-                      <div className="flex justify-between items-center text-neutral-400">
+                      <div className="flex justify-between items-center text-pismo-tlum">
                         <span>Role:</span>
                         <span className="font-semibold text-uspech">{ROLE_LABELS[lastCreatedInvite.user.role].label}</span>
                       </div>
@@ -965,19 +965,19 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                           dovnitř se pozvaný musí dostat tak či tak. */}
                       {lastCreatedInvite.invitation.odkazNaHeslo ? (
                         <div className="pt-1.5 border-t border-white/[0.06] space-y-1">
-                          <span className="text-neutral-400">Odkaz na nastavení hesla:</span>
+                          <span className="text-pismo-tlum">Odkaz na nastavení hesla:</span>
                           <input
                             readOnly
                             value={lastCreatedInvite.invitation.odkazNaHeslo}
                             onFocus={(e) => e.currentTarget.select()}
                             className="w-full font-mono text-stitek text-uspech bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
                           />
-                          <span className="text-stitek text-neutral-500">
+                          <span className="text-stitek text-pismo-slaby">
                             Platí jednou a po čase vyprší. Heslo si pozvaný nastaví sám.
                           </span>
                         </div>
                       ) : (
-                        <div className="flex justify-between items-center text-neutral-400 pt-1.5 border-t border-white/[0.06]">
+                        <div className="flex justify-between items-center text-pismo-tlum pt-1.5 border-t border-white/[0.06]">
                           <span>Dočasné heslo:</span>
                           <span className="font-mono font-bold text-znacka text-sm bg-white/[0.08] px-2 py-0.5 rounded-lg border border-white/10">
                             {lastCreatedInvite.invitation.temporaryPassword}
@@ -1039,11 +1039,11 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                   </div>
                 ) : (
                   <div className="bg-plocha-3 border border-white/[0.08] rounded-2xl p-8 text-center space-y-3">
-                    <Mail className="w-8 h-8 text-neutral-500 mx-auto" />
+                    <Mail className="w-8 h-8 text-pismo-slaby mx-auto" />
                     <div className="text-white font-semibold text-xs">
                       Žádná nově vygenerovaná pozvánka
                     </div>
-                    <p className="text-xs text-neutral-400 leading-relaxed">
+                    <p className="text-xs text-pismo-tlum leading-relaxed">
                       Vyplňte formulář vlevo pro vytvoření člena kapely. Zde se okamžitě zobrazí QR kód, formátovaný text zprávy pro WhatsApp a tlačítko přímého odeslání e-mailu.
                     </p>
                   </div>
@@ -1062,14 +1062,14 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     <Key className="w-4 h-4 text-info" />
                     <span>Přehled všech vygenerovaných pozvánek a hesel</span>
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-0.5">
+                  <p className="text-xs text-pismo-tlum mt-0.5">
                     Seznam kódů a dočasných hesel přidělených jednotlivým členům kapely.
                   </p>
                 </div>
               </div>
 
               {invitations.length === 0 ? (
-                <div className="bg-plocha-3 border border-white/[0.06] rounded-2xl p-10 text-center text-neutral-400 text-xs">
+                <div className="bg-plocha-3 border border-white/[0.06] rounded-2xl p-10 text-center text-pismo-tlum text-xs">
                   Zatím nebyly vygenerovány žádné pozvánky.
                 </div>
               ) : (
@@ -1082,7 +1082,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       <div className="flex items-start justify-between">
                         <div>
                           <div className="font-semibold text-white text-xs">{inv.displayName}</div>
-                          <div className="text-drobne text-neutral-400">{inv.email}</div>
+                          <div className="text-drobne text-pismo-tlum">{inv.email}</div>
                         </div>
                         <span className={`text-stitek font-bold px-2 py-0.5 rounded-md ${ROLE_LABELS[inv.role].badgeBg}`}>
                           {ROLE_LABELS[inv.role].label}
@@ -1092,16 +1092,16 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                       {/* Credentials Display */}
                       <div className="bg-black/40 p-2.5 rounded-xl border border-white/[0.06] space-y-1.5 text-xs">
                         <div className="flex justify-between items-center">
-                          <span className="text-drobne text-neutral-400">Odkaz na heslo:</span>
-                          <span className="text-drobne font-semibold text-neutral-300">
+                          <span className="text-drobne text-pismo-tlum">Odkaz na heslo:</span>
+                          <span className="text-drobne font-semibold text-pismo">
                             {cerstveOdkazy[inv.id]
                               ? 'vyrobený — platí jednou'
                               : 'vyrobí se při kopírování'}
                           </span>
                         </div>
-                        <div className="flex justify-between items-center text-drobne text-neutral-400">
+                        <div className="flex justify-between items-center text-drobne text-pismo-tlum">
                           <span>Kód:</span>
-                          <span className="font-mono text-neutral-300">{inv.token}</span>
+                          <span className="font-mono text-pismo">{inv.token}</span>
                         </div>
                       </div>
 
@@ -1121,7 +1121,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3.5 h-3.5 text-neutral-400" />
+                              <Copy className="w-3.5 h-3.5 text-pismo-tlum" />
                               <span>Kopírovat</span>
                             </>
                           )}
@@ -1141,7 +1141,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
 
                         <button
                           onClick={() => setShowQrForInvite(showQrForInvite?.id === inv.id ? null : inv)}
-                          className="bg-white/[0.06] hover:bg-white/[0.12] text-neutral-300 hover:text-white px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-white/10 cursor-pointer"
+                          className="bg-white/[0.06] hover:bg-white/[0.12] text-pismo hover:text-white px-2.5 py-1.5 text-xs font-semibold rounded-xl border border-white/10 cursor-pointer"
                           title="Zobrazit QR kód"
                         >
                           <QrCode className="w-3.5 h-3.5" />
@@ -1175,7 +1175,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="bg-white/[0.02] border-t border-white/[0.08] px-6 py-3.5 flex items-center justify-between text-xs text-neutral-400">
+        <div className="bg-white/[0.02] border-t border-white/[0.08] px-6 py-3.5 flex items-center justify-between text-xs text-pismo-tlum">
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-znacka" />
             <span>Administrátor má oprávnění měnit pravidla a spravovat celou kapelu</span>

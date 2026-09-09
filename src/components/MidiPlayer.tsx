@@ -330,11 +330,11 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
         const isCurrent = Math.abs(relTime) < 0.1;
 
         if (isCurrent) {
-          ctx.fillStyle = '#FF3E00';
-          ctx.shadowColor = '#FF3E00';
+          ctx.fillStyle = '#FF9F43';
+          ctx.shadowColor = '#FF9F43';
           ctx.shadowBlur = 8;
         } else {
-          ctx.fillStyle = note.trackIdx % 2 === 0 ? '#00FF41' : '#00E5FF';
+          ctx.fillStyle = note.trackIdx % 2 === 0 ? '#00B878' : '#0EAEBE';
           ctx.shadowBlur = 0;
         }
 
@@ -344,7 +344,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
     // Playhead line
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#FF3E00';
+    ctx.strokeStyle = '#FF9F43';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -373,7 +373,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               <span className="odznak bg-info text-white px-2 py-0.5 rounded-md">
                 MIDI Player
               </span>
-              <span className="text-xs text-neutral-400 font-medium">Syntetizér a Piano Roll</span>
+              <span className="text-xs text-pismo-tlum font-medium">Syntetizér a Piano Roll</span>
             </div>
             <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
               Přehrávač a Vizualizér MIDI Souborů
@@ -382,7 +382,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
         </div>
 
         {/* Upload Button */}
-        <label className="flex items-center gap-2 px-4 py-2.5 bg-info hover:bg-[#0071e3] text-white font-bold text-xs uppercase rounded-2xl cursor-pointer transition-all shadow-md active:scale-95">
+        <label className="flex items-center gap-2 px-4 py-2.5 bg-info hover:bg-info-svetla text-white font-bold text-xs uppercase rounded-2xl cursor-pointer transition-all shadow-md active:scale-95">
           <Upload className="w-4 h-4" />
           <span>Nahrát soubor .mid</span>
           <input
@@ -396,7 +396,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
       {/* Demo Preset Buttons */}
       <div className="flex flex-wrap items-center gap-2 bg-black/40 p-3 rounded-2xl border border-white/5">
-        <span className="text-xs text-neutral-400 font-medium mr-1">Ukázkové MIDI skladby:</span>
+        <span className="text-xs text-pismo-tlum font-medium mr-1">Ukázkové MIDI skladby:</span>
         <button
           onClick={() => loadDemoMidi('furelise')}
           className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-uspech border border-white/10 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
@@ -428,7 +428,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               </div>
               <div>
                 <span className="font-bold text-white block text-sm">{fileName || midiData.name}</span>
-                <span className="text-xs text-neutral-300">
+                <span className="text-xs text-pismo">
                   Původní tempo: <strong className="text-white">{initialBpm} BPM</strong> | Stop: <strong className="text-white">{midiData.tracks.length}</strong> | Not: <strong className="text-white">{allNotesRef.current.length}</strong>
                 </span>
               </div>
@@ -440,7 +440,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               <button
                 onClick={() => setSelectedSound('piano')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  selectedSound === 'piano' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
+                  selectedSound === 'piano' ? 'bg-white text-black font-bold shadow-md' : 'text-pismo-tlum hover:text-white'
                 }`}
               >
                 Klavír
@@ -448,7 +448,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               <button
                 onClick={() => setSelectedSound('guitar')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  selectedSound === 'guitar' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
+                  selectedSound === 'guitar' ? 'bg-white text-black font-bold shadow-md' : 'text-pismo-tlum hover:text-white'
                 }`}
               >
                 Kytara
@@ -456,7 +456,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               <button
                 onClick={() => setSelectedSound('drums')}
                 className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
-                  selectedSound === 'drums' ? 'bg-white text-black font-bold shadow-md' : 'text-neutral-400 hover:text-white'
+                  selectedSound === 'drums' ? 'bg-white text-black font-bold shadow-md' : 'text-pismo-tlum hover:text-white'
                 }`}
               >
                 Bicí
@@ -466,7 +466,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
           {/* Interactive Visual Piano Roll Canvas */}
           <div className="border border-white/5 bg-black/40 rounded-2xl p-3 relative">
-            <div className="flex items-center justify-between text-xs text-neutral-400 mb-2">
+            <div className="flex items-center justify-between text-xs text-pismo-tlum mb-2">
               <span className="font-medium">Osnova Piano Roll</span>
               <span className="font-mono text-white">{currentTime.toFixed(1)}s / {totalDuration.toFixed(1)}s</span>
             </div>
@@ -495,7 +495,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
                 onChange={(e) => handleSeek(Number(e.target.value))}
                 className="flex-1 accent-uspech cursor-pointer"
               />
-              <span className="text-xs font-mono text-neutral-400">
+              <span className="text-xs font-mono text-pismo-tlum">
                 {Math.floor(totalDuration / 60)}:{(Math.floor(totalDuration) % 60).toString().padStart(2, '0')}
               </span>
             </div>
@@ -526,7 +526,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
                 <button
                   onClick={() => setIsLooping(!isLooping)}
                   className={`px-3 py-2 text-xs font-semibold rounded-2xl border transition-all cursor-pointer ${
-                    isLooping ? 'bg-uspech/20 text-uspech border-uspech/40' : 'bg-white/5 text-neutral-400 border-white/10 hover:text-white'
+                    isLooping ? 'bg-uspech/20 text-uspech border-uspech/40' : 'bg-white/5 text-pismo-tlum border-white/10 hover:text-white'
                   }`}
                 >
                   Smyčka: {isLooping ? 'Zapnuto' : 'Vypnuto'}
@@ -535,7 +535,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
               {/* Playback Speed Multiplier */}
               <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-xl border border-white/10">
-                <span className="text-xs text-neutral-400 font-medium mr-1.5">Rychlost:</span>
+                <span className="text-xs text-pismo-tlum font-medium mr-1.5">Rychlost:</span>
                 {[0.5, 0.75, 1.0, 1.25, 1.5].map((rate) => (
                   <button
                     key={rate}
@@ -543,7 +543,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
                     className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                       playbackRate === rate
                         ? 'bg-white text-black font-bold shadow-md'
-                        : 'text-neutral-400 hover:text-white'
+                        : 'text-pismo-tlum hover:text-white'
                     }`}
                   >
                     {rate}x
@@ -557,7 +557,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
           {/* MIDI Tracks Mute / Inspector Panel */}
           {midiData.tracks.length > 0 && (
             <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-3">
-              <span className="text-xs font-bold text-neutral-300 block border-b border-white/5 pb-2">
+              <span className="text-xs font-bold text-pismo block border-b border-white/5 pb-2">
                 Stopy souboru MIDI (možnost ztlumení):
               </span>
 
@@ -574,7 +574,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
                       }
                       className={`p-3 text-left rounded-xl border flex items-center justify-between text-xs transition-all cursor-pointer ${
                         isMuted
-                          ? 'bg-red-500/10 border-red-500/20 text-neutral-500 opacity-60'
+                          ? 'bg-chyba/10 border-chyba/20 text-pismo-slaby opacity-60'
                           : 'bg-white/5 hover:bg-white/10 border-white/10 text-white'
                       }`}
                     >
@@ -582,13 +582,13 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
                         <span className="font-semibold block truncate text-sm">
                           {track.name || `Stopa #${idx + 1}`}
                         </span>
-                        <span className="text-drobne text-neutral-400">
+                        <span className="text-drobne text-pismo-tlum">
                           {track.notes.length} not • Kanál: {track.channel}
                         </span>
                       </div>
 
                       {isMuted ? (
-                        <VolumeX className="w-4 h-4 text-red-400 shrink-0" />
+                        <VolumeX className="w-4 h-4 text-chyba shrink-0" />
                       ) : (
                         <Volume2 className="w-4 h-4 text-uspech shrink-0" />
                       )}
@@ -603,10 +603,10 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
       ) : (
         /* Empty State */
         <div className="border-2 border-dashed border-white/10 rounded-2xl p-8 text-center bg-black/20 space-y-3">
-          <FileAudio className="w-10 h-10 text-neutral-500 mx-auto" />
+          <FileAudio className="w-10 h-10 text-pismo-slaby mx-auto" />
           <div>
             <h4 className="text-sm font-bold text-white">Žádný MIDI soubor není nahrán</h4>
-            <p className="text-xs text-neutral-400 mt-1">
+            <p className="text-xs text-pismo-tlum mt-1">
               Nahrajte soubor <strong className="text-white">.mid</strong> nebo <strong className="text-white">.midi</strong>, případně zvolte jednu z ukázkových skladeb výše.
             </p>
           </div>

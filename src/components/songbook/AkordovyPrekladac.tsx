@@ -74,7 +74,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
               key={n.id}
               onClick={() => setNaCem(n.id)}
               className={`px-2 py-1 rounded-lg text-stitek font-semibold flex items-center gap-1 cursor-pointer ${
-                naCem === n.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
+                naCem === n.id ? 'bg-white/[0.14] text-white' : 'text-pismo-slaby hover:text-white'
               }`}
             >
               <Ikona className="w-3 h-3" /> {n.popis}
@@ -84,7 +84,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
 
         <button
           onClick={vycisti}
-          className="p-1 rounded-lg text-neutral-600 hover:text-white cursor-pointer"
+          className="p-1 rounded-lg text-pismo-slaby hover:text-white cursor-pointer"
           title="Vyčistit"
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -141,7 +141,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
             />
           )}
           {tukane.length > 0 && (
-            <div className="text-stitek text-neutral-400 font-mono">
+            <div className="text-stitek text-pismo-tlum font-mono">
               {[...new Set(tukane.map((m) => ((m % 12) + 12) % 12))]
                 .sort((a, b) => a - b)
                 .map((t) => TONY[t])
@@ -163,10 +163,10 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
               >
                 {rozpoznany.nazev}
               </span>
-              <span className="text-stitek text-neutral-500">{rozpoznany.popis}</span>
+              <span className="text-stitek text-pismo-slaby">{rozpoznany.popis}</span>
             </div>
           ) : (
-            <span className="text-drobne text-neutral-600">Naťukej aspoň dva tóny.</span>
+            <span className="text-drobne text-pismo-slaby">Naťukej aspoň dva tóny.</span>
           )}
         </div>
 
@@ -174,14 +174,14 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
           <>
             <button
               onClick={() => zahraj(true)}
-              className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.14] text-neutral-300 cursor-pointer"
+              className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.14] text-pismo cursor-pointer"
               title="Zahrát na kytaru"
             >
               <Guitar className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={() => zahraj(false)}
-              className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.14] text-neutral-300 cursor-pointer"
+              className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/[0.14] text-pismo cursor-pointer"
               title="Zahrát na klavír"
             >
               <Volume2 className="w-3.5 h-3.5" />

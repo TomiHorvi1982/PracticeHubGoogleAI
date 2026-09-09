@@ -406,7 +406,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
             <span className="truncate max-w-[220px]">{currentTrack.title}</span>
             <button
               onClick={() => setIsVideoFloatingOpen(false)}
-              className="text-neutral-400 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+              className="text-pismo-tlum hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
             >
               ✕
             </button>
@@ -448,7 +448,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
         >
           {/* Subtle floating visual glow indicator when dock is auto-hidden */}
           {!isDockVisible && (
-            <div className="mb-1.5 px-4 py-0.5 bg-znacka/90 hover:bg-znacka text-black font-bold text-stitek rounded-full shadow-lg shadow-znacka/30 transition-all transform hover:scale-105 flex items-center gap-1">
+            <div className="mb-1.5 px-4 py-0.5 bg-znacka/90 hover:zlata-plocha font-bold text-stitek rounded-full shadow-lg shadow-znacka/30 transition-all transform hover:scale-105 flex items-center gap-1">
               <ChevronUp className="w-3 h-3 animate-bounce" />
               <span>Přehrávač</span>
             </div>
@@ -479,7 +479,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
               className="h-full bg-gradient-to-r from-znacka to-chyba transition-all relative rounded-r-full"
               style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
             >
-              <div className="hidden group-hover:block absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,159,10,0.8)]"></div>
+              <div className="hidden group-hover:block absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_0_10px_rgba(255,209,102,0.8)]"></div>
             </div>
           </div>
 
@@ -487,7 +487,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
             
             {/* Left: Track Info & Band Presence */}
             <div className="flex items-center gap-3 min-w-0 flex-1 sm:max-w-md">
-              <div className="relative w-11 h-11 sm:w-12 sm:h-12 bg-neutral-900 rounded-xl border border-white/10 shrink-0 overflow-hidden group shadow-md">
+              <div className="relative w-11 h-11 sm:w-12 sm:h-12 bg-plocha-1 rounded-xl border border-white/10 shrink-0 overflow-hidden group shadow-md">
                 <img
                   src={currentTrack.thumbnail || `https://img.youtube.com/vi/${currentTrack.youtubeId}/mqdefault.jpg`}
                   alt={currentTrack.title}
@@ -508,11 +508,11 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                   <span className="text-drobne sm:text-zaklad font-semibold text-white truncate">
                     {currentTrack.title}
                   </span>
-                  <span className="text-stitek font-medium px-1.5 py-0.5 rounded-md bg-white/[0.08] text-neutral-300 shrink-0">
+                  <span className="text-stitek font-medium px-1.5 py-0.5 rounded-md bg-white/[0.08] text-pismo shrink-0">
                     {isPlaying ? 'Hraje' : 'Pozastaveno'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-neutral-400 truncate mt-0.5">
+                <div className="flex items-center gap-2 text-xs text-pismo-tlum truncate mt-0.5">
                   {currentTrack.artist && <span>{currentTrack.artist}</span>}
                 </div>
               </div>
@@ -526,7 +526,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 <button
                   onClick={cycleMode}
                   className={`p-1.5 rounded-lg hover:bg-white/10 transition-colors ${
-                    playbackMode === 'normal' ? 'text-neutral-400' : 'text-znacka'
+                    playbackMode === 'normal' ? 'text-pismo-tlum' : 'text-znacka'
                   }`}
                   title={`Režim přehrávání: ${playbackMode}`}
                 >
@@ -540,7 +540,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 {/* Previous */}
                 <button
                   onClick={onPrevTrack}
-                  className="p-1.5 text-neutral-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-1.5 text-pismo hover:text-white rounded-lg hover:bg-white/10 transition-colors"
                   title="Předchozí skladba"
                 >
                   <SkipBack className="w-5 h-5" />
@@ -562,7 +562,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 {/* Next */}
                 <button
                   onClick={onNextTrack}
-                  className="p-1.5 text-neutral-300 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
+                  className="p-1.5 text-pismo hover:text-white rounded-lg hover:bg-white/10 transition-colors"
                   title="Následující skladba"
                 >
                   <SkipForward className="w-5 h-5" />
@@ -572,7 +572,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 <button
                   onClick={() => setIsVideoFloatingOpen(!isVideoFloatingOpen)}
                   className={`p-1.5 rounded-lg hover:bg-white/10 transition-colors ${
-                    isVideoFloatingOpen ? 'text-uspech' : 'text-neutral-400'
+                    isVideoFloatingOpen ? 'text-uspech' : 'text-pismo-tlum'
                   }`}
                   title="Zobrazit video okno"
                 >
@@ -581,11 +581,11 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
               </div>
 
               {/* Time display */}
-              <div className="text-drobne text-neutral-400 flex items-center gap-1.5 font-medium tabular-nums">
+              <div className="text-drobne text-pismo-tlum flex items-center gap-1.5 font-medium tabular-nums">
                 <span className="text-white">{formatTime(currentTime)}</span>
-                <span className="text-neutral-600">/</span>
+                <span className="text-pismo-slaby">/</span>
                 <span>{formatTime(duration)}</span>
-                <span className="hidden sm:inline text-neutral-500 ml-1">
+                <span className="hidden sm:inline text-pismo-slaby ml-1">
                   ({currentTrackIndex + 1} z {playlist.length})
                 </span>
               </div>
@@ -598,7 +598,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
               <div className="hidden md:flex items-center gap-2 border-r border-white/10 pr-3">
                 <button
                   onClick={handleToggleMute}
-                  className="text-neutral-400 hover:text-white p-1 rounded-lg transition-colors"
+                  className="text-pismo-tlum hover:text-white p-1 rounded-lg transition-colors"
                   title={isMuted ? 'Zrušit ztlumení' : 'Ztlumit'}
                 >
                   {isMuted || volume === 0 ? (
@@ -633,7 +633,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 className={`p-1.5 rounded-xl border transition-all ${
                   isDockPinned
                     ? 'bg-znacka/20 text-znacka border-znacka/40'
-                    : 'bg-white/[0.04] text-neutral-400 hover:text-white border-white/10'
+                    : 'bg-white/[0.04] text-pismo-tlum hover:text-white border-white/10'
                 }`}
                 title={isDockPinned ? 'Přehrávač je připnutý (stále viditelný)' : 'Přehrávač se automaticky skrývá'}
               >
@@ -667,7 +667,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
             className="bg-white/[0.04] border-b border-white/10 px-4 py-2.5 flex items-center justify-between cursor-move group hover:bg-white/[0.08] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <GripHorizontal className="w-4 h-4 text-neutral-400 group-hover:text-white" />
+              <GripHorizontal className="w-4 h-4 text-pismo-tlum group-hover:text-white" />
               <span className="nadpis-panelu">
                 Floating Player
               </span>
@@ -676,14 +676,14 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
             <div className="flex items-center gap-1">
               <button
                 onClick={() => updatePlayerMode('minimized')}
-                className="p-1 text-neutral-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1 text-pismo-tlum hover:text-white hover:bg-white/10 rounded-lg transition-colors"
                 title="Minimalizovat do pilulky"
               >
                 <Minimize2 className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={() => updatePlayerMode('dock')}
-                className="p-1 text-neutral-400 hover:text-uspech hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1 text-pismo-tlum hover:text-uspech hover:bg-white/10 rounded-lg transition-colors"
                 title="Přípnout zpět dolů do docku"
               >
                 <PanelBottom className="w-3.5 h-3.5" />
@@ -695,7 +695,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
           <div className="p-4 space-y-3">
             {/* Artwork + Title */}
             <div className="flex items-center gap-3">
-              <div className="relative w-14 h-14 bg-neutral-900 rounded-2xl border border-white/10 shrink-0 overflow-hidden shadow-lg group">
+              <div className="relative w-14 h-14 bg-plocha-1 rounded-2xl border border-white/10 shrink-0 overflow-hidden shadow-lg group">
                 <img
                   src={currentTrack.thumbnail || `https://img.youtube.com/vi/${currentTrack.youtubeId}/mqdefault.jpg`}
                   alt={currentTrack.title}
@@ -713,7 +713,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
 
               <div className="min-w-0 flex-1">
                 <h4 className="text-sm font-bold text-white truncate">{currentTrack.title}</h4>
-                <p className="text-xs text-neutral-400 truncate mt-0.5">{currentTrack.artist || 'Neznámý umělec'}</p>
+                <p className="text-xs text-pismo-tlum truncate mt-0.5">{currentTrack.artist || 'Neznámý umělec'}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-stitek font-semibold px-2 py-0.5 rounded-full bg-znacka/20 text-znacka border border-znacka/30">
                     {isPlaying ? 'Přehrává se' : 'Pozastaveno'}
@@ -732,7 +732,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                 onChange={handleSeek}
                 className="w-full h-1.5 bg-white/10 rounded-full accent-znacka cursor-pointer"
               />
-              <div className="flex justify-between text-drobne text-neutral-400 font-mono">
+              <div className="flex justify-between text-drobne text-pismo-tlum font-mono">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
@@ -743,14 +743,14 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
               <button
                 onClick={cycleMode}
                 className={`p-1.5 rounded-lg transition-colors ${
-                  playbackMode === 'normal' ? 'text-neutral-400' : 'text-znacka'
+                  playbackMode === 'normal' ? 'text-pismo-tlum' : 'text-znacka'
                 }`}
               >
                 {playbackMode === 'shuffle' ? <Shuffle className="w-4 h-4" /> : <Repeat className="w-4 h-4" />}
               </button>
 
               <div className="flex items-center gap-3">
-                <button onClick={onPrevTrack} className="p-1.5 text-neutral-300 hover:text-white">
+                <button onClick={onPrevTrack} className="p-1.5 text-pismo hover:text-white">
                   <SkipBack className="w-5 h-5" />
                 </button>
 
@@ -761,7 +761,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
                   {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                 </button>
 
-                <button onClick={onNextTrack} className="p-1.5 text-neutral-300 hover:text-white">
+                <button onClick={onNextTrack} className="p-1.5 text-pismo hover:text-white">
                   <SkipForward className="w-5 h-5" />
                 </button>
               </div>
@@ -769,7 +769,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
               <div className="flex items-center gap-1">
                 <button
                   onClick={handleToggleMute}
-                  className="text-neutral-400 hover:text-white p-1"
+                  className="text-pismo-tlum hover:text-white p-1"
                 >
                   {isMuted ? <VolumeX className="w-4 h-4 text-chyba" /> : <Volume2 className="w-4 h-4" />}
                 </button>
@@ -797,7 +797,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
           {/* Track Name */}
           <div className="max-w-[140px] truncate">
             <p className="text-xs font-bold text-white truncate">{currentTrack.title}</p>
-            <p className="text-stitek text-neutral-400 truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
+            <p className="text-stitek text-pismo-tlum truncate">{formatTime(currentTime)} / {formatTime(duration)}</p>
           </div>
 
           {/* Controls */}
@@ -811,7 +811,7 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
 
             <button
               onClick={() => updatePlayerMode('floating')}
-              className="p-1 text-neutral-400 hover:text-white rounded-full transition-colors"
+              className="p-1 text-pismo-tlum hover:text-white rounded-full transition-colors"
               title="Zvětšit okno"
             >
               <Maximize2 className="w-3.5 h-3.5" />

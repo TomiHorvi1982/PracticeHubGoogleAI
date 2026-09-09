@@ -117,7 +117,7 @@ export const AkordZKytary: React.FC = () => {
         {akord && (
           <button
             onClick={zahraj}
-            className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.06] border border-white/10 text-neutral-300 hover:text-white flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-2.5 rounded-xl text-xs font-semibold bg-white/[0.06] border border-white/10 text-pismo hover:text-white flex items-center gap-1.5 cursor-pointer"
             title="Přehrát akord klavírem"
           >
             <Volume2 className="w-3.5 h-3.5" /> Zahrát klavírem
@@ -125,7 +125,7 @@ export const AkordZKytary: React.FC = () => {
         )}
       </div>
 
-      <p className="text-drobne text-neutral-500 leading-relaxed">
+      <p className="text-drobne text-pismo-slaby leading-relaxed">
         Rozeber akord po strunách. Tóny se nasbírají, akord se pojmenuje a ukáže se, jak ho vzít
         na klavír.
       </p>
@@ -152,9 +152,9 @@ export const AkordZKytary: React.FC = () => {
             </span>
             {akord.nalez && (
               <>
-                <span className="text-drobne text-neutral-400">{akord.nalez.popis}</span>
+                <span className="text-drobne text-pismo-tlum">{akord.nalez.popis}</span>
                 {akord.nalez.jistota === 'pribuzne' && (
-                  <span className="text-stitek px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400">
+                  <span className="text-stitek px-1.5 py-0.5 rounded bg-znacka/15 text-znacka">
                     nejbližší shoda
                   </span>
                 )}
@@ -162,7 +162,7 @@ export const AkordZKytary: React.FC = () => {
             )}
           </div>
 
-          <div className="text-drobne text-neutral-500">
+          <div className="text-drobne text-pismo-slaby">
             zahrané tóny: {akord.tony.map(nazevTonu).join(' · ')}
           </div>
 
@@ -179,7 +179,7 @@ export const AkordZKytary: React.FC = () => {
                   <div
                     key={i}
                     className={`flex-1 border border-black/40 rounded-b-md flex items-end justify-center pb-1 text-stitek font-bold ${
-                      svit ? 'bg-nastroj text-white' : 'bg-neutral-100 text-neutral-400'
+                      svit ? 'bg-nastroj text-white' : 'bg-neutral-100 text-pismo-tlum'
                     }`}
                   >
                     {svit ? TONY[midi % 12] : ''}
@@ -198,7 +198,7 @@ export const AkordZKytary: React.FC = () => {
                       key={`${o}-${b}`}
                       style={{ left: `calc(${levo}% - ${sirkaBile * 0.3}%)`, width: `${sirkaBile * 0.6}%` }}
                       className={`absolute top-0 h-14 rounded-b-md border border-black/60 flex items-end justify-center pb-1 text-stitek font-bold ${
-                        svit ? 'bg-nastroj text-white' : 'bg-neutral-900 text-transparent'
+                        svit ? 'bg-nastroj text-white' : 'bg-plocha-1 text-transparent'
                       }`}
                     >
                       {svit ? TONY[midi % 12] : ''}

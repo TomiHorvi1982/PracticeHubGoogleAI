@@ -248,7 +248,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
       className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-xl px-2.5 py-1.5 hover:border-white/20 transition-all"
     >
       {typeof poradi === 'number' ? (
-        <span className="w-5 text-center text-stitek font-mono text-neutral-600 shrink-0 tabular-nums">
+        <span className="w-5 text-center text-stitek font-mono text-pismo-slaby shrink-0 tabular-nums">
           {poradi}
         </span>
       ) : s.obrazek ? (
@@ -265,7 +265,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
         >
           {s.nazev || s.interpret}
         </button>
-        <div className="text-stitek text-neutral-500 truncate">
+        <div className="text-stitek text-pismo-slaby truncate">
           <button
             onClick={() => void otevriInterpreta(s.interpret)}
             className="cursor-pointer hover:text-znacka hover:underline"
@@ -324,7 +324,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
   const zpet = (kam: () => void, popis: string) => (
     <button
       onClick={kam}
-      className="flex items-center gap-1 text-drobne text-neutral-400 hover:text-white cursor-pointer"
+      className="flex items-center gap-1 text-drobne text-pismo-tlum hover:text-white cursor-pointer"
     >
       <ArrowLeft className="w-3.5 h-3.5" /> {popis}
     </button>
@@ -334,13 +334,13 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
     <div className="space-y-2.5">
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-pismo-slaby absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             value={dotaz}
             onChange={(e) => setDotaz(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && void hledej()}
             placeholder="Hledat skladbu nebo kapelu na Last.fm…"
-            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-neutral-500 outline-none focus:border-znacka"
+            className="w-full bg-black/40 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-drobne text-white placeholder-pismo-slaby outline-none focus:border-znacka"
           />
         </div>
         <button
@@ -372,9 +372,9 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
           <div>
             <div>{chyba}</div>
             {chybiKlic && (
-              <div className="text-neutral-400 mt-0.5">
-                Přidej do <code className="text-neutral-300">.env</code> řádek{' '}
-                <code className="text-neutral-300">LASTFM_API_KEY=…</code> a restartuj server.
+              <div className="text-pismo-tlum mt-0.5">
+                Přidej do <code className="text-pismo">.env</code> řádek{' '}
+                <code className="text-pismo">LASTFM_API_KEY=…</code> a restartuj server.
               </div>
             )}
           </div>
@@ -391,8 +391,8 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             )}
             <div className="min-w-0">
               <div className="text-sm font-bold text-white truncate">{album.nazev}</div>
-              <div className="text-drobne text-neutral-500 truncate">{album.interpret}</div>
-              <div className="text-stitek text-neutral-600">{album.skladby.length} skladeb</div>
+              <div className="text-drobne text-pismo-slaby truncate">{album.interpret}</div>
+              <div className="text-stitek text-pismo-slaby">{album.skladby.length} skladeb</div>
             </div>
           </div>
           {mrizka(album.skladby, true)}
@@ -407,7 +407,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             <div className="min-w-0 flex-1">
               <div className="text-sm font-bold text-white truncate">{interpret.jmeno}</div>
               {interpret.posluchacu > 0 && (
-                <div className="text-stitek text-neutral-500">
+                <div className="text-stitek text-pismo-slaby">
                   {interpret.posluchacu.toLocaleString('cs')} posluchačů
                 </div>
               )}
@@ -420,7 +420,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                       setRezim('styly');
                       void otevriStyl(t);
                     }}
-                    className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-neutral-400 hover:text-znacka cursor-pointer"
+                    className="text-stitek px-1.5 py-0.5 rounded bg-white/[0.06] text-pismo-tlum hover:text-znacka cursor-pointer"
                   >
                     {t}
                   </button>
@@ -429,7 +429,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             </div>
           </div>
           {interpret.popis && (
-            <p className="text-drobne text-neutral-400 leading-relaxed line-clamp-4">{interpret.popis}</p>
+            <p className="text-drobne text-pismo-tlum leading-relaxed line-clamp-4">{interpret.popis}</p>
           )}
 
           {interpret.alba.length > 0 && (
@@ -454,7 +454,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                     ) : (
                       <div className="w-24 h-24 rounded-lg bg-white/5 border border-white/10" />
                     )}
-                    <div className="text-stitek text-neutral-300 truncate mt-1 group-hover:text-znacka">
+                    <div className="text-stitek text-pismo truncate mt-1 group-hover:text-znacka">
                       {a.nazev}
                     </div>
                   </button>
@@ -486,7 +486,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                   className={`px-2.5 py-1 rounded-lg text-stitek font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
                     rezim === z.id
                       ? 'bg-znacka/20 text-znacka border border-znacka/40'
-                      : 'text-neutral-500 hover:text-white border border-transparent'
+                      : 'text-pismo-slaby hover:text-white border border-transparent'
                   }`}
                 >
                   <Ikona className="w-3 h-3" /> {z.popis}
@@ -510,7 +510,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                       className={`px-2 py-0.5 rounded-md text-stitek font-semibold flex items-center gap-1 cursor-pointer ${
                         kdeZebricek === k.id
                           ? 'bg-white/[0.12] text-white'
-                          : 'text-neutral-500 hover:text-white'
+                          : 'text-pismo-slaby hover:text-white'
                       }`}
                     >
                       <Ikona className="w-2.5 h-2.5" /> {k.popis}
@@ -519,7 +519,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 })}
               </div>
               {!zebricky ? (
-                <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+                <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
                   <Loader2 className="w-3 h-3 animate-spin" /> Načítám žebříčky z Last.fm…
                 </p>
               ) : (
@@ -537,8 +537,8 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                     onClick={() => void otevriStyl(t.nazev)}
                     className={`px-2 py-0.5 rounded-lg text-stitek font-semibold cursor-pointer transition-all ${
                       vybranyStyl === t.nazev
-                        ? 'bg-znacka text-black'
-                        : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.14]'
+                        ? 'zlata-plocha'
+                        : 'bg-white/[0.06] text-pismo hover:bg-white/[0.14]'
                     }`}
                   >
                     {t.nazev}
@@ -549,12 +549,12 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 skladbyStylu.length ? (
                   mrizka(skladbyStylu, true)
                 ) : (
-                  <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+                  <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
                     <Loader2 className="w-3 h-3 animate-spin" /> Načítám {vybranyStyl}…
                   </p>
                 )
               ) : (
-                <p className="text-drobne text-neutral-600">Vyber styl a Last.fm ukáže, co se v něm poslouchá.</p>
+                <p className="text-drobne text-pismo-slaby">Vyber styl a Last.fm ukáže, co se v něm poslouchá.</p>
               )}
             </div>
           )}
@@ -564,27 +564,27 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
               {vysledky.length > 0 ? (
                 mrizka(vysledky)
               ) : (
-                <p className="text-drobne text-neutral-600">Napiš nahoru skladbu nebo kapelu.</p>
+                <p className="text-drobne text-pismo-slaby">Napiš nahoru skladbu nebo kapelu.</p>
               )}
             </>
           )}
 
           {vybrana && (
             <div className="space-y-1.5 border-t border-white/[0.06] pt-2.5">
-              <div className="flex items-center gap-1.5 text-drobne text-neutral-400">
+              <div className="flex items-center gap-1.5 text-drobne text-pismo-tlum">
                 <Sparkles className="w-3.5 h-3.5 text-znacka" />
                 Podobné k{' '}
                 <strong className="text-white">
                   {vybrana.interpret} — {vybrana.nazev}
                 </strong>
                 {zdrojPodobnych === 'interpret' && (
-                  <span className="text-neutral-600">
+                  <span className="text-pismo-slaby">
                     (Last.fm nezná tuhle skladbu, tak nabízí podobné interprety)
                   </span>
                 )}
               </div>
               {podobne.length === 0 ? (
-                <p className="text-drobne text-neutral-600">Last.fm k téhle skladbě nic nezná.</p>
+                <p className="text-drobne text-pismo-slaby">Last.fm k téhle skladbě nic nezná.</p>
               ) : (
                 mrizka(podobne)
               )}

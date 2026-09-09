@@ -15,57 +15,70 @@
  * stovky na 7–9px, což se na hudebním nástroji nedá číst za hraní.
  */
 @theme {
-  /* --- Plochy. Hloubka se dělá odstupňovaným pozadím a kresbou
-         okraje, ne stínem — stín se na tmavém podkladu ztrácí. --- */
-  /* Hodnoty jsou vybrane podle zmereneho jasu, ne od oka. Podklad ma
-     10,1; karty mely 20,2 — deset jednotek z 255, tedy na hranici
-     rozlisitelnosti, a hranici panelu nesl skoro sam okraj. Plocha-2
-     ma 26,4, tedy pres sestnact nad podkladem. */
-  --color-podklad:    #0A0A0C;  /* jas 10,1 */
-  --color-plocha-1:   #131318;  /* 19,3 — vnorene, splyva zamerne */
-  --color-plocha-2:   #1A1A20;  /* 26,4 — bezna karta */
-  --color-plocha-3:   #222229;  /* 34,5 — zvednuta nad kartu */
-  --color-plocha-nad: #2B2B33;  /* 43,7 — nabidky a vyskakovaci okna */
-  /* Vhloubena plocha: pole a nahledy, ktere maji byt zapustene POD
-     podkladem, ne zvednute nad nim. Bez ni si tri komponenty
-     (AttachmentViewer, ChordDetailModal, OnlineSearchModal) drzely
-     vlastni sedou paletu — #050505, #222, #888, #666 — ktera se
-     zbytku aplikace nikdy nepripojila. */
-  --color-vhloubeni:  #08080A;  /*  8,1 — pod podkladem */
+  /* --- Plochy.
+         Podklad je modročerný, ne šedý: značka stojí na zlaté a ta na
+         neutrální šedi zežloutne. Modrý spodek ji drží v kovovém tónu.
+         Hloubka se dělá odstupňovaným pozadím a kresbou okraje, ne
+         stínem — stín se na tmavém podkladu ztrácí. --- */
+  --color-podklad:    #080F14;  /* nejtmavší, pod vším */
+  --color-plocha-1:   #0A131A;  /* vnořené, splývá záměrně */
+  --color-plocha-2:   #1A232C;  /* běžná karta */
+  --color-plocha-3:   #22303B;  /* zvednuté nad kartu */
+  --color-plocha-nad: #2C3B46;  /* nabídky a vyskakovací okna */
+  /* Vhloubená plocha: pole a náhledy, které mají být zapuštěné POD
+     podkladem, ne zvednuté nad ním. */
+  --color-vhloubeni:  #050B0F;
 
-  /* --- Okraje. Nesou hierarchii místo stínů. --- */
-  --color-kresba:        rgba(255, 255, 255, 0.09);
-  --color-kresba-silna:  rgba(255, 255, 255, 0.16);
-  --color-kresba-jemna:  rgba(255, 255, 255, 0.05);
+  /* --- Okraje. Nesou hierarchii místo stínů.
+         Studeně světlá, ne bílá: na modročerném podkladu je bílá
+         linka fialová, kdežto tahle zůstane ocelová. --- */
+  --color-kresba:        rgba(150, 180, 200, 0.15);
+  --color-kresba-silna:  rgba(150, 180, 200, 0.28);
+  --color-kresba-jemna:  rgba(150, 180, 200, 0.08);
 
-  /* --- Text. Tři úrovně stačí; čtvrtá už se nedá odlišit. --- */
-  --color-pismo:       #F2F2F5;
-  --color-pismo-tlum:  #9E9EA7;
-  --color-pismo-slaby: #6B6B74;
+  /* --- Text. Tři úrovně stačí; čtvrtá už se nedá odlišit.
+         Nikde čistá bílá — na tmavém podkladu září a unavuje. --- */
+  --color-pismo:       #F0F2F1;
+  --color-pismo-tlum:  #A5B5C5;
+  --color-pismo-slaby: #6E8093;
 
-  /* --- Značka. Jantarová je v aplikaci nejčastější (660 výskytů),
-         tak zůstává; jen dostala jméno. --- */
-  --color-znacka:       #FF9F0A;
-  --color-znacka-tlum:  rgba(255, 159, 10, 0.13);
-  --color-znacka-okraj: rgba(255, 159, 10, 0.42);
+  /* --- Značka: zlatá.
+         Ne žlutá a ne mosaz — champagne gold, tedy světlá zlatá
+         s trochou červené. Drží se vzácná: když je zlaté všechno,
+         vypadá aplikace jako hotelová lobby. --- */
+  --color-znacka:       #FFD166;
+  --color-znacka-tmava: #DFA83F;  /* spodek přechodu a stisknutý stav */
+  --color-znacka-tlum:  rgba(255, 209, 102, 0.13);
+  --color-znacka-okraj: rgba(255, 209, 102, 0.42);
 
-  /* --- Světlejší varianty pro najetí myší.
-         Bez nich si každá komponenta odstín vymýšlela sama a u jantarové
-         z toho vzešly tři téměř shodné (#FFB340, #FFB03A, #FFB038) —
-         liší se o jednotky v modrém kanálu, takže je nikdo nerozezná,
-         ale v kódu byly tři různé hodnoty. --- */
-  --color-znacka-svetla:  #FFB340;
-  --color-uspech-svetla:  #34E260;
-  --color-chyba-svetla:   #FF5B52;
-  --color-nastroj-svetla: #C96FF5;
+  /* --- Světlejší varianty pro najetí myší. --- */
+  --color-znacka-svetla:  #FFDD8A;
+  --color-uspech-svetla:  #16D693;
+  --color-chyba-svetla:   #F2668A;
+  --color-nastroj-svetla: #8B7BE8;
+  --color-info-svetla:    #3ECBD9;
+  --color-pozor-svetla:   #FFB870;
 
   /* --- Významové barvy. Oddělené od značky: „hraje" a „smazat"
-         musí jít poznat i tam, kde je jantarová jen ozdoba. --- */
-  --color-uspech: #30D158;
-  --color-pozor:  #FFD60A;
-  --color-chyba:  #FF453A;
-  --color-info:   #0A84FF;
-  --color-nastroj:#BF5AF2;
+         musí jít poznat i tam, kde je zlatá jen ozdoba.
+         Každý nástroj v aplikaci si z nich bere svou. --- */
+  --color-uspech: #00B878;
+  --color-pozor:  #FF9F43;
+  --color-chyba:  #E54870;
+  --color-info:   #0EAEBE;
+  --color-nastroj:#6E5CDE;
+
+  /* --- Stíny. Na tmavém podkladu nesou zvednutí líp než světlejší
+         pozadí, ale musí být měkké a hluboké, ne ostré. --- */
+  --shadow-karta:    0 8px 24px rgba(0, 0, 0, 0.40);
+  --shadow-najeti:   0 12px 32px rgba(0, 0, 0, 0.50);
+  --shadow-vhloubeni: inset 0 2px 6px rgba(0, 0, 0, 0.30);
+  --shadow-zlaty:    0 0 20px rgba(255, 209, 102, 0.22);
+
+  /* --- Písmo značky. Montserrat nese logo a nadpisy; běžný text
+         zůstává systémový, protože v malých velikostech se vykresluje
+         ostřeji. --- */
+  --font-znacka: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 
   /* --- Písmo. Od 12px výš, základ 14px. --- */
   --text-stitek:  0.75rem;   /* 12px — štítky, jednotky */
@@ -85,8 +98,8 @@
 
   /* --- Zaoblení. Dvě, ne šest. Naměřeno bylo šest škál používaných
          zaměnitelně (xl 559×, 2xl 304×, lg 267×, 3xl 132×…). --- */
-  --radius-prvek: 0.5rem;   /* 8px — tlačítka, pole, štítky */
-  --radius-panel: 0.75rem;  /* 12px — karty a panely */
+  --radius-prvek: 0.625rem; /* 10px — tlačítka, pole, štítky */
+  --radius-panel: 0.875rem; /* 14px — karty a panely */
 
   /* --- Dotyk. Pod 1024px musí být cíl aspoň takhle velký; naměřeno
          bylo 95 % prvků pod limitem, nejmenší 13×13px. --- */
@@ -98,14 +111,52 @@
     --font-apple: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 
+  /**
+   * Podklad není plochá barva.
+   *
+   * Tři vrstvy přes sebe: modrý přechod odshora, vinětace ke krajům a
+   * jemné zrno. Každá sama o sobě je skoro neviditelná — dohromady
+   * dělají rozdíl mezi „tmavé pozadí" a „nasvícená místnost".
+   *
+   * Zrno je datová URL, ne obrázek: pár set bajtů v CSS místo dalšího
+   * požadavku na server kvůli textuře, kterou stejně nikdo nemá vidět.
+   */
   body {
-    background-color: #0A0A0C;
-    color: #F5F5F7;
+    background-color: var(--color-podklad);
+    color: var(--color-pismo);
     font-family: var(--font-apple);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.011em;
     overflow-x: hidden;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(120% 80% at 50% 0%, rgba(14, 174, 190, 0.05), transparent 60%),
+      radial-gradient(100% 100% at 50% 50%, transparent 45%, rgba(0, 0, 0, 0.45) 100%);
+  }
+
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Obsah nad vrstvami pozadí. Bez tohohle by vinětace ležela přes
+     aplikaci a ztmavovala kraje i tam, kde se ovládá. */
+  #root {
+    position: relative;
+    z-index: 1;
   }
 }
 
@@ -280,19 +331,21 @@
 @layer components {
   /* Název sekce — jeden na obrazovku. */
   .nadpis-sekce {
+    font-family: var(--font-znacka);
     font-size: var(--text-nadpis-1);
     line-height: var(--text-nadpis-1--line-height);
     font-weight: 700;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
     color: var(--color-pismo);
     text-wrap: balance;
   }
 
   /* Název panelu nebo karty uvnitř sekce. */
   .nadpis-panelu {
+    font-family: var(--font-znacka);
     font-size: var(--text-zaklad);
     line-height: var(--text-zaklad--line-height);
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0;
     color: var(--color-pismo);
   }
@@ -321,5 +374,79 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-pismo-slaby);
+  }
+}
+
+
+/*
+ * ZNAČKA A ZLATÉ PRVKY
+ *
+ * Zlatá se nikde nesází jako plochá barva. Kov se pozná podle toho, že
+ * má nahoře jiný odstín než dole — plochá zlatá vypadá jako žlutý
+ * papír, přechod jako plech.
+ */
+@layer components {
+  /* Logo a nápisy značky. */
+  .pismo-znacky {
+    font-family: var(--font-znacka);
+    font-weight: 800;
+    letter-spacing: 0.02em;
+  }
+
+  /* Podnadpis pod logem: NEVER LATE STUDIO, PLAY · PRACTICE · CREATE. */
+  .podpis-znacky {
+    font-family: var(--font-znacka);
+    font-weight: 500;
+    font-size: 0.625rem;
+    line-height: 0.875rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--color-pismo-slaby);
+  }
+
+  /* Zlatý přechod na text — logo, čísla, zvýrazněné údaje. */
+  .zlaty-text {
+    background: linear-gradient(135deg, var(--color-znacka) 0%, var(--color-znacka-tmava) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Primární tlačítko: zlatý plech s tmavým písmem. */
+  .zlata-plocha {
+    background: linear-gradient(135deg, var(--color-znacka) 0%, var(--color-znacka-tmava) 100%);
+    color: #0A131A;
+    font-weight: 700;
+  }
+
+  .zlata-plocha:hover {
+    background: linear-gradient(135deg, var(--color-znacka-svetla) 0%, var(--color-znacka) 100%);
+  }
+
+  /*
+   * Karta.
+   *
+   * Poloprůhledná plocha s rozostřeným pozadím, tenkou kresbou a měkkým
+   * stínem — trojice, na které stojí celý vzhled. Sklo je střídmé: silné
+   * rozostření pod každou kartou stojí výkon a při hraní se to pozná.
+   */
+  .karta {
+    background: color-mix(in srgb, var(--color-plocha-2) 78%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid var(--color-kresba);
+    border-radius: var(--radius-panel);
+    box-shadow: var(--shadow-karta);
+  }
+
+  .karta-najeti:hover {
+    border-color: var(--color-kresba-silna);
+    box-shadow: var(--shadow-najeti);
+  }
+
+  /* Vybraná karta nebo aktivní nástroj: zlatý okraj a jemná záře. */
+  .karta-aktivni {
+    border-color: var(--color-znacka-okraj);
+    box-shadow: var(--shadow-karta), var(--shadow-zlaty);
   }
 }

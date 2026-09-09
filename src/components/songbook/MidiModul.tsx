@@ -83,7 +83,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
               <option key={p.id} value={i}>{p.name}</option>
             ))}
           </select>
-          <ChevronDown className="w-3 h-3 text-neutral-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <ChevronDown className="w-3 h-3 text-pismo-slaby absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
       )}
 
@@ -92,7 +92,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
           onClick={() => void prehraj()}
           disabled={stav.loading}
           className={`p-2.5 rounded-xl transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed ${
-            stav.isPlaying ? 'bg-red-500 text-white' : 'bg-uspech text-black'
+            stav.isPlaying ? 'bg-chyba text-white' : 'bg-uspech text-black'
           }`}
           title={stav.isPlaying ? 'Zastavit' : 'Přehrát'}
         >
@@ -107,13 +107,13 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
 
         <div className="min-w-0 flex-1">
           <div className="text-drobne font-bold text-white truncate">{priloha.name}</div>
-          <div className="text-stitek font-mono text-neutral-500">
+          <div className="text-stitek font-mono text-pismo-slaby">
             {nactene ? `${cas(stav.position)} / ${cas(stav.duration)} · ${stav.tracks.length} stop` : 'připraveno'}
           </div>
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <Volume2 className="w-3.5 h-3.5 text-neutral-500" />
+          <Volume2 className="w-3.5 h-3.5 text-pismo-slaby" />
           <input
             type="range"
             min={0}
@@ -156,7 +156,7 @@ export const MidiModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
               onClick={() => midiPlayerService.toggleMute(t.index)}
               className={`px-2 py-0.5 rounded-lg text-stitek font-medium border transition-all cursor-pointer ${
                 t.muted
-                  ? 'bg-transparent border-white/10 text-neutral-600 line-through'
+                  ? 'bg-transparent border-white/10 text-pismo-slaby line-through'
                   : 'bg-uspech/15 border-uspech/40 text-uspech'
               }`}
             >

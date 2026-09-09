@@ -83,8 +83,8 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
             onClick={() => setVybrany(p.id)}
             className={`px-2 py-1 rounded-lg text-stitek font-semibold cursor-pointer transition-all max-w-[160px] truncate ${
               vybrany === p.id
-                ? 'bg-znacka text-black'
-                : 'bg-white/[0.06] text-neutral-300 hover:bg-white/[0.14]'
+                ? 'zlata-plocha'
+                : 'bg-white/[0.06] text-pismo hover:bg-white/[0.14]'
             }`}
             title={p.name}
           >
@@ -107,7 +107,7 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
                 updatedAt: Date.now(),
               })
             }
-            className="p-1 rounded-lg text-neutral-600 hover:text-chyba cursor-pointer"
+            className="p-1 rounded-lg text-pismo-slaby hover:text-chyba cursor-pointer"
             title="Odpojit tuhle partituru"
           >
             <X className="w-3.5 h-3.5" />
@@ -136,13 +136,13 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
         {chyba ? (
           <p className="text-drobne text-chyba">{chyba}</p>
         ) : nacitam ? (
-          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
             <Loader2 className="w-3 h-3 animate-spin" /> Načítám partituru…
           </p>
         ) : url && vybrany ? (
           <PdfNahled url={url} nazev={prilohy.find((p) => p.id === vybrany)?.name || 'Noty'} />
         ) : (
-          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-neutral-600 text-drobne">
+          <div className="h-full flex flex-col items-center justify-center gap-1.5 text-pismo-slaby text-drobne">
             <FileX2 className="w-5 h-5 text-neutral-700" />
             K téhle písni zatím žádné noty nejsou.
           </div>

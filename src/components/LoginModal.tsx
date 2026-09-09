@@ -126,12 +126,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <span className="text-white font-bold text-base tracking-tight">
                 {mode === 'login' ? 'Přihlášení do studia' : 'Aktivace pozvánky'}
               </span>
-              <p className="text-xs text-neutral-400">NeverLate Band Studio</p>
+              <p className="text-xs text-pismo-tlum">Neverlast — Never Late Studio</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-2 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
+            className="text-pismo-tlum hover:text-white p-2 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
           >
             ✕
           </button>
@@ -146,7 +146,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               className={`py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 mode === 'login'
                   ? 'bg-white/15 text-white shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  : 'text-pismo-tlum hover:text-pismo'
               }`}
             >
               <LogIn className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               className={`py-2 text-xs font-semibold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 mode === 'invite'
                   ? 'bg-uspech/20 text-uspech border border-uspech/30 shadow-sm'
-                  : 'text-neutral-400 hover:text-neutral-200'
+                  : 'text-pismo-tlum hover:text-pismo'
               }`}
             >
               <Key className="w-3.5 h-3.5" />
@@ -172,8 +172,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           
           {/* Status alerts */}
           {errorMsg && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-300 p-3 rounded-2xl text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+            <div className="bg-chyba/10 border border-chyba/30 text-chyba-svetla p-3 rounded-2xl text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 text-chyba shrink-0 mt-0.5" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -190,7 +190,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               
               {/* Email / Username */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-neutral-300 flex items-center gap-1.5">
+                <label className="block text-xs font-medium text-pismo flex items-center gap-1.5">
                   <Mail className="w-3.5 h-3.5 text-znacka" />
                   <span>E-mail nebo přihlašovací jméno</span>
                 </label>
@@ -206,7 +206,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
+                <label className="text-xs font-medium text-pismo flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-znacka" />
                   <span>Heslo</span>
                 </label>
@@ -221,7 +221,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-pismo-tlum hover:text-white p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -232,7 +232,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-znacka hover:bg-znacka-svetla text-black font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
+                className="w-full zlata-plocha font-bold py-3 text-xs uppercase tracking-wider rounded-xl flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95 mt-2 disabled:opacity-60 disabled:cursor-wait"
               >
                 <span>{isSubmitting ? 'Přihlašuji…' : 'Přihlásit se do studia'}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -240,19 +240,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </form>
           ) : (
             <form onSubmit={handleSetInvitePassword} className="space-y-4">
-              <div className="bg-uspech/10 border border-uspech/20 rounded-2xl p-3.5 text-xs text-neutral-300 space-y-1">
+              <div className="bg-uspech/10 border border-uspech/20 rounded-2xl p-3.5 text-xs text-pismo space-y-1">
                 <div className="text-uspech font-bold flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4" />
                   <span>Obdrželi jste pozvánku od správce?</span>
                 </div>
-                <p className="text-drobne text-neutral-400">
+                <p className="text-drobne text-pismo-tlum">
                   Otevřete odkaz z pozvánkového e-mailu — přihlásí vás automaticky. Tady si nastavte svoje vlastní trvalé heslo.
                 </p>
               </div>
 
               {/* New Password */}
               <div className="space-y-1.5">
-                <label className="block text-xs font-medium text-neutral-300 flex items-center gap-1.5">
+                <label className="block text-xs font-medium text-pismo flex items-center gap-1.5">
                   <Lock className="w-3.5 h-3.5 text-uspech" />
                   <span>Nové heslo</span>
                 </label>
@@ -268,7 +268,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white p-1"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-pismo-tlum hover:text-white p-1"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -290,8 +290,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         </div>
 
         {/* Footer info */}
-        <div className="border-t border-white/5 px-6 py-3 flex items-center justify-between text-xs text-neutral-500">
-          <span>NeverLate Studio // Zabezpečená autentizace</span>
+        <div className="border-t border-white/5 px-6 py-3 flex items-center justify-between text-xs text-pismo-slaby">
+          <span>Neverlast Studio // Zabezpečená autentizace</span>
           <span className="text-uspech flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-uspech"></span>
             Online

@@ -106,7 +106,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
       const od = naPodil(vyber.od) * w;
       const doo = naPodil(vyber.do) * w;
 
-      ctx.fillStyle = 'rgba(255,159,10,0.15)';
+      ctx.fillStyle = 'rgba(255,209,102,0.15)';
       ctx.fillRect(od, 0, doo - od, h);
       ctx.strokeStyle = '#FF9F0A';
       ctx.lineWidth = 3;
@@ -233,7 +233,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Music4 className="w-4 h-4 text-znacka" />
             {typ === 'riff' ? 'Moje riffy' : 'Moje sóla'}
-            <span className="text-drobne text-neutral-500">({seznam.length})</span>
+            <span className="text-drobne text-pismo-slaby">({seznam.length})</span>
           </h3>
 
           <div className="space-y-1 max-h-[40vh] overflow-y-auto">
@@ -246,7 +246,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 }`}
               >
                 <div className="text-xs font-semibold text-white truncate">{c.nazev}</div>
-                <div className="text-stitek text-neutral-500">
+                <div className="text-stitek text-pismo-slaby">
                   {c.opakovani}× procvičeno
                   {c.bpm ? ` · ${c.bpm} BPM` : ''}
                   {c.posledniRychlost !== 1 ? ` · naposled ${Math.round(c.posledniRychlost * 100)} %` : ''}
@@ -254,7 +254,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
               </button>
             ))}
             {seznam.length === 0 && (
-              <p className="text-drobne text-neutral-500 py-3">
+              <p className="text-drobne text-pismo-slaby py-3">
                 Zatím nic. Vyber zvuk z knihovny a ulož si první.
               </p>
             )}
@@ -262,7 +262,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
           <button
             onClick={() => setVybiram((v) => !v)}
-            className="w-full text-drobne font-bold px-3 py-2 rounded-xl bg-white/[0.06] text-neutral-200 hover:text-white cursor-pointer"
+            className="w-full text-drobne font-bold px-3 py-2 rounded-xl bg-white/[0.06] text-pismo hover:text-white cursor-pointer"
           >
             {vybiram ? 'Zavřít knihovnu' : '+ Zvuk z knihovny'}
           </button>
@@ -291,7 +291,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
           <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3">
             {stav.chyba && <p className="text-drobne text-chyba">{stav.chyba}</p>}
-            {stav.nacita && <p className="text-drobne text-neutral-400">Načítám zvuk…</p>}
+            {stav.nacita && <p className="text-drobne text-pismo-tlum">Načítám zvuk…</p>}
 
             {/* Vlna */}
             <canvas
@@ -312,7 +312,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
             {stav.delka > 0 && (
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-1.5">
-                  <Search className="w-3.5 h-3.5 text-neutral-500" />
+                  <Search className="w-3.5 h-3.5 text-pismo-slaby" />
                   <input
                     type="range"
                     min={1}
@@ -333,21 +333,21 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => ukazCas(stav.od)}
-                    className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
+                    className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.06] text-pismo hover:text-white cursor-pointer"
                     title="Ukázat začátek smyčky"
                   >
                     ⟵ začátek
                   </button>
                   <button
                     onClick={() => ukazCas(stav.do)}
-                    className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.06] text-neutral-300 hover:text-white cursor-pointer"
+                    className="px-2 py-1 rounded-lg text-stitek font-semibold bg-white/[0.06] text-pismo hover:text-white cursor-pointer"
                     title="Ukázat konec smyčky"
                   >
                     konec ⟶
                   </button>
                 </div>
 
-                <p className="text-stitek text-neutral-500">
+                <p className="text-stitek text-pismo-slaby">
                   Výřez {oknoOd.toFixed(2)}–{oknoDo.toFixed(2)} s · smyčka{' '}
                   {stav.od.toFixed(2)}–{stav.do.toFixed(2)} s ({(stav.do - stav.od).toFixed(2)} s)
                   {stav.kol > 0 && ` · ${stav.kol}. kolo`}
@@ -369,7 +369,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
               </button>
 
               <div className="flex items-center gap-2">
-                <Gauge className="w-3.5 h-3.5 text-neutral-500" />
+                <Gauge className="w-3.5 h-3.5 text-pismo-slaby" />
                 <input
                   type="range" min={25} max={150} value={Math.round(stav.rychlost * 100)}
                   onChange={(e) => prehravacCviceni.nastavRychlost(Number(e.target.value) / 100)}
@@ -382,7 +382,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
 
               {/* Přeladění nahrávky na vlastní kytaru. */}
               <div className="flex items-center gap-2">
-                <Music2 className="w-3.5 h-3.5 text-neutral-500" />
+                <Music2 className="w-3.5 h-3.5 text-pismo-slaby" />
                 <input
                   type="range" min={-12} max={12} step={1} value={stav.posun}
                   onChange={(e) => prehravacCviceni.nastavPosun(Number(e.target.value))}
@@ -395,7 +395,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 {stav.posun !== 0 && (
                   <button
                     onClick={() => prehravacCviceni.nastavPosun(0)}
-                    className="text-stitek text-neutral-500 hover:text-white cursor-pointer"
+                    className="text-stitek text-pismo-slaby hover:text-white cursor-pointer"
                     title="Zpět na původní ladění"
                   >
                     ↺
@@ -408,7 +408,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 className={`px-2.5 py-1.5 text-drobne font-semibold rounded-xl border cursor-pointer ${
                   stav.drzetLadeni
                     ? 'bg-nastroj/15 border-nastroj/50 text-nastroj'
-                    : 'bg-white/5 border-white/10 text-neutral-400 hover:text-white'
+                    : 'bg-white/5 border-white/10 text-pismo-tlum hover:text-white'
                 }`}
                 title="Při zpomalení držet původní výšku tónů. Vypnuto zní pomalejší nahrávka níž, jako na pásku."
               >
@@ -416,17 +416,17 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
               </button>
 
               <div className="flex items-center gap-2">
-                <Repeat className="w-3.5 h-3.5 text-neutral-500" />
-                <span className="text-drobne text-neutral-400">zrychlovat o</span>
+                <Repeat className="w-3.5 h-3.5 text-pismo-slaby" />
+                <span className="text-drobne text-pismo-tlum">zrychlovat o</span>
                 <input
                   type="number" min={0} max={20} value={stav.pridavat}
                   onChange={(e) => prehravacCviceni.nastavPridavani(Number(e.target.value))}
                   className="w-14 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-center"
                 />
-                <span className="text-drobne text-neutral-400">% za kolo</span>
+                <span className="text-drobne text-pismo-tlum">% za kolo</span>
               </div>
 
-              <label className="flex items-center gap-1.5 text-drobne text-neutral-300 cursor-pointer">
+              <label className="flex items-center gap-1.5 text-drobne text-pismo cursor-pointer">
                 <input
                   type="checkbox" checked={stav.klik}
                   onChange={() => prehravacCviceni.prepniKlik()}
@@ -441,7 +441,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                   if (zvuk) setTempo(odhadniTempoZUseku(zvuk, stav.od, stav.do));
                 }}
                 disabled={stav.delka === 0}
-                className="px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-white/[0.06] text-pismo text-drobne font-bold cursor-pointer disabled:opacity-40 flex items-center gap-1.5"
                 title="Spočítá tempo z vybraného úseku"
               >
                 <Timer className="w-3.5 h-3.5" />
@@ -482,7 +482,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                 <>
                   <button
                     onClick={() => void cviceniService.zapocitej(vybrane.id, stav.rychlost)}
-                    className="px-3 py-2 rounded-xl bg-white/[0.06] text-neutral-200 text-xs font-bold cursor-pointer"
+                    className="px-3 py-2 rounded-xl bg-white/[0.06] text-pismo text-xs font-bold cursor-pointer"
                     title="Zapíše, že jsi to zase procvičil"
                   >
                     Odcvičeno
@@ -493,7 +493,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
                       await cviceniService.smaz(vybrane.id);
                       setVybrane(null);
                     }}
-                    className="p-2 rounded-xl text-neutral-600 hover:text-chyba cursor-pointer"
+                    className="p-2 rounded-xl text-pismo-slaby hover:text-chyba cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>

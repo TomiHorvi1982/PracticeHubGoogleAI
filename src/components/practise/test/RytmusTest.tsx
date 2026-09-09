@@ -79,7 +79,7 @@ export const RytmusTest: React.FC = () => {
           <Activity className="w-5 h-5 text-info" />
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Rytmus</h3>
-            <p className="text-drobne text-neutral-400">{CVICENI[cviceni].popis}</p>
+            <p className="text-drobne text-pismo-tlum">{CVICENI[cviceni].popis}</p>
           </div>
 
           <div className="flex items-center gap-2">
@@ -117,7 +117,7 @@ export const RytmusTest: React.FC = () => {
               key={c}
               onClick={() => { rytmusTestu.stop(); setCviceni(c); setHodnoceni(null); }}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer ${
-                cviceni === c ? 'bg-info text-white' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                cviceni === c ? 'bg-info text-white' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
               }`}
             >
               {CVICENI[c].nazev}
@@ -133,7 +133,7 @@ export const RytmusTest: React.FC = () => {
             <span className="text-drobne font-bold text-white">
               {stav.ticho ? 'Metronom mlčí — drž tempo sám' : 'Metronom klepe'}
             </span>
-            <span className="ml-auto text-stitek text-neutral-500 tabular-nums">
+            <span className="ml-auto text-stitek text-pismo-slaby tabular-nums">
               {Math.max(0, stav.doba + 1)} / {stav.celkem || plan.current.length}
             </span>
           </div>
@@ -168,7 +168,7 @@ export const RytmusTest: React.FC = () => {
             <Cislo hodnota={`${hodnoceni.uderu}`} popis="započítaných úderů" />
           </div>
 
-          <div className="space-y-1.5 text-drobne text-neutral-300">
+          <div className="space-y-1.5 text-drobne text-pismo">
             {hodnoceni.uderu < MIN_UDERU && (
               <p className="text-znacka">
                 Zachytilo se jen {hodnoceni.uderu} úderů — na hodnocení je to málo. Hraj do každé doby,
@@ -204,7 +204,7 @@ export const RytmusTest: React.FC = () => {
                   : 'Údery jsou rozházené. Vrať se o dvacet BPM níž — v pomalém tempu je slyšet, kde to ujíždí.'}
             </p>
 
-            <p className="text-neutral-500 text-drobne">
+            <p className="text-pismo-slaby text-drobne">
               Celý výkon je posunutý o {hodnoceni.posun > 0 ? '+' : ''}{hodnoceni.posun} ms proti klepnutí. Z toho
               je velká část zpoždění mikrofonu a zvukové karty, takže se do hodnocení nepočítá —
               rovnoměrně opožděné hraní je pořád v rytmu. Rozhoduje rozkolísanost a ujíždění.
@@ -247,8 +247,8 @@ export const RytmusTest: React.FC = () => {
                     />
                   );
                 })}
-                <span className="absolute left-2 top-1 text-stitek text-neutral-600">pozdě</span>
-                <span className="absolute left-2 bottom-1 text-stitek text-neutral-600">brzy</span>
+                <span className="absolute left-2 top-1 text-stitek text-pismo-slaby">pozdě</span>
+                <span className="absolute left-2 bottom-1 text-stitek text-pismo-slaby">brzy</span>
                 <span className="absolute right-2 top-1 text-stitek text-nastroj">
                   fialová = bez metronomu · měřítko ±{Math.round(max)} ms
                 </span>
@@ -258,7 +258,7 @@ export const RytmusTest: React.FC = () => {
         </div>
       ) : hodnoceni ? (
         <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-6 text-center">
-          <p className="text-sm text-neutral-400">
+          <p className="text-sm text-pismo-tlum">
             Žádný úder se nezachytil. Zkontroluj, že máš zapnutý vstup a že do nástroje jde slyšet.
           </p>
         </div>
@@ -272,6 +272,6 @@ const Cislo: React.FC<{ hodnota: string; popis: string; barva?: string }> = ({ h
     <div className="text-xl font-bold tabular-nums" style={{ color: barva || '#fff' }}>
       {hodnota}
     </div>
-    <div className="text-stitek text-neutral-500 mt-0.5">{popis}</div>
+    <div className="text-stitek text-pismo-slaby mt-0.5">{popis}</div>
   </div>
 );

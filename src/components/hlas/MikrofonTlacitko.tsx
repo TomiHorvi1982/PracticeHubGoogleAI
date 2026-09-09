@@ -106,7 +106,7 @@ export const MikrofonTlacitko: React.FC = () => {
         className={`relative w-9 h-9 rounded-xl flex items-center justify-center border transition-colors cursor-pointer ${
           stav === 'poslouchá'
             ? 'bg-chyba/20 border-chyba/50 text-chyba'
-            : 'bg-slate-900/90 border-slate-800 text-slate-300 hover:text-white hover:border-slate-600'
+            : 'bg-plocha-1/90 border-kresba text-pismo hover:text-white hover:border-slate-600'
         }`}
       >
         {stav === 'přepisuje' ? (
@@ -116,7 +116,7 @@ export const MikrofonTlacitko: React.FC = () => {
         )}
         {/* Zvuk odchází ven — člen to má vidět pokaždé, ne jen v nastavení. */}
         {moznosti.odesilaVen && (
-          <ShieldAlert className="w-3 h-3 text-amber-400 absolute -top-1 -right-1" />
+          <ShieldAlert className="w-3 h-3 text-znacka absolute -top-1 -right-1" />
         )}
       </button>
 
@@ -127,7 +127,7 @@ export const MikrofonTlacitko: React.FC = () => {
               ? 'bg-chyba/15 border-chyba/40 text-znacka'
               : hlaseni?.dobre
                 ? 'bg-uspech/15 border-uspech/40 text-uspech'
-                : 'bg-slate-900 border-slate-700 text-slate-300'
+                : 'bg-plocha-1 border-kresba text-pismo'
           }`}
         >
           {stav === 'poslouchá' ? 'Poslouchám — mluv…' : hlaseni?.text}

@@ -32,7 +32,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onPrepnoutPlochu,
 }) => {
   return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 flex flex-col font-sans antialiased overflow-hidden">
+    <div className="min-h-screen bg-podklad text-pismo flex flex-col font-sans antialiased overflow-hidden">
       {/* Vrchní lišta: stav skladby a přehrávání */}
       <UnifiedTopBar
         onOpenLoginModal={onOpenLoginModal}
@@ -51,7 +51,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onPrepnoutPlochu={onPrepnoutPlochu}
       />
 
-      <main className="flex-1 overflow-y-auto bg-[#0B1120] flex flex-col">
+      <main className="flex-1 overflow-y-auto bg-transparent flex flex-col">
         {/* Bez bočního panelu má obsah celou šířku. Strop zůstává, aby se
             řádky textu na širokoúhlé obrazovce nerozjely donekonečna. */}
         {/* Na mobilu uzsi odsazeni: vnorene panely uvnitr sekci sezraly

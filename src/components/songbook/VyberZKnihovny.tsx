@@ -88,7 +88,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
   return (
     <div className="space-y-1.5">
       <div className="relative">
-        <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+        <Search className="w-3.5 h-3.5 text-pismo-slaby absolute left-2.5 top-1/2 -translate-y-1/2" />
         <input
           value={dotaz}
           onChange={(e) => setDotaz(e.target.value)}
@@ -99,18 +99,18 @@ export const VyberZKnihovny: React.FC<Props> = ({
 
       <div className="max-h-44 overflow-y-auto space-y-1">
         {hledam && (
-          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
             <Loader2 className="w-3 h-3 animate-spin" /> Hledám…
           </p>
         )}
         {!hledam && nalezene.length === 0 && (
-          <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+          <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
             <Database className="w-3 h-3 shrink-0" />
             {prazdno || 'V knihovně nic takového není.'}
           </p>
         )}
         {celkem !== null && celkem > nalezene.length && (
-          <p className="text-stitek text-neutral-600 px-1">
+          <p className="text-stitek text-pismo-slaby px-1">
             Ukazuje se {nalezene.length} z {celkem} — zbytek najdeš hledáním.
           </p>
         )}
@@ -139,7 +139,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
               {sNahledem && (
                 <button
                   onClick={() => setNahlizeny(nahlizeny?.id === a.id ? null : a)}
-                  className="p-1 rounded text-neutral-500 hover:text-white cursor-pointer shrink-0"
+                  className="p-1 rounded text-pismo-slaby hover:text-white cursor-pointer shrink-0"
                   title="Náhled"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -158,7 +158,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
             {nahlizeny?.id === a.id && (
               <div className="px-2 pb-2">
                 {nacitamNahled ? (
-                  <p className="text-stitek text-neutral-600 flex items-center gap-1.5">
+                  <p className="text-stitek text-pismo-slaby flex items-center gap-1.5">
                     <Loader2 className="w-3 h-3 animate-spin" /> Načítám náhled…
                   </p>
                 ) : urlNahledu ? (
@@ -168,7 +168,7 @@ export const VyberZKnihovny: React.FC<Props> = ({
                     <img src={urlNahledu} alt="" className="w-full rounded-lg border border-white/10" />
                   )
                 ) : (
-                  <p className="text-stitek text-neutral-600">Náhled se nepodařilo načíst.</p>
+                  <p className="text-stitek text-pismo-slaby">Náhled se nepodařilo načíst.</p>
                 )}
               </div>
             )}

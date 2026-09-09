@@ -119,8 +119,8 @@ export const CviceniStupnic: React.FC = () => {
         </label>
       </div>
 
-      {vybrana && <p className="text-drobne text-neutral-500">{vybrana.description}</p>}
-      {vzorec && <p className="text-drobne text-neutral-400">{vzorec.popis}</p>}
+      {vybrana && <p className="text-drobne text-pismo-slaby">{vybrana.description}</p>}
+      {vzorec && <p className="text-drobne text-pismo-tlum">{vzorec.popis}</p>}
 
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -152,7 +152,7 @@ export const CviceniStupnic: React.FC = () => {
           className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
             dokola
               ? 'bg-uspech/15 border-uspech/40 text-uspech'
-              : 'bg-white/[0.06] border-white/10 text-neutral-400'
+              : 'bg-white/[0.06] border-white/10 text-pismo-tlum'
           }`}
         >
           <Repeat className="w-3.5 h-3.5" /> dokola
@@ -183,7 +183,7 @@ export const CviceniStupnic: React.FC = () => {
             <span
               key={i}
               className={`px-1.5 py-0.5 rounded text-stitek font-bold tabular-nums ${
-                i === kde ? 'bg-nastroj text-white' : 'bg-white/[0.06] text-neutral-400'
+                i === kde ? 'bg-nastroj text-white' : 'bg-white/[0.06] text-pismo-tlum'
               }`}
             >
               {nazevTonu(m)}

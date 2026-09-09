@@ -108,7 +108,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
           onClick={() => (hraje ? zastav() : spust())}
           disabled={!doby.length}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer disabled:opacity-40 ${
-            hraje ? 'bg-chyba text-white' : 'bg-znacka text-black hover:bg-znacka-svetla'
+            hraje ? 'bg-chyba text-white' : 'zlata-plocha hover:bg-znacka-svetla'
           }`}
         >
           {hraje ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
@@ -118,7 +118,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         <button
           onClick={() => setDokola((d) => !d)}
           className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
-            dokola ? 'bg-uspech/15 border-uspech/40 text-uspech' : 'bg-white/[0.06] border-white/10 text-neutral-400'
+            dokola ? 'bg-uspech/15 border-uspech/40 text-uspech' : 'bg-white/[0.06] border-white/10 text-pismo-tlum'
           }`}
         >
           <Repeat className="w-3.5 h-3.5" /> smyčka
@@ -127,7 +127,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         <button
           onClick={() => setMetronom((m) => !m)}
           className={`px-2.5 py-2 rounded-xl text-drobne font-semibold border cursor-pointer flex items-center gap-1.5 ${
-            metronom ? 'bg-znacka/15 border-znacka/40 text-znacka' : 'bg-white/[0.06] border-white/10 text-neutral-400'
+            metronom ? 'bg-znacka/15 border-znacka/40 text-znacka' : 'bg-white/[0.06] border-white/10 text-pismo-tlum'
           }`}
         >
           <Volume2 className="w-3.5 h-3.5" /> metronom
@@ -140,13 +140,13 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
               key={r}
               onClick={() => setRychlost(r)}
               className={`px-2 py-1 rounded-lg text-stitek font-bold cursor-pointer ${
-                rychlost === r ? 'bg-znacka text-black' : 'bg-white/[0.06] text-neutral-400'
+                rychlost === r ? 'zlata-plocha' : 'bg-white/[0.06] text-pismo-tlum'
               }`}
             >
               {r * 100} %
             </button>
           ))}
-          <span className="text-stitek text-neutral-500 tabular-nums">
+          <span className="text-stitek text-pismo-slaby tabular-nums">
             {Math.round(bpm * rychlost)} BPM
           </span>
         </div>
@@ -157,7 +157,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         <div className="min-w-[560px]">
           <div className="flex mb-1 pl-8">
             {Array.from({ length: PRAZCU }, (_, p) => (
-              <div key={p} className="flex-1 text-center text-stitek text-neutral-500 tabular-nums">
+              <div key={p} className="flex-1 text-center text-stitek text-pismo-slaby tabular-nums">
                 {ZNACKY.includes(p) ? p : p === 0 ? '0' : ''}
               </div>
             ))}
@@ -165,7 +165,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
 
           {[1, 2, 3, 4, 5, 6].map((struna) => (
             <div key={struna} className="flex items-center h-7">
-              <span className="w-8 text-stitek text-neutral-500 shrink-0">
+              <span className="w-8 text-stitek text-pismo-slaby shrink-0">
                 {['e', 'B', 'G', 'D', 'A', 'E'][struna - 1]}
               </span>
               {Array.from({ length: PRAZCU }, (_, prazec) => {
@@ -179,7 +179,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
                   >
                     <div className="absolute inset-x-0 top-1/2 h-px bg-neutral-500/40" />
                     {svit && (
-                      <span className="relative z-10 w-5 h-5 rounded-full bg-znacka text-black text-stitek font-bold flex items-center justify-center">
+                      <span className="relative z-10 w-5 h-5 rounded-full zlata-plocha text-stitek font-bold flex items-center justify-center">
                         {prazec}
                       </span>
                     )}
@@ -191,7 +191,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
         </div>
       </div>
 
-      <p className="text-drobne text-neutral-500">
+      <p className="text-drobne text-pismo-slaby">
         {doby.length
           ? `Úsek má ${doby.length} dob a ${usek.noty.length} tónů.`
           : 'Vyber v tabulatuře takty, které chceš cvičit.'}

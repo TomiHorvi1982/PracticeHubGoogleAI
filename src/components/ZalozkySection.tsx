@@ -56,7 +56,7 @@ export const ZalozkySection: React.FC = () => {
       />
 
       {chyba && (
-        <div className="bg-red-500/10 border border-red-500/30 text-red-400 rounded-2xl px-4 py-2.5 text-xs">
+        <div className="bg-chyba/10 border border-chyba/30 text-chyba rounded-2xl px-4 py-2.5 text-xs">
           {chyba}
         </div>
       )}
@@ -66,7 +66,7 @@ export const ZalozkySection: React.FC = () => {
         <button
           onClick={() => setFiltr('vse')}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-            filtr === 'vse' ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+            filtr === 'vse' ? 'bg-uspech text-black' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
           }`}
         >
           Vše ({zalozky.length})
@@ -78,7 +78,7 @@ export const ZalozkySection: React.FC = () => {
               key={k.id}
               onClick={() => setFiltr(k.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition-all ${
-                filtr === k.id ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                filtr === k.id ? 'bg-uspech text-black' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
               }`}
             >
               {k.ikona} {k.nazev} {pocet > 0 && <span className="opacity-60">({pocet})</span>}
@@ -108,22 +108,22 @@ export const ZalozkySection: React.FC = () => {
                   </span>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-bold text-white truncate">{z.nazev}</h3>
-                    <p className="text-stitek text-neutral-500 truncate font-mono">{z.url}</p>
+                    <p className="text-stitek text-pismo-slaby truncate font-mono">{z.url}</p>
                   </div>
                 </div>
-                {z.popis && <p className="text-drobne text-neutral-400 leading-relaxed">{z.popis}</p>}
+                {z.popis && <p className="text-drobne text-pismo-tlum leading-relaxed">{z.popis}</p>}
                 <div className="flex items-center gap-1.5 mt-auto pt-1">
                   <a
                     href={z.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 text-center text-drobne font-bold px-3 py-1.5 rounded-xl bg-white/[0.06] text-neutral-200 hover:bg-white/[0.12] cursor-pointer flex items-center justify-center gap-1.5"
+                    className="flex-1 text-center text-drobne font-bold px-3 py-1.5 rounded-xl bg-white/[0.06] text-pismo hover:bg-white/[0.12] cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <ExternalLink className="w-3 h-3" /> Otevřít
                   </a>
                   <button
                     onClick={() => setUpravovana(z.id)}
-                    className="p-1.5 rounded-xl text-neutral-600 hover:text-white cursor-pointer opacity-0 group-hover:opacity-100"
+                    className="p-1.5 rounded-xl text-pismo-slaby hover:text-white cursor-pointer opacity-0 group-hover:opacity-100"
                     title="Upravit"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -134,7 +134,7 @@ export const ZalozkySection: React.FC = () => {
                       const ch = await zalozkyService.smaz(z.id);
                       if (ch) setChyba(ch);
                     }}
-                    className="p-1.5 rounded-xl text-neutral-600 hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100"
+                    className="p-1.5 rounded-xl text-pismo-slaby hover:text-chyba cursor-pointer opacity-0 group-hover:opacity-100"
                     title="Smazat"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export const ZalozkySection: React.FC = () => {
         ))}
 
         {videt.length === 0 && (
-          <div className="col-span-full text-center text-xs text-neutral-500 py-8">
+          <div className="col-span-full text-center text-xs text-pismo-slaby py-8">
             V téhle kategorii zatím nic není.
           </div>
         )}
@@ -160,7 +160,7 @@ export const ZalozkySection: React.FC = () => {
         <div className="flex items-center gap-2">
           <Plus className="w-4 h-4 text-uspech" />
           <h3 className="text-sm font-bold text-white">Přidat odkaz</h3>
-          <span className="text-drobne text-neutral-500">uvidí ho celá kapela</span>
+          <span className="text-drobne text-pismo-slaby">uvidí ho celá kapela</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -246,7 +246,7 @@ const UpravaZalozky: React.FC<{
         </button>
         <button
           onClick={onHotovo}
-          className="p-1.5 rounded-lg text-neutral-500 hover:text-white cursor-pointer"
+          className="p-1.5 rounded-lg text-pismo-slaby hover:text-white cursor-pointer"
         >
           <X className="w-3.5 h-3.5" />
         </button>

@@ -53,7 +53,7 @@ export const KlavesyTestu: React.FC<{
                     : stav === 'trefeny' ? 'bg-uspech border-uspech text-black'
                     : stav === 'cil' ? 'bg-uspech/25 border-uspech text-uspech'
                     : stav === 'zni' ? 'bg-white border-white text-black'
-                    : 'bg-neutral-200 border-neutral-400 text-neutral-500 hover:bg-white'
+                    : 'bg-neutral-200 border-neutral-400 text-pismo-slaby hover:bg-white'
                 }`}
               >
                 <span>{k.root}</span>
@@ -69,9 +69,9 @@ export const KlavesyTestu: React.FC<{
                   className={`absolute top-0 -right-[7px] w-[14px] h-14 rounded-b-sm z-10 text-stitek font-bold text-center cursor-pointer border ${
                     stavCerne === 'chyba' ? 'bg-chyba border-chyba text-white'
                       : stavCerne === 'trefeny' ? 'bg-uspech border-uspech text-black'
-                      : stavCerne === 'cil' ? 'bg-[#0d5a25] border-uspech text-uspech'
+                      : stavCerne === 'cil' ? 'bg-uspech/25 border-uspech text-uspech'
                       : stavCerne === 'zni' ? 'bg-white border-white text-black'
-                      : 'bg-neutral-900 border-black text-neutral-500'
+                      : 'bg-plocha-1 border-black text-pismo-slaby'
                   }`}
                   title={cerna.root}
                 >

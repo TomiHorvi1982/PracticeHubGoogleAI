@@ -83,8 +83,8 @@ export const ObjevSkladby: React.FC<Props> = ({
               onClick={() => prepni(z.id)}
               className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer border transition-all min-w-0 ${
                 aktivni
-                  ? 'bg-znacka text-black border-znacka'
-                  : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white'
+                  ? 'zlata-plocha border-znacka'
+                  : 'bg-white/[0.04] text-pismo-tlum border-white/[0.08] hover:text-white'
               }`}
               title={z.co}
             >
@@ -92,7 +92,7 @@ export const ObjevSkladby: React.FC<Props> = ({
               <span className="truncate">{z.popis}</span>
               {/* Popisek jen tam, kde je na něj místo — jinak by roztahoval
                   sloupce a mřížka by se zase rozjela. */}
-              <span className={`hidden 2xl:inline font-normal truncate ${aktivni ? 'text-black/60' : 'text-neutral-600'}`}>
+              <span className={`hidden 2xl:inline font-normal truncate ${aktivni ? 'text-black/60' : 'text-pismo-slaby'}`}>
                 {z.co}
               </span>
             </button>

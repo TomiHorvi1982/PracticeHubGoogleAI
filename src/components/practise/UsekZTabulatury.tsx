@@ -127,9 +127,9 @@ export const UsekZTabulatury: React.FC = () => {
   if (!usek) {
     return (
       <div className="bg-plocha-2 border border-dashed border-white/[0.08] rounded-3xl p-5 text-center">
-        <p className="text-drobne text-neutral-500">
-          Žádný úsek k cvičení. V <strong className="text-neutral-300">Guitar Pro</strong> nebo
-          na <strong className="text-neutral-300">Pódiu</strong> si vyber takty tažením po liště
+        <p className="text-drobne text-pismo-slaby">
+          Žádný úsek k cvičení. V <strong className="text-pismo">Guitar Pro</strong> nebo
+          na <strong className="text-pismo">Pódiu</strong> si vyber takty tažením po liště
           pozice a klikni na <strong className="text-nastroj">do Solo Practise</strong>.
         </p>
       </div>
@@ -142,7 +142,7 @@ export const UsekZTabulatury: React.FC = () => {
         <Guitar className="w-4 h-4 text-nastroj shrink-0" />
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-bold text-white truncate">{usek.nazevSkladby}</h3>
-          <p className="text-drobne text-neutral-500">
+          <p className="text-drobne text-pismo-slaby">
             takty {usek.odTaktu + 1}–{usek.doTaktu + 1} ({poctuTaktu(usek)}{' '}
             {poctuTaktu(usek) === 1 ? 'takt' : poctuTaktu(usek) < 5 ? 'takty' : 'taktů'})
             {usek.bpm ? ` · ${usek.bpm} BPM` : ''} · hraje se dokola
@@ -150,7 +150,7 @@ export const UsekZTabulatury: React.FC = () => {
         </div>
         <button
           onClick={() => zapomenUsek()}
-          className="p-1.5 rounded-lg text-neutral-600 hover:text-chyba cursor-pointer shrink-0"
+          className="p-1.5 rounded-lg text-pismo-slaby hover:text-chyba cursor-pointer shrink-0"
           title="Odložit úsek"
         >
           <X className="w-4 h-4" />
@@ -183,7 +183,7 @@ export const UsekZTabulatury: React.FC = () => {
                   key={r}
                   onClick={() => setRychlost(r)}
                   className={`px-2 py-1 rounded-lg text-drobne font-mono cursor-pointer ${
-                    rychlost === r ? 'bg-nastroj text-white font-bold' : 'text-neutral-400 hover:text-white'
+                    rychlost === r ? 'bg-nastroj text-white font-bold' : 'text-pismo-tlum hover:text-white'
                   }`}
                 >
                   {r}×

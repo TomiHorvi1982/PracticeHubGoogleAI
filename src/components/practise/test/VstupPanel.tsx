@@ -54,7 +54,7 @@ export const VstupPanel: React.FC<{
               key={t.id}
               onClick={() => void prepni(t.id)}
               className={`px-3 py-1.5 rounded-xl text-drobne font-bold flex items-center gap-1.5 cursor-pointer transition-colors ${
-                je ? 'bg-uspech text-black' : 'bg-white/[0.05] text-neutral-400 hover:text-white'
+                je ? 'bg-uspech text-black' : 'bg-white/[0.05] text-pismo-tlum hover:text-white'
               }`}
             >
               <Ikona className="w-3.5 h-3.5" /> {t.nazev}

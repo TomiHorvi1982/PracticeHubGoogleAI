@@ -218,7 +218,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
             {!vRadku && (
               <>
                 <h3 className="text-sm font-bold text-white truncate">{song.title}</h3>
-                <p className="text-drobne text-neutral-500 truncate">{song.artist}</p>
+                <p className="text-drobne text-pismo-slaby truncate">{song.artist}</p>
               </>
             )}
             {vRadku && (
@@ -227,7 +227,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
           </div>
           <button
             onClick={onZavrit}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-white/10 text-pismo-tlum hover:text-white cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -239,7 +239,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
             <Sparkles className="w-4 h-4 text-znacka shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="text-drobne font-semibold text-white">Dohledat samo</div>
-              <div className="text-stitek text-neutral-400">
+              <div className="text-stitek text-pismo-tlum">
                 Projde tabulatury, text, akordy, MIDI a doplní tempo i tóninu. Co si nebude jisté, nabídne níž.
               </div>
             </div>
@@ -290,7 +290,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                     <span>{m.icon}</span>
                     <span className="truncate">{m.title}</span>
                   </div>
-                  <div className={`text-stitek truncate ${d.jsouData ? 'text-uspech' : 'text-neutral-500'}`}>
+                  <div className={`text-stitek truncate ${d.jsouData ? 'text-uspech' : 'text-pismo-slaby'}`}>
                     {d.souhrn}
                   </div>
                 </button>
@@ -316,7 +316,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
               </div>
               <div
                 className={`text-stitek truncate ${
-                  (song.youtubeVideos?.length || 0) > 0 ? 'text-uspech' : 'text-neutral-500'
+                  (song.youtubeVideos?.length || 0) > 0 ? 'text-uspech' : 'text-pismo-slaby'
                 }`}
               >
                 {(song.youtubeVideos?.length || 0) > 0
@@ -344,7 +344,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                 </button>
               </div>
               {(song.youtubeVideos || []).map((v: any) => (
-                <div key={v.id} className="flex items-center gap-2 text-drobne text-neutral-300">
+                <div key={v.id} className="flex items-center gap-2 text-drobne text-pismo">
                   <img src={`https://i.ytimg.com/vi/${v.id}/default.jpg`} alt="" className="w-12 rounded" />
                   <span className="truncate flex-1">{v.title || v.id}</span>
                   <button
@@ -355,7 +355,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                         updatedAt: Date.now(),
                       })
                     }
-                    className="p-1 rounded-md hover:bg-chyba/20 text-neutral-500 hover:text-chyba cursor-pointer"
+                    className="p-1 rounded-md hover:bg-chyba/20 text-pismo-slaby hover:text-chyba cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -377,14 +377,14 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                       key={z.id}
                       onClick={() => setZdroj(z.id)}
                       className={`px-2.5 py-1 rounded-lg text-stitek font-bold flex items-center gap-1.5 cursor-pointer ${
-                        zdroj === z.id ? 'bg-white/[0.14] text-white' : 'text-neutral-500 hover:text-white'
+                        zdroj === z.id ? 'bg-white/[0.14] text-white' : 'text-pismo-slaby hover:text-white'
                       }`}
                     >
                       <Ikona className="w-3 h-3" /> {z.popis}
                     </button>
                   );
                 })}
-                <span className="ml-auto text-stitek text-neutral-600">
+                <span className="ml-auto text-stitek text-pismo-slaby">
                   přijímá {modul.prijima.join(' ') || 'cokoli'}
                 </span>
               </div>
@@ -392,7 +392,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
               {zdroj === 'knihovna' ? (
                 <>
                   <div className="relative">
-                    <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                    <Search className="w-3.5 h-3.5 text-pismo-slaby absolute left-2.5 top-1/2 -translate-y-1/2" />
                     <input
                       value={dotaz}
                       onChange={(e) => setDotaz(e.target.value)}
@@ -402,12 +402,12 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                   </div>
                   <div className="max-h-52 overflow-y-auto space-y-1">
                     {hledam && (
-                      <p className="text-drobne text-neutral-600 flex items-center gap-1.5">
+                      <p className="text-drobne text-pismo-slaby flex items-center gap-1.5">
                         <Loader2 className="w-3 h-3 animate-spin" /> Hledám…
                       </p>
                     )}
                     {!hledam && nalezene.length === 0 && (
-                      <p className="text-drobne text-neutral-600">
+                      <p className="text-drobne text-pismo-slaby">
                         V knihovně nic takového není. Zkus jiný název, nebo nahraj z počítače.
                       </p>
                     )}
@@ -418,7 +418,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                         className="w-full flex items-center gap-2 px-2 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] cursor-pointer text-left"
                       >
                         <span className="text-drobne text-white truncate flex-1">{a.name}</span>
-                        <span className="text-stitek text-neutral-600 shrink-0">{a.asset_type}</span>
+                        <span className="text-stitek text-pismo-slaby shrink-0">{a.asset_type}</span>
                         <Plus className="w-3.5 h-3.5 text-uspech shrink-0" />
                       </button>
                     ))}
@@ -443,10 +443,10 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                   ) : (
                     <Upload className="w-5 h-5 text-znacka" />
                   )}
-                  <span className="text-drobne text-neutral-300">
+                  <span className="text-drobne text-pismo">
                     {nahravam ? 'Nahrávám…' : 'Vyber soubory z počítače'}
                   </span>
-                  <span className="text-stitek text-neutral-600">
+                  <span className="text-stitek text-pismo-slaby">
                     Uloží se do knihovny, ať je máš i u dalších písní.
                   </span>
                 </label>
@@ -456,12 +456,12 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
               {dataModulu(song, modul.id).prilohy.length > 0 && (
                 <div className="space-y-1 border-t border-white/[0.06] pt-2">
                   {dataModulu(song, modul.id).prilohy.map((a) => (
-                    <div key={a.id} className="flex items-center gap-2 text-drobne text-neutral-300">
+                    <div key={a.id} className="flex items-center gap-2 text-drobne text-pismo">
                       <Check className="w-3 h-3 text-uspech shrink-0" />
                       <span className="truncate flex-1">{a.name}</span>
                       <button
                         onClick={() => odeber(a.id)}
-                        className="p-1 rounded-md hover:bg-chyba/20 text-neutral-600 hover:text-chyba cursor-pointer"
+                        className="p-1 rounded-md hover:bg-chyba/20 text-pismo-slaby hover:text-chyba cursor-pointer"
                         title="Odpojit od písně"
                       >
                         <Trash2 className="w-3 h-3" />

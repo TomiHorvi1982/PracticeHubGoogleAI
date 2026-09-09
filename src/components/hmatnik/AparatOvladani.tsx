@@ -68,14 +68,14 @@ export const AparatOvladani: React.FC = () => {
           className={`px-2.5 py-1 rounded-lg text-stitek font-bold border cursor-pointer ${
             zapnuty
               ? 'bg-znacka/20 border-znacka/50 text-znacka'
-              : 'bg-white/[0.06] border-white/10 text-neutral-400'
+              : 'bg-white/[0.06] border-white/10 text-pismo-tlum'
           }`}
         >
           {zapnuty ? 'zapnutý' : 'vypnutý'}
         </button>
       </div>
 
-      <p className="text-stitek text-neutral-500 leading-relaxed">
+      <p className="text-stitek text-pismo-slaby leading-relaxed">
         Zkresluje se tady, ne ve vzorku — proto pouštěj čistý zvuk kytary a nechej aparát
         pracovat. Klavíru a bicích se to netýká.
       </p>
@@ -83,7 +83,7 @@ export const AparatOvladani: React.FC = () => {
       <div className={zapnuty ? 'space-y-1.5' : 'space-y-1.5 opacity-40 pointer-events-none'}>
         {REGULATORY.map((r) => (
           <div key={r.klic} className="flex items-center gap-2" title={r.popis}>
-            <span className="text-stitek text-neutral-400 w-16 shrink-0">{r.nazev}</span>
+            <span className="text-stitek text-pismo-tlum w-16 shrink-0">{r.nazev}</span>
             <input
               type="range"
               min={0}

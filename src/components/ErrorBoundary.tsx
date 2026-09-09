@@ -26,9 +26,9 @@ export class ErrorBoundary extends Component<Props, State> {
   public override render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0F172A] text-white flex flex-col items-center justify-center p-6 text-center">
-          <div className="bg-[#1E293B] border border-red-500/30 p-8 rounded-2xl max-w-md w-full shadow-2xl">
-            <div className="w-16 h-16 bg-red-500/10 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+        <div className="min-h-screen bg-plocha-1 text-white flex flex-col items-center justify-center p-6 text-center">
+          <div className="bg-[#1E293B] border border-chyba/30 p-8 rounded-2xl max-w-md w-full shadow-2xl">
+            <div className="w-16 h-16 bg-chyba/10 text-chyba rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
               ⚠️
             </div>
             <h1 className="text-xl font-bold mb-2">Aplikace zaznamenala drobnou chybu</h1>
@@ -40,7 +40,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 this.setState({ hasError: false, error: null });
                 window.location.reload();
               }}
-              className="bg-red-500 hover:bg-red-600 text-white font-medium px-6 py-2.5 rounded-xl text-sm transition-colors shadow-lg shadow-red-500/20"
+              className="bg-chyba hover:bg-red-600 text-white font-medium px-6 py-2.5 rounded-xl text-sm transition-colors shadow-lg shadow-red-500/20"
             >
               Obnovit aplikaci
             </button>

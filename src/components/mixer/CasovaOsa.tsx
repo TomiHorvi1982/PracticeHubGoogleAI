@@ -147,7 +147,7 @@ export const CasovaOsa: React.FC<Props> = ({
       {popisky.map((t) => (
         <span
           key={t}
-          className="absolute top-0 text-stitek text-slate-500 tabular-nums pl-1 border-l border-slate-700/60 h-4"
+          className="absolute top-0 text-stitek text-pismo-slaby tabular-nums pl-1 border-l border-kresba/60 h-4"
           style={{ left: casNaX(t, od, doKdy, sirka) }}
         >
           {cas2(t)}

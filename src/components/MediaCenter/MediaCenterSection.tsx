@@ -334,7 +334,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
   const activeSongTracks = activeSong ? mediaCenterService.getTracksForSong(activeSong.id) : [];
 
   return (
-    <div className="flex flex-col h-full bg-[#0B0F19] text-slate-100 overflow-hidden font-sans select-none">
+    <div className="flex flex-col h-full bg-podklad text-pismo overflow-hidden font-sans select-none">
       {/* Hidden YouTube IFrame Container (Keeps audio playing seamlessly in background) */}
       <div
         className={`fixed ${
@@ -345,56 +345,56 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
       </div>
 
       {/* --- TOP HEADER & ACTIVE SONG BADGE --- */}
-      <header className="px-6 py-4 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800 flex items-center justify-between gap-4 shrink-0">
+      <header className="px-6 py-4 bg-plocha-1/80 backdrop-blur-xl border-b border-kresba flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-znacka to-orange-600 flex items-center justify-center shadow-lg shadow-znacka/20">
             <Disc3 className={`w-5 h-5 text-black ${playbackState.isPlaying ? 'animate-spin' : ''}`} style={{ animationDuration: '4s' }} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold text-white tracking-tight">Media Center</h1>
-              <span className="odznak px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+              <span className="odznak px-2 py-0.5 rounded-full bg-znacka/20 text-znacka-svetla border border-znacka/30">
                 Kaset Engine
               </span>
             </div>
-            <p className="text-xs text-slate-400">YouTube Music, backing tracky, texty & Smart Shuffle</p>
+            <p className="text-xs text-pismo-tlum">YouTube Music, backing tracky, texty & Smart Shuffle</p>
           </div>
         </div>
 
         {/* Active Song Connector Pill */}
         {activeSong ? (
-          <div className="flex items-center gap-3 px-4 py-2 bg-slate-800/80 rounded-2xl border border-slate-700/80 shadow-sm">
-            <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+          <div className="flex items-center gap-3 px-4 py-2 bg-plocha-2/80 rounded-2xl border border-kresba/80 shadow-sm">
+            <BookOpen className="w-4 h-4 text-znacka shrink-0" />
             <div className="text-left">
               <div className="stitek-pole">Aktivní skladba</div>
               <div className="text-xs font-semibold text-white truncate max-w-[180px]">
-                {activeSong.title} <span className="text-slate-400 font-normal">({activeSong.artist})</span>
+                {activeSong.title} <span className="text-pismo-tlum font-normal">({activeSong.artist})</span>
               </div>
             </div>
-            <div className="flex items-center gap-1 pl-2 border-l border-slate-700">
-              <span className="px-1.5 py-0.5 rounded text-stitek font-bold bg-amber-500/20 text-amber-300">
+            <div className="flex items-center gap-1 pl-2 border-l border-kresba">
+              <span className="px-1.5 py-0.5 rounded text-stitek font-bold bg-znacka/20 text-znacka-svetla">
                 {activeSong.key || 'G'}
               </span>
-              <span className="px-1.5 py-0.5 rounded text-stitek font-bold bg-slate-700 text-slate-300">
+              <span className="px-1.5 py-0.5 rounded text-stitek font-bold bg-plocha-3 text-pismo">
                 {activeSong.bpm ? `${activeSong.bpm} BPM` : '120 BPM'}
               </span>
             </div>
             <button
               onClick={() => setActiveSubTab('active_song')}
-              className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-medium text-xs transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-xl bg-znacka/20 hover:bg-znacka/30 text-znacka-svetla font-medium text-xs transition-colors cursor-pointer"
             >
               Backing tracky ({activeSongTracks.length})
             </button>
           </div>
         ) : (
-          <div className="text-xs text-slate-500 italic">Žádná skladba není vybrána jako aktivní</div>
+          <div className="text-xs text-pismo-slaby italic">Žádná skladba není vybrána jako aktivní</div>
         )}
 
         {/* Stage Mode Toggle */}
         <button
           onClick={() => setIsFullStageMode(!isFullStageMode)}
           className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-            isFullStageMode ? 'bg-amber-500 text-black font-bold' : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+            isFullStageMode ? 'zlata-plocha font-bold' : 'bg-plocha-2 hover:bg-plocha-3 text-pismo border border-kresba'
           }`}
         >
           {isFullStageMode ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
@@ -405,7 +405,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
       {/* --- MAIN WORKSPACE CONTENT --- */}
       <div className="flex-1 flex overflow-hidden">
         {/* --- APPLE MUSIC-STYLE SUB-NAV SIDEBAR --- */}
-        <nav className="w-56 bg-slate-950/60 border-r border-slate-800/80 p-3 flex flex-col justify-between shrink-0">
+        <nav className="w-56 bg-podklad/60 border-r border-kresba/80 p-3 flex flex-col justify-between shrink-0">
           <div className="space-y-4">
             <div>
               <div className="stitek-pole px-3 mb-1.5">
@@ -415,7 +415,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('explore')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'explore' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'explore' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <Compass className="w-4 h-4" />
@@ -424,13 +424,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('active_song')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'active_song' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'active_song' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <Music2 className="w-4 h-4" />
                   <span>Stopy Aktivní Písně</span>
                   {activeSongTracks.length > 0 && (
-                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-bold">
+                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-plocha-2 text-pismo font-bold">
                       {activeSongTracks.length}
                     </span>
                   )}
@@ -438,7 +438,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('lyrics')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'lyrics' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'lyrics' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <Mic2 className="w-4 h-4" />
@@ -455,13 +455,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('queue')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'queue' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'queue' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <ListMusic className="w-4 h-4" />
                   <span>Fronta (Up Next)</span>
                   {queue.length > 0 && (
-                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-400 font-bold">
+                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-znacka/20 text-znacka font-bold">
                       {queue.length}
                     </span>
                   )}
@@ -469,13 +469,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('liked')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'liked' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'liked' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <Heart className="w-4 h-4 text-rose-400" />
                   <span>Oblíbené</span>
                   {likedTracks.length > 0 && (
-                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300 font-bold">
+                    <span className="ml-auto text-stitek px-1.5 py-0.2 rounded-full bg-plocha-2 text-pismo font-bold">
                       {likedTracks.length}
                     </span>
                   )}
@@ -483,7 +483,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('history')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'history' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'history' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <History className="w-4 h-4" />
@@ -492,7 +492,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <button
                   onClick={() => setActiveSubTab('playlists')}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    activeSubTab === 'playlists' ? 'bg-amber-500/15 text-amber-400 font-semibold border border-amber-500/30' : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200'
+                    activeSubTab === 'playlists' ? 'bg-znacka/15 text-znacka font-semibold border border-znacka/30' : 'text-pismo-tlum hover:bg-plocha-1 hover:text-pismo'
                   }`}
                 >
                   <Layers className="w-4 h-4" />
@@ -503,16 +503,16 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           </div>
 
           {/* Smart Shuffle Mini Status */}
-          <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800/80 space-y-2">
+          <div className="p-3 bg-plocha-1/90 rounded-2xl border border-kresba/80 space-y-2">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-pismo">
+                <Sparkles className="w-3.5 h-3.5 text-znacka" />
                 <span>Smart Shuffle</span>
               </div>
               <button
                 onClick={() => mediaCenterService.toggleSmartShuffle()}
                 className={`w-8 h-4.5 rounded-full transition-colors relative cursor-pointer ${
-                  playbackState.smartShuffle ? 'bg-amber-500' : 'bg-slate-700'
+                  playbackState.smartShuffle ? 'bg-znacka' : 'bg-plocha-3'
                 }`}
               >
                 <div
@@ -522,7 +522,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 />
               </button>
             </div>
-            <p className="text-drobne text-slate-400 leading-tight">
+            <p className="text-drobne text-pismo-tlum leading-tight">
               Automaticky domíchává doporučené backing tracky dle žánru a tóniny.
             </p>
           </div>
@@ -533,29 +533,29 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 1: EXPLORE & YOUTUBE SEARCH */}
           {activeSubTab === 'explore' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+              <div className="bg-plocha-1/60 border border-kresba rounded-3xl p-6 shadow-xl space-y-4">
                 <div>
                   <h2 className="text-base font-bold text-white mb-1">Vyhledávač backing tracků a YouTube Music</h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-pismo-tlum">
                     Najděte kytarové podklady, drumless smyčky, karaoke, originální nahrávky nebo video lekce.
                   </p>
                 </div>
 
                 <form onSubmit={handleSearch} className="flex gap-2">
                   <div className="relative flex-1">
-                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                    <Search className="w-4 h-4 text-pismo-tlum absolute left-3.5 top-3" />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Vyhledejte interpreta, název písně, žánr nebo tóninu (např. Pink Floyd Comfortably Numb Backing Track)..."
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none transition-colors"
+                      className="w-full bg-podklad border border-kresba/80 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-pismo-slaby focus:border-znacka focus:outline-none transition-colors"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={isSearching || !searchQuery.trim()}
-                    className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-black font-bold text-xs rounded-2xl transition-all shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                    className="px-5 py-2.5 bg-gradient-to-r from-znacka to-orange-600 hover:from-znacka hover:to-orange-500 text-black font-bold text-xs rounded-2xl transition-all shadow-md cursor-pointer disabled:opacity-50 flex items-center gap-2"
                   >
                     {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                     <span>Hledat</span>
@@ -583,8 +583,8 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                       }}
                       className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                         searchFilter === f.id
-                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-semibold'
-                          : 'bg-slate-800/80 hover:bg-slate-800 text-slate-400 border border-slate-700/50'
+                          ? 'bg-znacka/20 text-znacka-svetla border border-znacka/40 font-semibold'
+                          : 'bg-plocha-2/80 hover:bg-plocha-2 text-pismo-tlum border border-kresba/50'
                       }`}
                     >
                       {f.label}
@@ -609,7 +609,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                       onClick={() => {
                         mediaCenterService.playTrack(searchResults[0], searchResults);
                       }}
-                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-slate-700"
+                      className="px-3 py-1.5 bg-plocha-2 hover:bg-plocha-3 text-znacka font-semibold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-kresba"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                       <span>Přehrát vše</span>
@@ -626,13 +626,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                           key={track.id}
                           className={`p-3 rounded-2xl border transition-all flex gap-3 group ${
                             isCurrent
-                              ? 'bg-amber-500/10 border-amber-500/40 shadow-lg shadow-amber-500/5'
-                              : 'bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900'
+                              ? 'bg-znacka/10 border-znacka/40 shadow-lg shadow-znacka/5'
+                              : 'bg-plocha-1/70 border-kresba hover:border-kresba hover:bg-plocha-1'
                           }`}
                         >
                           <div
                             onClick={() => mediaCenterService.playTrack(track, searchResults)}
-                            className="relative w-28 h-18 rounded-xl overflow-hidden bg-slate-950 shrink-0 cursor-pointer group-hover:opacity-90 transition-opacity"
+                            className="relative w-28 h-18 rounded-xl overflow-hidden bg-podklad shrink-0 cursor-pointer group-hover:opacity-90 transition-opacity"
                           >
                             <img
                               src={track.thumbnailUrl || `https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg`}
@@ -644,7 +644,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               <Play className="w-6 h-6 text-white fill-current" />
                             </div>
                             {isCurrent && playbackState.isPlaying && (
-                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-black text-stitek font-bold">
+                              <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded zlata-plocha text-stitek font-bold">
                                 Hraje
                               </div>
                             )}
@@ -654,19 +654,19 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                             <div>
                               <div
                                 onClick={() => mediaCenterService.playTrack(track, searchResults)}
-                                className="text-xs font-bold text-white truncate hover:text-amber-400 transition-colors cursor-pointer"
+                                className="text-xs font-bold text-white truncate hover:text-znacka transition-colors cursor-pointer"
                                 title={track.title}
                               >
                                 {track.title}
                               </div>
-                              <div className="text-drobne text-slate-400 truncate mt-0.5">{track.artist}</div>
+                              <div className="text-drobne text-pismo-tlum truncate mt-0.5">{track.artist}</div>
                             </div>
 
                             <div className="flex items-center gap-1 pt-2">
                               <button
                                 onClick={() => mediaCenterService.toggleLike(track)}
                                 className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                  isLiked ? 'text-rose-500 hover:bg-rose-500/10' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+                                  isLiked ? 'text-rose-500 hover:bg-rose-500/10' : 'text-pismo-tlum hover:text-pismo hover:bg-plocha-2'
                                 }`}
                                 title={isLiked ? 'Odebrat z oblíbených' : 'Přidat do oblíbených'}
                               >
@@ -674,7 +674,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               </button>
                               <button
                                 onClick={() => mediaCenterService.addToQueue(track, 'next')}
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                                className="p-1.5 rounded-lg text-pismo-tlum hover:text-pismo hover:bg-plocha-2 transition-colors cursor-pointer"
                                 title="Přehrát jako další"
                               >
                                 <CornerDownRight className="w-3.5 h-3.5" />
@@ -682,7 +682,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               {activeSong && (
                                 <button
                                   onClick={() => handleAttachToActiveSong(track)}
-                                  className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-stitek font-semibold transition-colors cursor-pointer"
+                                  className="px-2 py-1 rounded-lg bg-znacka/10 hover:bg-znacka/20 text-znacka-svetla text-stitek font-semibold transition-colors cursor-pointer"
                                   title={`Přiřadit k písni ${activeSong.title}`}
                                 >
                                   + K písni
@@ -690,7 +690,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                               )}
                               <button
                                 onClick={() => handleCreateSongFromTrack(track)}
-                                className="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-stitek font-medium transition-colors cursor-pointer ml-auto"
+                                className="px-2 py-1 rounded-lg bg-plocha-2 hover:bg-plocha-3 text-pismo text-stitek font-medium transition-colors cursor-pointer ml-auto"
                                 title="Vytvořit novou skladbu v knihovně skladeb z tohoto podkladu"
                               >
                                 + Song Library
@@ -720,18 +720,18 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                           setSearchQuery(sample.title);
                           setTimeout(() => handleSearch(), 50);
                         }}
-                        className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800/80 hover:border-amber-500/40 hover:bg-slate-900 transition-all cursor-pointer group"
+                        className="p-4 rounded-2xl bg-plocha-1/40 border border-kresba/80 hover:border-znacka/40 hover:bg-plocha-1 transition-all cursor-pointer group"
                       >
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-stitek font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                          <span className="text-stitek font-bold px-1.5 py-0.5 rounded bg-znacka/20 text-znacka-svetla">
                             {sample.key}
                           </span>
-                          <span className="text-stitek text-slate-400">{sample.bpm} BPM</span>
+                          <span className="text-stitek text-pismo-tlum">{sample.bpm} BPM</span>
                         </div>
-                        <div className="text-xs font-bold text-white group-hover:text-amber-400 transition-colors">
+                        <div className="text-xs font-bold text-white group-hover:text-znacka transition-colors">
                           {sample.title}
                         </div>
-                        <div className="text-drobne text-slate-400 mt-1">{sample.artist}</div>
+                        <div className="text-drobne text-pismo-tlum mt-1">{sample.artist}</div>
                       </div>
                     ))}
                   </div>
@@ -743,15 +743,15 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 2: ACTIVE SONG ATTACHED MEDIA */}
           {activeSubTab === 'active_song' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="p-6 bg-slate-900/70 border border-slate-800 rounded-3xl space-y-4">
+              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-bold text-white flex items-center gap-2">
-                      <Music2 className="w-5 h-5 text-amber-400" />
+                      <Music2 className="w-5 h-5 text-znacka" />
                       <span>Backing Tracky pro: {activeSong ? activeSong.title : 'Žádná vybraná píseň'}</span>
                     </h2>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Média a podklady navázané na právě cvičenou skladbu v NeverLate Studio.
+                    <p className="text-xs text-pismo-tlum mt-1">
+                      Média a podklady navázané na právě cvičenou skladbu v Neverlast Studiu.
                     </p>
                   </div>
                   {activeSong && (
@@ -761,7 +761,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         setActiveSubTab('explore');
                         setTimeout(() => handleSearch(), 50);
                       }}
-                      className="px-4 py-2 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs transition-colors cursor-pointer flex items-center gap-2"
+                      className="px-4 py-2 rounded-2xl bg-znacka/20 hover:bg-znacka/30 text-znacka-svetla font-bold text-xs transition-colors cursor-pointer flex items-center gap-2"
                     >
                       <Search className="w-3.5 h-3.5" />
                       <span>Hledat další podklady</span>
@@ -771,10 +771,10 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {activeSongTracks.length === 0 ? (
-                <div className="p-12 text-center bg-slate-900/30 border border-slate-800/60 rounded-3xl space-y-3">
-                  <Film className="w-10 h-10 text-slate-600 mx-auto" />
-                  <p className="text-sm font-semibold text-slate-300">K této skladbě zatím nejsou přiřazena žádná média.</p>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl space-y-3">
+                  <Film className="w-10 h-10 text-pismo-slaby mx-auto" />
+                  <p className="text-sm font-semibold text-pismo">K této skladbě zatím nejsou přiřazena žádná média.</p>
+                  <p className="text-xs text-pismo-slaby max-w-md mx-auto">
                     Přejděte do sekce <b>Objevovat</b> a vyhledejte backing track, nebo klikněte na tlačítko výše pro automatické vyhledání.
                   </p>
                 </div>
@@ -786,12 +786,12 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                       <div
                         key={track.id}
                         className={`p-4 rounded-2xl border transition-all flex gap-3 ${
-                          isCurrent ? 'bg-amber-500/10 border-amber-500/40' : 'bg-slate-900/70 border-slate-800'
+                          isCurrent ? 'bg-znacka/10 border-znacka/40' : 'bg-plocha-1/70 border-kresba'
                         }`}
                       >
                         <div
                           onClick={() => mediaCenterService.playTrack(track, activeSongTracks)}
-                          className="relative w-28 h-18 rounded-xl overflow-hidden bg-slate-950 shrink-0 cursor-pointer"
+                          className="relative w-28 h-18 rounded-xl overflow-hidden bg-podklad shrink-0 cursor-pointer"
                         >
                           <img
                             src={track.thumbnailUrl || `https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg`}
@@ -807,17 +807,17 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                           <div>
                             <div
                               onClick={() => mediaCenterService.playTrack(track, activeSongTracks)}
-                              className="text-xs font-bold text-white truncate cursor-pointer hover:text-amber-400"
+                              className="text-xs font-bold text-white truncate cursor-pointer hover:text-znacka"
                             >
                               {track.title}
                             </div>
-                            <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
+                            <div className="text-drobne text-pismo-tlum truncate">{track.artist}</div>
                           </div>
 
                           <div className="flex items-center gap-2 pt-2">
                             <button
                               onClick={() => mediaCenterService.playTrack(track, activeSongTracks)}
-                              className="px-3 py-1 bg-amber-500 text-black font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
+                              className="px-3 py-1 zlata-plocha font-bold text-xs rounded-xl flex items-center gap-1 cursor-pointer"
                             >
                               <Play className="w-3 h-3 fill-current" />
                               <span>Přehrát</span>
@@ -828,7 +828,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                                   mediaCenterService.removeSongAssociation(track.id, activeSong.id);
                                 }
                               }}
-                              className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors cursor-pointer ml-auto"
+                              className="p-1.5 text-pismo-slaby hover:text-rose-400 rounded-lg transition-colors cursor-pointer ml-auto"
                               title="Odebrat z této skladby"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -846,20 +846,20 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 3: QUEUE & SMART SHUFFLE */}
           {activeSubTab === 'queue' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-between p-6 bg-slate-900/70 border border-slate-800 rounded-3xl">
+              <div className="flex items-center justify-between p-6 bg-plocha-1/70 border border-kresba rounded-3xl">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <ListMusic className="w-5 h-5 text-amber-400" />
+                    <ListMusic className="w-5 h-5 text-znacka" />
                     <span>Fronta přehrávání (Up Next)</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-pismo-tlum mt-0.5">
                     {queue.length} {queue.length === 1 ? 'stopa' : 'stop'} v pořadí
                   </p>
                 </div>
                 {queue.length > 0 && (
                   <button
                     onClick={() => mediaCenterService.clearQueue()}
-                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-rose-400 text-xs font-semibold transition-colors cursor-pointer border border-slate-700"
+                    className="px-3 py-1.5 rounded-xl bg-plocha-2 hover:bg-plocha-3 text-rose-400 text-xs font-semibold transition-colors cursor-pointer border border-kresba"
                   >
                     Vyčistit frontu
                   </button>
@@ -867,9 +867,9 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {queue.length === 0 ? (
-                <div className="p-12 text-center bg-slate-900/30 border border-slate-800/60 rounded-3xl space-y-2">
-                  <p className="text-xs text-slate-400">Fronta je prázdná.</p>
-                  <p className="text-drobne text-slate-500">
+                <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl space-y-2">
+                  <p className="text-xs text-pismo-tlum">Fronta je prázdná.</p>
+                  <p className="text-drobne text-pismo-slaby">
                     Se zapnutým <b>Smart Shuffle</b> se automaticky načtou další vhodné skladby při dohrání.
                   </p>
                 </div>
@@ -878,32 +878,32 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   {queue.map((track, idx) => (
                     <div
                       key={`${track.id}_${idx}`}
-                      className="p-3 bg-slate-900/70 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 group hover:border-slate-700 transition-all"
+                      className="p-3 bg-plocha-1/70 border border-kresba rounded-2xl flex items-center justify-between gap-3 group hover:border-kresba transition-all"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <span className="text-xs font-bold text-slate-500 w-5 text-center">{idx + 1}</span>
+                        <span className="text-xs font-bold text-pismo-slaby w-5 text-center">{idx + 1}</span>
                         <img
                           src={track.thumbnailUrl || `https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg`}
                           alt=""
-                          className="w-12 h-9 rounded-lg object-cover bg-slate-950"
+                          className="w-12 h-9 rounded-lg object-cover bg-podklad"
                           referrerPolicy="no-referrer"
                         />
                         <div className="min-w-0">
                           <div className="text-xs font-bold text-white truncate">{track.title}</div>
-                          <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
+                          <div className="text-drobne text-pismo-tlum truncate">{track.artist}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <button
                           onClick={() => mediaCenterService.playTrack(track)}
-                          className="p-2 rounded-xl bg-slate-800 hover:bg-amber-500 hover:text-black text-slate-300 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl bg-plocha-2 hover:bg-znacka hover:text-black text-pismo transition-colors cursor-pointer"
                           title="Přehrát ihned"
                         >
                           <Play className="w-3.5 h-3.5 fill-current" />
                         </button>
                         <button
                           onClick={() => mediaCenterService.removeFromQueue(track.id)}
-                          className="p-2 rounded-xl text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                          className="p-2 rounded-xl text-pismo-slaby hover:text-rose-400 transition-colors cursor-pointer"
                           title="Odebrat z fronty"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -919,18 +919,18 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 4: LIKED SONGS */}
           {activeSubTab === 'liked' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="p-6 bg-slate-900/70 border border-slate-800 rounded-3xl flex items-center justify-between">
+              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Heart className="w-5 h-5 text-rose-500 fill-current" />
                     <span>Oblíbené Backing Tracky</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">{likedTracks.length} uložených podkladů</p>
+                  <p className="text-xs text-pismo-tlum mt-0.5">{likedTracks.length} uložených podkladů</p>
                 </div>
                 {likedTracks.length > 0 && (
                   <button
                     onClick={() => mediaCenterService.playTrack(likedTracks[0], likedTracks)}
-                    className="px-4 py-2 rounded-2xl bg-amber-500 text-black font-bold text-xs flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/20"
+                    className="px-4 py-2 rounded-2xl zlata-plocha font-bold text-xs flex items-center gap-2 cursor-pointer shadow-lg shadow-znacka/20"
                   >
                     <Play className="w-4 h-4 fill-current" />
                     <span>Přehrát oblíbené</span>
@@ -939,7 +939,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {likedTracks.length === 0 ? (
-                <div className="p-12 text-center bg-slate-900/30 border border-slate-800/60 rounded-3xl text-xs text-slate-500">
+                <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl text-xs text-pismo-slaby">
                   Zatím jste si neoblíbili žádné stopy. Klikněte na ikonu srdíčka u libovolného podkladu.
                 </div>
               ) : (
@@ -947,22 +947,22 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   {likedTracks.map((track) => (
                     <div
                       key={track.id}
-                      className="p-3 bg-slate-900/70 border border-slate-800 rounded-2xl flex items-center gap-3 group hover:border-slate-700"
+                      className="p-3 bg-plocha-1/70 border border-kresba rounded-2xl flex items-center gap-3 group hover:border-kresba"
                     >
                       <img
                         src={track.thumbnailUrl || `https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg`}
                         alt=""
-                        className="w-14 h-11 rounded-xl object-cover bg-slate-950 shrink-0"
+                        className="w-14 h-11 rounded-xl object-cover bg-podklad shrink-0"
                         referrerPolicy="no-referrer"
                       />
                       <div className="flex-1 min-w-0">
                         <div
                           onClick={() => mediaCenterService.playTrack(track, likedTracks)}
-                          className="text-xs font-bold text-white truncate cursor-pointer hover:text-amber-400"
+                          className="text-xs font-bold text-white truncate cursor-pointer hover:text-znacka"
                         >
                           {track.title}
                         </div>
-                        <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
+                        <div className="text-drobne text-pismo-tlum truncate">{track.artist}</div>
                       </div>
                       <button
                         onClick={() => mediaCenterService.toggleLike(track)}
@@ -980,40 +980,40 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 5: HISTORY */}
           {activeSubTab === 'history' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="p-6 bg-slate-900/70 border border-slate-800 rounded-3xl">
+              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl">
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
-                  <History className="w-5 h-5 text-amber-400" />
+                  <History className="w-5 h-5 text-znacka" />
                   <span>Historie cvičení & přehrávání</span>
                 </h2>
-                <p className="text-xs text-slate-400 mt-0.5">Naposledy spuštěné podklady a písně</p>
+                <p className="text-xs text-pismo-tlum mt-0.5">Naposledy spuštěné podklady a písně</p>
               </div>
 
               <div className="space-y-2">
                 {history.map((track, idx) => (
                   <div
                     key={`${track.id}_${idx}`}
-                    className="p-3 bg-slate-900/60 border border-slate-800 rounded-2xl flex items-center justify-between gap-3 group"
+                    className="p-3 bg-plocha-1/60 border border-kresba rounded-2xl flex items-center justify-between gap-3 group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <img
                         src={track.thumbnailUrl || `https://img.youtube.com/vi/${track.youtubeId}/mqdefault.jpg`}
                         alt=""
-                        className="w-12 h-9 rounded-lg object-cover bg-slate-950 shrink-0"
+                        className="w-12 h-9 rounded-lg object-cover bg-podklad shrink-0"
                         referrerPolicy="no-referrer"
                       />
                       <div className="min-w-0">
                         <div
                           onClick={() => mediaCenterService.playTrack(track)}
-                          className="text-xs font-bold text-white truncate cursor-pointer hover:text-amber-400"
+                          className="text-xs font-bold text-white truncate cursor-pointer hover:text-znacka"
                         >
                           {track.title}
                         </div>
-                        <div className="text-drobne text-slate-400 truncate">{track.artist}</div>
+                        <div className="text-drobne text-pismo-tlum truncate">{track.artist}</div>
                       </div>
                     </div>
                     <button
                       onClick={() => mediaCenterService.playTrack(track)}
-                      className="p-2 rounded-xl bg-slate-800 hover:bg-amber-500 hover:text-black text-slate-300 transition-colors cursor-pointer"
+                      className="p-2 rounded-xl bg-plocha-2 hover:bg-znacka hover:text-black text-pismo transition-colors cursor-pointer"
                     >
                       <Play className="w-3.5 h-3.5 fill-current" />
                     </button>
@@ -1026,17 +1026,17 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 6: PLAYLISTS */}
           {activeSubTab === 'playlists' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="p-6 bg-slate-900/70 border border-slate-800 rounded-3xl flex items-center justify-between">
+              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-amber-400" />
+                    <Layers className="w-5 h-5 text-znacka" />
                     <span>Cvičné Setlisty & Playlisty</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">Sady podkladů organizované podle žánru a stylu</p>
+                  <p className="text-xs text-pismo-tlum mt-0.5">Sady podkladů organizované podle žánru a stylu</p>
                 </div>
                 <button
                   onClick={() => setIsCreatePlaylistOpen(true)}
-                  className="px-4 py-2 rounded-2xl bg-amber-500 text-black font-bold text-xs flex items-center gap-2 cursor-pointer shadow-lg shadow-amber-500/20"
+                  className="px-4 py-2 rounded-2xl zlata-plocha font-bold text-xs flex items-center gap-2 cursor-pointer shadow-lg shadow-znacka/20"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Nový Playlist</span>
@@ -1044,13 +1044,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {isCreatePlaylistOpen && (
-                <div className="p-4 bg-slate-900 border border-amber-500/40 rounded-2xl flex gap-2">
+                <div className="p-4 bg-plocha-1 border border-znacka/40 rounded-2xl flex gap-2">
                   <input
                     type="text"
                     value={newPlaylistName}
                     onChange={(e) => setNewPlaylistName(e.target.value)}
                     placeholder="Název nového cvičebního playlistu..."
-                    className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                    className="flex-1 bg-podklad border border-kresba rounded-xl px-3 py-2 text-xs text-white focus:border-znacka focus:outline-none"
                   />
                   <button
                     onClick={() => {
@@ -1060,13 +1060,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         setIsCreatePlaylistOpen(false);
                       }
                     }}
-                    className="px-4 py-2 bg-amber-500 text-black font-bold text-xs rounded-xl cursor-pointer"
+                    className="px-4 py-2 zlata-plocha font-bold text-xs rounded-xl cursor-pointer"
                   >
                     Vytvořit
                   </button>
                   <button
                     onClick={() => setIsCreatePlaylistOpen(false)}
-                    className="px-3 py-2 bg-slate-800 text-slate-400 text-xs rounded-xl cursor-pointer"
+                    className="px-3 py-2 bg-plocha-2 text-pismo-tlum text-xs rounded-xl cursor-pointer"
                   >
                     Zrušit
                   </button>
@@ -1077,22 +1077,22 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 {playlists.map((pl) => (
                   <div
                     key={pl.id}
-                    className="p-5 bg-slate-900/70 border border-slate-800 rounded-3xl flex flex-col justify-between space-y-4 hover:border-slate-700 transition-all group"
+                    className="p-5 bg-plocha-1/70 border border-kresba rounded-3xl flex flex-col justify-between space-y-4 hover:border-kresba transition-all group"
                   >
                     <div className="space-y-2">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center text-2xl border border-slate-700">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-plocha-2 to-plocha-1 flex items-center justify-center text-2xl border border-kresba">
                         {pl.icon || '🎵'}
                       </div>
-                      <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">{pl.name}</h3>
-                      <p className="text-xs text-slate-400 line-clamp-2">{pl.description || 'Vlastní cvičný playlist'}</p>
+                      <h3 className="text-sm font-bold text-white group-hover:text-znacka transition-colors">{pl.name}</h3>
+                      <p className="text-xs text-pismo-tlum line-clamp-2">{pl.description || 'Vlastní cvičný playlist'}</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
-                      <span className="text-drobne text-slate-500 font-medium">{pl.trackIds.length} skladeb</span>
+                    <div className="flex items-center justify-between pt-2 border-t border-kresba/80">
+                      <span className="text-drobne text-pismo-slaby font-medium">{pl.trackIds.length} skladeb</span>
                       {pl.isCustom && (
                         <button
                           onClick={() => mediaCenterService.deletePlaylist(pl.id)}
-                          className="p-1.5 text-slate-500 hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
+                          className="p-1.5 text-pismo-slaby hover:text-rose-400 rounded-lg transition-colors cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1107,13 +1107,13 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 7: SYNCHRONIZED LYRICS & CHORDS (LRC) */}
           {activeSubTab === 'lyrics' && (
             <div className="space-y-6 max-w-3xl mx-auto">
-              <div className="p-6 bg-slate-900/70 border border-slate-800 rounded-3xl flex items-center justify-between">
+              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <Mic2 className="w-5 h-5 text-amber-400" />
+                    <Mic2 className="w-5 h-5 text-znacka" />
                     <span>Synchronizovaný text a akordy (LRC)</span>
                   </h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
+                  <p className="text-xs text-pismo-tlum mt-0.5">
                     {playbackState.currentTrack ? playbackState.currentTrack.title : 'Není spuštěna žádná stopa'}
                   </p>
                 </div>
@@ -1121,10 +1121,10 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
               <div
                 ref={lyricsContainerRef}
-                className="p-8 bg-slate-950/80 border border-slate-800/80 rounded-3xl max-h-[500px] overflow-y-auto space-y-4 text-center backdrop-blur-md"
+                className="p-8 bg-podklad/80 border border-kresba/80 rounded-3xl max-h-[500px] overflow-y-auto space-y-4 text-center backdrop-blur-md"
               >
                 {lyrics.length === 0 ? (
-                  <div className="py-12 text-slate-500 text-xs italic">
+                  <div className="py-12 text-pismo-slaby text-xs italic">
                     Text není k dispozici nebo se nepodařilo načíst synchronizovaný LRC soubor.
                   </div>
                 ) : (
@@ -1137,8 +1137,8 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                         onClick={() => mediaCenterService.seekTo(line.time)}
                         className={`p-3 rounded-2xl transition-all cursor-pointer ${
                           isActive
-                            ? 'text-amber-400 font-bold text-lg scale-105 bg-amber-500/10 border border-amber-500/20 shadow-md'
-                            : 'text-slate-400 hover:text-slate-200 text-sm'
+                            ? 'text-znacka font-bold text-lg scale-105 bg-znacka/10 border border-znacka/20 shadow-md'
+                            : 'text-pismo-tlum hover:text-pismo text-sm'
                         }`}
                       >
                         {line.text}
@@ -1153,12 +1153,12 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
       </div>
 
       {/* --- BOTTOM MASTER MEDIA BAR (Apple / Kaset Style Dock) --- */}
-      <footer className="h-24 bg-slate-950/90 backdrop-blur-2xl border-t border-slate-800/90 px-6 flex items-center justify-between gap-6 shrink-0 relative z-30">
+      <footer className="h-24 bg-podklad/90 backdrop-blur-2xl border-t border-kresba/90 px-6 flex items-center justify-between gap-6 shrink-0 relative z-30">
         {/* Left Track Info */}
         <div className="flex items-center gap-3.5 w-1/4 min-w-[200px]">
           {playbackState.currentTrack ? (
             <>
-              <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 shrink-0 group">
+              <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-plocha-1 border border-kresba shrink-0 group">
                 <img
                   src={
                     playbackState.currentTrack.thumbnailUrl ||
@@ -1177,11 +1177,11 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-bold text-white truncate hover:text-amber-400 cursor-pointer">
+                <div className="text-xs font-bold text-white truncate hover:text-znacka cursor-pointer">
                   {playbackState.currentTrack.title}
                 </div>
-                <div className="text-drobne text-slate-400 truncate mt-0.5">
-                  {playbackState.currentTrack.artist || 'NeverLate Backing Track'}
+                <div className="text-drobne text-pismo-tlum truncate mt-0.5">
+                  {playbackState.currentTrack.artist || 'Neverlast Backing Track'}
                 </div>
               </div>
 
@@ -1192,14 +1192,14 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   }
                 }}
                 className={`p-2 rounded-xl transition-colors cursor-pointer ${
-                  playbackState.currentTrack.isLiked ? 'text-rose-500' : 'text-slate-500 hover:text-slate-300'
+                  playbackState.currentTrack.isLiked ? 'text-rose-500' : 'text-pismo-slaby hover:text-pismo'
                 }`}
               >
                 <Heart className={`w-4 h-4 ${playbackState.currentTrack.isLiked ? 'fill-current' : ''}`} />
               </button>
             </>
           ) : (
-            <div className="text-xs text-slate-500 italic">Žádná stopa nepřehrává</div>
+            <div className="text-xs text-pismo-slaby italic">Žádná stopa nepřehrává</div>
           )}
         </div>
 
@@ -1210,7 +1210,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
             <button
               onClick={() => mediaCenterService.toggleSmartShuffle()}
               className={`p-2 rounded-xl transition-colors cursor-pointer ${
-                playbackState.smartShuffle ? 'text-amber-400 bg-amber-500/15' : 'text-slate-500 hover:text-slate-300'
+                playbackState.smartShuffle ? 'text-znacka bg-znacka/15' : 'text-pismo-slaby hover:text-pismo'
               }`}
               title="Smart Shuffle"
             >
@@ -1219,7 +1219,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
             <button
               onClick={() => mediaCenterService.playPrev()}
-              className="p-2 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="p-2 text-pismo hover:text-white transition-colors cursor-pointer"
               title="Předchozí stopa"
             >
               <SkipBack className="w-4 h-4 fill-current" />
@@ -1227,14 +1227,14 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
             <button
               onClick={() => mediaCenterService.togglePlay()}
-              className="w-10 h-10 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center transition-transform active:scale-95 shadow-lg shadow-amber-500/25 cursor-pointer"
+              className="w-10 h-10 rounded-2xl zlata-plocha flex items-center justify-center transition-transform active:scale-95 shadow-lg shadow-znacka/25 cursor-pointer"
             >
               {playbackState.isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
             </button>
 
             <button
               onClick={() => mediaCenterService.playNext()}
-              className="p-2 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="p-2 text-pismo hover:text-white transition-colors cursor-pointer"
               title="Další stopa"
             >
               <SkipForward className="w-4 h-4 fill-current" />
@@ -1246,7 +1246,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 mediaCenterService.setLoopMode(nextMode);
               }}
               className={`p-2 rounded-xl transition-colors cursor-pointer relative ${
-                playbackState.loopMode !== 'off' ? 'text-amber-400 bg-amber-500/15' : 'text-slate-500 hover:text-slate-300'
+                playbackState.loopMode !== 'off' ? 'text-znacka bg-znacka/15' : 'text-pismo-slaby hover:text-pismo'
               }`}
               title={`Smyčka: ${playbackState.loopMode}`}
             >
@@ -1259,7 +1259,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
           {/* Scrubber Timeline */}
           <div className="w-full flex items-center gap-3">
-            <span className="text-drobne font-mono text-slate-400 w-10 text-right">
+            <span className="text-drobne font-mono text-pismo-tlum w-10 text-right">
               {formatTime(playbackState.currentTime)}
             </span>
             <div className="flex-1 relative flex items-center">
@@ -1270,10 +1270,10 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 step={0.5}
                 value={playbackState.currentTime}
                 onChange={(e) => mediaCenterService.seekTo(parseFloat(e.target.value))}
-                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                className="w-full h-1.5 bg-plocha-2 rounded-lg appearance-none cursor-pointer accent-znacka"
               />
             </div>
-            <span className="text-drobne font-mono text-slate-400 w-10">
+            <span className="text-drobne font-mono text-pismo-tlum w-10">
               {formatTime(playbackState.duration)}
             </span>
           </div>
@@ -1285,7 +1285,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <select
             value={playbackState.playbackSpeed}
             onChange={(e) => mediaCenterService.setPlaybackSpeed(parseFloat(e.target.value))}
-            className="bg-slate-900 border border-slate-800 text-drobne font-bold text-amber-400 rounded-xl px-2 py-1 outline-none cursor-pointer hover:border-amber-500/40"
+            className="bg-plocha-1 border border-kresba text-drobne font-bold text-znacka rounded-xl px-2 py-1 outline-none cursor-pointer hover:border-znacka/40"
             title="Rychlost přehrávání"
           >
             <option value="0.5">0.5x</option>
@@ -1301,7 +1301,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => mediaCenterService.toggleMute()}
-              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="text-pismo-tlum hover:text-white transition-colors cursor-pointer"
             >
               {playbackState.isMuted || playbackState.volume === 0 ? (
                 <VolumeX className="w-4 h-4 text-rose-400" />
@@ -1315,7 +1315,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               max={100}
               value={playbackState.isMuted ? 0 : playbackState.volume}
               onChange={(e) => mediaCenterService.setVolume(parseInt(e.target.value, 10))}
-              className="w-18 h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              className="w-18 h-1.5 bg-plocha-2 rounded-lg appearance-none cursor-pointer accent-znacka"
             />
           </div>
         </div>

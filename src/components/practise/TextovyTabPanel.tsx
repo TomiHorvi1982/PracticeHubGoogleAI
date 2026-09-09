@@ -106,7 +106,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         </label>
 
         <label className={`px-2.5 py-1.5 rounded-xl text-drobne font-semibold border flex items-center gap-1.5 cursor-pointer ${
-          ctuPdf ? 'opacity-50' : 'bg-white/[0.06] border-white/10 text-neutral-300 hover:text-white'
+          ctuPdf ? 'opacity-50' : 'bg-white/[0.06] border-white/10 text-pismo hover:text-white'
         }`}>
           {ctuPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileUp className="w-3.5 h-3.5" />}
           Načíst z PDF
@@ -126,7 +126,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         {text && (
           <button
             onClick={() => setText('')}
-            className="px-2.5 py-1.5 rounded-xl text-drobne font-semibold bg-white/[0.06] border border-white/10 text-neutral-400 hover:text-white flex items-center gap-1.5 cursor-pointer"
+            className="px-2.5 py-1.5 rounded-xl text-drobne font-semibold bg-white/[0.06] border border-white/10 text-pismo-tlum hover:text-white flex items-center gap-1.5 cursor-pointer"
           >
             <Eraser className="w-3.5 h-3.5" /> Vymazat
           </button>
@@ -138,12 +138,12 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
         onChange={(e) => setText(e.target.value)}
         spellCheck={false}
         placeholder={'Vlož sem tabulaturu, šest řádků pod sebou:\n\ne|-----------5--|\nB|--------4-----|\nG|-----3--------|\nD|--2-----------|\nA|-0------------|\nE|--------------|'}
-        className="w-full h-44 bg-black/40 border border-white/10 rounded-2xl px-3 py-2 text-drobne font-mono leading-snug text-white placeholder-neutral-700 outline-none focus:border-znacka resize-y"
+        className="w-full h-44 bg-black/40 border border-white/10 rounded-2xl px-3 py-2 text-drobne font-mono leading-snug text-white placeholder-pismo-slaby outline-none focus:border-znacka resize-y"
       />
 
       {/* Rytmus v ASCII tabulatuře není. Kdo to neví, bude se divit,
           proč mu to nesedí na nahrávku. */}
-      <p className="text-drobne text-amber-500/80 flex items-start gap-1.5 leading-relaxed">
+      <p className="text-drobne text-znacka/80 flex items-start gap-1.5 leading-relaxed">
         <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
         Textový tab neobsahuje rytmus — jen to, co a kde se hraje. Tóny se proto rozestaví
         rovnoměrně podle zvolené noty. Přesné délky má jen Guitar Pro.
@@ -159,7 +159,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
           podezřívavější než z textové vrstvy. */}
       {zPdf && (
         <p className={`text-drobne flex items-start gap-1.5 leading-relaxed ${
-          zPdf.zpusob === 'ocr' ? 'text-amber-500/90' : 'text-uspech'
+          zPdf.zpusob === 'ocr' ? 'text-znacka/90' : 'text-uspech'
         }`}>
           <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           {zPdf.zpusob === 'text'
