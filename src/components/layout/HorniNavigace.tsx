@@ -37,7 +37,6 @@ const IKONY: Partial<Record<MainTabType, React.FC<{ className?: string }>>> = {
   practice: Clock,
   tuner: Mic,
   stemmixer: Sliders,
-  liveamp: Guitar,
   tone3000: Globe,
   vyuka: GraduationCap,
   library: FolderOpen,

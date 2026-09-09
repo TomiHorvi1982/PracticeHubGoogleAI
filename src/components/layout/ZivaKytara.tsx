@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Guitar, Loader2, Volume2, VolumeX, X } from 'lucide-react';
 import { StavKytary, kytaraVMixu } from '../../services/kytaraVMixu';
 import { stemAudioService } from '../../services/stemAudioService';
+import { Kolecko } from '../mixer/Kolecko';
 
 /**
  * Živá kytara v horní liště.
@@ -138,18 +139,62 @@ export const ZivaKytara: React.FC = () => {
                 </div>
               </div>
 
-              <label className="block space-y-1">
-                <span className="stitek-pole">Vstup {stav.vstupDb.toFixed(0)} dB</span>
-                <input
-                  type="range"
-                  min={-24}
-                  max={24}
-                  step={1}
-                  value={stav.vstupDb}
-                  onChange={(e) => kytaraVMixu.nastavVstupDb(Number(e.target.value))}
-                  className="w-full accent-znacka cursor-pointer"
+              {/*
+                Tři kolečka: kolik jde dovnitř, odkud brána pouští a jak
+                široko to zní. Nastavení se drží samo — ladí se podle
+                nástroje a zvukovky, ne podle písničky.
+              */}
+              <div className="flex items-start justify-between gap-2 py-1">
+                <Kolecko
+                  hodnota={stav.vstupDb}
+                  min={0}
+                  max={20}
+                  onZmena={(v) => kytaraVMixu.nastavVstupDb(v)}
+                  popis="Vstup"
+                  text={`${stav.vstupDb.toFixed(1)} dB`}
                 />
-              </label>
+                <Kolecko
+                  hodnota={stav.brana.prah}
+                  min={0}
+                  max={0.2}
+                  onZmena={(v) => kytaraVMixu.nastavBranu({ prah: v })}
+                  popis="Brána"
+                  text={stav.brana.zapnuto ? `${(stav.brana.prah * 100).toFixed(1)} %` : 'vypnuto'}
+                  barva="var(--color-uspech)"
+                  vypnuto={!stav.brana.zapnuto}
+                />
+                <Kolecko
+                  hodnota={stav.doubler.sila}
+                  min={0}
+                  max={1}
+                  onZmena={(v) => kytaraVMixu.nastavDoubler({ sila: v })}
+                  popis="Doubler"
+                  text={stav.doubler.zapnuto ? `${Math.round(stav.doubler.sila * 100)} %` : 'vypnuto'}
+                  barva="var(--color-nastroj)"
+                  vypnuto={!stav.doubler.zapnuto}
+                />
+              </div>
+
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => kytaraVMixu.nastavBranu({ zapnuto: !stav.brana.zapnuto })}
+                  title="Zavře signál mezi frázemi, aby neprobublával šum"
+                  className={`flex-1 px-2 py-1.5 rounded-prvek text-drobne font-bold cursor-pointer ${
+                    stav.brana.zapnuto ? 'bg-uspech/15 text-uspech ring-1 ring-uspech/40' : 'bg-plocha-3 text-pismo-slaby'
+                  }`}
+                >
+                  Brána
+                </button>
+                <button
+                  onClick={() => kytaraVMixu.nastavDoubler({ zapnuto: !stav.doubler.zapnuto })}
+                  title="Dvě zpožděné kopie do stran — kytara zní široce"
+                  className={`flex-1 px-2 py-1.5 rounded-prvek text-drobne font-bold cursor-pointer ${
+                    stav.doubler.zapnuto ? 'bg-nastroj/15 text-nastroj ring-1 ring-nastroj/40' : 'bg-plocha-3 text-pismo-slaby'
+                  }`}
+                >
+                  Doubler
+                </button>
+              </div>
 
               <div className="flex gap-1.5">
                 <button

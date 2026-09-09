@@ -25,7 +25,6 @@ import { VirtualInstruments } from './components/VirtualInstruments';
 import { PracticeAssistant } from './components/PracticeAssistant';
 import { AlphaTabSection } from './components/AlphaTabSection';
 import { AiKapelaSection } from './components/AiKapelaSection';
-import { LiveGuitarAmp } from './components/LiveGuitarAmp';
 import { ZalozkySection } from './components/ZalozkySection';
 import { PractiseHubSection } from './components/PractiseHubSection';
 import { TextySection } from './components/TextySection';
@@ -446,7 +445,6 @@ function AppContent() {
       //ZÁLOŽKY
     zalozky: <ZalozkySection />,
 
-    liveamp: <LiveGuitarAmp />,
     tone3000: <Tone3000Sekce />,
     vyuka: <VyukaSekce />,
     aikapela: <AiKapelaSection />,

@@ -10,7 +10,7 @@ import { SKUPINY, PRIME, STRANOU, skupinaSekce, dosazitelneSekce, viditelnePoloz
  */
 const OCEKAVANE = [
   'songbook', 'podium', 'alphatab', 'texty', 'practise', 'instruments',
-  'practice', 'tuner', 'stemmixer', 'liveamp', 'tone3000', 'library',
+  'practice', 'tuner', 'stemmixer', 'tone3000', 'library',
   'vyuka', 'zalozky', 'vitejte', 'settings',
 ];
 

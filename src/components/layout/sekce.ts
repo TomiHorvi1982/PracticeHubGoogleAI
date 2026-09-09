@@ -11,7 +11,6 @@ export type MainTabType =
   | 'podium'
   | 'playlist'
   | 'alphatab'
-  | 'liveamp'
   | 'tone3000'
   | 'vyuka'
   | 'instruments'
@@ -41,8 +40,11 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'pódium': 'podium',
   'playlist': 'playlist',
   'guitar pro': 'alphatab',
-  'live guitar amp': 'liveamp',
-  'aparát': 'liveamp',
+  // Sekce Aparát zrušena: kytarový řetěz se ovládá ikonkou v liště
+  // a hraje napříč všemi sekcemi, takže vlastní obrazovku nepotřebuje.
+  // Hlasové příkazy míří na TONE3000, kde se vybírá zvuk.
+  'live guitar amp': 'tone3000',
+  'aparát': 'tone3000',
   'tone tři tisíce': 'tone3000',
   'katalog aparátů': 'tone3000',
   'virtual instruments': 'instruments',

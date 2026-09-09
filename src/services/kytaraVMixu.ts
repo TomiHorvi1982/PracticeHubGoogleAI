@@ -53,6 +53,21 @@ export interface StavKytary {
    */
   ztlumeno: boolean;
 
+  /**
+   * Šumová brána. `prah` je podíl plné výchylky, ne decibely — kolečko
+   * se otáčí od ticha po „projde jen pořádný úder" a decibely by tam
+   * byly jen číslo navíc.
+   */
+  brana: { zapnuto: boolean; prah: number };
+
+  /**
+   * Doubler — stereo rozšíření.
+   *
+   * Dvě zpožděné kopie do stran, každá jinak dlouhá a lehce rozladěná.
+   * Kytara pak zní široce, aniž by se z ní stal chorus.
+   */
+  doubler: { zapnuto: boolean; sila: number };
+
   /** Pásma parametrického ekvalizéru — frekvence, zesílení, šířka. */
   eq: PasmoEq[];
 
@@ -68,6 +83,10 @@ const VYCHOZI: StavKytary = {
   bypassAparatu: false, bypassBedny: false, bypassEq: true,
   urovenVstupu: 0,
   ztlumeno: false,
+  // Brána zapnutá hned: nezkreslená kytara bez ní jen šumí, zkreslená
+  // vrčí, a nikdo si neuvědomí, že to jde vypnout.
+  brana: { zapnuto: true, prah: 0.02 },
+  doubler: { zapnuto: false, sila: 0.35 },
   eq: VYCHOZI_EQ.map((x) => ({ ...x })),
   // Vypnuté a s nulovým podílem: kytara má napoprvé znít, jak ji hraješ.
   delay: { zapnuto: false, cas: 0.35, zpetna: 0.35, mix: 0.25 },
@@ -101,6 +120,14 @@ export function vyrobOdezvu(ctx: BaseAudioContext, delka: number): AudioBuffer {
     }
   }
   return buf;
+}
+
+const KLIC_NASTAVENI = 'neverlate_kytara_nastaveni';
+
+/** Číslo v mezích, nebo náhrada. Uložená data můžou být z jiné verze. */
+function cislo(x: unknown, vychozi: number, min: number, max: number): number {
+  const n = Number(x);
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : vychozi;
 }
 
 class KytaraVMixu {
@@ -140,6 +167,23 @@ class KytaraVMixu {
   /** Analyzér za celým řetězem — z něj čte spektrum. */
   private spektrum: AnalyserNode | null = null;
 
+  /* Šumová brána: uzel na zvukovém vlákně, viz `audio/branaWorklet.js`. */
+  private branaUzel: AudioWorkletNode | null = null;
+  private branaPripravena: Promise<void> | null = null;
+
+  /*
+   * Doubler.
+   *
+   * Dvě zpožděné kopie, každá do jedné strany a každá jinak dlouhá.
+   * Pomalé kolísání zpoždění (LFO) je to, co dělá rozdíl mezi „ozvěnou"
+   * a „druhou kytarou" — bez něj zní obě kopie jako jedna a hlavu
+   * posluchače to jen zmate.
+   */
+  private doublerVlevo: DelayNode | null = null;
+  private doublerVpravo: DelayNode | null = null;
+  private doublerMokro: GainNode | null = null;
+  private doublerLfo: OscillatorNode[] = [];
+
   /**
    * Naposled načtený model.
    *
@@ -154,6 +198,54 @@ class KytaraVMixu {
   private posledniBedna: { buf: AudioBuffer; jmeno: string } | null = null;
 
   public getStav(): StavKytary { return this.stav; }
+
+  /**
+   * Nastavení kytary přežije zavření prohlížeče.
+   *
+   * Práh brány, zesílení vstupu i doubler se ladí podle nástroje
+   * a zvukovky, ne podle písničky — nastavit je při každém spuštění
+   * znovu by znamenalo je nakonec nenastavit vůbec.
+   *
+   * Ukládá se jen to, co se ladí rukou. Načtený model a bedna ne: ty
+   * jsou soubory a patří do knihovny, ne do klíče v prohlížeči.
+   */
+  private ulozNastaveni(): void {
+    try {
+      localStorage.setItem(KLIC_NASTAVENI, JSON.stringify({
+        vstupDb: this.stav.vstupDb,
+        vystupDb: this.stav.vystupDb,
+        brana: this.stav.brana,
+        doubler: this.stav.doubler,
+        eq: this.stav.eq,
+        delay: this.stav.delay,
+        reverb: this.stav.reverb,
+      }));
+    } catch { /* plné úložiště nastavení jen nezachová */ }
+  }
+
+  /** Načte uložené nastavení. Volá se jednou při vzniku jedináčka. */
+  public nactiUlozene(): void {
+    try {
+      const d = JSON.parse(localStorage.getItem(KLIC_NASTAVENI) || 'null');
+      if (!d || typeof d !== 'object') return;
+      this.stav = {
+        ...this.stav,
+        vstupDb: cislo(d.vstupDb, 0, 0, 20),
+        vystupDb: cislo(d.vystupDb, 0, -24, 24),
+        brana: {
+          zapnuto: Boolean(d.brana?.zapnuto ?? true),
+          prah: cislo(d.brana?.prah, 0.02, 0, 0.5),
+        },
+        doubler: {
+          zapnuto: Boolean(d.doubler?.zapnuto),
+          sila: cislo(d.doubler?.sila, 0.35, 0, 1),
+        },
+        eq: Array.isArray(d.eq) && d.eq.length === this.stav.eq.length ? d.eq : this.stav.eq,
+        delay: { ...this.stav.delay, ...(d.delay || {}) },
+        reverb: { ...this.stav.reverb, ...(d.reverb || {}) },
+      };
+    } catch { /* poškozené nastavení se prostě nepoužije */ }
+  }
 
   public subscribe(f: Poslucha): () => void {
     this.posluchaci.add(f);
@@ -229,11 +321,36 @@ class KytaraVMixu {
     this.vystupGain = ctx.createGain();
     this.vystupGain.gain.value = dbNaPomer(this.stav.vystupDb);
 
+    /*
+     * Šumová brána sedí hned za vstupním zesílením, před aparátem.
+     *
+     * Pořadí je zásadní: kdyby byla až za aparátem, zavírala by zkreslený
+     * signál — a ten je hlasitý i tehdy, když do něj jde jen šum. Brána
+     * musí soudit, co hraješ, ne co z toho aparát udělá.
+     *
+     * Worklet se nahrává jednou a čeká se na něj. Když se nenačte,
+     * kytara hraje bez brány: šumí, ale hraje.
+     */
+    await this.pripravBranu(ctx);
+    if (this.branaPripravena) {
+      try {
+        this.branaUzel = new AudioWorkletNode(ctx, 'sumova-brana');
+        this.pouzijBranu();
+      } catch {
+        this.branaUzel = null;
+      }
+    }
+
     // Propojení. Místa pro aparát a bednu jsou zatím přemostěná —
     // uzly se do nich vloží, až když se model načte.
     this.zdroj.connect(this.vstupGain);
     this.vstupGain.connect(this.analyzer);
-    this.vstupGain.connect(this.aparatOd);
+    if (this.branaUzel) {
+      this.vstupGain.connect(this.branaUzel);
+      this.branaUzel.connect(this.aparatOd);
+    } else {
+      this.vstupGain.connect(this.aparatOd);
+    }
     this.aparatOd.connect(this.aparatDo);
     this.aparatDo.connect(this.bednaOd);
     this.bednaOd.connect(this.bednaDo);
@@ -263,6 +380,48 @@ class KytaraVMixu {
     this.vystupGain.connect(this.reverbUzel);
     this.reverbUzel.connect(this.reverbMokro);
 
+    /*
+     * Doubler.
+     *
+     * Dvě kopie, každá s jiným zpožděním a jinak rychlým kolísáním, každá
+     * do jedné strany. Rozdílné časy jsou to podstatné: dvě stejné kopie
+     * by se v hlavě posluchače slily zpátky doprostřed.
+     */
+    this.doublerVlevo = ctx.createDelay(0.1);
+    this.doublerVpravo = ctx.createDelay(0.1);
+    this.doublerVlevo.delayTime.value = 0.019;
+    this.doublerVpravo.delayTime.value = 0.031;
+    this.doublerMokro = ctx.createGain();
+
+    const panVlevo = ctx.createStereoPanner();
+    const panVpravo = ctx.createStereoPanner();
+    panVlevo.pan.value = -0.9;
+    panVpravo.pan.value = 0.9;
+
+    // Kolísání zpoždění. Pomalu a jen o zlomek milisekundy — víc už je
+    // chorus, a ten zní jako efekt, ne jako druhý kytarista.
+    [[this.doublerVlevo, 0.11, 0.0016], [this.doublerVpravo, 0.17, 0.0021]].forEach(
+      ([uzel, hz, hloubka]) => {
+        const lfo = ctx.createOscillator();
+        const hloubkaGain = ctx.createGain();
+        lfo.frequency.value = hz as number;
+        hloubkaGain.gain.value = hloubka as number;
+        lfo.connect(hloubkaGain);
+        hloubkaGain.connect((uzel as DelayNode).delayTime);
+        lfo.start();
+        this.doublerLfo.push(lfo);
+      },
+    );
+
+    this.vystupGain.connect(this.doublerVlevo);
+    this.vystupGain.connect(this.doublerVpravo);
+    this.doublerVlevo.connect(panVlevo);
+    this.doublerVpravo.connect(panVpravo);
+    panVlevo.connect(this.doublerMokro);
+    panVpravo.connect(this.doublerMokro);
+    this.doublerMokro.connect(cil);
+    this.pouzijDoubler();
+
     // Spektrum čte až to, co jde na fader — tedy i s efekty.
     this.spektrum = ctx.createAnalyser();
     this.spektrum.fftSize = 2048;
@@ -271,6 +430,7 @@ class KytaraVMixu {
     this.vystupGain.connect(this.spektrum);
     this.delayMokro.connect(this.spektrum);
     this.reverbMokro.connect(this.spektrum);
+    this.doublerMokro.connect(this.spektrum);
 
     this.vystupGain.connect(cil);
     this.delayMokro.connect(cil);
@@ -305,9 +465,16 @@ class KytaraVMixu {
   public stop(): void {
     if (this.mericTimer) { clearInterval(this.mericTimer); this.mericTimer = null; }
     this.proud?.getTracks().forEach((t) => t.stop());
+    // Oscilátory doubleru běží samy od sebe a zastavit se musí zvlášť —
+    // odpojený, ale běžící oscilátor drží kontext vzhůru.
+    this.doublerLfo.forEach((o) => { try { o.stop(); o.disconnect(); } catch { /* už stál */ } });
+    this.doublerLfo = [];
+
     [this.zdroj, this.vstupGain, this.analyzer, this.aparatOd, this.aparatDo,
       this.bednaOd, this.bednaDo, this.vystupGain, this.delayUzel, this.delayZpetna,
-      this.delayMokro, this.reverbUzel, this.reverbMokro, this.spektrum, ...this.eq].forEach((u) => {
+      this.delayMokro, this.reverbUzel, this.reverbMokro, this.spektrum,
+      this.branaUzel, this.doublerVlevo, this.doublerVpravo, this.doublerMokro,
+      ...this.eq].forEach((u) => {
       try { u?.disconnect(); } catch { /* uzel už mohl zmizet */ }
     });
     namAparat.odpoj();
@@ -322,6 +489,10 @@ class KytaraVMixu {
     this.bednaDo = null;
     this.eq = [];
     this.vystupGain = null;
+    this.branaUzel = null;
+    this.doublerVlevo = null;
+    this.doublerVpravo = null;
+    this.doublerMokro = null;
     // Nastavení přežije odpojení. Zmizí jen to, co bez běžícího řetězu
     // nedává smysl — dřív se s kytarou vracel i vynulovaný ekvalizér a
     // vypnutá ozvěna, což po zapnutí ikonkou v liště nikdo nečeká.
@@ -346,9 +517,59 @@ class KytaraVMixu {
     }, 100);
   }
 
+  /**
+   * Nahraje worklet brány. Jednou za život kontextu.
+   *
+   * `import.meta.url` schválně: Vite z toho udělá adresu souboru
+   * v hotovém balíčku. Cesta psaná ručně by fungovala ve vývoji a po
+   * nasazení ne.
+   */
+  private pripravBranu(ctx: AudioContext): Promise<void> {
+    if (!this.branaPripravena) {
+      const adresa = new URL('../audio/branaWorklet.js', import.meta.url);
+      this.branaPripravena = ctx.audioWorklet.addModule(adresa).catch((e) => {
+        this.branaPripravena = null;
+        throw e;
+      });
+    }
+    return this.branaPripravena.catch(() => { /* bez brány to hraje dál */ });
+  }
+
+  private pouzijBranu(): void {
+    if (!this.branaUzel) return;
+    const p = this.branaUzel.parameters;
+    p.get('prah')?.setValueAtTime(this.stav.brana.prah, this.kontext().currentTime);
+    p.get('zapnuto')?.setValueAtTime(this.stav.brana.zapnuto ? 1 : 0, this.kontext().currentTime);
+  }
+
+  public nastavBranu(z: Partial<StavKytary['brana']>): void {
+    this.oznam({ brana: { ...this.stav.brana, ...z } });
+    this.pouzijBranu();
+    this.ulozNastaveni();
+  }
+
+  private pouzijDoubler(): void {
+    if (!this.doublerMokro) return;
+    const d = this.stav.doubler;
+    this.doublerMokro.gain.setTargetAtTime(
+      d.zapnuto ? Math.max(0, Math.min(1, d.sila)) : 0,
+      this.kontext().currentTime,
+      0.03,
+    );
+  }
+
+  public nastavDoubler(z: Partial<StavKytary['doubler']>): void {
+    this.oznam({ doubler: { ...this.stav.doubler, ...z } });
+    this.pouzijDoubler();
+    this.ulozNastaveni();
+  }
+
   public nastavVstupDb(db: number): void {
-    this.oznam({ vstupDb: db });
+    // Vstup jde od nuly nahoru: zeslabovat kytaru před aparátem nemá
+    // smysl, na to je hlasitost na nástroji.
+    this.oznam({ vstupDb: Math.max(0, Math.min(20, db)) });
     this.pouzijVstup();
+    this.ulozNastaveni();
   }
 
   /**
@@ -607,3 +828,6 @@ class KytaraVMixu {
 }
 
 export const kytaraVMixu = new KytaraVMixu();
+// Nastavení se načte hned, ne až se kytara spustí — jinak by se kolečka
+// v liště ukázala na výchozích hodnotách a přepsala uložené.
+kytaraVMixu.nactiUlozene();
