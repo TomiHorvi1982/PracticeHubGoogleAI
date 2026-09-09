@@ -6,6 +6,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
 import { PlochaSekci } from './components/plocha/PlochaSekci';
 import { Tone3000Sekce } from './components/Tone3000Sekce';
+import { ExterniSluzba } from './components/ExterniSluzba';
 import { VyukaSekce } from './components/vyuka/VyukaSekce';
 import { ZakovskaObrazovka } from './components/vyuka/ZakovskaObrazovka';
 import { Zak, vyukaService } from './services/vyukaService';
@@ -446,6 +447,57 @@ function AppContent() {
     zalozky: <ZalozkySection />,
 
     tone3000: <Tone3000Sekce />,
+    opendaw: (
+      <ExterniSluzba
+        nazev="openDAW"
+        popis="Plnohodnotný DAW v prohlížeči — vícestopé nahrávání zvuku i MIDI, mixpult se sendy a export stopů. Zdarma, bez účtu, projekty zůstávají u tebe v prohlížeči."
+        duvod={
+          <>
+            <strong>Vložit openDAW dovnitř aplikace nejde.</strong> Posílá
+            hlavičku <code>Cross-Origin-Embedder-Policy: require-corp</code> —
+            jeho WASM engine potřebuje cross-origin izolaci. Dát mu ji znamená
+            zapnout izolaci pro celou naši stránku a rozbít tím všechno
+            ostatní, co načítáme odjinud: TONE3000, písma, databázi, úložiště
+            i YouTube. Zkoušel jsem to; rám zůstane viset na spinneru.
+          </>
+        }
+        odkazy={[
+          { nazev: 'Studio', adresa: 'https://opendaw.studio/', popis: 'Nahrávání, mixpult, editor not — vše v prohlížeči.' },
+          { nazev: 'O projektu', adresa: 'https://opendaw.org/', popis: 'Co openDAW umí a kam směřuje.' },
+          { nazev: 'Zdrojový kód', adresa: 'https://github.com/andremichelle/openDAW', popis: 'Licence AGPL, k tomu placená komerční varianta.' },
+        ]}
+        poznamka={
+          <>
+            Kdybys openDAW chtěl mít doopravdy uvnitř aplikace, je to možné —
+            ale znamená to buď koupit komerční licenci a zabudovat jeho kód
+            (AGPL by nás jinak nutila zveřejnit zdroják celé appky), nebo ho
+            provozovat na vlastní adrese s izolací a naši stránku k němu jen
+            odkazovat. Obojí je rozhodnutí, ne pár řádků.
+          </>
+        }
+      />
+    ),
+    bandlab: (
+      <ExterniSluzba
+        nazev="BandLab"
+        popis="Prohlížečové studio, mastering a komunita. Otevře se v novém okně a přihlásíš se tam svým účtem; projekty zůstávají u nich."
+        duvod={
+          <>
+            <strong>Vložit BandLab dovnitř aplikace nejde.</strong> Posílá
+            hlavičku <code>X-Frame-Options: SAMEORIGIN</code>, kterou zakazuje
+            zobrazení na cizím webu — prohlížeč by tu nechal prázdné místo.
+            Není to chyba, kterou bych mohl obejít, a obcházet cizí zákaz by
+            stejně nebylo v pořádku.
+          </>
+        }
+        odkazy={[
+          { nazev: 'Studio', adresa: 'https://www.bandlab.com/studio', popis: 'Nahrávání a mixáž v jejich prohlížečovém studiu.' },
+          { nazev: 'Moje projekty', adresa: 'https://www.bandlab.com/feed/projects', popis: 'Rozdělané skladby na tvém účtu.' },
+          { nazev: 'Mastering', adresa: 'https://www.bandlab.com/mastering', popis: 'Automatický mastering hotového mixu.' },
+        ]}
+        poznamka="Nahrávat přes BandLab s naším kytarovým řetězem nejde — běží v jejich okně a náš aparát v našem. Na to je Mixážní pult."
+      />
+    ),
     vyuka: <VyukaSekce />,
     aikapela: <AiKapelaSection />,
 

@@ -76,6 +76,8 @@ export const SKUPINY: Skupina[] = [
     polozky: [
       { id: 'stemmixer', nazev: 'Mixážní pult', kratky: 'Mixpult' },
       { id: 'tone3000', nazev: 'TONE3000' },
+      { id: 'opendaw', nazev: 'openDAW' },
+      { id: 'bandlab', nazev: 'BandLab' },
     ],
   },
   {

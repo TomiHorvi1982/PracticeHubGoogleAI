@@ -38,6 +38,8 @@ const IKONY: Partial<Record<MainTabType, React.FC<{ className?: string }>>> = {
   tuner: Mic,
   stemmixer: Sliders,
   tone3000: Globe,
+  opendaw: Sliders,
+  bandlab: Globe,
   vyuka: GraduationCap,
   library: FolderOpen,
   zalozky: Bookmark,

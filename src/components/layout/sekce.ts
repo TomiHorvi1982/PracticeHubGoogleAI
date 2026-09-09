@@ -12,6 +12,8 @@ export type MainTabType =
   | 'playlist'
   | 'alphatab'
   | 'tone3000'
+  | 'opendaw'
+  | 'bandlab'
   | 'vyuka'
   | 'instruments'
   | 'youtube'
@@ -47,6 +49,8 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'aparát': 'tone3000',
   'tone tři tisíce': 'tone3000',
   'katalog aparátů': 'tone3000',
+  'open daw': 'opendaw',
+  'bandlab': 'bandlab',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
   // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.
