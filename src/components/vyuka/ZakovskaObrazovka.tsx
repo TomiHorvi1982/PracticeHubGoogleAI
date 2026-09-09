@@ -8,6 +8,7 @@ import {
   Dovednost, Postup, hotovoZeStupne, nazevStupne, stavDovednosti,
 } from '../../services/osnova';
 import { osnovaService } from '../../services/osnovaService';
+import { Lekce, lekceService } from '../../services/lekceService';
 
 /**
  * Obrazovka žáka.
@@ -52,6 +53,7 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
   const [ukoly, setUkoly] = useState<Ukol[]>([]);
   const [dovednosti, setDovednosti] = useState<Dovednost[]>([]);
   const [postup, setPostup] = useState<Postup[]>([]);
+  const [lekce, setLekce] = useState<Lekce[]>([]);
 
   const nactiUkoly = async () => {
     try { setUkoly(await ukolyService.nacti()); } catch { /* bez úkolů se dá cvičit dál */ }
@@ -64,6 +66,9 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
         const [d, p] = await Promise.all([osnovaService.dovednosti(), osnovaService.postup()]);
         setDovednosti(d);
         setPostup(p);
+        // Lekce se čtou přes pohled bez učitelovy vlastní poznámky —
+        // ta je jeho pracovní text, ne zpráva domů.
+        setLekce(await lekceService.proZaka());
       } catch { /* postup je navíc; úkoly se ukážou i bez něj */ }
     })();
   }, []);
@@ -248,6 +253,20 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
                       );
                     })}
                 </div>
+              </div>
+            </section>
+          )}
+
+          {lekce.some((l) => l.pro_rodice) && (
+            <section className="space-y-3">
+              <h2 className="text-2xl font-bold">Z poslední hodiny</h2>
+              <div className="space-y-2">
+                {lekce.filter((l) => l.pro_rodice).slice(0, 3).map((l) => (
+                  <div key={l.id} className="rounded-3xl border border-white/15 bg-black/25 p-4">
+                    <p className="text-xs text-white/50 font-mono">{l.datum}</p>
+                    <p className="mt-1">{l.pro_rodice}</p>
+                  </div>
+                ))}
               </div>
             </section>
           )}

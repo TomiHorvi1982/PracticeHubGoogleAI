@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ClipboardList, GraduationCap, KeyRound, Plus, Trash2, UserPlus } from 'lucide-react';
+import { CheckCircle2, ClipboardList, GraduationCap, KeyRound, Plus, Printer, Trash2, UserPlus } from 'lucide-react';
 import { MOTIVY, NABIDKA_SEKCI, Zak, vyukaService } from '../../services/vyukaService';
 import { NAZVY_STAVU, Ukol, poTerminu, seradProZaka } from '../../services/ukoly';
 import { ukolyService } from '../../services/ukolyService';
 import { VlastniCvik } from '../../services/vlastniCviky';
 import { cvikyUloziste } from '../../services/vlastniCvikyUloziste';
 import { PostupZaka } from './PostupZaka';
+import { PracovniListy } from './PracovniListy';
 
 /**
  * Výuka — žáci.
@@ -35,6 +36,7 @@ export const VyukaSekce: React.FC = () => {
   const [zadava, setZadava] = useState<string | null>(null);
   /** U kterého žáka je rozbalený postup v osnově. */
   const [otevrenyPostup, setOtevrenyPostup] = useState<string | null>(null);
+  const [zalozka, setZalozka] = useState<'zaci' | 'listy'>('zaci');
   const [novy2, setNovy2] = useState({ druh: 'text', cil_id: '', zadani: '', do_kdy: '', cilove_tempo: '' });
 
   const nacti = async () => {
@@ -139,6 +141,24 @@ export const VyukaSekce: React.FC = () => {
         </p>
       </div>
 
+      <div className="flex items-center gap-1.5">
+        {([['zaci', 'Žáci', GraduationCap], ['listy', 'Listy k tisku', Printer]] as const).map(
+          ([id, popis, Ikona]) => (
+            <button
+              key={id}
+              onClick={() => setZalozka(id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-prvek text-drobne font-bold cursor-pointer ${
+                zalozka === id ? 'zlata-plocha' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+              }`}
+            >
+              <Ikona className="w-3.5 h-3.5" />{popis}
+            </button>
+          ),
+        )}
+      </div>
+
+      {zalozka === 'listy' ? <PracovniListy /> : (
+      <>
       {chyba && (
         <p className="text-drobne text-chyba bg-chyba/10 border border-chyba/30 rounded-panel p-2.5">{chyba}</p>
       )}
@@ -467,6 +487,8 @@ export const VyukaSekce: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+      </>
       )}
     </div>
   );

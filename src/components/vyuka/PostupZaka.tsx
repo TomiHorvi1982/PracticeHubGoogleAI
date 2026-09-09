@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Check, CircleDashed, Guitar, Pencil } from 'lucide-react';
+import { BookOpen, Check, CircleDashed, Guitar, NotebookPen, Pencil, Trash2 } from 'lucide-react';
 import {
   Dovednost, NAZVY_POSTUPU, Postup, STUPNE, StavPostupu, coDal, hotovoZeStupne,
   nazevStupne, stavDovednosti, stupenHotovy,
 } from '../../services/osnova';
 import { osnovaService } from '../../services/osnovaService';
 import { Zak, vyukaService } from '../../services/vyukaService';
+import { Lekce, lekceService } from '../../services/lekceService';
 
 /**
  * Postup žáka v osnově.
@@ -41,6 +42,16 @@ export const PostupZaka: React.FC<Props> = ({ zak, onZmena }) => {
   const [stupen, setStupen] = useState(zak.stupen);
   const [chyba, setChyba] = useState<string | null>(null);
 
+  /* Zápis z hodiny. */
+  const [lekce, setLekce] = useState<Lekce[]>([]);
+  const [zapisuje, setZapisuje] = useState(false);
+  const [zapis, setZapis] = useState({
+    datum: new Date().toISOString().slice(0, 10),
+    poznamka: '',
+    pro_rodice: '',
+    dovednosti: [] as string[],
+  });
+
   const nacti = async () => {
     try {
       const [d, p] = await Promise.all([
@@ -50,6 +61,7 @@ export const PostupZaka: React.FC<Props> = ({ zak, onZmena }) => {
       setDovednosti(d);
       setPostup(p);
       setChyba(null);
+      try { setLekce(await lekceService.proUcitele(zak.id)); } catch { /* lekce jsou navíc */ }
     } catch (e: any) {
       setChyba(e?.message || 'Osnovu se nepodařilo načíst.');
     }
@@ -138,6 +150,125 @@ export const PostupZaka: React.FC<Props> = ({ zak, onZmena }) => {
           )}
         </div>
       )}
+
+      {/* Lekce. Poslední nahoře — před hodinou tě zajímá, kde jste
+          skončili, ne kde jste začínali. */}
+      <div className="space-y-1.5">
+        <div className="flex items-center gap-2">
+          <span className="stitek-pole">Lekce</span>
+          <button
+            onClick={() => setZapisuje((z) => !z)}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
+          >
+            <NotebookPen className="w-3.5 h-3.5" />Zapsat hodinu
+          </button>
+        </div>
+
+        {zapisuje && (
+          <div className="bg-vhloubeni border border-kresba rounded-panel p-3 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="date"
+                value={zapis.datum}
+                onChange={(e) => setZapis((z) => ({ ...z, datum: e.target.value }))}
+                className="bg-plocha-2 border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
+              />
+              <span className="text-stitek text-pismo-slaby">
+                Klikni na dovednosti, kterých se hodina týkala.
+              </span>
+            </div>
+
+            <div className="flex flex-wrap gap-1">
+              {veStupni.map((d) => {
+                const vybrana = zapis.dovednosti.includes(d.id);
+                return (
+                  <button
+                    key={d.id}
+                    onClick={() => setZapis((z) => ({
+                      ...z,
+                      dovednosti: vybrana
+                        ? z.dovednosti.filter((x) => x !== d.id)
+                        : [...z.dovednosti, d.id],
+                    }))}
+                    className={`px-2 py-1 rounded-prvek text-stitek font-bold cursor-pointer ${
+                      vybrana ? 'bg-znacka-tlum text-znacka ring-1 ring-znacka-okraj' : 'bg-plocha-3 text-pismo-slaby'
+                    }`}
+                  >
+                    {d.nazev}
+                  </button>
+                );
+              })}
+            </div>
+
+            <label className="block space-y-1">
+              <span className="stitek-pole">Poznámka pro mě</span>
+              <textarea
+                rows={2}
+                value={zapis.poznamka}
+                onChange={(e) => setZapis((z) => ({ ...z, poznamka: e.target.value }))}
+                placeholder="Pořád nedrží zápěstí. Příště začít rozcvičkou."
+                className="w-full bg-plocha-2 border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
+              />
+            </label>
+
+            <label className="block space-y-1">
+              <span className="stitek-pole">Pro rodiče</span>
+              <textarea
+                rows={2}
+                value={zapis.pro_rodice}
+                onChange={(e) => setZapis((z) => ({ ...z, pro_rodice: e.target.value }))}
+                placeholder="Dneska jsme zvládli první písničku na dva akordy. Doma pět minut denně."
+                className="w-full bg-plocha-2 border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
+              />
+              <span className="text-stitek text-pismo-slaby block">
+                Tohle uvidí dítě i rodič. Poznámka nad tím ne.
+              </span>
+            </label>
+
+            <button
+              onClick={async () => {
+                try {
+                  await lekceService.zapis({ zak_id: zak.id, ...zapis });
+                  setZapis({ datum: new Date().toISOString().slice(0, 10), poznamka: '', pro_rodice: '', dovednosti: [] });
+                  setZapisuje(false);
+                  await nacti();
+                } catch (e: any) { setChyba(e?.message || 'Lekci se nepodařilo uložit.'); }
+              }}
+              className="px-3 py-1.5 rounded-prvek text-drobne zlata-plocha cursor-pointer"
+            >
+              Uložit hodinu
+            </button>
+          </div>
+        )}
+
+        {lekce.length === 0 ? (
+          <p className="text-stitek text-pismo-slaby">Zatím žádná zapsaná hodina.</p>
+        ) : (
+          <div className="space-y-1">
+            {lekce.slice(0, 5).map((l) => (
+              <div key={l.id} className="px-2.5 py-1.5 rounded-prvek bg-plocha-3 text-drobne">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-pismo-tlum">{l.datum}</span>
+                  <span className="text-stitek text-pismo-slaby">
+                    {l.dovednosti.length ? `${l.dovednosti.length} dovedností` : 'bez dovedností'}
+                  </span>
+                  <button
+                    onClick={async () => { await lekceService.smaz(l.id); await nacti(); }}
+                    aria-label="Smazat zápis"
+                    className="ml-auto p-1 rounded text-pismo-slaby hover:text-chyba cursor-pointer"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+                {l.poznamka && <p className="text-pismo mt-0.5">{l.poznamka}</p>}
+                {l.pro_rodice && (
+                  <p className="text-stitek text-info mt-0.5">rodičům: {l.pro_rodice}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-1">
         {veStupni.map((d) => {

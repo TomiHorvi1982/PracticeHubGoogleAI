@@ -450,3 +450,123 @@
     box-shadow: var(--shadow-karta), var(--shadow-zlaty);
   }
 }
+
+/*
+ * PRACOVNÍ LISTY K TISKU
+ *
+ * List je vždycky bílý papír s černým inkoustem, i uprostřed tmavé
+ * aplikace — náhled má vypadat jako výsledek, a hlavně: vytisknout tmavé
+ * pozadí znamená prázdnou kazetu po třech listech.
+ *
+ * Tiskne se z prohlížeče, bez knihovny na PDF. Ta by přidala megabajty
+ * kvůli tomu, co prohlížeč umí sám, a učitel by přišel o náhled, kde si
+ * vybere papír i měřítko.
+ */
+.list-papir {
+  background: #fff;
+  color: #000;
+  border-radius: var(--radius-panel);
+  padding: 18mm 14mm;
+  font-family: var(--font-znacka), sans-serif;
+  line-height: 1.5;
+}
+
+.list-hlavicka {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  border-bottom: 1.5px solid #000;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+.list-hlavicka strong { font-size: 17px; }
+.list-jmeno { margin-left: auto; }
+
+.list-zadani { font-size: 13px; margin: 10px 0; }
+.list-slova {
+  font-size: 12px;
+  margin-top: 12px;
+  letter-spacing: 0.04em;
+}
+
+/* Osmisměrka: čtvercová políčka, aby se v mřížce dalo hledat po diagonále. */
+.list-mrizka { border-collapse: collapse; margin: 0 auto; }
+.list-mrizka td {
+  width: 22px;
+  height: 22px;
+  text-align: center;
+  font-size: 13px;
+  font-family: var(--font-mono, ui-monospace), monospace;
+  border: 0.5px solid #bbb;
+}
+
+.list-spojovacka {
+  display: flex;
+  justify-content: space-between;
+  gap: 40mm;
+  margin-top: 12px;
+}
+.list-spojovacka ul { list-style: none; padding: 0; margin: 0; }
+.list-spojovacka li {
+  font-size: 15px;
+  padding: 9px 0;
+  border-bottom: 0.5px dotted #999;
+}
+.list-spojovacka ul:last-child { text-align: right; }
+
+/* Hmatník: pražce dost velké, aby se do nich dalo kreslit tužkou. */
+.list-hmatnik { border-collapse: collapse; width: 100%; margin-top: 10px; }
+.list-hmatnik th {
+  width: 16px;
+  font-size: 12px;
+  text-align: right;
+  padding-right: 6px;
+  font-weight: 400;
+}
+.list-hmatnik td {
+  border: 1px solid #000;
+  height: 26px;
+}
+.list-hmatnik .list-prazce td {
+  border: none;
+  text-align: center;
+  font-size: 10px;
+  height: 16px;
+}
+
+.list-zapis { margin: 14px 0 20px; }
+.list-osnova, .list-tab { display: flex; flex-direction: column; }
+.list-osnova span { height: 7px; border-bottom: 0.75px solid #000; }
+.list-osnova span:first-child { border-top: 0.75px solid #000; }
+.list-tab { margin-top: 10px; }
+.list-tab span { height: 9px; border-bottom: 0.75px solid #444; }
+.list-tab span:first-child { border-top: 0.75px solid #444; }
+
+.list-kruh { width: 100%; max-width: 300px; display: block; margin: 10px auto; }
+
+.list-bingo { border-collapse: collapse; margin: 12px auto; }
+.list-bingo td {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #000;
+  text-align: center;
+  font-size: 15px;
+}
+
+@media print {
+  /* Na papír patří list a nic jiného — ani lišta, ani navigace. */
+  body > * { visibility: hidden; }
+  .list-papir, .list-papir * { visibility: visible; }
+  .list-papir {
+    position: absolute;
+    inset: 0;
+    border-radius: 0;
+    padding: 0;
+    width: 100%;
+  }
+  .netisknout { display: none !important; }
+  body::before, body::after { display: none !important; }
+  @page { margin: 14mm; }
+}
