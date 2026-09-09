@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Check, LogOut, Music4, Undo2 } from 'lucide-react';
+import { BookOpen, Check, LogOut, Music4, Undo2 } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
 import { Zak } from '../../services/vyukaService';
 import { Ukol, poTerminu, seradProZaka } from '../../services/ukoly';
 import { ukolyService } from '../../services/ukolyService';
+import {
+  Dovednost, Postup, hotovoZeStupne, nazevStupne, stavDovednosti,
+} from '../../services/osnova';
+import { osnovaService } from '../../services/osnovaService';
 
 /**
  * Obrazovka žáka.
@@ -46,11 +50,23 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
   const sekce = povoleneSekce.find((s) => s.id === otevrena);
 
   const [ukoly, setUkoly] = useState<Ukol[]>([]);
+  const [dovednosti, setDovednosti] = useState<Dovednost[]>([]);
+  const [postup, setPostup] = useState<Postup[]>([]);
 
   const nactiUkoly = async () => {
     try { setUkoly(await ukolyService.nacti()); } catch { /* bez úkolů se dá cvičit dál */ }
   };
   useEffect(() => { void nactiUkoly(); }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [d, p] = await Promise.all([osnovaService.dovednosti(), osnovaService.postup()]);
+        setDovednosti(d);
+        setPostup(p);
+      } catch { /* postup je navíc; úkoly se ukážou i bez něj */ }
+    })();
+  }, []);
 
   const cekajici = ukoly.filter((u) => u.stav !== 'hotovo').length;
 
@@ -173,6 +189,68 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
               </div>
             )}
           </section>
+
+          {/*
+            Postup. Dítě ho vidí, ale neodškrtává — „hotovo" je rozhodnutí
+            učitele. Zobrazuje se jen jeho stupeň: šest stupňů najednou je
+            u devítiletého spíš odrazující než motivující.
+          */}
+          {dovednosti.some((d) => d.stupen === zak.stupen) && (
+            <section className="space-y-3">
+              <h2 className="text-2xl font-bold">
+                Co už umím
+                <span className="ml-2 text-base font-normal opacity-70">
+                  {hotovoZeStupne(dovednosti, postup, zak.stupen)} %
+                </span>
+              </h2>
+              <p className="text-sm text-white/60 -mt-2">
+                {zak.stupen}. stupeň — {nazevStupne(zak.stupen)}
+              </p>
+
+              <div className="rounded-3xl border border-white/15 bg-black/25 overflow-hidden">
+                {/* Pruh postupu. Číslo v procentech je pro dospělé;
+                    dítě si přečte, jak daleko je pruh. */}
+                <div className="h-2 bg-white/10">
+                  <div
+                    className="h-full transition-all"
+                    style={{
+                      width: `${hotovoZeStupne(dovednosti, postup, zak.stupen)}%`,
+                      background: motiv.prizvuk,
+                    }}
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  {dovednosti
+                    .filter((d) => d.stupen === zak.stupen)
+                    .sort((a, b) => a.poradi - b.poradi)
+                    .map((d) => {
+                      const stav = stavDovednosti(postup, d.id);
+                      return (
+                        <div key={d.id} className="flex items-start gap-3">
+                          <span
+                            className={`shrink-0 w-6 h-6 rounded-xl flex items-center justify-center text-xs font-bold ${
+                              stav === 'hotovo' ? 'text-black' : 'bg-white/10 text-white/50'
+                            }`}
+                            style={stav === 'hotovo' ? { background: motiv.prizvuk } : undefined}
+                          >
+                            {stav === 'hotovo' ? '✓' : stav === 'cvici' ? '…' : ''}
+                          </span>
+                          <div className="min-w-0">
+                            <p className={`font-bold text-sm flex items-center gap-1.5 ${
+                              stav === 'hotovo' ? 'opacity-60' : ''
+                            }`}>
+                              {d.druh === 'teorie' && <BookOpen className="w-3.5 h-3.5 shrink-0" />}
+                              {d.nazev}
+                            </p>
+                            <p className="text-xs text-white/55">{d.kriterium}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </section>
+          )}
 
           {povoleneSekce.length > 0 && (
             <section className="space-y-3">

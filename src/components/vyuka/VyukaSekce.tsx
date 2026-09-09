@@ -5,6 +5,7 @@ import { NAZVY_STAVU, Ukol, poTerminu, seradProZaka } from '../../services/ukoly
 import { ukolyService } from '../../services/ukolyService';
 import { VlastniCvik } from '../../services/vlastniCviky';
 import { cvikyUloziste } from '../../services/vlastniCvikyUloziste';
+import { PostupZaka } from './PostupZaka';
 
 /**
  * Výuka — žáci.
@@ -32,6 +33,8 @@ export const VyukaSekce: React.FC = () => {
   const [ukoly, setUkoly] = useState<Record<string, Ukol[]>>({});
   const [cviky, setCviky] = useState<VlastniCvik[]>([]);
   const [zadava, setZadava] = useState<string | null>(null);
+  /** U kterého žáka je rozbalený postup v osnově. */
+  const [otevrenyPostup, setOtevrenyPostup] = useState<string | null>(null);
   const [novy2, setNovy2] = useState({ druh: 'text', cil_id: '', zadani: '', do_kdy: '', cilove_tempo: '' });
 
   const nacti = async () => {
@@ -248,9 +251,17 @@ export const VyukaSekce: React.FC = () => {
                 </span>
 
                 <button
+                  onClick={() => setOtevrenyPostup(otevrenyPostup === zak.id ? null : zak.id)}
+                  className={`ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold cursor-pointer ${
+                    otevrenyPostup === zak.id ? 'zlata-plocha' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+                  }`}
+                >
+                  <GraduationCap className="w-3.5 h-3.5" />Postup
+                </button>
+                <button
                   onClick={() => setMeniPin({ id: zak.id, pin: '' })}
                   title="Nastavit nový PIN"
-                  className="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
                 >
                   <KeyRound className="w-3.5 h-3.5" />Nový PIN
                 </button>
@@ -290,6 +301,12 @@ export const VyukaSekce: React.FC = () => {
                   >
                     Zpět
                   </button>
+                </div>
+              )}
+
+              {otevrenyPostup === zak.id && (
+                <div className="pt-2 border-t border-kresba-jemna">
+                  <PostupZaka zak={zak} onZmena={() => void nacti()} />
                 </div>
               )}
 
