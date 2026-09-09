@@ -1,7 +1,9 @@
-import React from 'react';
-import { LogOut, Music4 } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Check, LogOut, Music4, Undo2 } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
 import { Zak } from '../../services/vyukaService';
+import { Ukol, poTerminu, seradProZaka } from '../../services/ukoly';
+import { ukolyService } from '../../services/ukolyService';
 
 /**
  * Obrazovka žáka.
@@ -42,6 +44,15 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
 }) => {
   const motiv = MOTIVY[zak.motiv] || MOTIVY.vesmir;
   const sekce = povoleneSekce.find((s) => s.id === otevrena);
+
+  const [ukoly, setUkoly] = useState<Ukol[]>([]);
+
+  const nactiUkoly = async () => {
+    try { setUkoly(await ukolyService.nacti()); } catch { /* bez úkolů se dá cvičit dál */ }
+  };
+  useEffect(() => { void nactiUkoly(); }, []);
+
+  const cekajici = ukoly.filter((u) => u.stav !== 'hotovo').length;
 
   return (
     <div className="min-h-screen text-white" style={{ background: motiv.pozadi }}>
@@ -88,16 +99,79 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
       ) : (
         <main className="p-5 sm:p-8 max-w-4xl mx-auto space-y-8">
           <section className="space-y-3">
-            <h2 className="text-2xl font-bold">Co mám dnes cvičit</h2>
-            {/* Úkoly přijdou v další fázi. Do té doby se nepředstírá,
-                že tu něco je — prázdné místo s vysvětlením je poctivější
-                než falešný seznam. */}
-            <div className="rounded-3xl border border-white/15 bg-black/25 p-6 text-center space-y-2">
-              <Music4 className="w-8 h-8 mx-auto opacity-50" />
-              <p className="text-white/70">
-                Zatím tu nic není. Až ti učitel zadá úkol, objeví se přesně tady.
-              </p>
-            </div>
+            <h2 className="text-2xl font-bold">
+              Co mám dnes cvičit
+              {cekajici > 0 && (
+                <span className="ml-2 text-base font-normal opacity-70">
+                  ({cekajici})
+                </span>
+              )}
+            </h2>
+
+            {!ukoly.length ? (
+              <div className="rounded-3xl border border-white/15 bg-black/25 p-6 text-center space-y-2">
+                <Music4 className="w-8 h-8 mx-auto opacity-50" />
+                <p className="text-white/70">
+                  Zatím tu nic není. Až ti učitel zadá úkol, objeví se přesně tady.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {seradProZaka(ukoly).map((u) => {
+                  const hotovo = u.stav === 'hotovo';
+                  const pozde = poTerminu(u);
+                  return (
+                    <div
+                      key={u.id}
+                      className={`rounded-3xl border p-4 flex flex-wrap items-center gap-3 ${
+                        hotovo
+                          ? 'border-white/10 bg-black/15 opacity-60'
+                          : pozde
+                            ? 'border-red-400/40 bg-red-500/10'
+                            : 'border-white/15 bg-black/25'
+                      }`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-bold ${hotovo ? 'line-through' : ''}`}>
+                          {u.zadani || 'Zahraj si cvik'}
+                        </p>
+                        <p className="text-xs text-white/60">
+                          {u.cilove_tempo ? `tempo ${u.cilove_tempo} BPM` : 'bez cílového tempa'}
+                          {u.do_kdy ? ` · do ${u.do_kdy}` : ''}
+                          {pozde ? ' · už mělo být hotové' : ''}
+                        </p>
+                        {u.zpetna_vazba && (
+                          <p className="text-xs mt-1" style={{ color: motiv.prizvuk }}>
+                            Učitel: {u.zpetna_vazba}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Odevzdat smí dítě samo; ohodnotit ne — o tom
+                          rozhoduje databáze, ne tenhle knoflík. */}
+                      {!hotovo && (
+                        u.stav === 'odevzdano' ? (
+                          <button
+                            onClick={async () => { await ukolyService.vratZpet(u.id); await nactiUkoly(); }}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-sm font-bold cursor-pointer"
+                          >
+                            <Undo2 className="w-4 h-4" />Odevzdáno
+                          </button>
+                        ) : (
+                          <button
+                            onClick={async () => { await ukolyService.odevzdej(u.id); await nactiUkoly(); }}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl text-sm font-bold text-black cursor-pointer"
+                            style={{ background: motiv.prizvuk }}
+                          >
+                            <Check className="w-4 h-4" />Mám hotovo
+                          </button>
+                        )
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </section>
 
           {povoleneSekce.length > 0 && (

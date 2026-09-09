@@ -9,9 +9,9 @@ import { audioSynth } from '../../services/audioSynth';
 import { metronomService } from '../../services/metronomService';
 import { VYCHOZI_KYTARA, kytaroveZvuky } from '../../services/kytaroveZvuky';
 import {
-  VlastniCvik, navrhniNazev, pridejTon, prectiCviky, smazCvik, uberPosledni,
-  ulozCviky, ulozCvik,
+  VlastniCvik, navrhniNazev, pridejTon, uberPosledni,
 } from '../../services/vlastniCviky';
+import { cvikyUloziste } from '../../services/vlastniCvikyUloziste';
 
 /**
  * Stupnice a technická cvičení.
@@ -65,9 +65,27 @@ export const StupniceRoom: React.FC = () => {
   const [technika, setTechnika] = useState<Tonu['technika'] | ''>('');
   const [cviky, setCviky] = useState<VlastniCvik[]>([]);
   const [jmeno, setJmeno] = useState('');
+  const [chybaCviku, setChybaCviku] = useState<string | null>(null);
 
-  useEffect(() => { setCviky(prectiCviky()); }, []);
-  useEffect(() => { if (cviky.length) ulozCviky(cviky); }, [cviky]);
+  /*
+   * Cviky se berou z databáze, ne z prohlížeče.
+   *
+   * Při prvním načtení se přenese, co v prohlížeči zbylo z dřívějška —
+   * jednou, pak se klíč přepíše, aby se cviky nezdvojily.
+   */
+  useEffect(() => {
+    let platne = true;
+    (async () => {
+      try {
+        await cvikyUloziste.prenesZProhlizece();
+        const seznam = await cvikyUloziste.nacti();
+        if (platne) setCviky(seznam);
+      } catch {
+        /* Bez cviků se dá cvičit dál; jen se neukážou uložené. */
+      }
+    })();
+    return () => { platne = false; };
+  }, []);
 
   const stupnice = STUPNICE.find((s) => s.id === stupniceId) || STUPNICE[0];
   const techniky = useMemo(() => cvikyTechnik(polohaTechnik), [polohaTechnik]);
@@ -136,10 +154,23 @@ export const StupniceRoom: React.FC = () => {
     );
   };
 
-  const uloz = () => {
+  const uloz = async () => {
     if (!vlastni.length) return;
-    setCviky((p) => ulozCvik(p, jmeno, vlastni, bpm, zvuk));
-    setJmeno('');
+    try {
+      setCviky(await cvikyUloziste.uloz(jmeno, vlastni, bpm, zvuk));
+      setJmeno('');
+    } catch (e: any) {
+      setChybaCviku(e?.message || 'Cvik se nepodařilo uložit.');
+    }
+  };
+
+  const smaz = async (id: string) => {
+    try {
+      await cvikyUloziste.smaz(id);
+      setCviky(await cvikyUloziste.nacti());
+    } catch (e: any) {
+      setChybaCviku(e?.message || 'Cvik se nepodařilo smazat.');
+    }
   };
 
   const nactiCvik = (c: VlastniCvik) => {
@@ -226,13 +257,17 @@ export const StupniceRoom: React.FC = () => {
                 className="ml-auto bg-vhloubeni border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj w-44"
               />
               <button
-                onClick={uloz}
+                onClick={() => void uloz()}
                 disabled={!vlastni.length}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-prvek text-drobne zlata-plocha cursor-pointer disabled:opacity-40"
               >
                 <Save className="w-3.5 h-3.5" />Uložit cvik
               </button>
             </div>
+
+            {chybaCviku && (
+              <p className="text-drobne text-chyba">{chybaCviku}</p>
+            )}
 
             {cviky.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-kresba-jemna">
@@ -247,14 +282,7 @@ export const StupniceRoom: React.FC = () => {
                       {c.nazev}
                     </button>
                     <button
-                      onClick={() => setCviky((p) => {
-                        const zbyle = smazCvik(p, c.id);
-                        // Poslední smazaný cvik se musí propsat i do
-                        // úložiště; effect se spouští jen na neprázdný
-                        // seznam, jinak by prázdno přepsalo cizí data.
-                        if (!zbyle.length) ulozCviky([]);
-                        return zbyle;
-                      })}
+                      onClick={() => void smaz(c.id)}
                       aria-label={`Smazat cvik ${c.nazev}`}
                       className="px-1.5 py-1.5 text-pismo-slaby hover:text-chyba cursor-pointer"
                     >

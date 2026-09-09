@@ -61,7 +61,7 @@ export const SKUPINY: Skupina[] = [
     id: 'cviceni',
     nazev: 'Cvičení',
     polozky: [
-      { id: 'practise', nazev: 'Practise Hub', kratky: 'Cvičení' },
+      { id: 'practise', nazev: 'Cvičení', kratky: 'Cvičení' },
       { id: 'instruments', nazev: 'Virtual Instruments', kratky: 'Nástroje' },
       { id: 'practice', nazev: 'Metronom' },
       // Ladička je zpátky mezi viditelnými: dolní panel se ukázal jako

@@ -8,9 +8,14 @@ import { Tonu } from './cvikyTechnik';
  * místo se skokem přes tři pražce — v žádném seznamu není. Tohle je
  * místo, kam si to naťukáš na hmatníku a uložíš.
  *
- * Ukládá se v prohlížeči. Do databáze to patří ve chvíli, kdy si budeš
- * chtít cvik otevřít i na jiném počítači nebo ho poslat kapele; tvar dat
- * je na to připravený.
+ * Ukládá se v databázi. Dřív to bylo v prohlížeči, což stačilo, dokud si
+ * cviky dělal člověk sám pro sebe — jenže domácí úkol je cvik, který
+ * napsal učitel a otevře ho žák na jiném počítači. Tím se to z prohlížeče
+ * muselo přestěhovat.
+ *
+ * Tenhle modul je schválně bez databáze — skládání a úpravy cviků jsou
+ * čisté funkce, které jdou ověřit testem. Ukládání sedí vedle
+ * v `vlastniCvikyUloziste.ts`.
  */
 
 export interface VlastniCvik {
@@ -24,7 +29,7 @@ export interface VlastniCvik {
   ulozeno: number;
 }
 
-const KLIC = 'neverlate_vlastni_cviky';
+export const KLIC = 'neverlate_vlastni_cviky';
 
 /**
  * Pořadové číslo pro identitu cviku.
@@ -36,7 +41,7 @@ const KLIC = 'neverlate_vlastni_cviky';
 let pocitadlo = 0;
 
 /** Je to tón, který se dá zahrát? Uložená data mohou být z jiné verze. */
-function jeTon(x: any): x is Tonu {
+export function jeTon(x: any): x is Tonu {
   return !!x
     && Number.isInteger(x.struna) && x.struna >= 0 && x.struna < 6
     && Number.isInteger(x.prazec) && x.prazec >= 0 && x.prazec <= 30;
