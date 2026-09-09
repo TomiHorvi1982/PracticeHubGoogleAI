@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CheckCircle2, ClipboardList, GraduationCap, KeyRound, Plus, Printer, Trash2, UserPlus } from 'lucide-react';
+import { CheckCircle2, ClipboardList, Gift, GraduationCap, KeyRound, Plus, Printer, Sparkles, Trash2, UserPlus } from 'lucide-react';
 import { MOTIVY, NABIDKA_SEKCI, Zak, vyukaService } from '../../services/vyukaService';
 import { NAZVY_STAVU, Ukol, poTerminu, seradProZaka } from '../../services/ukoly';
 import { ukolyService } from '../../services/ukolyService';
@@ -7,6 +7,8 @@ import { VlastniCvik } from '../../services/vlastniCviky';
 import { cvikyUloziste } from '../../services/vlastniCvikyUloziste';
 import { PostupZaka } from './PostupZaka';
 import { PracovniListy } from './PracovniListy';
+import { Odmena, ZaznamBodu, seradOdmeny, zustatek } from '../../services/body';
+import { bodyService } from '../../services/bodyService';
 
 /**
  * Výuka — žáci.
@@ -36,7 +38,12 @@ export const VyukaSekce: React.FC = () => {
   const [zadava, setZadava] = useState<string | null>(null);
   /** U kterého žáka je rozbalený postup v osnově. */
   const [otevrenyPostup, setOtevrenyPostup] = useState<string | null>(null);
-  const [zalozka, setZalozka] = useState<'zaci' | 'listy'>('zaci');
+  const [zalozka, setZalozka] = useState<'zaci' | 'listy' | 'odmeny'>('zaci');
+
+  /* Body a ceník odměn. */
+  const [odmeny, setOdmeny] = useState<Odmena[]>([]);
+  const [body, setBody] = useState<Record<string, ZaznamBodu[]>>({});
+  const [novaOdmena, setNovaOdmena] = useState({ nazev: '', cena: '' });
   const [novy2, setNovy2] = useState({ druh: 'text', cil_id: '', zadani: '', do_kdy: '', cilove_tempo: '' });
 
   const nacti = async () => {
@@ -68,6 +75,17 @@ export const VyukaSekce: React.FC = () => {
   }, []);
 
   useEffect(() => { if (zaci.length) void nactiUkoly(zaci); }, [zaci.length]);
+
+  const nactiBody = async (seznam: Zak[]) => {
+    try {
+      const [vse, cenik] = await Promise.all([bodyService.zaznamy(), bodyService.odmeny()]);
+      const podleZaka: Record<string, ZaznamBodu[]> = {};
+      for (const z of seznam) podleZaka[z.id] = vse.filter((b) => b.zak_id === z.id);
+      setBody(podleZaka);
+      setOdmeny(cenik);
+    } catch { /* body jsou navíc */ }
+  };
+  useEffect(() => { if (zaci.length) void nactiBody(zaci); }, [zaci.length]);
 
   const zaloz = async () => {
     setChyba(null);
@@ -142,7 +160,11 @@ export const VyukaSekce: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-1.5">
-        {([['zaci', 'Žáci', GraduationCap], ['listy', 'Listy k tisku', Printer]] as const).map(
+        {([
+          ['zaci', 'Žáci', GraduationCap],
+          ['listy', 'Listy k tisku', Printer],
+          ['odmeny', 'Odměny', Gift],
+        ] as const).map(
           ([id, popis, Ikona]) => (
             <button
               key={id}
@@ -157,7 +179,116 @@ export const VyukaSekce: React.FC = () => {
         )}
       </div>
 
-      {zalozka === 'listy' ? <PracovniListy /> : (
+      {zalozka === 'odmeny' ? (
+        <div className="space-y-3">
+          <div>
+            <h3 className="nadpis-panelu">Ceník odměn</h3>
+            <p className="text-drobne text-pismo-tlum max-w-[70ch]">
+              Body počítá aplikace, ceník píšeš ty a výměna proběhne na hodině.
+              Aplikace nikomu nic neslibuje ani neposílá — jen ukáže stav.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-end gap-2">
+            <label className="space-y-1">
+              <span className="stitek-pole block">Odměna</span>
+              <input
+                value={novaOdmena.nazev}
+                onChange={(e) => setNovaOdmena((o) => ({ ...o, nazev: e.target.value }))}
+                placeholder="Lízátko"
+                className="bg-vhloubeni border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
+              />
+            </label>
+            <label className="space-y-1">
+              <span className="stitek-pole block">Cena v bodech</span>
+              <input
+                type="number"
+                value={novaOdmena.cena}
+                onChange={(e) => setNovaOdmena((o) => ({ ...o, cena: e.target.value }))}
+                placeholder="50"
+                className="w-28 bg-vhloubeni border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
+              />
+            </label>
+            <button
+              onClick={async () => {
+                const cena = Number(novaOdmena.cena);
+                if (!novaOdmena.nazev.trim() || !(cena > 0)) {
+                  setChyba('Odměna potřebuje jméno a cenu větší než nula.');
+                  return;
+                }
+                try {
+                  await bodyService.pridejOdmenu(novaOdmena.nazev.trim(), cena);
+                  setNovaOdmena({ nazev: '', cena: '' });
+                  await nactiBody(zaci);
+                } catch (e: any) { setChyba(e?.message || 'Odměnu se nepodařilo přidat.'); }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-prvek text-drobne zlata-plocha cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />Přidat
+            </button>
+          </div>
+
+          {chyba && <p className="text-drobne text-chyba">{chyba}</p>}
+
+          {odmeny.length === 0 ? (
+            <p className="text-drobne text-pismo-slaby">
+              Zatím prázdný ceník. Přidej první odměnu — třeba lízátko za padesát.
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {seradOdmeny(odmeny, Number.MAX_SAFE_INTEGER).map((o) => (
+                <div key={o.id} className="flex items-center gap-2 px-3 py-2 rounded-prvek bg-plocha-2">
+                  <Gift className="w-4 h-4 text-znacka shrink-0" />
+                  <span className="text-drobne text-pismo">{o.nazev}</span>
+                  <span className="text-drobne font-mono text-pismo-tlum tabular-nums">{o.cena} b.</span>
+                  <button
+                    onClick={async () => { await bodyService.smazOdmenu(o.id); await nactiBody(zaci); }}
+                    aria-label={`Smazat odměnu ${o.nazev}`}
+                    className="ml-auto p-1 rounded text-pismo-slaby hover:text-chyba cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Kdo kolik má — a tlačítko na výměnu, protože ta se děje tady
+              u tebe, ne v telefonu doma. */}
+          {zaci.length > 0 && (
+            <div className="space-y-1 pt-2 border-t border-kresba-jemna">
+              <span className="stitek-pole">Body žáků</span>
+              {zaci.map((z) => {
+                const zustatekZaka = zustatek(body[z.id] || []);
+                return (
+                  <div key={z.id} className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-prvek bg-plocha-2">
+                    <Sparkles className="w-4 h-4 text-znacka shrink-0" />
+                    <span className="text-drobne font-bold text-pismo">{z.prezdivka}</span>
+                    <span className="text-drobne font-mono text-znacka tabular-nums">{zustatekZaka} b.</span>
+                    <div className="flex flex-wrap gap-1 ml-auto">
+                      {seradOdmeny(odmeny, zustatekZaka)
+                        .filter((o) => o.cena <= zustatekZaka)
+                        .map((o) => (
+                          <button
+                            key={o.id}
+                            onClick={async () => {
+                              if (!window.confirm(`Vyměnit ${o.nazev} za ${o.cena} bodů?`)) return;
+                              await bodyService.vymen(z.id, o);
+                              await nactiBody(zaci);
+                            }}
+                            className="px-2 py-1 rounded-prvek text-stitek font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
+                          >
+                            vyměnit {o.nazev}
+                          </button>
+                        ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : zalozka === 'listy' ? <PracovniListy /> : (
       <>
       {chyba && (
         <p className="text-drobne text-chyba bg-chyba/10 border border-chyba/30 rounded-panel p-2.5">{chyba}</p>

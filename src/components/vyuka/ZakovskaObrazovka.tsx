@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Check, LogOut, Music4, Undo2 } from 'lucide-react';
+import { BookOpen, Check, Gift, LogOut, Music4, Sparkles, Undo2 } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
 import { Zak } from '../../services/vyukaService';
 import { Ukol, poTerminu, seradProZaka } from '../../services/ukoly';
@@ -9,6 +9,12 @@ import {
 } from '../../services/osnova';
 import { osnovaService } from '../../services/osnovaService';
 import { Lekce, lekceService } from '../../services/lekceService';
+import {
+  Odmena, SAZBY, ZaznamBodu, bodyZaUkol, seradOdmeny, serieDnu, serieDosazena,
+  zdrojSerie, zdrojUkolu, zustatek,
+} from '../../services/body';
+import { bodyService } from '../../services/bodyService';
+import { Kviz } from './Kviz';
 
 /**
  * Obrazovka žáka.
@@ -54,6 +60,10 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
   const [dovednosti, setDovednosti] = useState<Dovednost[]>([]);
   const [postup, setPostup] = useState<Postup[]>([]);
   const [lekce, setLekce] = useState<Lekce[]>([]);
+  const [bodyZaznamy, setBodyZaznamy] = useState<ZaznamBodu[]>([]);
+  const [odmeny, setOdmeny] = useState<Odmena[]>([]);
+  const [dnyAktivity, setDnyAktivity] = useState<string[]>([]);
+  const [kvizOtevren, setKvizOtevren] = useState(false);
 
   const nactiUkoly = async () => {
     try { setUkoly(await ukolyService.nacti()); } catch { /* bez úkolů se dá cvičit dál */ }
@@ -73,7 +83,60 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
     })();
   }, []);
 
+  const nactiBody = async () => {
+    try {
+      const [b, o, dny] = await Promise.all([
+        bodyService.zaznamy(zak.id),
+        bodyService.odmeny(),
+        bodyService.dnyAktivity(zak.id),
+      ]);
+      setBodyZaznamy(b);
+      setOdmeny(o);
+      setDnyAktivity(dny);
+    } catch { /* body jsou navíc; úkoly se ukážou i bez nich */ }
+  };
+  useEffect(() => { void nactiBody(); }, [zak.id]);
+
+  /*
+   * Body za sérii.
+   *
+   * Připisují se samy, jakmile série dosáhne pěti dnů — dítě o ně nemá
+   * žádat. Klíč zdroje nese poslední den série, takže se za tutéž sérii
+   * nedají body dvakrát, ale za novou po přerušení ano.
+   */
+  useEffect(() => {
+    if (!dnyAktivity.length || !serieDosazena(dnyAktivity)) return;
+    const posledni = new Date().toISOString().slice(0, 10);
+    void bodyService
+      .pripis(zak.id, SAZBY.serieDnu, `cvičil ${serieDnu(dnyAktivity)} dní v řadě`, zdrojSerie(posledni))
+      .then((noveBody) => { if (noveBody) void nactiBody(); })
+      .catch(() => { /* body jsou navíc */ });
+  }, [dnyAktivity.length]);
+
+  /**
+   * Odevzdání úkolu.
+   *
+   * Body se připisují tady, ne až při uznání učitelem: dítě má vidět
+   * odměnu za to, že úkol udělalo, ne za to, že ho někdo odškrtl.
+   */
+  const odevzdej = async (u: Ukol) => {
+    await ukolyService.odevzdej(u.id);
+    const vcas = !poTerminu(u);
+    try {
+      await bodyService.pripis(
+        zak.id,
+        bodyZaUkol(vcas, Boolean(u.cilove_tempo)),
+        vcas ? 'odevzdaný úkol včas' : 'odevzdaný úkol',
+        zdrojUkolu(u.id),
+      );
+    } catch { /* body jsou navíc; úkol je odevzdaný tak jako tak */ }
+    await nactiUkoly();
+    await nactiBody();
+  };
+
   const cekajici = ukoly.filter((u) => u.stav !== 'hotovo').length;
+  const mamBodu = zustatek(bodyZaznamy);
+  const serie = serieDnu(dnyAktivity);
 
   return (
     <div className="min-h-screen text-white" style={{ background: motiv.pozadi }}>
@@ -90,6 +153,17 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
           <p className="font-bold text-lg">Ahoj, {zak.prezdivka}!</p>
           <p className="text-xs text-white/60">{zak.stupen}. stupeň · {motiv.jmeno}</p>
         </div>
+
+        {/* Body v liště: pořád na očích, ale bez cinkání a fanfár. */}
+        {!sekce && (
+          <div className="ml-auto flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/10">
+            <Sparkles className="w-4 h-4" style={{ color: motiv.prizvuk }} />
+            <span className="font-bold tabular-nums">{mamBodu}</span>
+            {serie > 1 && (
+              <span className="text-xs text-white/60">· {serie} dní v řadě</span>
+            )}
+          </div>
+        )}
 
         {sekce && (
           <button
@@ -180,7 +254,7 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
                           </button>
                         ) : (
                           <button
-                            onClick={async () => { await ukolyService.odevzdej(u.id); await nactiUkoly(); }}
+                            onClick={() => void odevzdej(u)}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-2xl text-sm font-bold text-black cursor-pointer"
                             style={{ background: motiv.prizvuk }}
                           >
@@ -267,6 +341,56 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
                     <p className="mt-1">{l.pro_rodice}</p>
                   </div>
                 ))}
+              </div>
+            </section>
+          )}
+
+          <section className="space-y-3">
+            <h2 className="text-2xl font-bold">Vyzkoušej se</h2>
+            {kvizOtevren ? (
+              <Kviz
+                zakId={zak.id}
+                stupen={zak.stupen}
+                prizvuk={motiv.prizvuk}
+                onHotovo={() => void nactiBody()}
+              />
+            ) : (
+              <button
+                onClick={() => setKvizOtevren(true)}
+                className="w-full rounded-3xl border border-white/15 bg-black/25 hover:bg-black/40 p-5 text-left cursor-pointer"
+              >
+                <p className="font-bold text-lg">Kvíz ke {zak.stupen}. stupni</p>
+                <p className="text-sm text-white/60">
+                  Šest otázek — pojmy, poslech a hmatník. Bez chyby dostaneš body.
+                </p>
+              </button>
+            )}
+          </section>
+
+          {odmeny.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-2xl font-bold">Za co si můžeš vyměnit</h2>
+              <p className="text-sm text-white/60 -mt-2">
+                Vyměníš to u učitele na hodině. Aplikace ti jen počítá body.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {seradOdmeny(odmeny, mamBodu).map((o) => {
+                  const dosahne = o.cena <= mamBodu;
+                  return (
+                    <div
+                      key={o.id}
+                      className={`rounded-3xl border p-4 ${
+                        dosahne ? 'border-white/25 bg-black/30' : 'border-white/10 bg-black/15 opacity-55'
+                      }`}
+                    >
+                      <Gift className="w-5 h-5 mb-1" style={{ color: dosahne ? motiv.prizvuk : undefined }} />
+                      <p className="font-bold text-sm">{o.nazev}</p>
+                      <p className="text-xs text-white/60 tabular-nums">
+                        {o.cena} bodů{dosahne ? ' · máš na to!' : ` · chybí ${o.cena - mamBodu}`}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
