@@ -356,3 +356,64 @@ export function ulozAktualni(okna: OknoSekce[]): void {
     /* viz ulozPlochy */
   }
 }
+
+/* Předpona `neverlate_` je z doby před přejmenováním. Zůstává schválně:
+   sjednotit ji na `neverlast_` by znamenalo, že si každý při první
+   návštěvě přijde o uložené plochy a rozmístění oken. */
+const KLIC_PORADI = 'neverlate_poradi_dlazdic';
+
+/**
+ * Vlastní pořadí ikon na ploše.
+ *
+ * Nabídka chodí ze stejného seznamu jako horní lišta, tedy v pořadí,
+ * v jakém sekce vznikaly. Každý ale hraje jinak: kdo cvičí, chce mít
+ * vepředu metronom a stupnice; kdo mixuje, pult. Přetažením myší se to
+ * srovná a pořadí se pamatuje.
+ */
+export function presunVPoli<T>(pole: T[], zIndexu: number, naIndex: number): T[] {
+  if (zIndexu < 0 || zIndexu >= pole.length) return pole;
+  const kopie = [...pole];
+  const cil = Math.max(0, Math.min(kopie.length - 1, naIndex));
+  const [x] = kopie.splice(zIndexu, 1);
+  kopie.splice(cil, 0, x);
+  return kopie;
+}
+
+/**
+ * Seřadí dlaždice podle uloženého pořadí.
+ *
+ * Uložené pořadí bývá starší než aplikace: sekce mohla přibýt i zmizet.
+ * Neznámá jména se proto přeskočí a nově přidané sekce se připojí na
+ * konec — přijít o ikonu jen proto, že vznikla později, by znamenalo,
+ * že se k té sekci na ploše nedostaneš vůbec.
+ */
+export function seradDlazdice(vse: Dlazdice[], poradi: string[]): Dlazdice[] {
+  const podleId = new Map(vse.map((d) => [String(d.id), d]));
+  const serazene: Dlazdice[] = [];
+  const pouzite = new Set<string>();
+  for (const id of poradi) {
+    const d = podleId.get(id);
+    if (d && !pouzite.has(id)) { serazene.push(d); pouzite.add(id); }
+  }
+  for (const d of vse) {
+    if (!pouzite.has(String(d.id))) serazene.push(d);
+  }
+  return serazene;
+}
+
+export function prectiPoradiDlazdic(): string[] {
+  try {
+    const d = JSON.parse(localStorage.getItem(KLIC_PORADI) || '[]');
+    return Array.isArray(d) ? d.filter((x) => typeof x === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+export function ulozPoradiDlazdic(poradi: string[]): void {
+  try {
+    localStorage.setItem(KLIC_PORADI, JSON.stringify(poradi));
+  } catch {
+    /* viz ulozPlochy */
+  }
+}

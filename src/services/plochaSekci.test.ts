@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   OknoSekce, dlazdice, dlazdicove, dopredu, noveOkno, otevri, srovnejOkno,
-  pocetOken, ulozPlochu, zakryte, zavri,
+  pocetOken, presunVPoli, seradDlazdice, ulozPlochu, zakryte, zavri,
 } from './plochaSekci';
 
 const okno = (id: string, sekce: any, poradi = 0): OknoSekce => ({
@@ -166,4 +166,46 @@ test('okno přesně stejné velikosti nad ním ho zakryje', () => {
   const a = { ...okno('a', 'tuner', 0), x: 10, y: 10, sirka: 200, vyska: 100 };
   const b = { ...okno('b', 'texty', 1), x: 10, y: 10, sirka: 200, vyska: 100 };
   assert.equal(zakryte(a, [a, b]), true);
+});
+
+test('vlastní pořadí se drží, nové sekce se připojí na konec', () => {
+  const vse = dlazdice();
+  const naopak = [...vse].reverse().map((d) => String(d.id));
+  const serazene = seradDlazdice(vse, naopak);
+  assert.deepEqual(serazene.map((d) => String(d.id)), naopak);
+
+  // Uložené pořadí zná jen dvě sekce; zbytek se nesmí ztratit.
+  const castecne = seradDlazdice(vse, ['tuner', 'stemmixer']);
+  assert.deepEqual(castecne.slice(0, 2).map((d) => String(d.id)), ['tuner', 'stemmixer']);
+  assert.equal(castecne.length, vse.length, 'sekce mimo uložené pořadí zmizely');
+  assert.equal(new Set(castecne.map((d) => d.id)).size, vse.length, 'sekce se zdvojila');
+});
+
+test('pořadí ze starší verze appky nespadne na neznámých jménech', () => {
+  const vse = dlazdice();
+  const s = seradDlazdice(vse, ['sekce_ktera_uz_neni', 'tuner', 'tuner']);
+  assert.equal(s[0].id, 'tuner');
+  assert.equal(s.length, vse.length);
+  assert.equal(new Set(s.map((d) => d.id)).size, vse.length, 'zdvojené jméno prošlo dvakrát');
+});
+
+test('prázdné uložené pořadí nechá výchozí', () => {
+  const vse = dlazdice();
+  assert.deepEqual(seradDlazdice(vse, []).map((d) => d.id), vse.map((d) => d.id));
+});
+
+test('přesun v poli posune položku tam, kam ji pustíš', () => {
+  const p = ['a', 'b', 'c', 'd'];
+  assert.deepEqual(presunVPoli(p, 0, 2), ['b', 'c', 'a', 'd']);
+  assert.deepEqual(presunVPoli(p, 3, 0), ['d', 'a', 'b', 'c']);
+  // Na místě se nic nemění.
+  assert.deepEqual(presunVPoli(p, 1, 1), p);
+});
+
+test('přesun mimo pole nic nerozhodí', () => {
+  const p = ['a', 'b', 'c'];
+  assert.deepEqual(presunVPoli(p, -1, 1), p);
+  assert.deepEqual(presunVPoli(p, 9, 1), p);
+  // Cíl za koncem se srovná na poslední místo, ne aby vyrobil díru.
+  assert.deepEqual(presunVPoli(p, 0, 99), ['b', 'c', 'a']);
 });

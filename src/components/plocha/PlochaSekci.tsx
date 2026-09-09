@@ -2,10 +2,12 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Grid2X2, LayoutGrid, Save, Trash2, X } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
 import { KresleniOkna } from '../../hooks/useKreslit';
+import { usePretahovaniPoradi } from '../songbook/usePretahovaniPoradi';
 import { PlovouciOkno } from '../songbook/PlovouciOkno';
 import {
   OknoSekce, Plocha, dlazdice, dlazdicove, dopredu, otevri, prectiAktualni,
-  pocetOken, prectiPlochy, srovnejOkno, ulozAktualni, ulozPlochu, ulozPlochy,
+  pocetOken, prectiPlochy, prectiPoradiDlazdic, presunVPoli, seradDlazdice,
+  srovnejOkno, ulozAktualni, ulozPlochu, ulozPlochy, ulozPoradiDlazdic,
   zakryte, zavri,
 } from '../../services/plochaSekci';
 
@@ -47,10 +49,28 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
   const [pojmenovavam, setPojmenovavam] = useState(false);
   const [jmeno, setJmeno] = useState('');
 
-  const nabidka = useMemo(() => dlazdice().filter((d) => obsah[d.id]), [obsah]);
+  const [poradi, setPoradi] = useState<string[]>(() => prectiPoradiDlazdic());
+
+  const nabidka = useMemo(
+    () => seradDlazdice(dlazdice().filter((d) => obsah[d.id]), poradi),
+    [obsah, poradi],
+  );
+
+  /**
+   * Přetahování ikon.
+   *
+   * Do mřížky se srovnávají samy — ikony sedí v buňkách, ne na volných
+   * souřadnicích, takže puštěná ikona zapadne na místo a ostatní se
+   * posunou. Uklízet po sobě rozházené ikony jako na skutečné ploše
+   * tady nikdo nechce.
+   */
+  const tah = usePretahovaniPoradi((z, na) => {
+    setPoradi(presunVPoli(nabidka.map((d) => String(d.id)), z, na));
+  }, 'vodorovne');
 
   useEffect(() => { ulozAktualni(okna); }, [okna]);
   useEffect(() => { ulozPlochy(plochy); }, [plochy]);
+  useEffect(() => { if (poradi.length) ulozPoradiDlazdic(poradi); }, [poradi]);
 
   /**
    * Plocha se měří, ne odhaduje.
@@ -196,14 +216,26 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
             otevře bez zavírání toho, co máš rozdělané. */}
         <div className="absolute inset-0 p-5 overflow-auto">
           <div className="grid grid-cols-[repeat(auto-fill,minmax(92px,1fr))] gap-3 max-w-[760px]">
-            {nabidka.map((d) => {
+            {nabidka.map((d, i) => {
               const otevrena = okna.some((o) => o.sekce === d.id);
               return (
                 <button
                   key={d.id}
+                  {...tah.vlastnostiPolozky(i)}
                   onClick={() => setOkna((p) => otevri(p, d.id))}
-                  title={`Otevřít ${d.nazev}`}
-                  className="group flex flex-col items-center gap-1.5 cursor-pointer"
+                  title={`Otevřít ${d.nazev} — přetažením změníš pořadí`}
+                  className={`group flex flex-col items-center gap-1.5 cursor-pointer
+                    rounded-panel px-1 py-1 transition-all ${
+                    tah.tazene === i ? 'opacity-35' : ''
+                  } ${
+                    /* Zlatá čára ukazuje, kam ikona spadne. Kreslí se na
+                       kraj sousední dlaždice, protože v mřížce by vložený
+                       prvek posunul celý zbytek řádku. */
+                    tah.znackaPred(i) ? 'shadow-[inset_3px_0_0_0_var(--color-znacka)]' : ''
+                  } ${
+                    tah.znackaNaKonci(nabidka.length) && i === nabidka.length - 1
+                      ? 'shadow-[inset_-3px_0_0_0_var(--color-znacka)]' : ''
+                  }`}
                 >
                   {/* Barevná dlaždice s vlastní barvou nástroje; otevřená
                       se obtáhne zlatě, protože zlatá je vyhrazená stavu. */}
