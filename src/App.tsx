@@ -6,6 +6,7 @@ import { MainLayout } from './components/layout/MainLayout';
 import { MainTabType, SEKCE_HLASEM } from './components/layout/sekce';
 import { PlochaSekci } from './components/plocha/PlochaSekci';
 import { Tone3000Sekce } from './components/Tone3000Sekce';
+import { EditorStop } from './components/EditorStop';
 import { ExterniSluzba } from './components/ExterniSluzba';
 import { VyukaSekce } from './components/vyuka/VyukaSekce';
 import { ZakovskaObrazovka } from './components/vyuka/ZakovskaObrazovka';
@@ -446,6 +447,7 @@ function AppContent() {
       //ZÁLOŽKY
     zalozky: <ZalozkySection />,
 
+    editor: <EditorStop />,
     tone3000: <Tone3000Sekce />,
     opendaw: (
       <ExterniSluzba

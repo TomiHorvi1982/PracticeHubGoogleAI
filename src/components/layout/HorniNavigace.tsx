@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Library, Maximize2, FileCode, FileText, GraduationCap, Piano, Clock, Mic,
-  Sliders, Guitar, FolderOpen, Bookmark, Settings, Compass, LayoutGrid, Globe,
+  Sliders, Guitar, FolderOpen, Bookmark, Settings, Compass, LayoutGrid, Globe, AudioLines,
 } from 'lucide-react';
 import { MainTabType } from './sekce';
 import { PRIME, SKUPINY, STRANOU } from './skupiny';
@@ -37,6 +37,7 @@ const IKONY: Partial<Record<MainTabType, React.FC<{ className?: string }>>> = {
   practice: Clock,
   tuner: Mic,
   stemmixer: Sliders,
+  editor: AudioLines,
   tone3000: Globe,
   opendaw: Sliders,
   bandlab: Globe,
