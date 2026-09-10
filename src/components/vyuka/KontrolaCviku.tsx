@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Mic, Square } from 'lucide-react';
 import { Tonu } from '../../services/cvikyTechnik';
 import { VysledekKontroly, slovy, zkontrolujCvik } from '../../services/samokontrola';
+import { nactiLadeni } from '../../services/ladeniKytary';
 
 /**
  * Zkontroluj se.
@@ -54,7 +55,11 @@ export const KontrolaCviku: React.FC<Props> = ({ tony, bpm, prizvuk }) => {
       try {
         const ctx = new AudioContext();
         const buffer = await ctx.decodeAudioData(await new Blob(kusy).arrayBuffer());
-        setVysledek(zkontrolujCvik(buffer.getChannelData(0), tony, bpm, buffer.sampleRate));
+        // Ladění se bere z nastavení hmatníku: kdo cvičí v drop C, hraje
+        // správně jiné tóny, než jaké by čekala standardní předloha.
+        setVysledek(zkontrolujCvik(
+          buffer.getChannelData(0), tony, bpm, buffer.sampleRate, undefined, nactiLadeni(),
+        ));
         void ctx.close();
       } catch {
         setChyba('Nahrávku se nepodařilo přečíst. Zkus to znovu.');

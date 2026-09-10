@@ -1,10 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Play, Square, Music4, Guitar, Hand, Save, Trash2, Undo2, Eraser } from 'lucide-react';
 import {
-  CvikTechniky, NAZVY_SEKVENCI, NAZVY_TECHNIK, STANDARDNI_LADENI, STUPNICE, Sekvence,
-  TONY, Tonu, cvikyTechnik, midiNaPrazci, naTabulaturu, poSekvenci, polohyStupnice,
-  stupniceVPoloze,
+  Play, Square, Music4, Guitar, Hand, Save, Trash2, Undo2, Eraser, Repeat, Settings2,
+} from 'lucide-react';
+import {
+  CvikTechniky, NAZVY_SEKVENCI, NAZVY_TECHNIK, STUPNICE, Sekvence,
+  TONY, Tonu, cvikyTechnik, jmenaStrun, midiNaPrazci, naTabulaturu, poSekvenci,
+  polohyStupnice, stupniceVPoloze,
 } from '../../services/cvikyTechnik';
+import {
+  LADENI, jeStandardni, nactiLadeni, najdiPreset, odchylkaOdStandardu, popisLadeni,
+  posunLadeni, posunStrunu, ulozLadeni,
+} from '../../services/ladeniKytary';
+import {
+  dalsiCas, dalsiIndex, delkaKroku, jeHraneTeď,
+} from '../../services/prehravaniCviku';
 import { audioSynth } from '../../services/audioSynth';
 import { metronomService } from '../../services/metronomService';
 import { VYCHOZI_KYTARA, kytaroveZvuky } from '../../services/kytaroveZvuky';
@@ -48,7 +57,28 @@ export const StupniceRoom: React.FC = () => {
   const [bpm, setBpm] = useState(70);
   const [hraje, setHraje] = useState(false);
   const [ktery, setKtery] = useState(-1);
-  const casovace = useRef<number[]>([]);
+  const [smycka, setSmycka] = useState(false);
+
+  /*
+   * Ladění kytary.
+   *
+   * Drží se tady nahoře, protože se od něj odvíjí všechno pod tím: kde
+   * na krku leží stupnice, jak se jmenují struny v tabulatuře i jaký tón
+   * se rozezní. Pamatuje si ho prohlížeč — kytaru si nikdo nepřelaďuje
+   * při každém otevření appky.
+   */
+  const [ladeni, setLadeni] = useState<number[]>(() => nactiLadeni());
+  const [ladeniOtevrene, setLadeniOtevrene] = useState(false);
+  const prepni = (nove: number[]) => { setLadeni(nove); ulozLadeni(nove); };
+
+  /*
+   * Přehrávání.
+   *
+   * `bezi` je v refu, ne ve stavu: časovač se ptá, jestli má pokračovat,
+   * a to musí být okamžitě platná hodnota, ne ta z posledního vykreslení.
+   */
+  const bezi = useRef(false);
+  const casovac = useRef<number | null>(null);
 
   /*
    * Zvuk.
@@ -62,6 +92,9 @@ export const StupniceRoom: React.FC = () => {
 
   /* Vlastní cvik: co se naťuká na hmatníku. */
   const [vlastni, setVlastni] = useState<Tonu[]>([]);
+  /* Vlastní cvik má svoji sekvenci a začíná „jak je" — naskládaný riff
+     se má napoprvé přehrát tak, jak ho člověk naklikal. */
+  const [sekvenceVlastni, setSekvenceVlastni] = useState<Sekvence>('jakJe');
   const [technika, setTechnika] = useState<Tonu['technika'] | ''>('');
   const [cviky, setCviky] = useState<VlastniCvik[]>([]);
   const [jmeno, setJmeno] = useState('');
@@ -92,19 +125,43 @@ export const StupniceRoom: React.FC = () => {
   const cvik: CvikTechniky = techniky.find((c) => c.id === cvikId) || techniky[0];
 
   const tony: Tonu[] = useMemo(() => {
-    if (rezim === 'stupnice') return poSekvenci(stupniceVPoloze(zaklad, stupnice.kroky, poloha), sekvence);
+    if (rezim === 'stupnice') {
+      return poSekvenci(stupniceVPoloze(zaklad, stupnice.kroky, poloha, ladeni), sekvence);
+    }
     if (rezim === 'techniky') return cvik.tony;
-    return vlastni;
-  }, [rezim, zaklad, stupnice, poloha, sekvence, cvik, vlastni]);
+    return poSekvenci(vlastni, sekvenceVlastni);
+  }, [rezim, zaklad, stupnice, poloha, sekvence, cvik, vlastni, sekvenceVlastni, ladeni]);
 
-  const tab = useMemo(() => naTabulaturu(tony), [tony]);
+  const tab = useMemo(() => naTabulaturu(tony, ladeni), [tony, ladeni]);
+  const jmena = useMemo(() => jmenaStrun(ladeni), [ladeni]);
+
+  /*
+   * Co má běžící přehrávání číst.
+   *
+   * Časovač si nese hodnoty z chvíle, kdy vznikl. Bez tohohle by změna
+   * tempa, ladění nebo smyčky za chodu neměla žádný účinek, dokud se
+   * cvik nezastaví a nespustí znovu.
+   */
+  const stav = useRef({ tony, bpm, smycka, zvuk, ladeni });
+  useEffect(() => { stav.current = { tony, bpm, smycka, zvuk, ladeni }; });
 
   const zastav = () => {
-    casovace.current.forEach(clearTimeout);
-    casovace.current = [];
+    bezi.current = false;
+    if (casovac.current !== null) window.clearTimeout(casovac.current);
+    casovac.current = null;
     metronomService.stop();
     setHraje(false);
     setKtery(-1);
+  };
+
+  /** Rozezní jeden tón podle aktuálního ladění a zvuku. */
+  const zahrajTon = (t: Tonu, krok: number) => {
+    audioSynth.playNote(
+      tonSOktavou(midiNaPrazci(t.struna, t.prazec, stav.current.ladeni)),
+      stav.current.zvuk,
+      Math.max(0.2, krok * 1.6),
+      0.6,
+    );
   };
 
   /**
@@ -112,28 +169,51 @@ export const StupniceRoom: React.FC = () => {
    *
    * Tóny jdou po osminách: čtvrtka na dobu je na cvičení moc pomalá a
    * šestnáctky se při učení nedají sledovat očima.
+   *
+   * Krok si plánuje ten předchozí, místo aby se celý cvik naplánoval
+   * dopředu. Jinak by nešla smyčka — počet kroků není předem známý — a
+   * nešlo by měnit tempo za chodu, protože naplánované časovače už se
+   * přerovnat nedají.
    */
   const prehraj = () => {
     if (hraje) { zastav(); return; }
     if (!tony.length) return;
+    bezi.current = true;
     setHraje(true);
     metronomService.start(bpm);
-    const krok = 30 / bpm;   // osmina ve vteřinách
-    tony.forEach((t, i) => {
-      casovace.current.push(window.setTimeout(() => {
-        setKtery(i);
-        audioSynth.playNote(
-          tonSOktavou(midiNaPrazci(t.struna, t.prazec, STANDARDNI_LADENI)),
-          zvuk,
-          Math.max(0.2, krok * 1.6),
-          0.6,
-        );
-        if (i === tony.length - 1) {
-          casovace.current.push(window.setTimeout(zastav, krok * 1000 + 300));
-        }
-      }, i * krok * 1000));
-    });
+
+    let cil = performance.now();
+
+    const tik = (i: number) => {
+      if (!bezi.current) return;
+      const { tony: seznam, bpm: tempo, smycka: dokola } = stav.current;
+      // Cvik se mohl mezitím zkrátit — třeba se ubral tón ve vlastním
+      // režimu. Bez zbytku by index ukázal mimo a přehrávání by spadlo.
+      if (!seznam.length) { zastav(); return; }
+      const j = i % seznam.length;
+
+      setKtery(j);
+      zahrajTon(seznam[j], delkaKroku(tempo));
+
+      const dalsi = dalsiIndex(j, seznam.length, dokola);
+      if (dalsi < 0) {
+        // Poslední tón má dozvučet, než hmatník zhasne.
+        casovac.current = window.setTimeout(zastav, delkaKroku(tempo) * 1000 + 300);
+        return;
+      }
+      cil = dalsiCas(cil, tempo);
+      casovac.current = window.setTimeout(() => tik(dalsi), Math.max(0, cil - performance.now()));
+    };
+
+    tik(0);
   };
+
+  /* Odchod ze sekce nesmí nechat běžet smyčku a metronom. */
+  useEffect(() => () => {
+    bezi.current = false;
+    if (casovac.current !== null) window.clearTimeout(casovac.current);
+    metronomService.stop();
+  }, []);
 
   /**
    * Ťuknutí do hmatníku.
@@ -147,7 +227,7 @@ export const StupniceRoom: React.FC = () => {
     if (rezim !== 'vlastni') return;
     setVlastni((p) => pridejTon(p, { struna, prazec, ...(technika ? { technika } : {}) }));
     audioSynth.playNote(
-      tonSOktavou(midiNaPrazci(struna, prazec, STANDARDNI_LADENI)),
+      tonSOktavou(midiNaPrazci(struna, prazec, ladeni)),
       zvuk,
       0.6,
       0.6,
@@ -182,7 +262,7 @@ export const StupniceRoom: React.FC = () => {
     setJmeno(c.nazev);
   };
 
-  const polohy = polohyStupnice(zaklad);
+  const polohy = polohyStupnice(zaklad, ladeni);
 
   return (
     <div className="space-y-3">
@@ -204,7 +284,104 @@ export const StupniceRoom: React.FC = () => {
             </button>
           ),
         )}
+
+        <button
+          onClick={() => setLadeniOtevrene((o) => !o)}
+          title="Jak je kytara naladěná"
+          className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-drobne font-bold cursor-pointer transition-colors ${
+            ladeniOtevrene || !jeStandardni(ladeni)
+              ? 'bg-znacka-tlum text-znacka ring-1 ring-znacka-okraj'
+              : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+          }`}
+        >
+          <Settings2 className="w-3.5 h-3.5" />{popisLadeni(ladeni)}
+        </button>
       </div>
+
+      {ladeniOtevrene && (
+        <div className="bg-plocha-2 border border-kresba rounded-2xl p-4 space-y-3">
+          <p className="text-drobne text-pismo-tlum max-w-[74ch]">
+            Nalaď virtuální kytaru tak, jak máš naladěnou tu svoji. Pražce
+            zůstanou, kde jsou — změní se tón, který z nich vyjde, a s ním
+            i to, kde na krku leží stupnice a co se jmenuje jak
+            v tabulatuře.
+          </p>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="stitek-pole mr-1">hotová ladění</span>
+            {LADENI.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => prepni([...l.struny])}
+                title={l.popis}
+                className={`px-2.5 py-1.5 rounded-prvek text-drobne font-bold cursor-pointer ${
+                  najdiPreset(ladeni)?.id === l.id
+                    ? 'zlata-plocha'
+                    : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+                }`}
+              >
+                {l.nazev}
+              </button>
+            ))}
+          </div>
+
+          {/* Ruční doladění po strunách. Od nejvyšší dolů, jak se dívá
+              kytarista na svůj vlastní krk. */}
+          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-kresba-jemna">
+            <span className="stitek-pole mr-1">po strunách</span>
+            {[5, 4, 3, 2, 1, 0].map((i) => {
+              const rozdil = odchylkaOdStandardu(ladeni, i);
+              return (
+                <span key={i} className="flex items-center rounded-prvek bg-plocha-3 overflow-hidden">
+                  <button
+                    onClick={() => prepni(posunStrunu(ladeni, i, -1))}
+                    aria-label={`${jmena[i]} o půltón dolů`}
+                    className="px-2 py-1.5 text-drobne font-bold text-pismo-slaby hover:text-pismo cursor-pointer"
+                  >
+                    −
+                  </button>
+                  <span className="px-1.5 py-1.5 text-drobne font-bold text-znacka tabular-nums min-w-[2.4rem] text-center">
+                    {jmena[i]}
+                    {rozdil !== 0 && (
+                      <span className="text-stitek text-pismo-slaby ml-0.5">
+                        {rozdil > 0 ? `+${rozdil}` : rozdil}
+                      </span>
+                    )}
+                  </span>
+                  <button
+                    onClick={() => prepni(posunStrunu(ladeni, i, 1))}
+                    aria-label={`${jmena[i]} o půltón nahoru`}
+                    className="px-2 py-1.5 text-drobne font-bold text-pismo-slaby hover:text-pismo cursor-pointer"
+                  >
+                    +
+                  </button>
+                </span>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="stitek-pole mr-1">celá kytara</span>
+            {([[-2, 'o celý tón dolů'], [-1, 'o půltón dolů'],
+               [1, 'o půltón nahoru'], [2, 'o celý tón nahoru']] as const).map(([o, popis]) => (
+              <button
+                key={o}
+                onClick={() => prepni(posunLadeni(ladeni, o))}
+                className="px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
+              >
+                {popis}
+              </button>
+            ))}
+            <button
+              onClick={() => prepni([...LADENI[0].struny])}
+              disabled={jeStandardni(ladeni)}
+              className="ml-auto px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer disabled:opacity-40"
+            >
+              Zpátky na standard
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-plocha-2 border border-kresba rounded-2xl p-4 space-y-3">
         {rezim === 'vlastni' ? (
@@ -232,6 +409,25 @@ export const StupniceRoom: React.FC = () => {
               ))}
             </div>
 
+            {/* Sekvence i tady: naťukaný postup se dá cvičit po třech,
+                v terciích nebo nahoru a dolů úplně stejně jako stupnici —
+                a právě na tom se prsty lámou nejvíc. */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="stitek-pole mr-1">sekvence</span>
+              {(Object.keys(NAZVY_SEKVENCI) as Sekvence[]).map((sq) => (
+                <button
+                  key={sq}
+                  onClick={() => { zastav(); setSekvenceVlastni(sq); }}
+                  title={NAZVY_SEKVENCI[sq]}
+                  className={`px-2.5 py-1 rounded-prvek text-drobne font-bold cursor-pointer ${
+                    sekvenceVlastni === sq ? 'zlata-plocha' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+                  }`}
+                >
+                  {NAZVY_SEKVENCI[sq]}
+                </button>
+              ))}
+            </div>
+
             <div className="flex flex-wrap items-center gap-1.5">
               <button
                 onClick={() => setVlastni(uberPosledni)}
@@ -247,7 +443,10 @@ export const StupniceRoom: React.FC = () => {
               >
                 <Eraser className="w-3.5 h-3.5" />Vyčistit
               </button>
-              <span className="text-stitek text-pismo-slaby">{vlastni.length} tónů</span>
+              <span className="text-stitek text-pismo-slaby">
+                {vlastni.length} tónů
+                {tony.length !== vlastni.length && ` · ${tony.length} po sekvenci`}
+              </span>
 
               <input
                 value={jmeno}
@@ -397,6 +596,21 @@ export const StupniceRoom: React.FC = () => {
             {hraje ? 'Stop' : 'Přehrát'}
           </button>
 
+          {/* Smyčka se dá zapnout i za chodu — běžící cvik se na ni zeptá
+              až u posledního tónu, takže přepnutí uprostřed platí hned. */}
+          <button
+            onClick={() => setSmycka((z) => !z)}
+            title={smycka
+              ? 'Cvik se opakuje dokola, dokud ho nezastavíš'
+              : 'Zapnout opakování dokola'}
+            aria-pressed={smycka}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-drobne font-bold cursor-pointer transition-colors ${
+              smycka ? 'zlata-plocha' : 'bg-plocha-3 text-pismo-tlum hover:text-pismo'
+            }`}
+          >
+            <Repeat className="w-3.5 h-3.5" />Dokola
+          </button>
+
           <input
             type="range"
             min={40}
@@ -423,6 +637,8 @@ export const StupniceRoom: React.FC = () => {
 
           <span className="text-stitek text-pismo-slaby">
             {tony.length} tónů · {(bpm * 2 / 60).toFixed(1)} osmin/s
+            {smycka && ' · dokola'}
+            {!jeStandardni(ladeni) && ` · ${popisLadeni(ladeni)}`}
           </span>
         </div>
       </div>
@@ -434,20 +650,30 @@ export const StupniceRoom: React.FC = () => {
         </pre>
       </div>
 
-      {/* Hmatník: kde ty tóny leží. Hraný tón svítí. */}
+      {/* Hmatník: kde ty tóny leží. Hraný tón svítí — i na zpáteční
+          cestě a ve smyčce, což dřív neplatilo. */}
       <div className="bg-plocha-2 border border-kresba rounded-2xl p-3 overflow-x-auto">
         <div className="min-w-[520px] space-y-1">
           {[5, 4, 3, 2, 1, 0].map((struna) => (
             <div key={struna} className="flex items-center gap-0.5">
-              <span className="stitek-pole w-4 shrink-0">
-                {['E', 'A', 'D', 'G', 'H', 'e'][struna]}
+              {/* Jméno struny z ladění, ne napevno: v drop D je nejnižší
+                  struna D a napsané „E" by lhalo. */}
+              <span className="stitek-pole w-5 shrink-0 tabular-nums">
+                {jmena[struna]}
               </span>
               {Array.from({ length: 16 }, (_, p) => {
-                const je = tony.findIndex((t) => t.struna === struna && t.prazec === p);
-                const hraneTeď = je >= 0 && je === ktery;
+                /*
+                 * Svítí to, co se zrovna hraje.
+                 *
+                 * Dřív se hledal `findIndex`, tedy první výskyt pražce
+                 * v cviku. Jenže sekvence projde stupnici nahoru a stejné
+                 * pražce znovu dolů — na zpáteční cestě se index nikdy
+                 * netrefil a hmatník od poloviny cviku zhasl.
+                 */
+                const hraneTeď = jeHraneTeď(tony, ktery, struna, p);
                 const vCviku = tony.some((t) => t.struna === struna && t.prazec === p);
                 const lzeTuknout = rezim === 'vlastni';
-                const jmenoStruny = ['E', 'A', 'D', 'G', 'H', 'e'][struna];
+                const jmenoStruny = jmena[struna];
                 return (
                   <button
                     key={p}

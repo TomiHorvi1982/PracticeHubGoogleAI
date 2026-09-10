@@ -44,6 +44,7 @@ export function predlohaZTonu(
   bpm: number,
   vzorkovaci: number,
   nastaveni: SnimkyNastaveni = VYCHOZI_SNIMKY,
+  ladeni: number[] = STANDARDNI_LADENI,
 ): Float32Array[] {
   const snimek = snimekVterin(vzorkovaci, nastaveni);
   const delkaTonu = 30 / Math.max(20, bpm);          // osmina ve vteřinách
@@ -51,7 +52,9 @@ export function predlohaZTonu(
 
   const ramce: Float32Array[] = [];
   for (const t of tony) {
-    const midi = midiNaPrazci(t.struna, t.prazec, STANDARDNI_LADENI);
+    // Ladění musí sedět na to, co má hráč na kytaře. V drop C by se
+    // proti standardní předloze neshodl ani ten, kdo hraje bezchybně.
+    const midi = midiNaPrazci(t.struna, t.prazec, ladeni);
     const trida = ((midi % TRID) + TRID) % TRID;
     for (let i = 0; i < snimkuNaTon; i++) {
       const r = new Float32Array(TRID);
@@ -87,6 +90,7 @@ export function zkontrolujCvik(
   bpm: number,
   vzorkovaci: number,
   nastaveni: SnimkyNastaveni = VYCHOZI_SNIMKY,
+  ladeni: number[] = STANDARDNI_LADENI,
 ): VysledekKontroly {
   const ticho = { tony: 0, rozptylMs: 0, procenta: 0, merÍtelne: false };
   if (!tony.length || nahravka.length < vzorkovaci * 0.5) return ticho;
@@ -99,7 +103,7 @@ export function zkontrolujCvik(
   const moje = snimkySpektra(nahravka, nastaveni).map((m) => chromaZeSpektra(m, vzorkovaci));
   if (moje.length < 4) return ticho;
 
-  const predloha = predlohaZTonu(tony, bpm, vzorkovaci, nastaveni);
+  const predloha = predlohaZTonu(tony, bpm, vzorkovaci, nastaveni, ladeni);
   const z = zarovnej(moje, predloha);
   const h = ohodnot(z, snimekVterin(vzorkovaci, nastaveni));
 

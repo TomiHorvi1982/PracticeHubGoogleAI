@@ -89,6 +89,22 @@ export function nazevTonu(midi: number): string {
   return TONY[((midi % 12) + 12) % 12];
 }
 
+/**
+ * Jak se jmenují struny daného ladění, od nejnižší.
+ *
+ * Nejvyšší struna malým písmenem, jak se tabulatura píše — v ní jsou
+ * dvě „E" a bez rozlišení by nešlo poznat, o kterou jde.
+ *
+ * Nesmí se to napevno napsat jako `E A D G H e`: v drop D je nejnižší
+ * struna D a tabulatura by lhala.
+ */
+export function jmenaStrun(ladeni: number[] = STANDARDNI_LADENI): string[] {
+  return ladeni.map((m, i) => {
+    const jmeno = nazevTonu(m);
+    return i === ladeni.length - 1 ? jmeno.toLowerCase() : jmeno;
+  });
+}
+
 /** MIDI číslo tónu na daném pražci. */
 export function midiNaPrazci(struna: number, prazec: number, ladeni = STANDARDNI_LADENI): number {
   return (ladeni[struna] ?? 0) + prazec;
@@ -141,9 +157,13 @@ export function polohyStupnice(zaklad: number, ladeni = STANDARDNI_LADENI): numb
 
 /* ------------------------------------------------- Sekvence a vzory */
 
-export type Sekvence = 'rovne' | 'po3' | 'po4' | 'tercie' | 'nahoruDolu';
+export type Sekvence = 'jakJe' | 'rovne' | 'po3' | 'po4' | 'tercie' | 'nahoruDolu';
 
 export const NAZVY_SEKVENCI: Record<Sekvence, string> = {
+  // Bez tohohle by nešlo přehrát vlastní cvik tak, jak je naťukaný:
+  // všechny ostatní sekvence tóny přerovnávají a i „rovně" přidá cestu
+  // zpátky, což u naskládaného riffu nedává smysl.
+  jakJe: 'Jak je zapsané',
   rovne: 'Rovně nahoru a dolů',
   po3: 'Po třech (1-2-3, 2-3-4…)',
   po4: 'Po čtyřech (1-2-3-4, 2-3-4-5…)',
@@ -161,6 +181,8 @@ export function poSekvenci(tony: Tonu[], sekvence: Sekvence): Tonu[] {
   const n = tony.length;
   if (n === 0) return [];
   switch (sekvence) {
+    case 'jakJe':
+      return [...tony];
     case 'rovne':
       return [...tony, ...tony.slice(0, -1).reverse()];
     case 'po3': {
@@ -198,7 +220,9 @@ export function poSekvenci(tony: Tonu[], sekvence: Sekvence): Tonu[] {
  * zapisuje mezi tóny, ne na ně.
  */
 export function naTabulaturu(tony: Tonu[], ladeni = STANDARDNI_LADENI): string {
-  const jmena = ['E', 'A', 'D', 'G', 'H', 'e'];
+  // Jména se počítají z ladění. Dřív tu stálo napevno `E A D G H e`,
+  // takže tabulatura v drop D tvrdila, že nejnižší struna je E.
+  const jmena = jmenaStrun(ladeni);
   const radky: string[][] = ladeni.map(() => []);
 
   for (const t of tony) {
@@ -211,8 +235,12 @@ export function naTabulaturu(tony: Tonu[], ladeni = STANDARDNI_LADENI): string {
   }
 
   // Odshora nejvyšší struna: pole má nejnižší na indexu 0.
+  //
+  // Jména se zarovnají na stejnou šířku: `C#` je o znak delší než `E`
+  // a bez toho by se svislice řádků rozjely a tabulatura by se rozpadla.
+  const sirka = Math.max(...jmena.map((j) => j.length));
   return radky
-    .map((r, i) => `${jmena[i]}|${r.join('') || '-'}-|`)
+    .map((r, i) => `${jmena[i].padEnd(sirka)}|${r.join('') || '-'}-|`)
     .reverse()
     .join('\n');
 }
