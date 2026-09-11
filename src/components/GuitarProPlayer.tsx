@@ -7,6 +7,7 @@ import * as alphaTab from '@coderline/alphatab';
 import { loadTabSoundfont } from '../services/tabSoundfontService';
 import { NASTROJE_GM, RODINY_NASTROJU } from '../data/nastrojeGm';
 import { FONT_DIRECTORY, FALLBACK_SOUNDFONT } from '../services/alphaTabNastaveni';
+import { maSePrekreslit } from '../services/prekresleniTabu';
 import { taktyZTiku, rozsahTiku, ulozUsek } from '../services/usekDoCviceni';
 import {
   Play,
@@ -200,6 +201,19 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
   nazevSkladby,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  /**
+   * Vykreslilo se naslepo, do nulové šířky?
+   *
+   * Sekce zůstávají po přepnutí připojené a jen se schovávají, takže se
+   * soubor může načíst do kontejneru, který nemá žádnou šířku — třeba
+   * když ho pošle jiná sekce nebo hlasový příkaz. AlphaTab pak rozvrhne
+   * noty do nuly a po zobrazení se sám nevzpamatuje. Tohle si to
+   * pamatuje, aby se překreslilo, jakmile bude kam.
+   */
+  const kresleno0Sirkou = useRef(false);
+
+  /** Šířka kontejneru teď; nula znamená schovanou sekci. */
+  const sirkaKontejneru = () => containerRef.current?.getBoundingClientRect().width ?? 0;
   const apiRef = useRef<alphaTab.AlphaTabApi | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
@@ -644,6 +658,8 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       api.renderFinished.on(() => {
         setIsLoading(false);
         vykresleno = true;
+        // Vykreslení do nulové šířky nic nenakreslí — ví se to až tady.
+        kresleno0Sirkou.current = sirkaKontejneru() === 0;
         nasadBanku();
       });
 
@@ -706,6 +722,9 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       fetchScoreBytes(dataUrl)
         .then((bytes) => {
           if (cancelled) return;
+          // Načítá se do schované sekce? Pak se vykreslí naslepo a bude
+          // to chtít opravit, až bude kontejner mít šířku.
+          if (sirkaKontejneru() === 0) kresleno0Sirkou.current = true;
           api.load(bytes);
         })
         .catch((err: any) => {
@@ -730,6 +749,41 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
       setIsLoading(false);
     }
   }, [dataUrl]);
+
+  /**
+   * Překreslení, až bude kam kreslit.
+   *
+   * Hlídá se velikost kontejneru, ne viditelnost sekce: tenhle přehrávač
+   * běží i na Pódiu a ve zpěvníku, kde ho schová rozbalovač nebo okno, ne
+   * přepnutí sekce. `ResizeObserver` se ozve i při přechodu z
+   * `display: none`, tedy přesně ve chvíli, kdy je co opravovat.
+   *
+   * Překresluje se jedině po vykreslení naslepo. Dělat to při každém
+   * zobrazení by znamenalo vteřiny čekání pokaždé, když se člověk vrátí
+   * do sekce.
+   */
+  useEffect(() => {
+    const prvek = containerRef.current;
+    if (!prvek || typeof ResizeObserver === 'undefined') return;
+
+    const pozorovatel = new ResizeObserver(() => {
+      const api = apiRef.current;
+      if (!api) return;
+      if (!maSePrekreslit({
+        sirka: sirkaKontejneru(),
+        maSkore: !!api.score,
+        kresleno0Sirkou: kresleno0Sirkou.current,
+      })) return;
+      kresleno0Sirkou.current = false;
+      try {
+        api.render();
+      } catch (e) {
+        console.warn('[guitarpro] Překreslení tabulatury selhalo:', e);
+      }
+    });
+    pozorovatel.observe(prvek);
+    return () => pozorovatel.disconnect();
+  }, []);
 
 
   /**
