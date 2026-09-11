@@ -3,6 +3,7 @@ import { useSdilenyVyraz } from '../../services/useSdilenyVyraz';
 import { sdilenyVyraz } from '../../services/sdilenyVyraz';
 import { audioBus } from '../../services/audioBus';
 import { nactiYouTubeApi } from '../../services/youtubeApi';
+import { pripravRam } from '../../services/youtubeRam';
 import { Song, MediaTrack, LyricLine, MediaPlaylist, MediaPlaybackState, YouTubeVideo } from '../../types';
 import { mediaCenterService } from '../../services/mediaCenterService';
 import { eventBus } from '../../services/eventBus';
@@ -116,17 +117,18 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
     if (!ytPlayerRef.current) {
       try {
-        ytPlayerRef.current = new window.YT.Player('media-center-yt-iframe', {
-          height: '100%',
-          width: '100%',
-          videoId: currentYtId,
-          playerVars: {
-            autoplay: playbackState.isPlaying ? 1 : 0,
-            controls: 1,
-            modestbranding: 1,
-            rel: 0,
-            origin: window.location.origin,
-          },
+        // Rám si stavíme sami kvůli cross-origin izolaci — viz
+        // `youtubeRam.ts`. Bez atributu `credentialless` by zůstal černý.
+        const misto = document.getElementById('media-center-yt-iframe');
+        if (!misto) return;
+        const ram = pripravRam(misto, currentYtId, {
+          autoplay: playbackState.isPlaying ? 1 : 0,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+        });
+
+        ytPlayerRef.current = new window.YT.Player(ram, {
           events: {
             onReady: (event: any) => {
               if (playbackState.isPlaying) {

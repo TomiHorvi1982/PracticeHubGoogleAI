@@ -1309,6 +1309,9 @@ export const VirtualInstruments: React.FC = () => {
           {/* Embedded Web Page Iframe wrapper */}
           <div className="border border-white/[0.08] bg-black rounded-3xl overflow-hidden shadow-2xl relative">
             <iframe
+              // Aplikace běží cross-origin izolovaná kvůli openDAW.
+              // Bez `credentialless` by prohlížeč tenhle rám zablokoval.
+              credentialless=""
               key={`${guitarCurrentUrl}_${guitarIframeKey}`}
               src={guitarCurrentUrl}
               className="w-full bg-white h-[750px] sm:h-[820px] md:h-[880px] border-0"

@@ -647,6 +647,8 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
               <div className="relative aspect-video bg-black rounded-2xl border border-white/10 overflow-hidden shadow-xl">
                 <iframe
+                  // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
+                  credentialless=""
                   src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&enablejsapi=1&rel=0`}
                   title={selectedVideo.title}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

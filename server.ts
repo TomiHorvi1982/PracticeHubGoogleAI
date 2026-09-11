@@ -260,6 +260,36 @@ export async function createApp() {
   // Falls back to 3000 for local development.
   const PORT = Number(process.env.PORT) || 3000;
 
+  /**
+   * Cross-origin izolace.
+   *
+   * Bez ní nejde spustit openDAW: jeho WASM engine chce
+   * `SharedArrayBuffer`, a ten prohlížeč vydá jen izolované stránce.
+   * Izolace platí pro celý dokument, takže se musí zapnout tady a ne
+   * jen u té jedné sekce.
+   *
+   * `credentialless`, ne `require-corp`. Naměřeno: pod `require-corp`
+   * přestanou chodit podepsané odkazy z R2 — Cloudflare u nich neposílá
+   * ani CORP, ani CORS, takže by se z knihovny nenačetl jediný obrázek
+   * ani zvuk. `credentialless` tytéž soubory načte bez přihlašovacích
+   * údajů, což podepsaným odkazům nevadí: oprávnění nesou v podpisu,
+   * ne v cookie.
+   *
+   * Cizí rámy (YouTube, TONE3000, Freetar) musí mít atribut
+   * `credentialless`, jinak je izolace zablokuje.
+   *
+   * Safari tuhle hodnotu nezná a hlavičku přeskočí. Tím se aplikace
+   * vrátí do neizolovaného stavu — všechno ostatní funguje dál a jen
+   * openDAW se místo rámu nabídne odkazem.
+   */
+  app.use((req, res, next) => {
+    if (!req.path.startsWith('/api/')) {
+      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+      res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+    }
+    next();
+  });
+
   app.use(express.json({ limit: '20mb' }));
 
   // API Routes

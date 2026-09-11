@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Play, Pause, X, Loader2, RotateCcw } from 'lucide-react';
 import { audioBus } from '../../services/audioBus';
 import { nactiYouTubeApi } from '../../services/youtubeApi';
+import { pripravRam } from '../../services/youtubeRam';
 
 interface Props {
   /** Identifikátor videa na YouTube. */
@@ -67,18 +68,16 @@ export const MiniPrehravac: React.FC<Props> = ({
     void nactiYouTubeApi()
       .then((YT) => {
         if (!zivy || !misto.current) return;
-        prehravac.current = new YT.Player(misto.current, {
-          height: '100%',
-          width: '100%',
-          videoId,
-          playerVars: {
-            autoplay: automaticky ? 1 : 0,
-            controls: 0,
-            rel: 0,
-            playsinline: 1,
-            modestbranding: 1,
-            origin: window.location.origin,
-          },
+        // Rám si stavíme sami kvůli cross-origin izolaci — viz
+        // `youtubeRam.ts`. Bez atributu `credentialless` by zůstal černý.
+        const ram = pripravRam(misto.current, videoId, {
+          autoplay: automaticky ? 1 : 0,
+          controls: 0,
+          rel: 0,
+          playsinline: 1,
+          modestbranding: 1,
+        });
+        prehravac.current = new YT.Player(ram, {
           events: {
             onReady: (e: any) => {
               if (!zivy) return;

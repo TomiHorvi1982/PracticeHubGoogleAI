@@ -1028,6 +1028,8 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                 )}
                 <div className="aspect-video w-full bg-black rounded-2xl overflow-hidden border border-white/10 shadow-lg">
                   <iframe
+                    // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
+                    credentialless=""
                     src={`https://www.youtube-nocookie.com/embed/${youtubeVideos[selectedYtIndex]?.id}?rel=0`}
                     title={youtubeVideos[selectedYtIndex]?.title || 'YouTube Video'}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

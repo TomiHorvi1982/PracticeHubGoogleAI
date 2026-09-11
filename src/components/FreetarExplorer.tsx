@@ -1022,6 +1022,8 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               </div>
             )}
             <iframe
+              // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
+              credentialless=""
               src={iframeUrl}
               className="w-full h-full border-none rounded-3xl"
               title="Freetar.de Web Explorer"

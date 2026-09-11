@@ -1524,6 +1524,8 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
       {videoId && (
         <div className="relative w-full overflow-hidden rounded-2xl border border-kresba" style={{ paddingBottom: '56.25%' }}>
           <iframe
+            // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
+            credentialless=""
             className="absolute inset-0 w-full h-full"
             src={`https://www.youtube.com/embed/${videoId}`}
             title="Náhled videa"

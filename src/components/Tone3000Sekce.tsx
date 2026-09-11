@@ -120,6 +120,11 @@ export const Tone3000Sekce: React.FC = () => {
       */}
       <div className="karta overflow-hidden h-[calc(100vh-260px)] min-h-[420px]">
         <iframe
+          // Aplikace běží cross-origin izolovaná kvůli openDAW.
+          // Bez `credentialless` by prohlížeč tenhle rám zablokoval.
+          // Cenou je, že rám nedostane cookies — přihlášení do TONE3000
+          // uvnitř něj proto nedrží mezi návštěvami.
+          credentialless=""
           key={pokus}
           ref={ram}
           src={plnaAdresa}

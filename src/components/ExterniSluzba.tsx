@@ -4,21 +4,16 @@ import { ExternalLink, TriangleAlert } from 'lucide-react';
 /**
  * Cizí služba, kterou nejde vložit dovnitř.
  *
- * Vkládání rámem je jinde v aplikaci běžné — TONE3000 tak běží přímo
- * v sekci. Tyhle dvě to ale neumožňují, každá z jiného důvodu, a ani
- * jeden se nedá obejít:
- *
- *   BandLab posílá `X-Frame-Options: SAMEORIGIN`, tedy „na cizím webu
- *   se nezobrazuju". Prohlížeč rám odmítne vykreslit.
- *
- *   openDAW posílá `Cross-Origin-Embedder-Policy: require-corp` —
- *   potřebuje cross-origin izolaci kvůli svému WASM enginu. Dát mu ji
- *   znamená zapnout izolaci pro celou naši stránku, a tím rozbít
- *   všechno ostatní, co načítáme odjinud: TONE3000, písma, databázi,
- *   úložiště, YouTube.
+ * Vkládání rámem je jinde v aplikaci běžné — TONE3000 i openDAW tak
+ * běží přímo v sekci. BandLab to ale neumožňuje a obejít to nejde:
+ * posílá `X-Frame-Options: SAMEORIGIN`, tedy „na cizím webu se
+ * nezobrazuju", a prohlížeč rám odmítne vykreslit.
  *
  * Sekce proto nepředstírá, že tu služba je. Prázdný rám nebo věčný
  * spinner vypadá jako rozbitá aplikace; poctivý odkaz ne.
+ *
+ * Používá to i openDAW, ale jen jako záložní stav v prohlížeči bez
+ * cross-origin izolace — viz `OpenDawSekce`.
  */
 
 export interface OdkazSluzby {

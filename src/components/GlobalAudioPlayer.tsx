@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { pripravRam } from '../services/youtubeRam';
 import { audioBus } from '../services/audioBus';
 import { nactiYouTubeApi } from '../services/youtubeApi';
 import { PlaylistItem, UserAccount } from '../types';
@@ -213,18 +214,25 @@ export const GlobalAudioPlayer: React.FC<GlobalAudioPlayerProps> = ({
     if (!isApiReady || !currentTrack?.youtubeId) return;
 
     if (!playerRef.current) {
-      playerRef.current = new window.YT.Player(iframeContainerId, {
-        height: '100%',
-        width: '100%',
-        videoId: currentTrack.youtubeId,
-        playerVars: {
-          autoplay: isPlaying ? 1 : 0,
-          controls: 1,
-          rel: 0,
-          playsinline: 1,
-          enablejsapi: 1,
-          origin: window.location.origin,
-        },
+      /*
+       * Rám si stavíme sami.
+       *
+       * Aplikace běží cross-origin izolovaná kvůli openDAW a izolovaná
+       * stránka zablokuje cizí rám bez atributu `credentialless`. Kdyby
+       * si ho vyrobilo YouTube API samo, zůstal by černý a nikde by se
+       * neobjevila chyba. Podaný rám API nenahradí, připojí se k němu —
+       * parametry proto nese adresa, `playerVars` se tady ignorují.
+       */
+      const misto = document.getElementById(iframeContainerId);
+      if (!misto) return;
+      const ram = pripravRam(misto, currentTrack.youtubeId, {
+        autoplay: isPlaying ? 1 : 0,
+        controls: 1,
+        rel: 0,
+        playsinline: 1,
+      });
+
+      playerRef.current = new window.YT.Player(ram, {
         events: {
           onReady: (event: any) => {
             event.target.setVolume(volume);
