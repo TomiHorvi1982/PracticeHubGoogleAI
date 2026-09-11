@@ -8,7 +8,8 @@ import { PlochaSekci } from './components/plocha/PlochaSekci';
 import { Tone3000Sekce } from './components/Tone3000Sekce';
 import { EditorStop } from './components/EditorStop';
 import { OpenDawSekce } from './components/OpenDawSekce';
-import { ExterniSluzba } from './components/ExterniSluzba';
+import { ZiveSekce } from './components/layout/ZiveSekce';
+import { BandLabSekce } from './components/BandLabSekce';
 import { VyukaSekce } from './components/vyuka/VyukaSekce';
 import { ZakovskaObrazovka } from './components/vyuka/ZakovskaObrazovka';
 import { Zak, vyukaService } from './services/vyukaService';
@@ -451,47 +452,7 @@ function AppContent() {
     editor: <EditorStop />,
     tone3000: <Tone3000Sekce />,
     opendaw: <OpenDawSekce />,
-    bandlab: (
-      <ExterniSluzba
-        nazev="BandLab"
-        popis="Prohlížečové studio, mastering a komunita. Otevře se v novém okně a přihlásíš se tam svým účtem; projekty zůstávají u nich."
-        duvod={
-          <>
-            <strong>Vložit BandLab dovnitř aplikace nejde.</strong> Posílá
-            hlavičku <code>X-Frame-Options: SAMEORIGIN</code>, kterou zakazuje
-            zobrazení na cizím webu — prohlížeč by tu nechal prázdné místo.
-            Není to chyba, kterou bych mohl obejít, a obcházet cizí zákaz by
-            stejně nebylo v pořádku.
-          </>
-        }
-        odkazy={[
-          { nazev: 'Studio', adresa: 'https://www.bandlab.com/studio', popis: 'Nahrávání a mixáž v jejich prohlížečovém studiu.' },
-          { nazev: 'Moje projekty', adresa: 'https://www.bandlab.com/feed/projects', popis: 'Rozdělané skladby na tvém účtu.' },
-          { nazev: 'Mastering', adresa: 'https://www.bandlab.com/mastering', popis: 'Automatický mastering hotového mixu.' },
-        ]}
-        poznamka="Nahrávat přes BandLab s naším kytarovým řetězem nejde — běží v jejich okně a náš aparát v našem. Na to je Mixážní pult."
-      />
-    ),
-    vyuka: <VyukaSekce />,
-    aikapela: <AiKapelaSection />,
-
-    alphatab: (
-        <AlphaTabSection
-          songs={songs}
-          onAddSong={(song) => {
-            songDatabaseService.saveSong(song);
-            setActiveSong(song);
-          }}
-        />
-    ),
-
-    tuner: <Tuner />,
-    settings: <SettingsSection />,
-
-    instruments: <VirtualInstruments />,
-
-    practice: <PracticeAssistant />,
-
+    bandlab: <BandLabSekce />,
     stemmixer: <StemMixerSection currentUser={currentUser} />,
   };
 
@@ -539,9 +500,18 @@ function AppContent() {
       userRole={userRole}
     >
       {/* Sekce: buď jedna přes celou obrazovku, nebo plocha s okny. */}
-      {rezimPlochy
-        ? <PlochaSekci obsah={obsahSekci} />
-        : obsahSekci[activeTab]}
+      {/*
+        * Sekce žijí pořád, i když je vidět plocha s okny.
+        *
+        * `ZiveSekce` je drží připojené a plocha si je půjčuje portálem.
+        * Kdyby se při přepnutí na plochu odmontovaly, přišel bys při
+        * každém přepnutí režimu o rozdělanou práci — přesně o to, čemu
+        * se tohle snaží zabránit.
+        */}
+      {rezimPlochy && <PlochaSekci obsah={obsahSekci} />}
+      <div style={rezimPlochy ? { display: 'none' } : undefined}>
+        <ZiveSekce aktivni={activeTab} obsah={obsahSekci} />
+      </div>
 
       {/* MY LIBRARY (Supabase-backed personal/global asset storage) */}
 

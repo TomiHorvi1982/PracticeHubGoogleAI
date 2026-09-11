@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Grid2X2, LayoutGrid, Save, Trash2, X } from 'lucide-react';
 import { MainTabType } from '../layout/sekce';
 import { KresleniOkna } from '../../hooks/useKreslit';
+import { oknaSekci } from '../../services/oknaSekci';
 import { PlovouciOkno } from '../songbook/PlovouciOkno';
 import {
   OknoSekce, Plocha, dlazdice, dlazdicove, dopredu, otevri, prectiAktualni,
@@ -40,6 +41,35 @@ const BARVA: Record<string, string> = {
  * připojí teprve tam, kde se opravdu použijí. Zavřené okno tedy nic
  * nepočítá a nepřehrává.
  */
+/**
+ * Místo, kam se sekce přestěhuje.
+ *
+ * Musí to být samostatná komponenta, protože kontejner nesmí ani na
+ * okamžik zmizet. Kdyby se hlásil odkazem psaným přímo v `map`, React by
+ * ho při každém překreslení plochy odhlásil a zase přihlásil — portál by
+ * se mezitím neměl kam vykreslit, obsah by se přemontoval a sekce by
+ * přišla o stav. Tedy přesně to, čemu se tohle celé snaží zabránit.
+ *
+ * Proto dva efekty: první drží přihlášení po celou dobu života okna,
+ * druhý jen přepisuje, jestli se má kreslit.
+ */
+const MistoProSekci: React.FC<{ sekce: MainTabType; kreslit: boolean }> = ({ sekce, kreslit }) => {
+  const misto = useRef<HTMLDivElement>(null);
+  const kresliRef = useRef(kreslit);
+  kresliRef.current = kreslit;
+
+  useEffect(() => {
+    oknaSekci.nastav(sekce, misto.current, kresliRef.current);
+    return () => oknaSekci.nastav(sekce, null);
+  }, [sekce]);
+
+  useEffect(() => {
+    if (misto.current) oknaSekci.nastav(sekce, misto.current, kreslit);
+  }, [sekce, kreslit]);
+
+  return <div ref={misto} className="h-full" />;
+};
+
 export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
   const plochaRef = useRef<HTMLDivElement>(null);
   const [okna, setOkna] = useState<OknoSekce[]>(() => prectiAktualni());
@@ -320,12 +350,19 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
               onZavrit={(id) => setOkna((p) => zavri(p, id))}
               onDopredu={(id) => setOkna((p) => dopredu(p, id))}
             >
-              {/* Zakryté okno přestane kreslit. Prohlížeč to sám
-                  nepozná — plátno pod jiným oknem je z jeho pohledu
-                  pořád na obrazovce. */}
-              <KresleniOkna.Provider value={!zakryte(o, okna)}>
-                {obsah[o.sekce]}
-              </KresleniOkna.Provider>
+              {/*
+                * Sem se sekce jen přestěhuje.
+                *
+                * Vykreslit ji tady by znamenalo, že existuje dvakrát —
+                * jednou tady a jednou mimo plochu — a s ní dvakrát
+                * všechno, co si drží: zvukový řetěz, rámy, načtená data.
+                * Živá je proto jen jedna a portál ji sem půjčí.
+                *
+                * Zakryté okno přestane kreslit. Prohlížeč to sám nepozná
+                * — plátno pod jiným oknem je z jeho pohledu pořád na
+                * obrazovce.
+                */}
+              <MistoProSekci sekce={o.sekce} kreslit={!zakryte(o, okna)} />
             </PlovouciOkno>
           );
         })}

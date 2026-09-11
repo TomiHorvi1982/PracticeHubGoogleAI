@@ -96,6 +96,34 @@ export const audioBus = {
     ohlas();
   },
 
+  /**
+   * Zastaví všechno kromě vyjmenovaných zdrojů.
+   *
+   * Pro přepnutí sekce. Sekce zůstávají po přepnutí připojené, aby
+   * nepřišly o rozdělanou práci — jenže připojená sekce hraje dál, i
+   * když ji není vidět, a po pár přepnutích by hrálo všechno naráz.
+   *
+   * Spodní lišta přehrávače je výjimka: ta je schválně nad sekcemi a má
+   * hrát napříč celou aplikací. Proto se nezastavuje všechno, ale všechno
+   * kromě.
+   */
+  stopExcept(ponech: string[]): void {
+    const chranene = new Set(ponech);
+    for (const [id, stop] of zdroje) {
+      if (chranene.has(id)) continue;
+      try {
+        stop();
+      } catch (e) {
+        console.warn(`[audioBus] Zdroj „${id}" se nepodařilo zastavit:`, e);
+      }
+    }
+    // Hlášení se přepíše jen tehdy, když jsme zastavili právě toho, kdo hrál.
+    if (hraje && !chranene.has(hraje.id)) {
+      hraje = null;
+      ohlas();
+    }
+  },
+
   /** Kdo zrovna hraje, nebo `null`. */
   current(): CoHraje | null {
     return hraje;
