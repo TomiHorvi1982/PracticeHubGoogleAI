@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import { KresleniOkna } from '../../hooks/useKreslit';
+import { SekceVidet } from '../../hooks/useSekceVidet';
 import { audioBus } from '../../services/audioBus';
 import { ZDROJE_NAD_SEKCEMI, pridejZivou } from '../../services/zivotSekci';
 import { oknaSekci } from '../../services/oknaSekci';
@@ -36,9 +37,16 @@ import { oknaSekci } from '../../services/oknaSekci';
 interface Props<T extends string> {
   aktivni: T;
   obsah: Partial<Record<T, React.ReactNode>>;
+  /**
+   * Celá obrazovka je zakrytá plochou s okny.
+   *
+   * Aktivní sekce pak není vidět, i když je pořád „aktivní" — vidět jsou
+   * jen ty, které si plocha půjčila do oken.
+   */
+  skryto?: boolean;
 }
 
-export function ZiveSekce<T extends string>({ aktivni, obsah }: Props<T>) {
+export function ZiveSekce<T extends string>({ aktivni, obsah, skryto = false }: Props<T>) {
   const [zive, setZive] = useState<readonly T[]>(() => (obsah[aktivni] ? [aktivni] : []));
 
   /*
@@ -79,15 +87,20 @@ export function ZiveSekce<T extends string>({ aktivni, obsah }: Props<T>) {
     <>
       {zive.map((id) => {
         const okno = oknaSekci.dej(id);
-        const videt = okno ? okno.kreslit : id === aktivni;
+        // Otevřená = na celé obrazovce, nebo v okně na ploše. Zakryté okno
+        // je pořád otevřené — hraje dál, jen nekreslí.
+        const otevrena = okno ? true : !skryto && id === aktivni;
+        const kreslit = okno ? okno.kreslit : otevrena;
 
         // Schovaná sekce nemá co kreslit. Vlnovky a měřáky jedou na
         // `requestAnimationFrame`, který prohlížeč sám neuspí — počítaly
         // by dál a braly procesor zvuku.
         const telo = (
-          <KresleniOkna.Provider value={videt}>
-            {obsah[id]}
-          </KresleniOkna.Provider>
+          <SekceVidet.Provider value={otevrena}>
+            <KresleniOkna.Provider value={kreslit}>
+              {obsah[id]}
+            </KresleniOkna.Provider>
+          </SekceVidet.Provider>
         );
 
         // Sekce otevřená v okně se tam přestěhuje. Zůstává připojená

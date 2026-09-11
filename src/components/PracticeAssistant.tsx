@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { audioSynth } from '../services/audioSynth';
 import { findOrGenerateChord } from '../utils/chordUtils';
 import {
@@ -71,6 +72,10 @@ export const PracticeAssistant: React.FC = () => {
 
   // Chord Backing Loop State
   const [isPlayingBacking, setIsPlayingBacking] = useState(false);
+  // Doprovod vypínalo odmontování; sekce teď zůstává připojená, takže
+  // se zastaví při schování. Metronom se nechává — je globální z horní
+  // lišty a má hrát napříč aplikací.
+  useZastavPriSkryti(() => setIsPlayingBacking(false));
   const [backingStyle, setBackingStyle] = useState<'pop' | 'blues' | 'rock' | 'folk' | 'jazz' | 'custom'>('pop');
   const [chordSequence, setChordSequence] = useState<string[]>(['C', 'G', 'Am', 'F']);
   const [newChordInput, setNewChordInput] = useState('');

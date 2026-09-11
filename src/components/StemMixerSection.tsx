@@ -13,7 +13,8 @@ import { PresetKytary, presetProProgram } from '../services/presetyKytary';
 import { nactiVysku, srovnejVysku, ulozVysku } from '../services/rozvrzeniPultu';
 import { KANAL_KYTARY } from '../services/kytaraVMixu';
 import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import { KresleniOkna } from '../hooks/useKreslit';
 import { 
   Music2,
   Upload,
@@ -270,11 +271,21 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
    * je to výpis jedné složky, ne nic drahého. Když disk k dispozici
    * není (třeba na serveru), nehlídá se vůbec.
    */
+  /*
+   * „Otevřený" znamená vidět.
+   *
+   * Sekce zůstávají po přepnutí připojené (`ZiveSekce`), aby nepřišly o
+   * rozdělanou práci — a s tím by hlídání běželo i ve schovaném pultu,
+   * proti tomu, co slibuje komentář výš. `KresleniOkna` dává `false`, když
+   * je sekce schovaná nebo když je její okno na ploše zakryté.
+   */
+  const pultVidet = useContext(KresleniOkna);
+
   useEffect(() => {
-    if (!mistni.dostupne) return;
+    if (!mistni.dostupne || !pultVidet) return;
     const t = setInterval(() => nactiMistni('tise'), 6000);
     return () => clearInterval(t);
-  }, [mistni.dostupne, nactiMistni]);
+  }, [mistni.dostupne, nactiMistni, pultVidet]);
 
   /**
    * Vytáhne z vloženého textu identifikátor videa.

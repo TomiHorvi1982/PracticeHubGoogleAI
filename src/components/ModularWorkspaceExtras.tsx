@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import {
   Mic, Play, Pause, RotateCw, Volume2, Music, Radio, Compass,
   Activity, ArrowRight, Zap, RefreshCw, VolumeX, ShieldCheck
@@ -27,6 +28,12 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
   const initialPresetIdx = TUNING_PRESETS.findIndex((p) => p.name === activeTuning);
   const [selectedPresetIndex, setSelectedPresetIndex] = useState(initialPresetIdx >= 0 ? initialPresetIdx : 0);
   const [isListening, setIsListening] = useState(false);
+  // Mikrofon se vypne, když se sekce schová — dřív to dělalo odmontování.
+  // Metronom tu je globální z horní lišty, ten se nechává.
+  useZastavPriSkryti(() => {
+    pitchDetectorRef.current?.stop();
+    setIsListening(false);
+  });
   const [pitchData, setPitchData] = useState<PitchData | null>(null);
   const [activeStringIndex, setActiveStringIndex] = useState<number | null>(null);
 

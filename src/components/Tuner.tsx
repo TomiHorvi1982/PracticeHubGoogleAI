@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { PitchDetector, PitchData, REFERENCE_A_RANGE } from '../services/tuner';
 import { TUNING_PRESETS } from '../data/chordsAndScales';
 import { audioSynth } from '../services/audioSynth';
@@ -40,6 +41,18 @@ export const Tuner: React.FC = () => {
   // --- METRONOME STATE ---
   const [metroBpm, setMetroBpm] = useState(120);
   const [isMetroPlaying, setIsMetroPlaying] = useState(false);
+  /*
+   * Mikrofon a metronom ladičky vypínalo odmontování.
+   *
+   * Sekce teď po přepnutí zůstává připojená, a ladička by jinak dál
+   * poslouchala mikrofon, i když ji nikdo nevidí. Zastavuje se stejně
+   * jako tlačítkem „vypnout mikrofon".
+   */
+  useZastavPriSkryti(() => {
+    pitchDetectorRef.current?.stop();
+    setIsListening(false);
+    setIsMetroPlaying(false);
+  });
   const [beatsPerBar, setBeatsPerBar] = useState(4);
   const [currentBeat, setCurrentBeat] = useState(0);
   const [isMuted, setIsMuted] = useState(false);

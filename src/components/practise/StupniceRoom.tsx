@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useZastavPriSkryti } from '../../hooks/useSekceVidet';
 import {
   Play, Square, Music4, Guitar, Hand, Save, Trash2, Undo2, Eraser, Repeat, Settings2,
 } from 'lucide-react';
@@ -153,6 +154,10 @@ export const StupniceRoom: React.FC = () => {
     setHraje(false);
     setKtery(-1);
   };
+
+  // Sekce zůstává po přepnutí připojená, takže úklid při odmontování
+  // nepřijde. Smyčka a metronom se proto zastaví, jakmile se sekce schová.
+  useZastavPriSkryti(zastav);
 
   /** Rozezní jeden tón podle aktuálního ladění a zvuku. */
   const zahrajTon = (t: Tonu, krok: number) => {

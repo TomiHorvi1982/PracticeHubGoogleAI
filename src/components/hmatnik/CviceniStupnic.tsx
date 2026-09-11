@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useZastavPriSkryti } from '../../hooks/useSekceVidet';
 import { Play, Square, Repeat } from 'lucide-react';
 import { SCALES_DATABASE } from '../../data/chordsAndScales';
 import { CVICENI, tonyCviceni } from '../../services/cviceniStupnic';
@@ -42,6 +43,9 @@ export const CviceniStupnic: React.FC = () => {
     setHraje(false);
     setKde(-1);
   };
+
+  // Cvičení se zastaví, jakmile se sekce schová — odmontování už nepřijde.
+  useZastavPriSkryti(zastav);
 
   useEffect(() => zastav, []);
   // Změna vzorce nebo stupnice za běhu by hrála podle starého seznamu.

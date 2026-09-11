@@ -538,7 +538,7 @@ function AppContent() {
         */}
       {rezimPlochy && <PlochaSekci obsah={obsahSekci} />}
       <div style={rezimPlochy ? { display: 'none' } : undefined}>
-        <ZiveSekce aktivni={activeTab} obsah={obsahSekci} />
+        <ZiveSekce aktivni={activeTab} obsah={obsahSekci} skryto={rezimPlochy} />
       </div>
 
       {/* MY LIBRARY (Supabase-backed personal/global asset storage) */}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { useMusicalContext } from '../context/MusicalContext';
 import { MidiPlayerPanel } from './MidiPlayerPanel';
 import { PoslechKytaryPanel } from './hmatnik/PoslechKytaryPanel';
@@ -351,6 +352,9 @@ export const VirtualInstruments: React.FC = () => {
   // --- DRUMS STATES ---
   const [bpm, setBpm] = useState(115);
   const [isPlayingSeq, setIsPlayingSeq] = useState(false);
+  // Sekvencer se zastavoval odmontováním; sekce teď zůstává připojená,
+  // takže se zastaví, jakmile se schová.
+  useZastavPriSkryti(() => setIsPlayingSeq(false));
   const [currentStep, setCurrentStep] = useState(0);
   const [activeDrumPad, setActiveDrumPad] = useState<string | null>(null);
   const [isCustomDrumKitModalOpen, setIsCustomDrumKitModalOpen] = useState(false);

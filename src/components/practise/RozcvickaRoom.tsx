@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useZastavPriSkryti } from '../../hooks/useSekceVidet';
 import { Play, Pause, Check, SkipForward, Flame } from 'lucide-react';
 import { ROZCVICKA, delkaProgramu, Cvik } from '../../data/rozcvicka';
 import { metronomService } from '../../services/metronomService';
@@ -84,6 +85,9 @@ export const RozcvickaRoom: React.FC = () => {
     setBezici(null);
     setZbyva(0);
   };
+
+  // Rozcvička se zastaví, jakmile se sekce schová — odmontování už nepřijde.
+  useZastavPriSkryti(zastav);
 
   const celkem = ROZCVICKA.reduce((s, b) => s + b.cviky.length, 0);
 

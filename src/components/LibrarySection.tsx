@@ -1,5 +1,6 @@
 import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState, useEffect, useRef } from 'react';
+import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { udajeSouboru } from '../services/udajeZNazvu';
 import { usePamet, usePametMnoziny } from '../hooks/usePamet';
 import { WaveformPrehravac } from './songbook/WaveformPrehravac';
@@ -186,6 +187,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
   // MIDI playback
   const [isPlayingMidi, setIsPlayingMidi] = useState(false);
+  // Přehrávání MIDI se zastaví, když se sekce schová — stejně jako
+  // tlačítkem v `handleToggleMidi`. Dřív to dělalo odmontování.
+  useZastavPriSkryti(() => {
+    if (!hrajeMidiRef.current) return;
+    hrajeMidiRef.current = false;
+    setIsPlayingMidi(false);
+    if (midiTimerRef.current) clearInterval(midiTimerRef.current);
+  });
 
   useEffect(() => {
     // Zastavení musí zrušit i noty, které už čekají ve frontě — jinak by
