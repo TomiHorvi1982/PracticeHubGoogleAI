@@ -19,19 +19,41 @@
 /** Identifikátor skladby na BandLabu — UUID. */
 const UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
 
+/** Co se z odkazu dá vyčíst. */
+export interface RozborOdkazu {
+  /** Identifikátor pro vkládaný přehrávač — to, co se skutečně hraje. */
+  id: string;
+  /** Adresa stránky na BandLabu, pokud ji odkaz nesl. */
+  stranka?: string;
+}
+
 /**
- * Vytáhne z odkazu identifikátor skladby.
+ * Rozebere odkaz zkopírovaný z BandLabu.
  *
- * Bere, co člověk zkopíruje: odkaz na příspěvek, hotový vkládaný odkaz
- * i holý identifikátor. Vrací `null`, když to není BandLab — tiše
- * uhodnout něco jiného by vyrobilo přehrávač, který nikdy nic nenajde.
+ * Dnešní odkaz na skladbu vypadá takhle:
+ *
+ *     https://www.bandlab.com/track/<skladba>?revId=<verze>
+ *
+ * Jsou v něm identifikátory dva a **každý je na něco jiného**; ověřeno
+ * zkouškou obou:
+ *
+ * - vkládaný přehrávač hraje podle `revId`. S identifikátorem z cesty
+ *   odpoví „We can't find that track";
+ * - stránku skladby naopak `revId` neotevře, `/track/<verze>`
+ *   i `/post/<verze>` končí na 404.
+ *
+ * Proto se do přehrávače bere `revId` a adresa stránky se nechává celá
+ * tak, jak přišla — jen bez sledovacích parametrů.
+ *
+ * Vrací `null`, když to není BandLab. Tiše uhodnout něco jiného by
+ * vyrobilo přehrávač, který nikdy nic nenajde.
  */
-export function idSkladby(vstup: string): string | null {
+export function rozborOdkazu(vstup: string): RozborOdkazu | null {
   const text = (vstup || '').trim();
   if (!text) return null;
 
   // Holý identifikátor, bez adresy kolem.
-  if (new RegExp(`^${UUID.source}$`, 'i').test(text)) return text.toLowerCase();
+  if (new RegExp(`^${UUID.source}$`, 'i').test(text)) return { id: text.toLowerCase() };
 
   let adresa: URL;
   try {
@@ -41,13 +63,31 @@ export function idSkladby(vstup: string): string | null {
   }
   if (!/(^|\.)bandlab\.com$/i.test(adresa.hostname)) return null;
 
-  // `?id=` u vkládaného přehrávače má přednost před cestou: v odkazu na
-  // revizi jsou identifikátory dva a tenhle je ten, co se má přehrát.
+  const revId = adresa.searchParams.get('revId');
   const zDotazu = adresa.searchParams.get('id');
-  if (zDotazu && UUID.test(zDotazu)) return zDotazu.toLowerCase();
-
   const zCesty = adresa.pathname.match(UUID);
-  return zCesty ? zCesty[0].toLowerCase() : null;
+
+  // `?id=` je hotová adresa přehrávače, tam už nikdo nic hledat nemusí.
+  // Pak teprve `revId`, protože ten hraje. Cesta je až poslední — u dnešních
+  // odkazů je v ní skladba, ne verze.
+  const id = (zDotazu && UUID.test(zDotazu) && zDotazu)
+    || (revId && UUID.test(revId) && revId)
+    || (zCesty && zCesty[0]);
+  if (!id) return null;
+
+  // Stránka jen u odkazů, které na nějakou vedou — adresa přehrávače sama
+  // o sobě není stránka, kam by se dalo „odejít na BandLab".
+  const jePrehravac = adresa.pathname.replace(/\/+$/, '').endsWith('/embed');
+  const stranka = jePrehravac || !zCesty
+    ? undefined
+    : `${adresa.origin}${adresa.pathname}${revId ? `?revId=${encodeURIComponent(revId)}` : ''}`;
+
+  return stranka ? { id: id.toLowerCase(), stranka } : { id: id.toLowerCase() };
+}
+
+/** Identifikátor pro vkládaný přehrávač. Zkratka pro {@link rozborOdkazu}. */
+export function idSkladby(vstup: string): string | null {
+  return rozborOdkazu(vstup)?.id ?? null;
 }
 
 /**
@@ -65,13 +105,31 @@ export interface UlozenaSkladba {
   id: string;
   nazev: string;
   pridano: number;
+  /** Kam vede „otevřít na BandLabu". Chybí u skladeb přidaných přehrávačovou adresou. */
+  stranka?: string;
 }
 
 export const KLIC_SKLADEB = 'neverlate_bandlab_skladby';
 
-/** Je to záznam, se kterým se dá pracovat? Uložená data mohou být z jiné verze. */
+/**
+ * Je to záznam, se kterým se dá pracovat? Uložená data mohou být z jiné
+ * verze — a taky z ruky někoho, kdo si hrál s úložištěm prohlížeče, takže
+ * se adresa stránky kontroluje celá. Bez toho by se dal do odkazu
+ * propašovat `javascript:`.
+ */
 export function jeSkladba(x: any): x is UlozenaSkladba {
-  return !!x && typeof x.id === 'string' && UUID.test(x.id) && typeof x.nazev === 'string';
+  if (!x || typeof x.id !== 'string' || !UUID.test(x.id) || typeof x.nazev !== 'string') return false;
+  if (x.stranka === undefined) return true;
+  return typeof x.stranka === 'string' && jeAdresaBandLabu(x.stranka);
+}
+
+function jeAdresaBandLabu(odkaz: string): boolean {
+  try {
+    const a = new URL(odkaz);
+    return a.protocol === 'https:' && /(^|\.)bandlab\.com$/i.test(a.hostname);
+  } catch {
+    return false;
+  }
 }
 
 /**

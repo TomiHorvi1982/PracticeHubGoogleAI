@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { ExternalLink, Plus, Trash2, TriangleAlert } from 'lucide-react';
 import {
-  UlozenaSkladba, adresaPrehravace, idSkladby, nactiSkladby, odeberSkladbu,
-  pridejSkladbu, ulozSkladby,
+  UlozenaSkladba, adresaPrehravace, nactiSkladby, odeberSkladbu,
+  pridejSkladbu, rozborOdkazu, ulozSkladby,
 } from '../services/bandlabOdkaz';
 
 /**
@@ -31,14 +31,14 @@ export const BandLabSekce: React.FC = () => {
   useEffect(() => { ulozSkladby(skladby); }, [skladby]);
 
   const pridej = () => {
-    const id = idSkladby(odkaz);
-    if (!id) {
+    const rozbor = rozborOdkazu(odkaz);
+    if (!rozbor) {
       setChyba('Tohle není odkaz na skladbu z BandLabu. Použij „Share" → „Copy link" u konkrétní skladby.');
       return;
     }
     setChyba(null);
     setSkladby((p) => pridejSkladbu(p, {
-      id,
+      ...rozbor,
       nazev: nazev.trim() || `Skladba ${p.length + 1}`,
       pridano: Date.now(),
     }));
@@ -76,7 +76,7 @@ export const BandLabSekce: React.FC = () => {
             value={odkaz}
             onChange={(e) => { setOdkaz(e.target.value); setChyba(null); }}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); pridej(); } }}
-            placeholder="https://www.bandlab.com/post/…"
+            placeholder="https://www.bandlab.com/track/…?revId=…"
             className="w-full bg-vhloubeni border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
           />
         </label>
@@ -119,15 +119,19 @@ export const BandLabSekce: React.FC = () => {
             <div key={s.id} className="karta p-3 space-y-2">
               <div className="flex items-center gap-2">
                 <span className="nadpis-panelu grow truncate">{s.nazev}</span>
-                <a
-                  href={`https://www.bandlab.com/post/${s.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Otevřít na BandLabu"
-                  className="p-1.5 text-pismo-slaby hover:text-pismo cursor-pointer"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </a>
+                {/* Jen když odkaz nesl adresu stránky. Poskládat ji z toho,
+                    co hraje přehrávač, nejde — na `revId` BandLab vrací 404. */}
+                {s.stranka && (
+                  <a
+                    href={s.stranka}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Otevřít na BandLabu"
+                    className="p-1.5 text-pismo-slaby hover:text-pismo cursor-pointer"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                )}
                 <button
                   onClick={() => setSkladby((p) => odeberSkladbu(p, s.id))}
                   aria-label={`Odebrat ${s.nazev}`}

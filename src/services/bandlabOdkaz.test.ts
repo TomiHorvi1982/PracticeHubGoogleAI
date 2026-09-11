@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   UlozenaSkladba, adresaPrehravace, idSkladby, jeSkladba, odeberSkladbu, pridejSkladbu,
+  rozborOdkazu,
 } from './bandlabOdkaz';
 
 const ID = '2a0b1c3d-4e5f-4a7b-8c9d-0e1f2a3b4c5d';
@@ -31,11 +32,36 @@ test('sledovací parametry v odkazu nevadí', () => {
 
 test('u odkazu na revizi vyhraje ten, co se má přehrát', () => {
   /*
-   * V takovém odkazu jsou identifikátory dva. Ten v `?id=` je skladba,
-   * ten v cestě je revize — kdyby se bralo, co je první, přehrával by se
-   * špatný kus.
+   * V takovém odkazu jsou identifikátory dva. Ten v `?id=` je hotová
+   * adresa přehrávače — kdyby se bralo, co je první, hrál by se špatný
+   * kus.
    */
   assert.equal(idSkladby(`https://www.bandlab.com/embed/${ID2}?id=${ID}`), ID);
+});
+
+test('z dnešního odkazu na skladbu hraje revize, ne cesta', () => {
+  /*
+   * Ověřeno zkouškou obou: `/embed/?id=<revId>` hraje, `/embed/?id=<z cesty>`
+   * odpoví „We can't find that track". Opačně to platí taky — `/track/<revId>`
+   * i `/post/<revId>` končí na 404, takže stránka si drží celou původní adresu.
+   */
+  assert.deepEqual(rozborOdkazu(`https://www.bandlab.com/track/${ID}?revId=${ID2}`), {
+    id: ID2,
+    stranka: `https://www.bandlab.com/track/${ID}?revId=${ID2}`,
+  });
+});
+
+test('sledovací parametry se do adresy stránky nepřenesou', () => {
+  assert.deepEqual(
+    rozborOdkazu(`https://www.bandlab.com/track/${ID}?revId=${ID2}&sharedFrom=copy_link`),
+    { id: ID2, stranka: `https://www.bandlab.com/track/${ID}?revId=${ID2}` },
+  );
+});
+
+test('adresa přehrávače žádnou stránku nenese', () => {
+  // Odejít z ní na BandLab nejde — `/embed/` je rám, ne stránka skladby.
+  assert.deepEqual(rozborOdkazu(`https://www.bandlab.com/embed/?id=${ID}`), { id: ID });
+  assert.deepEqual(rozborOdkazu(ID), { id: ID }, 'holý identifikátor taky ne');
 });
 
 test('adresa bez protokolu se přijme', () => {
@@ -83,4 +109,15 @@ test('rozbitý uložený záznam se zahodí', () => {
   assert.equal(jeSkladba({ id: 'krátké', nazev: 'x' }), false);
   assert.equal(jeSkladba({ id: ID }), false, 'bez názvu');
   assert.equal(jeSkladba(skladba(ID)), true);
+});
+
+test('podstrčená adresa stránky se zahodí', () => {
+  // Úložiště prohlížeče si může přepsat kdokoli, kdo k němu má přístup,
+  // a z téhle adresy se dělá odkaz, na který se kliká.
+  const s = (stranka: string) => ({ ...skladba(ID), stranka });
+  assert.equal(jeSkladba(s(`https://www.bandlab.com/track/${ID}`)), true);
+  assert.equal(jeSkladba(s('javascript:alert(1)')), false);
+  assert.equal(jeSkladba(s('https://zlodej.cz/track')), false);
+  assert.equal(jeSkladba(s(`http://www.bandlab.com/track/${ID}`)), false, 'bez šifrování');
+  assert.equal(jeSkladba({ ...skladba(ID), stranka: 5 }), false);
 });
