@@ -1,3 +1,5 @@
+import { cekejNaNavrat } from './oauthOkno';
+import { nahodnyVerifier, vyzvaZVerifieru } from './pkce';
 /**
  * Oficiální TONE3000 API — OAuth 2.0 s PKCE.
  *
@@ -105,34 +107,9 @@ export interface Tokeny {
 
 /* ---------------------------------------------------------------- PKCE */
 
-const ABECEDA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-
-/**
- * Náhodný `code_verifier`.
- *
- * Podle RFC 7636 má být 43–128 znaků z nevyhrazené abecedy. Bereme 64,
- * a z `crypto.getRandomValues` — `Math.random` se na tohle nehodí.
- */
-export function nahodnyVerifier(delka = 64): string {
-  const b = new Uint8Array(delka);
-  crypto.getRandomValues(b);
-  let s = '';
-  for (const x of b) s += ABECEDA[x % ABECEDA.length];
-  return s;
-}
-
-/** Base64url bez výplně — tvar, který OAuth čeká. */
-export function base64url(data: ArrayBuffer): string {
-  let s = '';
-  for (const b of new Uint8Array(data)) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-}
-
-/** `code_challenge` = base64url(SHA-256(verifier)), metoda S256. */
-export async function vyzvaZVerifieru(verifier: string): Promise<string> {
-  const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier));
-  return base64url(h);
-}
+// Pomůcky PKCE se sdílejí s přihlášením ke Spotify — viz `pkce.ts`.
+// Vyvážejí se odsud dál, aby se nic, co je odsud bralo, nerozbilo.
+export { nahodnyVerifier, base64url, vyzvaZVerifieru } from './pkce';
 
 export interface ParametryAutorizace {
   clientId: string;
@@ -353,7 +330,7 @@ class Tone3000Klient {
     const okno = window.open(url, 't3k', 'width=1100,height=800');
     if (!okno) return { ok: false, chyba: 'Prohlížeč zablokoval okno. Povol vyskakovací okna.' };
 
-    const navrat = await this.pockejNaNavrat(okno);
+    const navrat = await this.pockejNaNavrat(state);
     if (!navrat.ok) return { ok: false, chyba: navrat.chyba };
 
     try {
@@ -364,25 +341,20 @@ class Tone3000Klient {
     }
   }
 
-  /** Poslouchá zprávu od návratové stránky; hlídá i zavření okna rukou. */
-  private pockejNaNavrat(okno: Window): Promise<Navrat> {
-    return new Promise((hotovo) => {
-      const konec = (v: Navrat) => {
-        window.removeEventListener('message', prijmi);
-        clearInterval(hlidani);
-        hotovo(v);
-      };
-      const prijmi = (e: MessageEvent) => {
-        // Zpráva smí přijít jen z naší vlastní stránky.
-        if (e.origin !== window.location.origin) return;
-        if (!e.data || e.data.typ !== 't3k-navrat') return;
-        konec(precitNavrat(String(e.data.hledani || ''), sessionStorage.getItem(KLIC_STATE)));
-      };
-      window.addEventListener('message', prijmi);
-      const hlidani = window.setInterval(() => {
-        if (okno.closed) konec({ ok: false, chyba: 'Okno bylo zavřené dřív, než se to dokončilo.' });
-      }, 500);
-    });
+  /**
+   * Počká na návrat z přihlášení.
+   *
+   * Nesleduje `okno.closed` ani nečeká na `window.opener`. Aplikace běží
+   * s `COOP: same-origin` kvůli openDAW a to vazbu na okno přeruší, jakmile
+   * okno přejde na tone3000.com: `closed` by hlásilo zavřené okno hned po
+   * otevření a návratová stránka by neměla komu psát. Zpráva proto jde přes
+   * `BroadcastChannel` — viz `oauthOkno.ts`.
+   */
+  private async pockejNaNavrat(state: string): Promise<Navrat> {
+    const v = await cekejNaNavrat('t3k-navrat', { ocekavanyState: state });
+    // Porovnáním, ne `!v.ok`: bez strictNullChecks by se unie nezúžila.
+    if (v.ok === false) return { ok: false, chyba: v.chyba };
+    return precitNavrat(v.hledani, sessionStorage.getItem(KLIC_STATE));
   }
 
   private async vymenKod(code: string, verifier: string): Promise<void> {

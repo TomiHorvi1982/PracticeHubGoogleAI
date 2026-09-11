@@ -46,9 +46,50 @@ export interface Song {
   obalAlba?: string;
   obrazekInterpreta?: string;
   nazevAlba?: string;
+  /**
+   * Odkud skladba přišla, když vznikla importem (sekce Music Import).
+   *
+   * Leží v `metadata` jako všechno ostatní mimo název a interpreta, takže
+   * nepotřebuje nový sloupec ani tabulku. Stávající písně ho nemají a nic
+   * se na nich nemění.
+   */
+  importMetadata?: ImportMetadata;
   createdAt: number;
   updatedAt: number;
   author?: string;
+}
+
+/**
+ * Normalizovaná metadata importované skladby.
+ *
+ * Tvar vychází z modelu `Song` ve spotDL, zúžený na to, co zpěvník
+ * doopravdy použije. Pole, která Spotify od února 2026 novým aplikacím
+ * nevydává (`popularity`, `label`), tu schválně nejsou — slibovala by
+ * něco, co nikdy nepřijde. ISRC je volitelné ze stejného důvodu: Spotify
+ * ho v únoru odebralo a v březnu zase vrátilo.
+ */
+export interface ImportMetadata {
+  source: 'spotify';
+  sourceId: string;
+  sourceUrl: string;
+  title: string;
+  artist: string;
+  artists: string[];
+  album: string | null;
+  albumArtist: string | null;
+  /** Délka ve vteřinách. */
+  duration: number;
+  /** `YYYY`, `YYYY-MM` nebo `YYYY-MM-DD` — Spotify u starých alb zná jen rok. */
+  releaseDate: string | null;
+  coverUrl: string | null;
+  isrc: string | null;
+  externalIds: Record<string, string>;
+  trackNumber: number | null;
+  discNumber: number | null;
+  explicit: boolean;
+  importedAt: number;
+  /** SHA-256 vlastního zvuku, pokud se k písni připojil. */
+  audioChecksum?: string;
 }
 
 export interface SongAttachment {

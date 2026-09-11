@@ -15,6 +15,7 @@ export type MainTabType =
   | 'editor'
   | 'opendaw'
   | 'bandlab'
+  | 'musicimport'
   | 'vyuka'
   | 'instruments'
   | 'youtube'
@@ -53,6 +54,9 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'editor stop': 'editor',
   'open daw': 'opendaw',
   'bandlab': 'bandlab',
+  'music import': 'musicimport',
+  'import hudby': 'musicimport',
+  'import ze spotify': 'musicimport',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
   // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.

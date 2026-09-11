@@ -3,6 +3,7 @@ import { supabase } from './supabaseClient';
 import { authService } from './authService';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { fileUrlService, FileRef } from './fileUrlService';
+import { klicPisne } from './klicPisne';
 
 type SongsCallback = (songs: Song[]) => void;
 
@@ -97,16 +98,13 @@ function songToRowUpdate(song: Song) {
  * songs). RLS (`songs_insert_own_or_shared` etc.) enforces this the same
  * way regardless of whether the write comes from here or anywhere else.
  */
-/** Porovnání písní odolné vůči diakritice, velkým písmenům a interpunkci. */
-export function klicPisne(artist: string | undefined | null, title: string): string {
-  const n = (x: string) =>
-    String(x || '')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]/g, '');
-  return `${n(artist || '')}|${n(title)}`;
-}
+/**
+ * Porovnání písní odolné vůči diakritice, velkým písmenům a interpunkci.
+ *
+ * Bydlí v `klicPisne.ts`, aby ho šlo použít i v modulu bez Supabase —
+ * hledání duplicit při importu se ověřuje testem. Vyváží se odsud dál.
+ */
+export { klicPisne };
 
 /** Sjednocení pole bez duplicit podle zadaného klíče. */
 function spojPole<T>(a: T[] | undefined, b: T[] | undefined, klic: (x: T) => string): T[] {

@@ -10,6 +10,7 @@ import { EditorStop } from './components/EditorStop';
 import { OpenDawSekce } from './components/OpenDawSekce';
 import { ZiveSekce } from './components/layout/ZiveSekce';
 import { BandLabSekce } from './components/BandLabSekce';
+import { MusicImportSekce } from './components/MusicImportSekce';
 import { VyukaSekce } from './components/vyuka/VyukaSekce';
 import { ZakovskaObrazovka } from './components/vyuka/ZakovskaObrazovka';
 import { Zak, vyukaService } from './services/vyukaService';
@@ -453,6 +454,11 @@ function AppContent() {
     tone3000: <Tone3000Sekce />,
     opendaw: <OpenDawSekce />,
     bandlab: <BandLabSekce />,
+    musicimport: (
+      <MusicImportSekce
+        onOtevritPisen={(song) => { setActiveSong(song); setActiveTab('songbook'); }}
+      />
+    ),
     stemmixer: <StemMixerSection currentUser={currentUser} />,
   };
 

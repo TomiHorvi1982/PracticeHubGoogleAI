@@ -86,6 +86,8 @@ export const SKUPINY: Skupina[] = [
     nazev: 'Archiv',
     polozky: [
       { id: 'library', nazev: 'Soubory' },
+      // Import míří do zpěvníku a knihovny, proto k archivu, ne ke zvuku.
+      { id: 'musicimport', nazev: 'Music Import', kratky: 'Import' },
       { id: 'vyuka', nazev: 'Výuka' },
       { id: 'zalozky', nazev: 'Záložky' },
     ],
