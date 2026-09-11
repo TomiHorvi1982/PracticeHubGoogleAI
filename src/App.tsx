@@ -43,6 +43,8 @@ import { PodiumSection } from './components/PodiumSection';
 import { UvitaniSection } from './components/UvitaniSection';
 import { podiumProfil } from './services/podiumProfil';
 import { authService } from './services/authService';
+import { coUkazat, jeAdresaZaka } from './services/vstupniBrana';
+import { VstupniStranka } from './components/VstupniStranka';
 import { playlistService } from './services/playlistService';
 import { songDatabaseService } from './services/songDatabaseService';
 
@@ -100,6 +102,8 @@ function AppContent() {
 
   // Authentication state
   const [authSession, setAuthSession] = useState<AuthSession | null>(() => authService.getCurrentSession());
+  /** Už se ví, jestli je někdo přihlášený? Do té doby brána nic neukáže. */
+  const [authPripraveno, setAuthPripraveno] = useState(() => authService.jePripraveno());
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [passwordSetupRequired, setPasswordSetupRequired] = useState(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
@@ -157,6 +161,7 @@ function AppContent() {
     let kdoNaposled: string | null = null;
     const unsubAuth = authService.subscribe((currentAuth) => {
       setAuthSession(currentAuth);
+      setAuthPripraveno(authService.jePripraveno());
 
       // Pódium patří ke člověku, takže se při každé změně přihlášení
       // přepne a natáhne z profilu. Hlídá se, kdo je přihlášený, ne
@@ -497,6 +502,27 @@ function AppContent() {
    * opomenutí posadí dítě do mixážního pultu. Co se nesestaví, tam se
    * dostat nedá.
    */
+  /*
+   * Nepřihlášený dostane jen vstupní stránku.
+   *
+   * Stejný princip jako u žáka níž: vrací se dřív, než se studio sestaví,
+   * takže se do něj nedá dostat žádnou postranní cestou.
+   */
+  const brana = coUkazat({ pripraveno: authPripraveno, prihlasen: !!currentUser });
+  if (brana === 'cekani') return null;
+  if (brana === 'brana') {
+    return (
+      <VstupniStranka
+        proZaky={jeAdresaZaka(window.location.pathname)}
+        forceInviteTab={passwordSetupRequired}
+        onPrihlaseno={(s) => {
+          setAuthSession(s);
+          setPasswordSetupRequired(false);
+        }}
+      />
+    );
+  }
+
   if (userRole === 'zak') {
     if (zak === undefined) return null;   // ještě nevíme, kdo to je
     if (zak) {

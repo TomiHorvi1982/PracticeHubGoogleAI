@@ -1,4 +1,5 @@
 import { YouTubeVideo } from '../types';
+import { authService } from './authService';
 
 export interface OnlineSearchResult {
   title: string;
@@ -12,9 +13,13 @@ export interface OnlineSearchResult {
 }
 
 export async function searchOnlineSongs(query: string): Promise<OnlineSearchResult[]> {
+  const token = authService.getCurrentSession()?.token;
   const response = await fetch('/api/search-online-chords', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ query }),
   });
 

@@ -4,6 +4,7 @@
 import { MediaTrack, LyricLine, MediaPlaylist, MediaPlaybackState, Song } from '../types';
 import { eventBus } from './eventBus';
 import { songDatabaseService } from './songDatabaseService';
+import { authService } from './authService';
 
 const STORAGE_KEY_LIKED = 'neverlate_media_liked_v2';
 const STORAGE_KEY_HISTORY = 'neverlate_media_history_v2';
@@ -604,9 +605,13 @@ export class MediaCenterService {
     }
 
     try {
+      const token = authService.getCurrentSession()?.token;
       const res = await fetch('/api/media/lyrics', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           title: track.title,
           artist: track.artist,

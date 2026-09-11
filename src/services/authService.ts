@@ -160,9 +160,21 @@ class AuthService {
   private subscribers: Array<(session: AuthSession | null) => void> = [];
   private passwordRecoverySubscribers: Array<(pending: boolean) => void> = [];
   private passwordRecoveryPending = false;
+  /**
+   * Je už jasné, jestli je někdo přihlášený?
+   *
+   * Uložené přihlášení se po načtení stránky obnovuje až za chvíli. Do té
+   * doby je `currentSession` prázdné, i když přihlášený jsi — a vstupní
+   * brána by tě na okamžik vyhodila na přihlašování.
+   */
+  private pripraveno = false;
 
   constructor() {
     this.init();
+  }
+
+  public jePripraveno(): boolean {
+    return this.pripraveno;
   }
 
   private async init() {
@@ -188,9 +200,16 @@ class AuthService {
       }
     });
 
-    const { data } = await supabase.auth.getSession();
-    if (data.session && !this.passwordRecoveryPending) {
-      await this.hydrateFromSupabaseSession(data.session);
+    try {
+      const { data } = await supabase.auth.getSession();
+      if (data.session && !this.passwordRecoveryPending) {
+        await this.hydrateFromSupabaseSession(data.session);
+      }
+    } finally {
+      // I když se obnovení nepovede — jinak by aplikace čekala věčně
+      // a místo brány by ukazovala prázdnou obrazovku.
+      this.pripraveno = true;
+      this.notifySubscribers();
     }
   }
 

@@ -15,6 +15,15 @@ interface LoginModalProps {
    * user opened an invite/reset-password email link) — locks the modal to
    * the "set a new password" tab instead of the normal login form. */
   forceInviteTab?: boolean;
+  /**
+   * Formulář je součástí vstupní stránky, ne okno přes aplikaci.
+   *
+   * Nemá křížek: zavřít ho a dostat se tím dovnitř bez přihlášení nesmí
+   * jít. Místo zatemnění přes celou obrazovku sedí v toku stránky.
+   */
+  vlozene?: boolean;
+  /** Kterou záložkou začít. Odkaz pro žáky otevírá rovnou jejich. */
+  vychoziRezim?: 'login' | 'zak';
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({
@@ -24,8 +33,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   initialInviteToken,
   initialEmail,
   forceInviteTab,
+  vlozene = false,
+  vychoziRezim = 'login',
 }) => {
-  const [mode, setMode] = useState<'login' | 'invite' | 'zak'>('login');
+  const [mode, setMode] = useState<'login' | 'invite' | 'zak'>(vychoziRezim);
   /* Přihlášení dítěte: přezdívka a čtyři číslice, žádný e-mail. */
   const [zakPrezdivka, setZakPrezdivka] = useState('');
   const [zakPin, setZakPin] = useState('');
@@ -118,7 +129,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md font-sans">
+    <div className={vlozene
+      ? 'w-full max-w-md font-sans'
+      : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md font-sans'}>
       <div className="bg-plocha-2 border border-white/[0.1] shadow-2xl rounded-3xl w-full max-w-md overflow-hidden relative text-white">
         
         {/* Top Header */}
@@ -135,12 +148,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <p className="text-xs text-pismo-tlum">Neverlast — Never Late Studio</p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-pismo-tlum hover:text-white p-2 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
-          >
-            ✕
-          </button>
+          {!vlozene && (
+            <button
+              onClick={onClose}
+              className="text-pismo-tlum hover:text-white p-2 hover:bg-white/10 rounded-xl transition-all cursor-pointer"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {/* Mode Selector Tabs (Segmented control) */}

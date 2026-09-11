@@ -2086,7 +2086,9 @@ export async function createApp() {
   });
 
   // Gemini Photo-to-Song / Chord OCR Transcriber Endpoint
-  app.post('/api/transcribe-photo', async (req, res) => {
+  // Jen pro přihlášené: volá Gemini na náš klíč, a bez toho by ho mohl
+  // provolat kdokoli, kdo zná adresu.
+  app.post('/api/transcribe-photo', requireAuth, async (req, res) => {
     try {
       const { image } = req.body;
       if (!image) {
@@ -2992,7 +2994,8 @@ You're my wonder[Em7]wall. [C] [Em7] [G] [Em7]`,
 
   // --- MEDIA CENTER API ENDPOINTS (Kaset Engine for NeverLate) ---
   // 1. Synchronized Lyrics & LRC Fetcher / Synthesizer
-  app.post('/api/media/lyrics', async (req, res) => {
+  // Jen pro přihlášené — umí sáhnout na Gemini, viz `/api/transcribe-photo`.
+  app.post('/api/media/lyrics', requireAuth, async (req, res) => {
     try {
       const { title, artist, songId } = req.body;
       if (!title) {
@@ -4143,7 +4146,8 @@ Odpověz POUZE samotným textem ve standardním formátu LRC, žádný úvod ani
   });
 
   // Online Song Search & Web Scraper for pisnicky-akordy.cz & chord databases
-  app.post('/api/search-online-chords', async (req, res) => {
+  // Jen pro přihlášené — umí sáhnout na Gemini, viz `/api/transcribe-photo`.
+  app.post('/api/search-online-chords', requireAuth, async (req, res) => {
     try {
       const { query } = req.body;
       if (!query || typeof query !== 'string') {
