@@ -459,6 +459,28 @@ function AppContent() {
         onOtevritPisen={(song) => { setActiveSong(song); setActiveTab('songbook'); }}
       />
     ),
+    // Obnoveno: tyhle sekce omylem smazal výřez při náhradě BandLabu
+    // v d3f83f4 — mizely mezi `bandlab:` a `stemmixer:`. Znění je původní.
+    vyuka: <VyukaSekce />,
+    aikapela: <AiKapelaSection />,
+
+    alphatab: (
+        <AlphaTabSection
+          songs={songs}
+          onAddSong={(song) => {
+            songDatabaseService.saveSong(song);
+            setActiveSong(song);
+          }}
+        />
+    ),
+
+    tuner: <Tuner />,
+    settings: <SettingsSection />,
+
+    instruments: <VirtualInstruments />,
+
+    practice: <PracticeAssistant />,
+
     stemmixer: <StemMixerSection currentUser={currentUser} />,
   };
 

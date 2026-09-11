@@ -12,7 +12,7 @@ import {
   NahledInterpreta, NahledKolekce, NahledSkladby, POPIS_VYNECHANI,
 } from '../services/musicImport/normalizace';
 import { musicImportApi } from '../services/musicImport/musicImportApi';
-import { spotifyPrihlaseni } from '../services/musicImport/spotifyPrihlaseni';
+import { adresaBezLocalhostu, spotifyPrihlaseni } from '../services/musicImport/spotifyPrihlaseni';
 import {
   PolozkaImportu, Rozhodnuti, importuj, pripravPolozky, souhrn, zopakujNeuspesne,
 } from '../services/musicImport/importWorkflow';
@@ -137,6 +137,19 @@ export const MusicImportSekce: React.FC<Props> = ({ onOtevritPisen }) => {
   const [polozky, setPolozky] = useState<PolozkaImportu[] | null>(null);
   const [importuje, setImportuje] = useState(false);
   const [pisne, setPisne] = useState<Song[]>(() => songDatabaseService.getSongs());
+
+  /*
+   * Adresa bez localhostu, pokud tu je potřeba.
+   *
+   * Spotify nepřijme přihlášení s návratem na `localhost`. Týká se to jen
+   * přihlášení k vlastním playlistům — skladby, alba a hledání jdou přes
+   * server a adresa jim nevadí. Ukazuje se to hned, ne až po kliknutí,
+   * protože s tou adresou se zakládá i aplikace ve Spotify dashboardu.
+   */
+  const jinaAdresa = useMemo(
+    () => (typeof window !== 'undefined' ? adresaBezLocalhostu(window.location.href) : null),
+    [],
+  );
 
   const ctrlNacteni = useRef<AbortController | null>(null);
   const ctrlImportu = useRef<AbortController | null>(null);
@@ -394,6 +407,20 @@ export const MusicImportSekce: React.FC<Props> = ({ onOtevritPisen }) => {
           )}
         </div>
 
+        {jinaAdresa && (
+          <p className="flex items-start gap-2 text-drobne text-pozor bg-pozor/10 border border-pozor/30 rounded-panel p-3">
+            <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              Aplikace běží na adrese <code>localhost</code> a z té Spotify přihlášení nepřijme — přes http
+              povoluje jen <code>127.0.0.1</code>. Pro import vlastních playlistů ji otevři na{' '}
+              <a href={jinaAdresa} className="underline font-bold">{new URL(jinaAdresa).origin}</a>{' '}
+              (do aplikace se tam přihlásíš znovu — pro prohlížeč je to jiná adresa). Ve Spotify
+              dashboardu nastav Redirect URI <code>{new URL(jinaAdresa).origin}/spotify-callback.html</code>.
+              Skladby, alba a hledání fungují i tady.
+            </span>
+          </p>
+        )}
+
         <div className="flex flex-wrap items-center gap-2 text-stitek text-pismo-slaby">
           {spotifyPrihlaseni.nastaveno() ? (
             spotifyUcet ? (
@@ -412,8 +439,9 @@ export const MusicImportSekce: React.FC<Props> = ({ onOtevritPisen }) => {
                 Skladby playlistu vydá Spotify jen jeho majiteli nebo spoluautorovi.
                 <button
                   onClick={() => void prihlasSpotify()}
-                  disabled={prihlasuje}
-                  className="flex items-center gap-1 text-znacka hover:underline cursor-pointer disabled:opacity-40"
+                  disabled={prihlasuje || !!jinaAdresa}
+                  title={jinaAdresa ? 'Z adresy localhost Spotify přihlášení nepřijme' : undefined}
+                  className="flex items-center gap-1 text-znacka hover:underline cursor-pointer disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed"
                 >
                   {prihlasuje ? <Loader2 className="w-3 h-3 animate-spin" /> : <LogIn className="w-3 h-3" />}
                   Přihlásit ke Spotify
@@ -505,7 +533,8 @@ export const MusicImportSekce: React.FC<Props> = ({ onOtevritPisen }) => {
               {upozorneni.kod === 'SPOTIFY_LOGIN_REQUIRED' && spotifyPrihlaseni.nastaveno() && !spotifyUcet && (
                 <button
                   onClick={() => void prihlasSpotify()}
-                  disabled={prihlasuje}
+                  disabled={prihlasuje || !!jinaAdresa}
+                  title={jinaAdresa ? 'Z adresy localhost Spotify přihlášení nepřijme' : undefined}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne zlata-plocha cursor-pointer shrink-0 disabled:opacity-40"
                 >
                   <LogIn className="w-3.5 h-3.5" />Přihlásit

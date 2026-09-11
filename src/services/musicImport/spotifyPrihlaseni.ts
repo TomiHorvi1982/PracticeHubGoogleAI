@@ -81,6 +81,29 @@ export function precitNavrat(hledani: string, ocekavanyState: string | null): Na
   return code ? { ok: true, code } : { ok: false, chyba: 'Návrat z přihlášení je bez kódu.' };
 }
 
+/**
+ * Adresa, ze které přihlášení ke Spotify projde — nebo `null`, když je
+ * ta současná v pořádku.
+ *
+ * Spotify nepřijme `localhost` jako návratovou adresu; přes http pustí
+ * jen výslovný loopback `127.0.0.1` nebo `[::1]` (dokumentace „Redirect
+ * URI"). Návratová adresa se skládá z adresy, na které aplikace běží,
+ * takže otevřená na `localhost` by přihlášení nedokončila nikdy — a
+ * Spotify by to ohlásilo jen obecným „INVALID_CLIENT: Invalid redirect
+ * URI", ze kterého se příčina hledá těžko.
+ */
+export function adresaBezLocalhostu(href: string): string | null {
+  try {
+    const u = new URL(href);
+    const h = u.hostname.toLowerCase();
+    if (h !== 'localhost' && !h.endsWith('.localhost')) return null;
+    u.hostname = '127.0.0.1';
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
 /** Obnovit token s předstihem, ať nevyprší uprostřed načítání playlistu. */
 export function vyprsi(platiDo: number, ted = Date.now(), rezerva = 60_000): boolean {
   return platiDo - rezerva <= ted;
@@ -130,6 +153,12 @@ class SpotifyPrihlaseni {
   async prihlas(signal?: AbortSignal): Promise<{ ok: boolean; chyba?: string }> {
     const id = klientId();
     if (!id) return { ok: false, chyba: 'Přihlášení ke Spotify není nastavené (chybí VITE_SPOTIFY_CLIENT_ID).' };
+    // Z localhostu by Spotify okno nechalo skončit chybou „Invalid redirect
+    // URI". Lepší to říct hned a konkrétně, než otevírat okno, které selže.
+    const jinde = adresaBezLocalhostu(window.location.href);
+    if (jinde) {
+      return { ok: false, chyba: `Spotify nepřijme přihlášení z adresy localhost. Otevři aplikaci na ${new URL(jinde).origin}.` };
+    }
 
     const verifier = nahodnyVerifier();
     const state = nahodnyVerifier(32);
