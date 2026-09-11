@@ -16,6 +16,8 @@ export type MainTabType =
   | 'opendaw'
   | 'bandlab'
   | 'musicimport'
+  | 'karaoke'
+  | 'bandzone'
   | 'vyuka'
   | 'instruments'
   | 'youtube'
@@ -57,6 +59,9 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'music import': 'musicimport',
   'import hudby': 'musicimport',
   'import ze spotify': 'musicimport',
+  'karaoke texty': 'karaoke',
+  'karaoke': 'karaoke',
+  'bandzone': 'bandzone',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
   // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.

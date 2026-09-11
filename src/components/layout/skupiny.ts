@@ -55,6 +55,7 @@ export const SKUPINY: Skupina[] = [
     polozky: [
       { id: 'alphatab', nazev: 'Guitar Pro' },
       { id: 'texty', nazev: 'Texty' },
+      { id: 'karaoke', nazev: 'Karaoke texty', kratky: 'Karaoke' },
     ],
   },
   {
@@ -88,6 +89,8 @@ export const SKUPINY: Skupina[] = [
       { id: 'library', nazev: 'Soubory' },
       // Import míří do zpěvníku a knihovny, proto k archivu, ne ke zvuku.
       { id: 'musicimport', nazev: 'Music Import', kratky: 'Import' },
+      // Rozcestník na komunitu kapel — ve Zvuku už je pět položek.
+      { id: 'bandzone', nazev: 'Bandzone' },
       { id: 'vyuka', nazev: 'Výuka' },
       { id: 'zalozky', nazev: 'Záložky' },
     ],
