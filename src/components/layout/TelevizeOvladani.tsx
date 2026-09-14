@@ -142,15 +142,12 @@ export const TelevizeOvladani: React.FC = () => {
           <div className="text-drobne">
             {stav.pripojena ? (
               <p className="text-uspech">
-                Připojená{stav.celaObrazovka ? ' · celá obrazovka' : ' — klikni do okna na televizi, přepne se na celou obrazovku'}.
+                Připojená{stav.celaObrazovka ? ' · celá obrazovka' : ' — klikni do okna na televizi'}.
                 <span className="block text-pismo-tlum">Teď ukazuje: {NAZVY_VYSTUPU[stav.vystup.druh]}</span>
               </p>
             ) : (
               <div className="space-y-2">
-                <p className="text-pismo-tlum">
-                  Zapoj televizi přes HDMI, otevři okno a přetáhni ho na ni.
-                  Zvuk zůstává tady — televize jen ukazuje.
-                </p>
+                <p className="text-pismo-tlum">Otevři okno a přetáhni ho na televizi.</p>
                 <button onClick={otevriOkno}
                   className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-prvek text-drobne font-bold bg-info/15 text-info ring-1 ring-info/40 cursor-pointer">
                   <Tv className="w-4 h-4" />Otevřít okno pro televizi
@@ -174,9 +171,6 @@ export const TelevizeOvladani: React.FC = () => {
           <div className="space-y-2">
             {karta === 'prazdno' && (
               <>
-                <p className="text-stitek text-pismo-slaby">
-                  Když se dítě zrovna nemá na co dívat — na televizi zůstane jen logo.
-                </p>
                 {tlacitkoPoslat(() => televize.posli({ druh: 'prazdno' }), 'Vyprázdnit televizi')}
               </>
             )}
@@ -206,10 +200,6 @@ export const TelevizeOvladani: React.FC = () => {
 
             {karta === 'metronom' && (
               <>
-                <p className="text-stitek text-pismo-slaby">
-                  Televize ukáže číslo doby tak velké, že je vidět od dveří. Klepe
-                  metronom tady; když ho zrychlíš nebo zastavíš, televize se srovná sama.
-                </p>
                 <p className="text-drobne text-pismo-tlum">
                   {metronomService.bezi() ? `Běží · ${metronomService.tempo()} BPM` : 'Metronom stojí — zapni ho nahoře v liště.'}
                 </p>
@@ -251,9 +241,6 @@ export const TelevizeOvladani: React.FC = () => {
                   <input type="number" min={1} value={semeno} onChange={(e) => setSemeno(Math.max(1, Number(e.target.value) || 1))}
                     title="Varianta listu — stejné číslo jako u tisku dá stejný list" className={`w-14 ${pole}`} />
                 </div>
-                <p className="text-stitek text-pismo-slaby">
-                  Varianta sedí s listem k tisku: stejný stupeň, druh a číslo dají na televizi i na papíře totéž.
-                </p>
                 {tlacitkoPoslat(() => televize.posli({ druh: 'list', stupen, list, semeno }))}
               </>
             )}
