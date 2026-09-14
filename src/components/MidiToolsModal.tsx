@@ -100,7 +100,6 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                 <span className="odznak bg-uspech text-black px-1.5 py-0.5 rounded">
                   MIDI Tools
                 </span>
-                <span className="text-xs text-pismo-tlum font-medium">Hardware & mapování</span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
                 Nastavení Hardware MIDI & Mapování Zvuků
@@ -242,7 +241,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                       </>
                     ) : (
                       <span className="text-pismo-tlum">
-                        Filtr je vypnut – všechny klávesy na vašem MIDI nástroji přehrávají zvuky bez omezení stupnicí.
+                        Filtr je vypnutý.
                       </span>
                     )}
                   </p>
@@ -262,7 +261,6 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                     />
                     <span>Automaticky přehrávat zvuk z hardware MIDI klávesnice</span>
                   </label>
-                  <span className="text-drobne text-uspech font-mono">Polyfonní syntéza povolena</span>
                 </div>
               </div>
 
@@ -290,7 +288,7 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                     })
                   ) : (
                     <span className="text-xs text-pismo-slaby font-mono">
-                      Stiskněte klávesy na svém MIDI kontroléru... Noty se objeví zde v reálném čase.
+                      Čekám na noty z kontroléru…
                     </span>
                   )}
                 </div>
@@ -447,9 +445,6 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
 
         {/* Modal Footer */}
         <div className="bg-white/[0.03] border-t border-white/[0.08] p-4 flex items-center justify-between text-xs">
-          <span className="text-pismo-tlum font-medium">
-            Neverlast Studio Audio Engine & MIDI 2.6
-          </span>
           <button
             onClick={onClose}
             className="px-5 py-2 bg-white text-black hover:bg-neutral-200 font-semibold rounded-xl transition-all cursor-pointer shadow-md"

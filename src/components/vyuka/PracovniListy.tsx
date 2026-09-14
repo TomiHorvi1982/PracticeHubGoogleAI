@@ -97,7 +97,6 @@ export const PracovniListy: React.FC = () => {
           >
             <RefreshCw className="w-3.5 h-3.5" />Jiná varianta
           </button>
-          <span className="text-stitek text-pismo-slaby">{zvolenyDruh.popis}</span>
         </div>
       </div>
 

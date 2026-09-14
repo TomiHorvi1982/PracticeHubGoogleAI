@@ -267,9 +267,6 @@ export const HraniTest: React.FC = () => {
         </div>
       ) : (
         <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-8 text-center space-y-3">
-          <p className="text-sm text-pismo-tlum">
-            Zapni si vstup, vyber druh úkolu a spusť zadání.
-          </p>
           <button
             onClick={() => zadej()}
             className="px-4 py-2 rounded-xl bg-nastroj text-white text-sm font-bold cursor-pointer"

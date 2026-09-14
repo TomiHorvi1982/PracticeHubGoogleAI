@@ -1496,9 +1496,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   ) : (
                     <div className="bg-black/30 border border-white/10 rounded-2xl p-8 text-center space-y-3">
                       <FileSpreadsheet className="w-8 h-8 text-znacka mx-auto animate-pulse" />
-                      <p className="text-xs font-bold text-znacka uppercase">
-                        Guitar Pro tabulatura připravena
-                      </p>
                     </div>
                   )}
                 </div>

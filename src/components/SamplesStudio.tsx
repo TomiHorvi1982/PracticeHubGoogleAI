@@ -186,7 +186,6 @@ export const SamplesStudio: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Layers className="w-4 h-4 text-znacka shrink-0" />
           <h2 className="stitek-pole">Skládačka</h2>
-          <span className="text-stitek text-pismo-slaby">stopy pod sebou, části za sebou</span>
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
@@ -269,7 +268,7 @@ export const SamplesStudio: React.FC = () => {
 
             {stav.stopy.length === 0 ? (
               <p className="text-drobne text-pismo-slaby py-3">
-                Zatím žádná stopa. Přidej ji tlačítkem níž a pak klikni do políčka, kam chceš sampl vložit.
+                Zatím žádná stopa.
               </p>
             ) : (
               stav.stopy.map((stopa) => (
@@ -389,7 +388,7 @@ export const SamplesStudio: React.FC = () => {
 
         {cil && (
           <p className="text-drobne text-znacka">
-            Vyber sampl — vloží se do označeného políčka.
+            Vyber sampl
           </p>
         )}
 
@@ -408,7 +407,7 @@ export const SamplesStudio: React.FC = () => {
 
           {!nacitam && serazene.length === 0 && (
             <p className="text-drobne text-pismo-slaby">
-              Pro tenhle nástroj zatím v knihovně žádné samply nejsou. Nahraj je v sekci Knihovna.
+              Pro tenhle nástroj nejsou žádné samply.
             </p>
           )}
 

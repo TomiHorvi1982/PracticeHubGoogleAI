@@ -240,7 +240,6 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
                         : <Circle className="w-3.5 h-3.5 text-pismo-slaby mt-0.5 shrink-0" />}
                       <div className="min-w-0">
                         <span className={zapojena ? 'text-white' : 'text-pismo-slaby'}>{a.nazev}</span>
-                        <span className="text-pismo-slaby"> — {a.popis}</span>
                         <div className="text-drobne text-pismo-slaby truncate">
                           „{a.vychoziFraze.join('", „')}"
                           {!zapojena && <span className="text-znacka/80"> · zatím nezapojeno</span>}
@@ -271,7 +270,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
 
         <div className="space-y-1.5 mb-3">
           {prikazy.filter((p) => p.vlastni).length === 0 && (
-            <p className="text-drobne text-pismo-slaby">Zatím žádný vlastní příkaz — appka zná jen ty vestavěné.</p>
+            <p className="text-drobne text-pismo-slaby">Zatím žádný vlastní příkaz.</p>
           )}
           {prikazy.filter((p) => p.vlastni).map((p) => (
             <div key={p.id} className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">

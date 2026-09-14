@@ -450,7 +450,7 @@ export const PracticeAssistant: React.FC = () => {
           {/* Interactive Beat Cards Grid */}
           <div className="space-y-1.5">
             <span className="text-xs text-pismo-tlum font-medium block">
-              Mřížka dob (klikněte pro zapnutí/vypnutí akcentu):
+              Mřížka dob:
             </span>
             <div className="flex flex-wrap items-center gap-2 py-1">
               {Array.from({ length: beatsPerBar }).map((_, i) => {
@@ -828,7 +828,6 @@ export const PracticeAssistant: React.FC = () => {
                     <span className="text-xs font-mono font-bold text-uspech tracking-widest block my-1">
                       {p.pattern.join(' ')}
                     </span>
-                    <span className="text-drobne text-pismo-tlum block">{p.desc}</span>
                   </button>
                 ))}
               </div>
@@ -836,7 +835,7 @@ export const PracticeAssistant: React.FC = () => {
               {/* Custom Strum Grid */}
               <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5 space-y-2">
                 <span className="text-xs text-pismo-tlum font-medium block">
-                  Interaktivní mřížka brnkání (klikněte pro změnu: D=dolů, U=nahoru, M=tlumení, .=pauza):
+                  Mřížka brnkání (D dolů, U nahoru, M tlumení, . pauza):
                 </span>
                 <div className="flex items-center gap-2 overflow-x-auto py-1">
                   {customStrum.map((stroke, sIdx) => (
@@ -876,7 +875,6 @@ export const PracticeAssistant: React.FC = () => {
                     <span className="text-xs font-mono font-bold text-uspech tracking-widest block my-1">
                       Struny: {p.sequence.join('-')}
                     </span>
-                    <span className="text-drobne text-pismo-tlum block">{p.desc}</span>
                   </button>
                 ))}
               </div>

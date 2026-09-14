@@ -428,9 +428,6 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
               </div>
             </div>
           </div>
-          {interpret.popis && (
-            <p className="text-drobne text-pismo-tlum leading-relaxed line-clamp-4">{interpret.popis}</p>
-          )}
 
           {interpret.alba.length > 0 && (
             <div className="space-y-1">
@@ -553,9 +550,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                     <Loader2 className="w-3 h-3 animate-spin" /> Načítám {vybranyStyl}…
                   </p>
                 )
-              ) : (
-                <p className="text-drobne text-pismo-slaby">Vyber styl a Last.fm ukáže, co se v něm poslouchá.</p>
-              )}
+              ) : null}
             </div>
           )}
 
@@ -563,9 +558,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
             <>
               {vysledky.length > 0 ? (
                 mrizka(vysledky)
-              ) : (
-                <p className="text-drobne text-pismo-slaby">Napiš nahoru skladbu nebo kapelu.</p>
-              )}
+              ) : null}
             </>
           )}
 
@@ -579,7 +572,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                 </strong>
                 {zdrojPodobnych === 'interpret' && (
                   <span className="text-pismo-slaby">
-                    (Last.fm nezná tuhle skladbu, tak nabízí podobné interprety)
+                    (podobní interpreti)
                   </span>
                 )}
               </div>

@@ -223,7 +223,7 @@ export const VyukaSekce: React.FC = () => {
 
           {odmeny.length === 0 ? (
             <p className="text-drobne text-pismo-slaby">
-              Zatím prázdný ceník. Přidej první odměnu — třeba lízátko za padesát.
+              Zatím prázdný ceník.
             </p>
           ) : (
             <div className="space-y-1">
@@ -370,8 +370,7 @@ export const VyukaSekce: React.FC = () => {
         <div className="karta p-6 text-center space-y-2">
           <GraduationCap className="w-8 h-8 text-pismo-slaby mx-auto" />
           <p className="text-drobne text-pismo-tlum">
-            Zatím žádný žák. Přidej prvního a dej mu přezdívku a PIN — pak se
-            přihlásí sám z přihlašovacího okna, záložka <strong>Jsem žák</strong>.
+            Zatím žádný žák.
           </p>
         </div>
       ) : (

@@ -353,7 +353,7 @@ export const Podium: React.FC<Props> = ({
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-1">
       {vPlaylistu.length === 0 ? (
         <p className="text-drobne text-pismo-slaby">
-          Set list je prázdný. Přidej skladby ikonou v seznamu vpravo.
+          Set list je prázdný.
         </p>
       ) : (
         vPlaylistu.map((s, i) => {

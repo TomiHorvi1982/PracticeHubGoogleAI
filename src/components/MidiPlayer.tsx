@@ -383,7 +383,6 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               <span className="odznak bg-info text-white px-2 py-0.5 rounded-md">
                 MIDI Player
               </span>
-              <span className="text-xs text-pismo-tlum font-medium">Syntetizér a Piano Roll</span>
             </div>
             <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
               Přehrávač a Vizualizér MIDI Souborů

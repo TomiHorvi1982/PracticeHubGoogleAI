@@ -926,7 +926,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
               {likedTracks.length === 0 ? (
                 <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl text-xs text-pismo-slaby">
-                  Zatím jste si neoblíbili žádné stopy. Klikněte na ikonu srdíčka u libovolného podkladu.
+                  Zatím žádné oblíbené stopy.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1109,7 +1109,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               >
                 {lyrics.length === 0 ? (
                   <div className="py-12 text-pismo-slaby text-xs italic">
-                    Text není k dispozici nebo se nepodařilo načíst synchronizovaný LRC soubor.
+                    Text není k dispozici.
                   </div>
                 ) : (
                   lyrics.map((line, idx) => {

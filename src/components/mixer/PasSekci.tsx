@@ -116,11 +116,6 @@ export const PasSekci: React.FC<Props> = ({
       title="Tažením nakreslíš sekci"
       className="relative h-6 bg-plocha-1/50 border-b border-kresba/70 overflow-hidden select-none cursor-crosshair"
     >
-      {!sekce.length && !tazeni && (
-        <span className="absolute inset-0 flex items-center px-2 text-stitek text-pismo-slaby pointer-events-none">
-          Tažením sem nakreslíš sekci — sloku, refrén, sólo
-        </span>
-      )}
 
       {sekce.map((s) => {
         const x1 = naX(s.od);

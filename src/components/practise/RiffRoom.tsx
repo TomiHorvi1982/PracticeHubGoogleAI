@@ -255,7 +255,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
             ))}
             {seznam.length === 0 && (
               <p className="text-drobne text-pismo-slaby py-3">
-                Zatím nic. Vyber zvuk z knihovny a ulož si první.
+                Zatím nic.
               </p>
             )}
           </div>

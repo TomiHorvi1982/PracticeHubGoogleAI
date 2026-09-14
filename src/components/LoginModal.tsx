@@ -145,7 +145,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 {mode === 'login' ? 'Přihlášení do studia'
                   : mode === 'zak' ? 'Přihlášení žáka' : 'Aktivace pozvánky'}
               </span>
-              <p className="text-xs text-pismo-tlum">Neverlast — Never Late Studio</p>
             </div>
           </div>
           {!vlozene && (

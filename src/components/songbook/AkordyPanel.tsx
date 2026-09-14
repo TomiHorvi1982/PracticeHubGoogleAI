@@ -379,7 +379,7 @@ export const AkordyPanel: React.FC<Props> = ({
         <div className="flex flex-wrap gap-2 p-1">{vsechny.map(karta)}</div>
       ) : (
         <div className="text-center py-8 text-pismo-tlum text-xs">
-          V textu nebyly rozpoznány žádné akordy. Přidej si je tlačítkem nahoře.
+          V textu nejsou žádné akordy.
         </div>
       )}
     </div>

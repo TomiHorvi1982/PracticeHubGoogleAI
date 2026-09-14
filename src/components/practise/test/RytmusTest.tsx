@@ -259,7 +259,7 @@ export const RytmusTest: React.FC = () => {
       ) : hodnoceni ? (
         <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-6 text-center">
           <p className="text-sm text-pismo-tlum">
-            Žádný úder se nezachytil. Zkontroluj, že máš zapnutý vstup a že do nástroje jde slyšet.
+            Žádný úder se nezachytil.
           </p>
         </div>
       ) : null}

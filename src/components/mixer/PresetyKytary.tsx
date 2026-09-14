@@ -76,11 +76,6 @@ export const PresetyKytary: React.FC<Props> = ({ presety, aktivni, onZmena, onNa
         </button>
       </div>
 
-      {!presety.length && (
-        <p className="text-stitek text-pismo-slaby">
-          Nastav kytaru, jak ji chceš mít, a ulož si to — pro rytmiku, sólo i akustiku zvlášť.
-        </p>
-      )}
 
       {presety.map((p) => (
         <div

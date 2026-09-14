@@ -165,7 +165,7 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
 
       {text.trim() && !usek && (
         <p className="text-drobne text-chyba">
-          V tomhle textu žádnou tabulaturu nevidím. Čekám šest řádků s pomlčkami a čísly.
+          V tomhle textu žádnou tabulaturu nevidím.
         </p>
       )}
 

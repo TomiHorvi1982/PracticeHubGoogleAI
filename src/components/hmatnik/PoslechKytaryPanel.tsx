@@ -90,9 +90,6 @@ export const PoslechKytaryPanel: React.FC<{
 
         <div>
           <div className="text-xs font-bold text-white">Co hraješ</div>
-          <p className="text-drobne text-pismo-tlum">
-            Zahraj pár taktů a appka pozná stupnici i akordy, které do ní patří.
-          </p>
         </div>
 
         {/* Ozvěna: co mikrofon slyší, to zahraje vybraný nástroj.

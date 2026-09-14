@@ -170,9 +170,6 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
                   <p className="text-sm font-semibold text-white mb-1">
                     Přetáhněte soubor sem nebo klikněte pro výběr
                   </p>
-                  <p className="text-xs text-pismo-tlum">
-                    Guitar Pro (.gp, .gp5) • PDF zpěvníky • TXT / ChordPro • Foto not/tabů • MIDI
-                  </p>
                 </div>
 
                 <span className="mt-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-pismo text-xs font-semibold rounded-xl transition-all">

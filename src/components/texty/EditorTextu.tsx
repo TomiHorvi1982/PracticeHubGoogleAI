@@ -143,11 +143,7 @@ export const EditorTextu: React.FC<{
               </p>
             )}
           </>
-        ) : (
-          <p className="text-drobne text-pismo-slaby">
-            Klikni do řádku a nabídnou se slova, která se rýmují s jeho koncem.
-          </p>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -142,9 +142,6 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                           </span>
                         )}
                       </div>
-                      <p className="text-stitek text-pismo-tlum mb-2 leading-tight">
-                        {v.description}
-                      </p>
                       <div className="flex justify-center my-1">
                         <GuitarChordDiagram
                           chord={v.chord}

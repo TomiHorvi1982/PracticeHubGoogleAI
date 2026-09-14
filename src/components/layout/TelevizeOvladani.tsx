@@ -147,7 +147,6 @@ export const TelevizeOvladani: React.FC = () => {
               </p>
             ) : (
               <div className="space-y-2">
-                <p className="text-pismo-tlum">Otevři okno a přetáhni ho na televizi.</p>
                 <button onClick={otevriOkno}
                   className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-prvek text-drobne font-bold bg-info/15 text-info ring-1 ring-info/40 cursor-pointer">
                   <Tv className="w-4 h-4" />Otevřít okno pro televizi

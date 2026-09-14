@@ -610,7 +610,6 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
                 Freetar.de
               </span>
-              <span className="text-xs text-pismo-tlum font-medium">Oficiální repozitář tabulatur</span>
             </div>
             <h2 className="text-xl font-bold text-white tracking-tight mt-0.5">
               Integrovaný vyhledávač akordů &amp; tabů

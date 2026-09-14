@@ -123,8 +123,6 @@ export const CviceniStupnic: React.FC = () => {
         </label>
       </div>
 
-      {vybrana && <p className="text-drobne text-pismo-slaby">{vybrana.description}</p>}
-      {vzorec && <p className="text-drobne text-pismo-tlum">{vzorec.popis}</p>}
 
       <div className="flex flex-wrap items-center gap-2">
         <button

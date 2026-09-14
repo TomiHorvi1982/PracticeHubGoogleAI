@@ -207,7 +207,6 @@ export const Tone3000Katalog: React.FC = () => {
     <div className="flex items-center gap-2 px-3 py-2 border-b border-kresba-jemna">
       <Star className="w-4 h-4 text-znacka shrink-0" />
       <span className="text-drobne text-pismo font-medium">TONE3000</span>
-      <span className="text-stitek text-pismo-slaby truncate">NAM aparáty a IR bedny</span>
       <div className="flex-1" />
       {ja && (
         <span className="flex items-center gap-1.5 text-stitek text-pismo-tlum min-w-0">

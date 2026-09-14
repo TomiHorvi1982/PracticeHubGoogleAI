@@ -330,7 +330,6 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
             </span>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-white">{k.nadpis}</h3>
-              <p className="text-drobne text-pismo-tlum leading-relaxed mt-1">{k.popis}</p>
             </div>
           </div>
           <button
@@ -355,7 +354,6 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
             className="text-left px-3 py-2.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] hover:border-znacka/50 cursor-pointer transition-all"
           >
             <div className="text-drobne font-bold text-white">{v.nadpis}</div>
-            <div className="text-stitek text-pismo-slaby leading-snug mt-0.5">{v.popis}</div>
           </button>
         ))}
       </div>

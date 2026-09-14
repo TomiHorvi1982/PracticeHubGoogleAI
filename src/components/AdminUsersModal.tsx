@@ -626,9 +626,6 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                               <span>{meta.label}</span>
                               {isSelected && <Check className="w-4 h-4 text-uspech" />}
                             </div>
-                            <div className="text-drobne text-pismo-tlum leading-relaxed">
-                              {meta.desc}
-                            </div>
                           </div>
                         </button>
                       );
@@ -970,7 +967,7 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                             className="w-full font-mono text-stitek text-uspech bg-white/[0.06] px-2 py-1 rounded-lg border border-white/10 outline-none"
                           />
                           <span className="text-stitek text-pismo-slaby">
-                            Platí jednou a po čase vyprší. Heslo si pozvaný nastaví sám.
+                            Platí jednou, po čase vyprší.
                           </span>
                         </div>
                       ) : (
@@ -995,9 +992,6 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                         fgColor="#000000"
                         level="M"
                       />
-                      <span className="text-stitek font-bold text-neutral-800 uppercase mt-1.5">
-                        Naskenovat mobilem pro rychlý vstup
-                      </span>
                     </div>
 
                     {/* Dispatch Action Buttons */}

@@ -216,7 +216,7 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
               <div className="rounded-3xl border border-white/15 bg-black/25 p-6 text-center space-y-2">
                 <Music4 className="w-8 h-8 mx-auto opacity-50" />
                 <p className="text-white/70">
-                  Zatím tu nic není. Až ti učitel zadá úkol, objeví se přesně tady.
+                  Zatím tu nic není.
                 </p>
               </div>
             ) : (

@@ -1151,9 +1151,6 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                 <Sliders className="w-3.5 h-3.5 text-znacka" />
                 Stopy a míchání nástrojů ({tracks.length}):
               </span>
-              <span className="text-drobne text-pismo-tlum">
-                Klikněte na stopu pro zobrazení
-              </span>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-0.5">
@@ -1367,9 +1364,6 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
                   {loadError}
                 </p>
               </div>
-              <p className="text-xs text-pismo-tlum max-w-sm">
-                Zkuste soubor nahrát znovu nebo zkontrolujte, zda se jedná o korektní soubor Guitar Pro verze 3, 4, 5 nebo GPX.
-              </p>
             </div>
           )}
 
@@ -1386,7 +1380,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         <div className="max-w-7xl mx-auto w-full space-y-4">
           <div className="flex justify-between items-center bg-plocha-2 border border-white/10 rounded-2xl p-4 shadow-xl">
             <span className="text-xs font-bold text-white tracking-wide flex items-center gap-2">
-              <Sliders className="w-4 h-4 text-uspech" /> Pódium: Celoobrazovkový režim čtení tabulatur
+              <Sliders className="w-4 h-4 text-uspech" /> Pódium
             </span>
             <button
               onClick={() => setIsMaximized(false)}

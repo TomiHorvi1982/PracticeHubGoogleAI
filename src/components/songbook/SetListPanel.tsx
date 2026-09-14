@@ -88,7 +88,6 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
         <h2 className="stitek-pole">
           Set list{vSetu.length > 0 ? ` (${vSetu.length})` : ''}
         </h2>
-        <span className="text-stitek text-pismo-slaby">pořadí, ve kterém se bude hrát</span>
 
         {sety.length > 1 && (
           <select
@@ -123,7 +122,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
 
       {otevreno && (vSetu.length === 0 ? (
         <p className="text-drobne text-pismo-slaby">
-          Set je prázdný. Přidej skladby ikonou v seznamu vpravo.
+          Set list je prázdný.
         </p>
       ) : (
         <div className="divide-y divide-white/[0.05] rounded-2xl border border-white/[0.06] bg-black/20 overflow-hidden">

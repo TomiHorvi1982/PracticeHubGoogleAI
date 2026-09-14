@@ -715,7 +715,7 @@ export const StupniceRoom: React.FC = () => {
       )}
       {rezim === 'vlastni' && !vlastni.length && (
         <p className="text-stitek text-pismo-slaby">
-          Zatím prázdné. Klikni do hmatníku výš a naťukej si postup.
+          Zatím prázdné.
         </p>
       )}
     </div>

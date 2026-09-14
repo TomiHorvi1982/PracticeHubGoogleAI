@@ -92,9 +92,6 @@ export const ObjevSkladby: React.FC<Props> = ({
               <span className="truncate">{z.popis}</span>
               {/* Popisek jen tam, kde je na něj místo — jinak by roztahoval
                   sloupce a mřížka by se zase rozjela. */}
-              <span className={`hidden 2xl:inline font-normal truncate ${aktivni ? 'text-black/60' : 'text-pismo-slaby'}`}>
-                {z.co}
-              </span>
             </button>
           );
         })}

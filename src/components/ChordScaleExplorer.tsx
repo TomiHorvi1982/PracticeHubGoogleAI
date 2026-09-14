@@ -238,7 +238,6 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
               <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
                 Harmonie & Teorie
               </span>
-              <span className="text-xs text-pismo-tlum font-medium">Interaktivní průzkumník</span>
             </div>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               Knihovna Akordů & Stupnic
@@ -596,9 +595,6 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             <h4 className="nadpis-panelu mb-1">
               Použití v kapele & sólo hře ({currentScale.czName})
             </h4>
-            <p className="text-xs text-pismo leading-relaxed mb-2">
-              {currentScale.description}
-            </p>
             <p className="text-xs text-uspech font-mono bg-black/40 px-3 py-1.5 rounded-xl border border-white/[0.06] inline-block">
               Tóny stupnice: <strong>{currentScale.intervals.map((inv) => ROOT_NOTES[(rootIndex + inv) % 12]).join(' - ')}</strong>
             </p>

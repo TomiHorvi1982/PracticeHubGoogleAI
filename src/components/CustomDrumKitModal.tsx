@@ -814,9 +814,6 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                                 {padDef.czName}
                               </h4>
                             </div>
-                            <span className="text-stitek text-pismo-tlum block font-medium mt-0.5">
-                              {padDef.desc}
-                            </span>
                           </div>
                         </div>
 
@@ -831,11 +828,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                             <Check className="w-3 h-3" />
                             <span>WAV ({sample?.duration}s)</span>
                           </span>
-                        ) : (
-                          <span className="text-stitek font-mono font-medium text-pismo-tlum bg-white/5 px-2 py-0.5 rounded-md border border-white/5 whitespace-nowrap">
-                            Fyzikální model
-                          </span>
-                        )}
+                        ) : null}
                       </div>
 
                       {/* Sample info if uploaded */}
@@ -1055,9 +1048,6 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                           <span className="text-xs font-bold text-white">
                             MIDI Velocity: {tierOpt.range}
                           </span>
-                          <span className="text-drobne text-pismo-tlum hidden md:inline">
-                            &bull; {tierOpt.desc}
-                          </span>
                         </div>
 
                         {/* Test this specific velocity tier */}
@@ -1103,11 +1093,7 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                                   <span className="text-stitek font-bold text-uspech bg-uspech/10 px-1.5 py-0.2 rounded border border-uspech/20">
                                     Vlastní WAV
                                   </span>
-                                ) : (
-                                  <span className="text-stitek text-pismo-tlum font-mono">
-                                    Anti-MG Micro-DSP
-                                  </span>
-                                )}
+                                ) : null}
                               </div>
 
                               <div className="text-stitek text-pismo truncate">

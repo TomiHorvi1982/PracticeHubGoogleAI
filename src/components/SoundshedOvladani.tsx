@@ -55,8 +55,7 @@ export const SoundshedOvladani: React.FC = () => {
       <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
         <h3 className="text-xs font-bold text-white mb-1.5">Ovládání Soundshedu</h3>
         <p className="text-drobne text-pismo-tlum">
-          Tenhle prohlížeč Web MIDI neumí, takže odsud Soundshed ovládat nejde.
-          Funguje to v Chrome a Edge.
+          Web MIDI tu nefunguje — použij Chrome nebo Edge.
         </p>
       </div>
     );
@@ -87,9 +86,7 @@ export const SoundshedOvladani: React.FC = () => {
       {!midi.pripojeno ? (
         <div className="space-y-2">
           <p className="text-drobne text-pismo-tlum leading-relaxed">
-            Soundshed se ovládá přes MIDI. Potřebuje to povolení prohlížeče
-            a zapnutý virtuální port <strong className="text-pismo">IAC Driver</strong>
-            {' '}v Audio MIDI Setupu.
+            Potřebuje povolení MIDI a zapnutý IAC Driver.
           </p>
           <button
             onClick={() => void midiVystup.pripoj()}

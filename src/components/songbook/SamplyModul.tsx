@@ -70,8 +70,7 @@ export const SamplyModul: React.FC = () => {
 
       {prazdna ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-1.5 text-pismo-slaby text-drobne text-center px-4">
-          <Layers className="w-5 h-5 text-neutral-700" />
-          Skládačka je prázdná. Poskládej si ji ve Virtual Instruments → Samples; objeví se tady.
+          <Layers className="w-5 h-5 text-neutral-700" /> Skládačka je prázdná.
         </div>
       ) : (
         <div className="flex-1 overflow-auto min-h-0">

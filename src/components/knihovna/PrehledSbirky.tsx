@@ -142,8 +142,7 @@ export const PrehledSbirky: React.FC<{
       {nalezene !== null && !hledam && (
         nalezene.length === 0 ? (
           <div className="text-xs text-pismo-slaby py-4">
-            Ve sbírce nic takového není. Zkus vedle „Nativní vyhledávač" —
-            ten hledá venku na Ultimate Guitar.
+            Ve sbírce nic takového není.
           </div>
         ) : (
           <div className="max-h-[40vh] overflow-y-auto divide-y divide-white/[0.04]">

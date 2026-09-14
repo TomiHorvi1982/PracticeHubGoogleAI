@@ -130,8 +130,7 @@ export const ZdrojStopy: React.FC<Props> = ({
           {zalozka === 'pocitac' && (
             !mistniDostupne ? (
               <p className="px-1 py-2 text-stitek text-pismo-slaby">
-                Appka běží na serveru, kde tvůj disk není. Stopy z počítače
-                se načtou, když ji spustíš u sebe.
+                Stopy z disku jdou načíst jen v appce spuštěné u tebe.
               </p>
             ) : (
               <>

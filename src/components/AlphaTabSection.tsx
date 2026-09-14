@@ -127,8 +127,7 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
 
           {libraryGpFiles.length === 0 ? (
             <p className="text-xs text-pismo-tlum py-1 leading-relaxed">
-              Ve zpěvníku zatím žádný Guitar Pro soubor není. Najdi tabulaturu výš, nebo
-              soubory nahraj v sekci Soubory.
+              Ve zpěvníku zatím žádný Guitar Pro soubor není.
             </p>
           ) : (
             <select
@@ -193,9 +192,6 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
               </p>
             </div>
             <div className="pt-2">
-              <span className="inline-block px-4 py-2 bg-white/5 text-pismo rounded-xl border border-white/10 font-semibold text-xs">
-                Připraven k cvičení
-              </span>
             </div>
           </div>
         )}

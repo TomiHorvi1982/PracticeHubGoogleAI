@@ -128,9 +128,7 @@ export const UsekZTabulatury: React.FC = () => {
     return (
       <div className="bg-plocha-2 border border-dashed border-white/[0.08] rounded-3xl p-5 text-center">
         <p className="text-drobne text-pismo-slaby">
-          Žádný úsek k cvičení. V <strong className="text-pismo">Guitar Pro</strong> nebo
-          na <strong className="text-pismo">Pódiu</strong> si vyber takty tažením po liště
-          pozice a klikni na <strong className="text-nastroj">do Solo Practise</strong>.
+          Žádný úsek k cvičení.
         </p>
       </div>
     );

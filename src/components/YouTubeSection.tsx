@@ -300,7 +300,6 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 <span className="odznak bg-chyba text-white px-2 py-0.5 rounded-md">
                   YouTube
                 </span>
-                <span className="text-xs text-pismo-tlum font-medium">Vyhledávač &amp; Importér</span>
               </div>
               <h3 className="text-lg font-bold text-white tracking-tight mt-0.5">
                 Kytarová videa, backing tracky a tutoriály
@@ -688,7 +687,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
             {videos.length === 0 ? (
               <div className="p-6 text-center text-pismo-tlum text-xs border border-dashed border-white/10 rounded-2xl">
-                Žádná uložená kytarová videa. Použijte automatické vyhledání výše.
+                Žádná uložená videa.
               </div>
             ) : (
               <div className="space-y-2.5 max-h-[480px] overflow-y-auto pr-1">

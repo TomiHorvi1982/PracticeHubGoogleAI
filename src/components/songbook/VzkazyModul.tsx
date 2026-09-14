@@ -81,8 +81,7 @@ export const VzkazyModul: React.FC<Props> = ({ song }) => {
 
         {!nacitam && vzkazy.length === 0 && (
           <div className="text-center py-6 text-pismo-slaby text-drobne flex flex-col items-center gap-1.5">
-            <MessageSquare className="w-5 h-5 text-neutral-700" />
-            Zatím tu nic není. Napiš, na co si u téhle písně dát pozor.
+            <MessageSquare className="w-5 h-5 text-neutral-700" /> Zatím žádné vzkazy.
           </div>
         )}
 

@@ -910,8 +910,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
 
         {mistni.dostupne && !mistni.skladby.length && (
           <p className="text-drobne text-pismo-slaby">
-            Zatím tu nic není. Vyexportuj stopy z Neural Mix Pro do téhle složky
-            a objeví se samy — nemusíš nic mačkat.
+            Složka je prázdná.
           </p>
         )}
 
@@ -1482,7 +1481,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
       <div className="flex flex-wrap items-center gap-2">
         <Music2 className="w-5 h-5 text-znacka shrink-0" />
         <h3 className="text-base font-bold text-white">Náhled videa</h3>
-        <span className="text-xs text-pismo-tlum">vyber skladbu ze zpěvníku, nebo vlož odkaz</span>
         {videoId && (
           <button
             onClick={() => setVideoId(null)}

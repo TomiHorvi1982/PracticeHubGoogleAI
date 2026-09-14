@@ -100,7 +100,7 @@ export const PrepisPanel: React.FC<{
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Přepis z nahrávky</h3>
             <p className="text-drobne text-pismo-tlum">
-              Běží tady na počítači — nahrávka nikam neodchází. Ber to jako první nástřel, ne hotový text.
+              Běží na počítači — nahrávka nikam neodchází.
             </p>
           </div>
         </div>

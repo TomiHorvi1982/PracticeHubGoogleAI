@@ -405,7 +405,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                     )}
                     {!hledam && nalezene.length === 0 && (
                       <p className="text-drobne text-pismo-slaby">
-                        V knihovně nic takového není. Zkus jiný název, nebo nahraj z počítače.
+                        V knihovně nic takového není.
                       </p>
                     )}
                     {nalezene.map((a) => (

@@ -308,9 +308,6 @@ export const TestRoom: React.FC = () => {
         </div>
       ) : (
         <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl p-8 text-center">
-          <p className="text-sm text-pismo-tlum">
-            Vyber okruhy a spusť zkoušení — na čas, nebo v klidu.
-          </p>
         </div>
       )}
       </div>

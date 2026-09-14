@@ -75,7 +75,6 @@ export const PractiseHubSection: React.FC = () => {
                     {m.nazev}
                   </span>
                 </div>
-                <p className="text-stitek text-pismo-slaby leading-snug">{m.popis}</p>
               </button>
             );
           })}

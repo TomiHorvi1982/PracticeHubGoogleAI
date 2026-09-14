@@ -329,9 +329,7 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
 
           {!okna.length && (
             <div className="mt-8 flex items-center gap-2 text-drobne text-pismo-slaby">
-              <LayoutGrid className="w-4 h-4" />
-              Okna se dají táhnout za záhlaví a zvětšovat za pravý dolní roh.
-              Rozmístění si ulož pod jménem a příště ho otevřeš jedním klikem.
+              <LayoutGrid className="w-4 h-4" /> Plocha je prázdná.
             </div>
           )}
         </div>

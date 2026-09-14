@@ -307,10 +307,6 @@ export const EditorStop: React.FC = () => {
       {stopy.length === 0 ? (
         <div className="karta p-8 text-center space-y-2">
           <Upload className="w-8 h-8 text-pismo-slaby mx-auto" />
-          <p className="text-drobne text-pismo-tlum max-w-[52ch] mx-auto">
-            Přidej soubor z počítače, nebo si vezmi nahrávku z knihovny —
-            třeba DI stopu, kterou sis nahrál v Mixážním pultu.
-          </p>
         </div>
       ) : (
         <div className="karta p-3 space-y-2 overflow-x-auto">

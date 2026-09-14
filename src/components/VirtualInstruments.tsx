@@ -617,7 +617,6 @@ export const VirtualInstruments: React.FC = () => {
             <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
               Workstation
             </span>
-            <span className="text-xs text-pismo-tlum font-medium">Virtuální nástroje & MIDI</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Virtuální nástroje a hardware MIDI
@@ -808,9 +807,6 @@ export const VirtualInstruments: React.FC = () => {
                   <div className="mt-1 flex items-center justify-between text-stitek text-pismo-tlum">
                     <span className="flex items-center gap-1 text-uspech">
                       <Zap className="w-3 h-3" /> Zvukový profil připraven
-                    </span>
-                    <span className="flex items-center gap-1 font-mono text-stitek text-pismo-slaby">
-                      <Database className="w-3 h-3 text-uspech" /> Uloženo v IndexedDB
                     </span>
                   </div>
                 )}
@@ -1507,9 +1503,6 @@ export const VirtualInstruments: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-drobne text-pismo-tlum line-clamp-2 pt-1">
-                              {inst.description}
-                            </p>
                           </div>
 
                           <div className="flex items-center gap-2 pt-1">

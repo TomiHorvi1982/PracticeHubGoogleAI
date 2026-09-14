@@ -137,9 +137,6 @@ export const AiKapelaSection: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2">
             <Music4 className="w-4 h-4 text-nastroj" />
             <h3 className="text-sm font-bold text-white">Akordy dokola</h3>
-            <span className="text-drobne text-pismo-slaby">
-              každý akord jeden takt — klikni pro odebrání
-            </span>
             <button
               onClick={() => {
                 const molovy = /m$/i.test(key || '');
@@ -247,7 +244,6 @@ export const AiKapelaSection: React.FC = () => {
                 </button>
               ))}
             </div>
-            <p className="text-drobne text-pismo-slaby mt-2">{styl.popis}</p>
           </div>
         </div>
       </div>
@@ -278,7 +274,6 @@ export const AiKapelaSection: React.FC = () => {
                   {hraje ? 'hraje' : 'mlčí'}
                 </button>
               </div>
-              <p className="text-drobne text-pismo-slaby mb-2">{c.popis}</p>
               <input
                 type="range"
                 min={0}
@@ -358,7 +353,7 @@ export const AiKapelaSection: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/[0.06]">
           <FileMusic className="w-3.5 h-3.5 text-nastroj" />
           <span className="text-drobne text-pismo-tlum flex-1 min-w-[180px]">
-            Nechat sólo vyrenderovat větším modelem — zní líp, ale musíš počkat.
+            Vyrenderovat větším modelem
           </span>
 
           <label className="flex items-center gap-1 text-drobne text-pismo-tlum">
@@ -419,7 +414,7 @@ export const AiKapelaSection: React.FC = () => {
           <div className="text-drobne text-chyba bg-chyba/10 border border-chyba/25 rounded-xl px-3 py-2">
             {solista.chyba}
             <div className="text-pismo-tlum mt-1">
-              Poprvé to stáhne váhy modelu — pár gigabajtů, jednorázově.
+              Poprvé stáhne model (pár GB).
             </div>
           </div>
         )}

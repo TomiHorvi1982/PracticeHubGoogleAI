@@ -483,7 +483,6 @@ export const Songbook: React.FC<SongbookProps> = ({
             <h2 className="stitek-pole">
               Objevit novou skladbu
             </h2>
-            <span className="text-stitek text-pismo-slaby">Last.fm — hledá venku, ne ve tvé knihovně</span>
             {/* Jedna ikona pro obojí: otočená šipka říká, kterým směrem
                 se panel chystá jít. Křížek vedle šipky na otevírání jen
                 nutil hledat, který ovladač je ten správný. */}
