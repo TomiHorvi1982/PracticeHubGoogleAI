@@ -84,20 +84,6 @@ export const PrehledSbirky: React.FC<{
 
   return (
     <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-xl">
-          <Library className="w-5 h-5" />
-        </div>
-        <div>
-          <h3 className="text-sm font-bold text-white">Sbírka tabulatur</h3>
-          <p className="text-drobne text-pismo-tlum tabular-nums">
-            {pocty
-              ? `${pocty.total.toLocaleString('cs')} záznamů, z toho ${pocty.stored.toLocaleString('cs')} s nahraným souborem`
-              : 'Zjišťuji, co ve sbírce je…'}
-          </p>
-        </div>
-      </div>
-
       {/* Hledá v interpretovi i v názvu skladby zároveň — to, co člověk
           zrovna má v hlavě, bývá jedno nebo druhé. */}
       <div className="relative">

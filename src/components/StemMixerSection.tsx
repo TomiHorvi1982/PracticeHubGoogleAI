@@ -1,4 +1,3 @@
-import { HlavickaSekce } from './ui/HlavickaSekce';
 import { DawVerticalFader } from './DawVerticalFader';
 import {
   vyrez as spocitejVyrez, vyrezOd, srovnejPosun, sirkaVyrezu, jeVidet,
@@ -16,7 +15,6 @@ import { ZdrojStopy, MistniPolozka } from './mixer/ZdrojStopy';
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { KresleniOkna } from '../hooks/useKreslit';
 import { 
-  Music2,
   Upload,
   Repeat,
   Square,
@@ -34,7 +32,6 @@ import {
   Wand2,
   Check,
   FolderOpen,
-  AlertTriangle,
 } from 'lucide-react';
 import { StemSongDocument, SongStem } from '../types';
 import { stemAudioService, StemAudioState, ChannelState } from '../services/stemAudioService';
@@ -52,10 +49,7 @@ import { rolePodleNazvu } from '../services/roleStop';
 import { skladby } from '../services/mnozneCislo';
 import { assetLibraryService } from '../services/assetLibraryService';
 import { VyberZKnihovny } from './songbook/VyberZKnihovny';
-import { songDatabaseService } from '../services/songDatabaseService';
-import { idZAdresy } from '../services/youtubeApi';
 import { otisky, stabilniNove, OtiskSady } from '../services/sledovaniSlozky';
-import { Song } from '../types';
 
 /** Fadery pultu. Zůstávají pořád stejné, jen se na ně věší soubory. */
 /** Jedna stopa, jak ji našel server ve složce se separovaným zvukem. */
@@ -171,11 +165,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
   const [nahrava, setNahrava] = useState<{ hotovo: number; celkem: number } | null>(null);
   const otiskyMinule = useRef<Map<string, OtiskSady>>(new Map());
   const jizVidene = useRef<Set<string>>(new Set());
-  /** Náhled videa: co hraješ, ať máš při mixu před očima. */
-  const [pisne, setPisne] = useState<Song[]>([]);
-  const [videoId, setVideoId] = useState<string | null>(null);
-  const [odkazVidea, setOdkazVidea] = useState('');
-  const [chybaVidea, setChybaVidea] = useState<string | null>(null);
   /** Šířka časové osy — popisky se podle ní ředí, ať se neslijí. */
   const osa = useRef<HTMLDivElement | null>(null);
   const [sirkaOsy, setSirkaOsy] = useState(0);
@@ -288,21 +277,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
   }, [mistni.dostupne, nactiMistni, pultVidet]);
 
   /**
-   * Vytáhne z vloženého textu identifikátor videa.
-   *
-   * Bere celou adresu i holé jedenáctiznakové id — ze schránky chodí
-   * obojí podle toho, odkud se kopírovalo.
-   */
-  const zobrazOdkaz = () => {
-    const t = odkazVidea.trim();
-    const id = idZAdresy(t) || (/^[\w-]{11}$/.test(t) ? t : null);
-    if (!id) { setChybaVidea('V tom odkazu žádné video není.'); return; }
-    setVideoId(id);
-    setOdkazVidea('');
-    setChybaVidea(null);
-  };
-
-  /**
    * Nahraje soubory z počítače do knihovny a pověsí je na fadery.
    *
    * Ukládá se, ne jen načítá: soubor z disku by po zavření stránky
@@ -338,12 +312,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
     setNahrava(null);
     setHlaska(`Nahráno do knihovny: ${skladby(seznam.length)}.`);
   };
-
-  /** Zpěvník kvůli náhledu videa — bere se z něj, co má odkaz na YouTube. */
-  useEffect(() => {
-    setPisne(songDatabaseService.getSongs());
-    return songDatabaseService.subscribe((s) => setPisne(s));
-  }, []);
 
   /** Pověsí stopu na fader; na jednom faderu je vždycky jen jedna. */
   /**
@@ -701,15 +669,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
   return (
     <div className="max-w-7xl mx-auto space-y-5 p-4 sm:p-6 text-pismo">
 
-      {/* Hlavička místo původního hero bloku: ten měl gradient,
-          dekorativní ikonu 256×256 a odstavec, dohromady přes 300px,
-          takže první fader začínal až na 473px a při každém otevření
-          se četlo totéž vysvětlení. Text nezmizel, jen se sbalil. */}
-      {!vOkne && (
-      <HlavickaSekce
-        nazev="Mixážní pult"
-      />
-      )}
 
       {/* PŘIŘAZENÍ STOP NA FADERY */}
       <div className="space-y-6">
@@ -743,22 +702,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           Zůstala tu sada označená jako hotová, ke které nevede ani jedna
           stopa — soubory se mezitím smazaly. Pult u ní točil kolečko
           donekonečna, protože `audioReady` se nemělo z čeho stát pravdou. */}
-      {selectedSong && selectedSong.status === 'completed'
-        && !loadingAudio && !audioReady && !(selectedSong.stems?.length) && (
-        <div className="rounded-panel border border-pozor/40 bg-pozor/10 px-4 py-3 flex items-start gap-2.5">
-          <AlertTriangle className="w-4 h-4 text-pozor shrink-0 mt-0.5" />
-          <div className="min-w-0">
-            <p className="text-drobne text-pismo">
-              U „{selectedSong.title}" nejsou žádné stopy — sada je označená jako hotová,
-              ale soubory k ní nevedou.
-            </p>
-            <p className="text-stitek text-pismo-slaby mt-0.5">
-              Vyexportuj stopy z Neural Mix Pro do složky se stopami, nebo je vyber
-              pod jednotlivými fadery.
-            </p>
-          </div>
-        </div>
-      )}
 
       {selectedSong && selectedSong.status === 'completed'
         && (loadingAudio || (!audioReady && !!selectedSong.stems?.length)) && (
@@ -866,12 +809,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
             <code className="text-stitek text-pismo-slaby truncate max-w-[22rem]">{mistni.slozka}</code>
           )}
           <div className="flex-1" />
-          {mistni.dostupne && (
-            <span className="stitek-pole flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-uspech animate-pulse" />
-              hlídá se každých 6 s
-            </span>
-          )}
           <button
             onClick={() => void nactiMistni('rucne')}
             disabled={mistniNacita}
@@ -1464,74 +1401,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
 
         </div>
       )}
-
-        {/* Náhled videa až pod fadery: při mixu se kouká na stopy,
-            video je kontrola, ne to hlavní. V okně na Pódiu se
-            nevykresluje — video má na ploše vlastní okno. */}
-    <div className={`bg-plocha-1/90 border border-kresba rounded-3xl p-5 space-y-3 shadow-xl ${vOkne ? 'hidden' : ''}`}>
-      <div className="flex flex-wrap items-center gap-2">
-        <Music2 className="w-5 h-5 text-znacka shrink-0" />
-        <h3 className="text-base font-bold text-white">Náhled videa</h3>
-        {videoId && (
-          <button
-            onClick={() => setVideoId(null)}
-            className="ml-auto px-2.5 py-1 rounded-lg bg-plocha-2 hover:bg-plocha-3 text-pismo text-drobne cursor-pointer"
-          >
-            Zavřít video
-          </button>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-2">
-        <select
-          value={videoId ?? ''}
-          onChange={(e) => setVideoId(e.target.value || null)}
-          className="flex-1 min-w-[200px] bg-podklad border border-kresba rounded-xl px-3 py-2 text-xs text-white cursor-pointer focus:border-znacka outline-none"
-        >
-          <option value="">— skladba ze zpěvníku —</option>
-          {pisne
-            .filter((p) => (p.youtubeVideos?.length ?? 0) > 0)
-            .map((p) => (
-              <optgroup key={p.id} label={`${p.artist ? p.artist + ' — ' : ''}${p.title}`}>
-                {p.youtubeVideos!.map((v) => (
-                  <option key={v.id} value={v.id}>{v.title || v.type}</option>
-                ))}
-              </optgroup>
-            ))}
-        </select>
-
-        <input
-          value={odkazVidea}
-          onChange={(e) => setOdkazVidea(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') zobrazOdkaz(); }}
-          placeholder="…nebo vlož odkaz na YouTube"
-          className="flex-1 min-w-[200px] bg-podklad border border-kresba rounded-xl px-3 py-2 text-xs text-white placeholder-pismo-slaby focus:border-znacka outline-none"
-        />
-        <button
-          onClick={zobrazOdkaz}
-          disabled={!odkazVidea.trim()}
-          className="px-3 py-2 rounded-xl bg-plocha-2 hover:bg-plocha-3 text-pismo text-xs font-bold cursor-pointer disabled:opacity-40"
-        >
-          Zobrazit
-        </button>
-      </div>
-
-      {chybaVidea && <div className="text-drobne text-rose-400">{chybaVidea}</div>}
-
-      {videoId && (
-        <div className="relative w-full overflow-hidden rounded-2xl border border-kresba" style={{ paddingBottom: '56.25%' }}>
-          <iframe
-            // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
-            credentialless=""
-            className="absolute inset-0 w-full h-full"
-            src={`https://www.youtube.com/embed/${videoId}`}
-            title="Náhled videa"
-            allow="accelerometer; encrypted-media; picture-in-picture; fullscreen"
-            allowFullScreen
-          />
-        </div>
-      )}
-    </div>
 
       {/* PROCESSING STATE DAW WORKSPACE PREVIEW (when active selected song is processing) */}
       {selectedSong && selectedSong.status === 'processing' && (

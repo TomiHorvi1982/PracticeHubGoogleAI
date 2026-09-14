@@ -111,15 +111,6 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
         </button>
       </div>
 
-      {/* Sbalený set ukazuje aspoň začátek programu — prázdné místo by
-          vypadalo, jako by v setu nic nebylo. */}
-      {!otevreno && vSetu.length > 0 && (
-        <p className="text-drobne text-pismo-slaby truncate">
-          {vSetu.slice(0, 3).map((s) => s.title).join(' · ')}
-          {vSetu.length > 3 ? ` · a další ${vSetu.length - 3}` : ''}
-        </p>
-      )}
-
       {otevreno && (vSetu.length === 0 ? (
         <p className="text-drobne text-pismo-slaby">
           Set list je prázdný.

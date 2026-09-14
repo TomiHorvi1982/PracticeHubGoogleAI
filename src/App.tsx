@@ -37,7 +37,6 @@ import { sdilenyVyraz } from './services/sdilenyVyraz';
 import { rekni } from './services/hlas/odpoved';
 import { MediaCenterSection } from './components/MediaCenter/MediaCenterSection';
 import { PodiumSection } from './components/PodiumSection';
-import { UvitaniSection } from './components/UvitaniSection';
 import { podiumProfil } from './services/podiumProfil';
 import { authService } from './services/authService';
 import { coUkazat, jeAdresaZaka } from './services/vstupniBrana';
@@ -57,13 +56,6 @@ function AppContent() {
     selectSongById,
   } = useMusicalContext();
 
-  /**
-   * Kde se začíná.
-   *
-   * Poprvé rozcestníkem — appka umí spoustu věcí a při prvním otevření
-   * z ní není poznat, kde se má začít. Kdo si ho jednou zavřel, ten už ho
-   * nepotřebuje a jde rovnou do knihovny.
-   */
   /**
    * Odkud se přišlo do playlistu.
    *
@@ -94,13 +86,7 @@ function AppContent() {
     }
   }, [rezimPlochy]);
 
-  const [activeTab, setActiveTab] = useState<MainTabType>(() => {
-    try {
-      return localStorage.getItem('neverlate_uvod_videno') ? 'songbook' : 'vitejte';
-    } catch {
-      return 'songbook';
-    }
-  });
+  const [activeTab, setActiveTab] = useState<MainTabType>('songbook');
 
   // Authentication state
   const [authSession, setAuthSession] = useState<AuthSession | null>(() => authService.getCurrentSession());
@@ -382,28 +368,6 @@ function AppContent() {
             }
             setOdkudDoPlaylistu(activeTab);
             setActiveTab('playlist');
-          }}
-        />
-    ),
-
-    vitejte: (
-        <UvitaniSection
-          jmeno={authSession?.user?.displayName}
-          onJit={(t) => {
-            try {
-              localStorage.setItem('neverlate_uvod_videno', '1');
-            } catch {
-              /* plné úložiště nesmí zabránit vstupu do appky */
-            }
-            setActiveTab(t);
-          }}
-          onZavrit={() => {
-            try {
-              localStorage.setItem('neverlate_uvod_videno', '1');
-            } catch {
-              /* stejně jako výše */
-            }
-            setActiveTab('songbook');
           }}
         />
     ),

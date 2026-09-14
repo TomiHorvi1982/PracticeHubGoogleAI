@@ -11,7 +11,7 @@ import { SKUPINY, PRIME, STRANOU, skupinaSekce, dosazitelneSekce, viditelnePoloz
 const OCEKAVANE = [
   'songbook', 'podium', 'alphatab', 'texty', 'practise', 'instruments',
   'practice', 'tuner', 'stemmixer', 'editor', 'tone3000', 'opendaw', 'library', 'karaoke',
-  'vyuka', 'zalozky', 'vitejte', 'settings',
+  'vyuka', 'zalozky', 'settings',
 ];
 
 test('seskupením se neztratila žádná sekce', () => {
@@ -42,9 +42,10 @@ test('žádná skupina není tak velká, aby se v ní hledalo', () => {
   for (const s of SKUPINY) assert.ok(s.polozky.length <= 5, `${s.nazev} má ${s.polozky.length}`);
 });
 
-test('skupiny nejsou prázdné a stranou jsou jen dvě věci', () => {
+test('skupiny nejsou prázdné a stranou je jen nastavení', () => {
   for (const s of SKUPINY) assert.ok(s.polozky.length > 0, `${s.nazev} je prázdná`);
-  assert.equal(STRANOU.length, 2);
+  // Rozcestník byl zrušen; stranou zůstává jen zázemí aplikace.
+  assert.deepEqual(STRANOU.map((s) => s.id), ['settings']);
 });
 
 test('všechny sekce jsou vidět, žádná není jen hlasem', () => {

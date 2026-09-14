@@ -276,7 +276,6 @@ export const Podium: React.FC<Props> = ({
     <div className="flex items-center gap-4 flex-wrap">
       {udaj('Tempo', aktivni.bpm ? `${aktivni.bpm} BPM` : '')}
       {udaj('Tónina', aktivni.key)}
-      {udaj('Ladění', aktivni.tuning || 'Standard (EADGBe)')}
     </div>
   );
 
@@ -493,9 +492,6 @@ export const Podium: React.FC<Props> = ({
       <div className="fixed inset-0 z-[100] bg-podklad text-[#E5E5EA] flex flex-col p-4 sm:p-6 gap-4 overflow-y-auto">
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
-            <span className="odznak zlata-plocha px-2.5 py-0.5 rounded-md">
-              Pódiový režim
-            </span>
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mt-1.5 truncate">
               {aktivni?.title || 'Vyber skladbu'}
             </h1>

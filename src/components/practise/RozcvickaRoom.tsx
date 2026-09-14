@@ -93,27 +93,6 @@ export const RozcvickaRoom: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 flex flex-wrap items-center gap-3">
-        <Flame className="w-5 h-5 text-znacka" />
-        <div className="flex-1 min-w-[200px]">
-          <h3 className="text-sm font-bold text-white">Rozcvička před hraním</h3>
-          <p className="text-drobne text-pismo-tlum">
-            {delkaProgramu()} minut, {celkem} cviků
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="text-lg font-bold text-uspech tabular-nums">
-            {hotove.size}/{celkem}
-          </div>
-          <button
-            onClick={() => uloz(new Set())}
-            className="text-stitek text-pismo-slaby hover:text-white cursor-pointer"
-          >
-            začít znovu
-          </button>
-        </div>
-      </div>
-
       {/* Právě běžící cvik */}
       {bezici && (
         <div className="bg-znacka/10 border border-znacka/40 rounded-2xl p-4 space-y-2">

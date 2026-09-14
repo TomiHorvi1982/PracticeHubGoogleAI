@@ -9,13 +9,8 @@ import { audioSynth } from '../services/audioSynth';
 import {
   Mic,
   MicOff,
-  Volume2,
-  VolumeX,
   AlertCircle,
-  Play,
-  Pause,
   Zap,
-  Activity,
   RotateCcw
 } from 'lucide-react';
 
@@ -92,11 +87,8 @@ export const Tuner: React.FC = () => {
   const rucickaRef = useRef<SVGGElement | null>(null);
   const prepisRef = useRef(0);
 
-  // --- METRONOME STATE ---
-  const [metroBpm, setMetroBpm] = useState(120);
-  const [isMetroPlaying, setIsMetroPlaying] = useState(false);
   /*
-   * Mikrofon a metronom ladičky vypínalo odmontování.
+   * Mikrofon ladičky vypínalo odmontování.
    *
    * Sekce teď po přepnutí zůstává připojená, a ladička by jinak dál
    * poslouchala mikrofon, i když ji nikdo nevidí. Zastavuje se stejně
@@ -105,15 +97,7 @@ export const Tuner: React.FC = () => {
   useZastavPriSkryti(() => {
     pitchDetectorRef.current?.stop();
     setIsListening(false);
-    setIsMetroPlaying(false);
   });
-  const [beatsPerBar, setBeatsPerBar] = useState(4);
-  const [currentBeat, setCurrentBeat] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
-  const [tapFeedback, setTapFeedback] = useState<string | null>(null);
-
-  const tapTimesRef = useRef<number[]>([]);
-  const tapTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
@@ -122,64 +106,6 @@ export const Tuner: React.FC = () => {
       }
     };
   }, []);
-
-  // --- METRONOME TICK LOOP ---
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isMetroPlaying) {
-      const ms = (60 / metroBpm) * 1000;
-      interval = setInterval(() => {
-        setCurrentBeat((prev) => {
-          const next = (prev + 1) % beatsPerBar;
-          if (!isMuted) {
-            audioSynth.playMetronomeClick(next === 0);
-          }
-          return next;
-        });
-      }, ms);
-    } else {
-      setCurrentBeat(0);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isMetroPlaying, metroBpm, beatsPerBar, isMuted]);
-
-  // --- TAP TEMPO FUNCTIONALITY ---
-  const handleTapTempo = () => {
-    const now = Date.now();
-    tapTimesRef.current.push(now);
-
-    if (tapTimeoutRef.current) {
-      clearTimeout(tapTimeoutRef.current);
-    }
-
-    tapTimeoutRef.current = setTimeout(() => {
-      tapTimesRef.current = [];
-      setTapFeedback(null);
-    }, 2200);
-
-    if (tapTimesRef.current.length > 5) {
-      tapTimesRef.current.shift();
-    }
-
-    if (tapTimesRef.current.length >= 2) {
-      const intervals: number[] = [];
-      for (let i = 1; i < tapTimesRef.current.length; i++) {
-        intervals.push(tapTimesRef.current[i] - tapTimesRef.current[i - 1]);
-      }
-      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const calculatedBpm = Math.round(60000 / avgInterval);
-
-      if (calculatedBpm >= 30 && calculatedBpm <= 300) {
-        setMetroBpm(calculatedBpm);
-        setTapFeedback(`${calculatedBpm} BPM`);
-      }
-    } else {
-      setTapFeedback('Ťukněte znovu...');
-    }
-  };
 
   const toggleListening = async () => {
     if (isListening) {
@@ -322,17 +248,6 @@ export const Tuner: React.FC = () => {
       
       {/* Header & Tuning Selection */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2.5 mb-1">
-            <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
-              Přesná Ladička
-            </span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Chromatická Ladička & Metronom
-          </h2>
-        </div>
-
         {/* Referenční A */}
         <div className="flex items-center gap-2 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
           <span className="text-xs text-pismo-tlum font-medium px-2">Referenční A:</span>
@@ -554,13 +469,13 @@ export const Tuner: React.FC = () => {
             <div className="mt-3 text-xs">
               <span className={`block w-56 text-center px-3 py-1 rounded-lg font-semibold border tabular-nums ${
                 !pitch
-                  ? 'text-pismo-tlum bg-white/[0.03] border-white/10'
+                  ? 'invisible'
                   : isInTune
                   ? 'text-uspech bg-uspech/10 border-uspech/30'
                   : 'text-znacka bg-znacka/10 border-znacka/30'
               }`}>
                 {!pitch
-                  ? 'Zahraj tón na kytaru'
+                  ? '\u00a0'
                   : isInTune
                   ? 'PERFEKTNĚ NALADĚNO'
                   : pitch.cents > 0
@@ -601,12 +516,6 @@ export const Tuner: React.FC = () => {
 
       {/* Target Guitar Strings Reference Panel */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl">
-        <div className="flex items-center justify-between mb-3 border-b border-white/[0.06] pb-2.5">
-          <h3 className="text-xs font-semibold text-white">
-            Referenční tóny strun ({activeTuning.name})
-          </h3>
-        </div>
-
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
           {activeTuning.notes.map((noteName, idx) => {
             const stringNum = 6 - idx;
@@ -630,100 +539,6 @@ export const Tuner: React.FC = () => {
             );
           })}
         </div>
-      </div>
-
-      {/* Metronome Tool Panel */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-white/[0.06] pb-3">
-          <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-znacka" />
-            <h3 className="nadpis-panelu">
-              Metronom & Tap Tempo
-            </h3>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsMuted(!isMuted)}
-              className="p-1.5 text-pismo-tlum hover:text-white rounded-lg hover:bg-white/10 cursor-pointer"
-              title={isMuted ? 'Zapnout zvuk metronomu' : 'Ztlumit zvuk metronomu'}
-            >
-              {isMuted ? <VolumeX className="w-4 h-4 text-chyba" /> : <Volume2 className="w-4 h-4" />}
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          
-          {/* BPM Display & Tap Button */}
-          <div className="flex items-center gap-3">
-            <div className="bg-black/40 border border-white/10 px-4 py-2 rounded-2xl text-center min-w-[100px]">
-              <div className="text-2xl font-bold text-white font-mono">{metroBpm}</div>
-              <div className="text-stitek text-pismo-tlum font-medium">BPM</div>
-            </div>
-
-            <button
-              onClick={handleTapTempo}
-              className="px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-white text-xs font-semibold rounded-2xl transition-all cursor-pointer active:scale-95"
-            >
-              TAP TEMPO
-            </button>
-
-            {tapFeedback && (
-              <span className="text-xs text-znacka font-semibold animate-pulse">
-                {tapFeedback}
-              </span>
-            )}
-          </div>
-
-          {/* Slider BPM */}
-          <div className="flex-1 w-full sm:max-w-xs px-2">
-            <input
-              type="range"
-              min="40"
-              max="240"
-              value={metroBpm}
-              onChange={(e) => setMetroBpm(parseInt(e.target.value, 10))}
-              className="w-full accent-znacka cursor-pointer"
-            />
-          </div>
-
-          {/* Play / Pause Metronome */}
-          <button
-            onClick={() => setIsMetroPlaying(!isMetroPlaying)}
-            className={`px-5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-md ${
-              isMetroPlaying
-                ? 'bg-chyba text-white'
-                : 'bg-znacka hover:bg-znacka/90 text-black'
-            }`}
-          >
-            {isMetroPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            <span>{isMetroPlaying ? 'Zastavit metronom' : 'Spustit metronom'}</span>
-          </button>
-
-        </div>
-
-        {/* Visual Beats Indicator */}
-        <div className="flex justify-center gap-2 pt-2">
-          {Array.from({ length: beatsPerBar }).map((_, idx) => {
-            const isCurrent = isMetroPlaying && currentBeat === idx;
-            const isFirst = idx === 0;
-
-            return (
-              <div
-                key={idx}
-                className={`w-4 h-4 rounded-full transition-all duration-100 ${
-                  isCurrent
-                    ? isFirst
-                      ? 'bg-chyba scale-125 shadow-[0_0_10px_#E54870]'
-                      : 'bg-znacka scale-110 shadow-[0_0_8px_#FFD166]'
-                    : 'bg-white/10'
-                }`}
-              />
-            );
-          })}
-        </div>
-
       </div>
 
     </div>

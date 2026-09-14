@@ -1,4 +1,3 @@
-import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState, useEffect, useRef } from 'react';
 import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { udajeSouboru } from '../services/udajeZNazvu';
@@ -968,18 +967,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
   return (
     <div className="space-y-4 font-sans text-white pb-12">
       
-      {/* Hlavička místo původního baneru: ten měl ikonu, odznak, nadpis
-          i odstavec v kartě a tlačil strom složek na 338px. Počet souborů
-          zůstává v řádku — to je údaj, kvůli kterému se sem chodí, ne
-          vysvětlení. */}
-      <HlavickaSekce
-        nazev="Knihovna souborů"
-        akce={(
-          <span className="text-drobne text-pismo-tlum tabular-nums">
-            {celkemVKnihovne.toLocaleString('cs')} souborů
-          </span>
-        )}
-      />
 
       {/* Status Alerts */}
       {statusMessage && (
@@ -1703,11 +1690,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                 <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-pismo-slaby">
                   <FolderArchive className="w-10 h-10" />
                 </div>
-              </div>
-              <div className="max-w-md mx-auto space-y-1.5">
-                <p className="font-bold text-white text-base">
-                  Vyberte soubor pro náhled nebo přehrání
-                </p>
               </div>
             </div>
           )}

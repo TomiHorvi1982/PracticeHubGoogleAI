@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ExternalLink, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { ExterniSluzba } from './ExterniSluzba';
 
 /**
@@ -70,21 +70,6 @@ export const OpenDawSekce: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="nadpis-sekce">openDAW</h2>
-        </div>
-        <a
-          href={ADRESA}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Otevřít ve vlastním okně"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />Vlastní okno
-        </a>
-      </div>
-
       <div className="relative bg-plocha-2 border border-kresba rounded-2xl overflow-hidden">
         {!nacteno && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 text-drobne text-pismo-tlum">

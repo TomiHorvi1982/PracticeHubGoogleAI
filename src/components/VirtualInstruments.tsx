@@ -612,17 +612,6 @@ export const VirtualInstruments: React.FC = () => {
       
       {/* Header & Instrument Selector Tabs */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
-              Workstation
-            </span>
-          </div>
-          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-            Virtuální nástroje a hardware MIDI
-          </h2>
-        </div>
-
         <div className="flex flex-wrap items-center gap-2">
           {/* MIDI Tools Modal Trigger */}
           <button
@@ -745,7 +734,7 @@ export const VirtualInstruments: React.FC = () => {
               {/* Sound Profile Selector */}
               <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="stitek-pole block">Zvuk kláves ({ALL_INSTRUMENTS.length} nástrojů)</span>
+                  <span />
                   <button
                     onClick={() => setIsSoundLibraryOpen(true)}
                     className="flex items-center gap-1 text-drobne font-bold text-znacka hover:text-znacka-svetla transition-colors cursor-pointer"
@@ -1159,15 +1148,6 @@ export const VirtualInstruments: React.FC = () => {
           
           {/* Information & Controller bar */}
           <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
-                <Globe className="w-5 h-5" />
-              </div>
-              <div>
-                <span className="font-bold text-white text-sm block">All Guitar Chords — integrovaná databáze</span>
-              </div>
-            </div>
-
             {/* Quick Presets within All-Guitar-Chords */}
             <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
               <span className="stitek-pole px-1">Rychlé sekce:</span>
@@ -1279,24 +1259,6 @@ export const VirtualInstruments: React.FC = () => {
               </button>
             </div>
 
-            {/* Read-Only Address display to replicate real browser address bar */}
-            <div className="flex-1 min-w-[280px] flex items-center bg-black/40 border border-white/10 px-3 py-1.5 rounded-xl">
-              <Globe className="w-3.5 h-3.5 text-uspech mr-2" />
-              <span className="text-xs text-pismo font-mono truncate">
-                {guitarCurrentUrl}
-              </span>
-            </div>
-
-            {/* External link button */}
-            <a
-              href={guitarCurrentUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="px-3.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-pismo hover:text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Otevřít v novém okně</span>
-            </a>
           </div>
 
           {/* Embedded Web Page Iframe wrapper */}

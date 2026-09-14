@@ -569,16 +569,6 @@ export const StupniceRoom: React.FC = () => {
           </div>
         )}
 
-        {rezim !== 'vlastni' && (
-          <p className="text-drobne text-pismo-tlum">
-            {rezim === 'stupnice' ? stupnice.popis : cvik.popis}
-          </p>
-        )}
-        {rezim === 'techniky' && (
-          <p className="text-drobne text-pozor">
-            <span className="stitek-pole mr-1">pozor</span>{cvik.pozor}
-          </p>
-        )}
 
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -630,11 +620,6 @@ export const StupniceRoom: React.FC = () => {
             {zvuky.map((z) => <option key={z.id} value={z.id}>{z.nazev}</option>)}
           </select>
 
-          <span className="text-stitek text-pismo-slaby">
-            {tony.length} tónů · {(bpm * 2 / 60).toFixed(1)} osmin/s
-            {smycka && ' · dokola'}
-            {!jeStandardni(ladeni) && ` · ${popisLadeni(ladeni)}`}
-          </span>
         </div>
       </div>
 
@@ -711,11 +696,6 @@ export const StupniceRoom: React.FC = () => {
       {rezim === 'techniky' && (
         <p className="text-stitek text-pismo-slaby">
           Technika: {NAZVY_TECHNIK[cvik.technika]} · doporučené tempo {cvik.bpmOd}–{cvik.bpmDo} BPM
-        </p>
-      )}
-      {rezim === 'vlastni' && !vlastni.length && (
-        <p className="text-stitek text-pismo-slaby">
-          Zatím prázdné.
         </p>
       )}
     </div>

@@ -1,4 +1,3 @@
-import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState } from 'react';
 import { Flame, Target, Brain, GraduationCap, Music4 } from 'lucide-react';
 import { RozcvickaRoom } from './practise/RozcvickaRoom';
@@ -47,11 +46,6 @@ export const PractiseHubSection: React.FC = () => {
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
-      {/* Hlavička je venku z karty: uvnitř zůstalo jen to, co se
-          používá. Odznak nad nadpisem opakoval název sekce z navigace. */}
-      <HlavickaSekce
-        nazev="Zkušebna pro jednoho"
-      />
 
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
 

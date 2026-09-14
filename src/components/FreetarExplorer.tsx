@@ -109,13 +109,11 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
    * Ukládat prohlédnuté tabulatury rovnou do zpěvníku.
    *
    * Dosud se musela každá otevřená tabulatura ještě jednou potvrdit
-   * tlačítkem, přestože ten, kdo si ji otevřel, ji chtěl. Volba zůstává
-   * pro případ, že si někdo jen prohlíží — a co ve zpěvníku už je, se
-   * podruhé nezakládá.
+   * tlačítkem, přestože ten, kdo si ji otevřel, ji chtěl. Co ve zpěvníku
+   * už je, se podruhé nezakládá. Vypínač tu býval; zrušil se spolu
+   * s ostatním textem kolem vyhledávání, takže se ukládá vždycky.
    */
-  const [ukladatSam, setUkladatSam] = useState(
-    () => localStorage.getItem('neverlate_ug_automaticky') !== 'ne',
-  );
+  const ukladatSam = true;
 
   /** Stahovat z UG smí jen správce — používá se jeho vlastní předplatné. */
   const jsemSpravce = authService.getCurrentUser()?.role === 'admin';
@@ -728,21 +726,6 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 )}
               </button>
             </form>
-
-            {/* Ukládání nálezů. Patří k vyhledávání, protože rozhoduje
-                o tom, co se stane hned po otevření tabulatury. */}
-            <label className="flex items-center gap-2 text-drobne text-pismo cursor-pointer">
-              <input
-                type="checkbox"
-                checked={ukladatSam}
-                onChange={(e) => {
-                  setUkladatSam(e.target.checked);
-                  localStorage.setItem('neverlate_ug_automaticky', e.target.checked ? 'ano' : 'ne');
-                }}
-                className="accent-znacka cursor-pointer"
-              />
-              Otevřenou tabulaturu rovnou uložit do zpěvníku i s akordy
-            </label>
 
             {/* Tipy na kapely místo pevného seznamu osmi jmen.
                 Jen světové: tabulatury k českým kapelám tu skoro nejsou,

@@ -74,7 +74,6 @@ const ROZMERY: Partial<Record<MainTabType, [number, number]>> = {
   vyuka: [900, 640],
   zalozky: [560, 560],
   settings: [640, 560],
-  vitejte: [720, 560],
 };
 
 const IKONY: Partial<Record<MainTabType, string>> = {
@@ -95,7 +94,6 @@ const IKONY: Partial<Record<MainTabType, string>> = {
   library: '🗂️',
   zalozky: '🔖',
   playlist: '🎬',
-  vitejte: '🧭',
   settings: '⚙️',
 };
 
@@ -127,7 +125,6 @@ const BARVY: Partial<Record<MainTabType, string>> = {
   library: 'info',
   zalozky: 'nastroj',
   playlist: 'pozor',
-  vitejte: 'uspech',
   settings: 'info',
 };
 

@@ -257,8 +257,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="border-t border-white/5 px-6 py-3 flex items-center justify-between text-xs text-pismo-slaby">
-          <span>Neverlast Studio // Účet aktivní</span>
+        <div className="border-t border-white/5 px-6 py-3 flex items-center justify-end text-xs text-pismo-slaby">
           <button onClick={onClose} className="text-pismo-tlum hover:text-white cursor-pointer transition-colors">
             Zavřít
           </button>

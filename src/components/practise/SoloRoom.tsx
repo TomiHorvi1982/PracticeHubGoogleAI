@@ -128,10 +128,6 @@ export const SoloRoom: React.FC = () => {
           ))}
         </div>
 
-        <p className="text-drobne text-pismo-slaby">
-          {STUPNICE.find((s) => s.id === stupnice)?.popis}
-        </p>
-
         {historie.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {historie.map((h, i) => (

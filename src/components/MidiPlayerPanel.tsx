@@ -452,12 +452,6 @@ export const MidiPlayerPanel: React.FC = () => {
           {knihovnaOtevrena ? <ChevronDown className="w-4 h-4 text-pismo-tlum" /> : <ChevronRight className="w-4 h-4 text-pismo-tlum" />}
           <Music4 className="w-4 h-4 text-znacka" />
           <span className="nadpis-panelu">Knihovna MIDI</span>
-          {celkem > 0 && (
-            <span className="text-drobne text-pismo-slaby">
-              ({celkem.toLocaleString('cs')}
-              {slozky.length ? ` v ${slozky.length} složkách` : ''})
-            </span>
-          )}
           {stav.asset && (
             <span className="ml-auto text-drobne font-bold text-znacka truncate max-w-[45%]">{stav.asset.name}</span>
           )}

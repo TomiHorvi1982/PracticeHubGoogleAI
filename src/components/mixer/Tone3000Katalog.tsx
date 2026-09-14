@@ -262,9 +262,6 @@ export const Tone3000Katalog: React.FC = () => {
           >
             Pokračovat
           </button>
-          <p className="text-stitek text-pismo-slaby">
-            Otevře se okno TONE3000, kde se přihlásíš. Heslo ani e-mail sem nezadáváš.
-          </p>
         </div>
       </div>
     );

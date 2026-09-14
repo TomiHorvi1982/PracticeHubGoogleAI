@@ -295,9 +295,6 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
         {/* Type Picker */}
         {explorerMode === 'chord' ? (
           <div>
-            <label className="stitek-pole block mb-2">
-              Typ akordu
-            </label>
             <div className="flex flex-wrap gap-1.5">
               {['Major', 'Minor', 'Dom 7', 'Maj 7', 'Min 7', 'Sus4', 'Sus2', 'Power'].map((type) => (
                 <button
@@ -508,12 +505,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       {/* Piano Keyboard Visualizer */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-znacka" />
-            <h3 className="text-sm font-bold text-white tracking-tight">
-              Klávesnice Klavíru (2 Oktávy)
-            </h3>
-          </div>
+          <div />
 
           <div className="flex items-center gap-2">
             {explorerMode === 'chord' && chordDef && (

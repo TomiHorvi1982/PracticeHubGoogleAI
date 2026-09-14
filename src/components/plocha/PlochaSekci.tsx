@@ -327,11 +327,6 @@ export const PlochaSekci: React.FC<Props> = ({ obsah }) => {
             })}
           </div>
 
-          {!okna.length && (
-            <div className="mt-8 flex items-center gap-2 text-drobne text-pismo-slaby">
-              <LayoutGrid className="w-4 h-4" /> Plocha je prázdná.
-            </div>
-          )}
         </div>
 
         {okna.map((o) => {

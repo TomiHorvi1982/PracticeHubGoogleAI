@@ -31,10 +31,7 @@ export const KaraokeSekce: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="nadpis-sekce">Karaoke texty</h2>
-        </div>
+      <div className="flex flex-wrap items-end justify-end gap-2">
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => { setNacteno(false); setPokus((p) => p + 1); }}

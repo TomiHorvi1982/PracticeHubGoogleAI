@@ -836,42 +836,20 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-znacka/10 border border-znacka/30 text-znacka rounded-xl">
-              <Music className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                Guitar Pro Tablatura &amp; Přehrávač
-                {isMaximized && (
-                  <span className="odznak bg-uspech text-black px-2 py-0.5 rounded-md">
-                    Maximalizováno
-                  </span>
-                )}
-              </h3>
-              <p className="text-xs text-pismo-tlum">
-                {filename} {artist && `• ${artist}`} • <span className="text-znacka font-semibold">{Math.round(songBpm * playbackSpeed)} BPM</span>
-                {tonina && (
-                  <>
-                    {' • '}
-                    <span className="text-nastroj font-semibold">
-                      {tonina.nazev} {tonina.durMoll}
-                    </span>
-                    <button
-                      onClick={() => {
-                        // Do kontextu jde jen tónika; „moll" nese stupnice,
-                        // kterou si nástroje odvodí samy.
-                        setKey(tonika(tonina.nazev));
-                        setToninaPredana(true);
-                      }}
-                      className="ml-1.5 text-stitek font-bold text-nastroj hover:text-white underline underline-offset-2 cursor-pointer"
-                      title="Nastavit podle toho virtuální nástroje a hmatník"
-                    >
-                      {toninaPredana ? 'nastaveno' : 'nastavit nástroje'}
-                    </button>
-                  </>
-                )}
-              </p>
-            </div>
+            {tonina && (
+              <button
+                onClick={() => {
+                  // Do kontextu jde jen tónika; „moll" nese stupnice,
+                  // kterou si nástroje odvodí samy.
+                  setKey(tonika(tonina.nazev));
+                  setToninaPredana(true);
+                }}
+                className="text-stitek font-bold text-nastroj hover:text-white underline underline-offset-2 cursor-pointer"
+                title={`Nastavit virtuální nástroje a hmatník na ${tonina.nazev} ${tonina.durMoll}`}
+              >
+                {toninaPredana ? 'nastaveno' : 'nastavit nástroje'}
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -1256,76 +1234,6 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
           </div>
         )}
 
-        {/**
-         * Mřížka taktů.
-         *
-         * Jeden řádek na stopu, jedna kostička na takt. Odškrtnutý takt
-         * stopa přeskočí — hodí se, když se má sloka hrát jen s kytarou
-         * a refrén s celou kapelou, aniž by se kvůli tomu skladba dělila.
-         * Číslo taktu je v kostičce, takže je vidět, co se zrovna vypíná.
-         */}
-        {extraOtevrene && pocetTaktu > 0 && tracks.length > 0 && (
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
-            <div className="flex items-center justify-between gap-2">
-              <span className="stitek-pole">
-                Takty ({pocetTaktu}) — odškrtni, co hrát nemá
-              </span>
-              <button
-                onClick={() =>
-                  setTaktyStop(
-                    Object.fromEntries(tracks.map((t) => [t.index, new Array(pocetTaktu).fill(true)])),
-                  )
-                }
-                className="text-stitek font-semibold text-pismo-tlum hover:text-white cursor-pointer"
-              >
-                všechno zpět
-              </button>
-            </div>
-
-            <div className="space-y-1.5 max-h-[190px] overflow-y-auto pr-1">
-              {tracks.map((track) => {
-                const radek = taktyStop[track.index] || [];
-                return (
-                  <div key={track.index} className="flex items-center gap-2">
-                    <span
-                      className="text-stitek text-pismo-tlum truncate w-24 shrink-0"
-                      title={track.name}
-                    >
-                      {track.name || `Stopa ${track.index + 1}`}
-                    </span>
-                    <div className="flex gap-0.5 overflow-x-auto pb-1">
-                      {Array.from({ length: pocetTaktu }, (_, takt) => {
-                        const hraje = radek[takt] !== false;
-                        const ted = takt === aktualniTakt;
-                        return (
-                          <button
-                            key={takt}
-                            onClick={() =>
-                              setTaktyStop((p) => {
-                                const stary = p[track.index] || new Array(pocetTaktu).fill(true);
-                                const novy = [...stary];
-                                novy[takt] = !hraje;
-                                return { ...p, [track.index]: novy };
-                              })
-                            }
-                            title={`Takt ${takt + 1} — ${hraje ? 'hraje' : 'mlčí'}`}
-                            className={`w-6 h-6 shrink-0 rounded text-stitek font-bold tabular-nums border transition-colors cursor-pointer ${
-                              hraje
-                                ? 'bg-znacka/25 border-znacka/50 text-znacka hover:bg-znacka/40'
-                                : 'bg-white/[0.04] border-white/10 text-pismo-slaby hover:bg-white/10'
-                            } ${ted ? 'ring-2 ring-uspech' : ''}`}
-                          >
-                            {takt + 1}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
 
         {/**
          * Vybraný úsek na hmatníku.

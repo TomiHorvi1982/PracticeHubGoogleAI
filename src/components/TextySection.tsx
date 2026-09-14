@@ -1,4 +1,3 @@
-import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useEffect, useMemo, useState } from 'react';
 import { PenLine, Mic, FileText, Check, AlertCircle, Languages } from 'lucide-react';
 import { songDatabaseService } from '../services/songDatabaseService';
@@ -76,11 +75,6 @@ export const TextySection: React.FC = () => {
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
-      {/* Hlavička je venku z karty: uvnitř zůstalo jen to, co se
-          používá. Odznak nad nadpisem opakoval název sekce z navigace. */}
-      <HlavickaSekce
-        nazev="Psaní a přepis"
-      />
 
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
 

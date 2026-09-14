@@ -101,7 +101,6 @@ export const NahravaniDI: React.FC<{ bezi: boolean }> = ({ bezi }) => {
   return (
     <div className="space-y-1.5 pt-2 border-t border-kresba-jemna">
       <div className="flex items-center gap-1.5">
-        <span className="stitek-pole">Nahrát do stopy</span>
         {(['di', 'vystup'] as const).map((id) => (
           <button
             key={id}

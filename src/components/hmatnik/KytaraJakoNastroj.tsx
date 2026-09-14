@@ -124,12 +124,6 @@ export const KytaraJakoNastroj: React.FC = () => {
 
       <AparatOvladani />
 
-      {/* Zpětná vazba přes reproduktory je tady horší než jinde: nástroj
-          hraje tóny, které mikrofon zase uslyší a zahraje znovu. */}
-      <p className="text-drobne text-znacka/80 flex items-start gap-1.5 leading-relaxed">
-        <Headphones className="w-3.5 h-3.5 shrink-0 mt-0.5" /> Jen do sluchátek.
-      </p>
-
       {chyba && (
         <p className="text-drobne text-chyba flex items-center gap-1.5">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {chyba}

@@ -44,9 +44,6 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
   const [nacitam, setNacitam] = useState(true);
   const [duplicity, setDuplicity] = useState<Duplicity | null>(null);
   const [uklizim, setUklizim] = useState(false);
-  // Rozpis kategorii je schvalne sbaleny: nad stromem slozek zabiral
-  // pres dve ste pixelu pri kazdem otevreni sekce.
-  const [rozpis, setRozpis] = useState(false);
   const [vysledek, setVysledek] = useState<string | null>(null);
 
   const nacti = useCallback(async () => {
@@ -85,7 +82,6 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
   }
   if (!stav) return null;
 
-  const volno = Math.max(0, stav.limit - stav.celkem);
   const procent = Math.min(100, (stav.celkem / stav.limit) * 100);
   const kusy = stav.kategorie.filter((k) => k.bajtu > 0);
 
@@ -95,20 +91,6 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
         <HardDrive className="w-4 h-4 text-znacka shrink-0 self-center" />
         <span className="text-lg font-bold text-white tabular-nums">{velikost(stav.celkem)}</span>
         <span className="text-drobne text-pismo-slaby">z {velikost(stav.limit)}</span>
-        <span className="ml-auto text-drobne text-pismo-slaby">
-          volných <strong className="text-pismo tabular-nums">{velikost(volno)}</strong> · {stav.uloziste}
-        </span>
-        {/* Rozpis zabíral přes dvě stě pixelů nad stromem složek při
-            každém otevření sekce. Pruh a varování o limitu zůstávají
-            vidět — to je to, kvůli čemu se sem člověk podívá letmo;
-            devět kategorií a úklid kopií je detail na vyžádání. */}
-        <button
-          onClick={() => setRozpis((r) => !r)}
-          aria-expanded={rozpis}
-          className="text-drobne text-pismo-slaby hover:text-pismo transition-colors cursor-pointer px-2 rounded-prvek focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-znacka"
-        >
-          {rozpis ? 'Skrýt rozpis' : 'Rozpis'}
-        </button>
       </div>
 
       <div
@@ -124,23 +106,6 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
           />
         ))}
       </div>
-
-      {rozpis && (
-      <>
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-        {kusy.map((k, i) => (
-          <div key={k.nazev} className="flex items-center gap-1.5 text-drobne">
-            <span
-              className="w-2.5 h-2.5 rounded-[3px] shrink-0"
-              style={{ background: BARVY[i % BARVY.length] }}
-            />
-            <span className="text-pismo">{nazevKategorie(k.nazev)}</span>
-            <span className="text-pismo-slaby tabular-nums">{velikost(k.bajtu)}</span>
-            <span className="text-pismo-slaby tabular-nums">· {k.souboru.toLocaleString('cs')}</span>
-          </div>
-        ))}
-      </div>
-
 
       {/* Kopie téhož souboru pod jiným názvem. Bez tohohle řádku by se
           na ně nepřišlo — v seznamu vypadají jako dva různé soubory. */}
@@ -183,8 +148,6 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
           )}
           {vysledek && <span className="text-drobne text-uspech">{vysledek}</span>}
         </div>
-      )}
-      </>
       )}
 
       {procent > 85 && (

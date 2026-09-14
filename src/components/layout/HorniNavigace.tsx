@@ -46,7 +46,6 @@ const IKONY: Partial<Record<MainTabType, React.FC<{ className?: string }>>> = {
   library: FolderOpen,
   zalozky: Bookmark,
   settings: Settings,
-  vitejte: Compass,
 };
 
 /** Všechny sekce v jedné řadě, v pořadí, v jakém se do nich chodí. */

@@ -88,9 +88,6 @@ export const PoslechKytaryPanel: React.FC<{
           {stav.poslouchá ? 'Přestat poslouchat' : 'Poslouchat kytaru'}
         </button>
 
-        <div>
-          <div className="text-xs font-bold text-white">Co hraješ</div>
-        </div>
 
         {/* Ozvěna: co mikrofon slyší, to zahraje vybraný nástroj.
             Kytara se tím dá poslouchat jako klavír nebo mandolína. */}

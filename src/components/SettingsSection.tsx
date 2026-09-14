@@ -131,17 +131,6 @@ export const SettingsSection: React.FC = () => {
 
   return (
     <div className="w-full space-y-4 font-sans pb-16">
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
-            Nastavení
-          </span>
-        </div>
-        <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-          <Settings className="w-5 h-5 text-znacka" /> Nastavení aplikace
-        </h2>
-      </div>
-
       {/* MIDI HARDWARE */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -231,29 +220,6 @@ export const SettingsSection: React.FC = () => {
           projít naším serverem a zůstat někde v logu. */}
       {jsemSpravce && (
         <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
-          <div>
-            <h3 className="nadpis-panelu flex items-center gap-2">
-              <KeyRound className="w-4 h-4 text-znacka" /> Ultimate Guitar Pro
-            </h3>
-          </div>
-
-          <div className="text-drobne text-pismo-tlum bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
-            <p className="text-pismo font-semibold">Kde cookie vzít — jeden řádek, ne skládačka</p>
-            <p>1. Přihlas se na <strong className="text-pismo">ultimate-guitar.com</strong> ve svém prohlížeči.</p>
-            <p>2. Otevři vývojářské nástroje: <strong className="text-pismo">⌥⌘I</strong> (Chrome) nebo ⌥⌘C (Safari).</p>
-            <p>3. Záložka <strong className="text-pismo">Network</strong>, pak obnov stránku (⌘R).</p>
-            <p>4. Klikni na první požadavek v seznamu (jmenuje se jako ta stránka).</p>
-            <p>
-              5. Vpravo <strong className="text-pismo">Headers → Request Headers</strong>, najdi řádek{' '}
-              <code className="text-znacka">cookie:</code> a zkopíruj <em>celou</em> hodnotu za dvojtečkou.
-            </p>
-            <p>6. Vlož ji sem a dej Uložit.</p>
-            <p className="text-pismo-slaby">
-              Heslo sem nedávej — appka ho nepotřebuje a neuložila by ho. Cookie zneplatníš
-              kdykoli odhlášením na UG.
-            </p>
-          </div>
-
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="password"

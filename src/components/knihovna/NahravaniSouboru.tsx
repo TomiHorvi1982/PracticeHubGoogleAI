@@ -124,10 +124,6 @@ export const NahravaniSouboru: React.FC<{
           <FolderUp className="w-4 h-4" /> Vybrat složku
         </button>
 
-        <span className="text-drobne text-pismo-slaby">
-          nebo sem přetáhni · zařadí se do <strong className="text-pismo">{cil}</strong>
-        </span>
-
         {children}
 
         <button

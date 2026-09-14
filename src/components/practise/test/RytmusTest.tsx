@@ -79,7 +79,6 @@ export const RytmusTest: React.FC = () => {
           <Activity className="w-5 h-5 text-info" />
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Rytmus</h3>
-            <p className="text-drobne text-pismo-tlum">{CVICENI[cviceni].popis}</p>
           </div>
 
           <div className="flex items-center gap-2">

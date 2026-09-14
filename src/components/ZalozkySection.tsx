@@ -1,4 +1,3 @@
-import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useEffect, useState } from 'react';
 import { Bookmark, Plus, Trash2, ExternalLink, Check, Pencil, X } from 'lucide-react';
 import { zalozkyService, Zalozka, Kategorie, KATEGORIE } from '../services/zalozkyService';
@@ -44,14 +43,6 @@ export const ZalozkySection: React.FC = () => {
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
-      {/* Odznak „Záložky" nad nadpisem opakoval to, na co uživatel
-          před chvílí klikl v navigaci. Počet zůstává, ten je užitečný. */}
-      <HlavickaSekce
-        nazev="Kam kapela chodí"
-        akce={zalozky.length > 0 ? (
-          <span className="text-drobne text-pismo-tlum tabular-nums">{zalozky.length} záložek</span>
-        ) : undefined}
-      />
 
       {chyba && (
         <div className="bg-chyba/10 border border-chyba/30 text-chyba rounded-2xl px-4 py-2.5 text-xs">
@@ -158,7 +149,6 @@ export const ZalozkySection: React.FC = () => {
         <div className="flex items-center gap-2">
           <Plus className="w-4 h-4 text-uspech" />
           <h3 className="text-sm font-bold text-white">Přidat odkaz</h3>
-          <span className="text-drobne text-pismo-slaby">uvidí ho celá kapela</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">

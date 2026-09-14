@@ -385,11 +385,6 @@ export const VyukaSekce: React.FC = () => {
                 {!zak.aktivni && (
                   <span className="odznak bg-chyba/15 text-chyba px-2 py-0.5 rounded-prvek">vypnutý</span>
                 )}
-                <span className="text-stitek text-pismo-slaby">
-                  {zak.sekce.length
-                    ? `${zak.sekce.length} sekcí navíc`
-                    : 'jen žákovská obrazovka'}
-                </span>
 
                 <button
                   onClick={() => setOtevrenyPostup(otevrenyPostup === zak.id ? null : zak.id)}

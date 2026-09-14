@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ExternalLink, RotateCw, Search, Star, TriangleAlert } from 'lucide-react';
+import { Search, Star, TriangleAlert } from 'lucide-react';
 
 /**
  * TONE3000 přímo v aplikaci.
@@ -61,10 +61,6 @@ export const Tone3000Sekce: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      <div>
-        <h2 className="nadpis-sekce">TONE3000</h2>
-      </div>
-
       <div className="flex flex-wrap items-center gap-1.5">
         {ODKAZY.map((o) => (
           <button
@@ -77,34 +73,12 @@ export const Tone3000Sekce: React.FC = () => {
             <o.ikona className="w-3.5 h-3.5" />{o.nazev}
           </button>
         ))}
-
-        <button
-          onClick={() => setPokus((p) => p + 1)}
-          title="Načíst stránku znovu"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
-        >
-          <RotateCw className="w-3.5 h-3.5" />Znovu
-        </button>
-
-        {/* Únik pro případ, že přihlášení v rámu neprojde. */}
-        <a
-          href={plnaAdresa}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-prvek text-drobne font-bold bg-plocha-3 text-pismo-tlum hover:text-pismo cursor-pointer"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />Otevřít samostatně
-        </a>
       </div>
 
       {dlouho && !nacteno && (
         <p className="flex items-start gap-2 text-drobne text-pozor bg-pozor/10 border border-pozor/30 rounded-panel p-2.5">
           <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>
-            Stránka se načítá dlouho, nebo ji TONE3000 v rámu nepustí.
-            Zkus <strong>Znovu</strong>, a když to nepomůže, otevři ji
-            samostatně tlačítkem vpravo.
-          </span>
+          <span>Stránka se načítá dlouho.</span>
         </p>
       )}
 

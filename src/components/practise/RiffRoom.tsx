@@ -233,7 +233,7 @@ export const RiffRoom: React.FC<{ typ: TypCviceni }> = ({ typ }) => {
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <Music4 className="w-4 h-4 text-znacka" />
             {typ === 'riff' ? 'Moje riffy' : 'Moje sóla'}
-            <span className="text-drobne text-pismo-slaby">({seznam.length})</span>
+           
           </h3>
 
           <div className="space-y-1 max-h-[40vh] overflow-y-auto">

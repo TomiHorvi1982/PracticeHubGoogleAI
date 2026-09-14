@@ -94,7 +94,6 @@ export const SKUPINY: Skupina[] = [
 
 /** Sekce dosažitelné ikonou vpravo — ne nástroje, ale zázemí. */
 export const STRANOU: { id: MainTabType; nazev: string }[] = [
-  { id: 'vitejte', nazev: 'Rozcestník' },
   { id: 'settings', nazev: 'Nastavení' },
 ];
 

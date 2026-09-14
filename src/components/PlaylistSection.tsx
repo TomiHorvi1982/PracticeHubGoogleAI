@@ -203,7 +203,6 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           i odstavec v kartě a zabíral přes dvě stě pixelů nad prvním
           řádkem seznamu. */}
       <HlavickaSekce
-        nazev="Playlist"
         akce={onZavrit ? (
           <button
             onClick={onZavrit}

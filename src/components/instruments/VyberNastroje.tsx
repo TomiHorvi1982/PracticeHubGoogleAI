@@ -81,20 +81,6 @@ export const VyberNastroje: React.FC<{
               <n.Obrazek className="w-full h-14 px-4" />
             </div>
 
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className={`nadpis-panelu ${aktivni ? '' : 'text-pismo-tlum'}`}>
-                {n.nazev}
-              </span>
-              {aktivni && (
-                <span
-                  className="odznak px-1.5 py-0.5 rounded"
-                  style={{ backgroundColor: `${n.barva}25`, color: n.barva }}
-                >
-                  hraje
-                </span>
-              )}
-            </div>
-
             <label className="block">
               <span className="stitek-pole">Vstup</span>
               <select

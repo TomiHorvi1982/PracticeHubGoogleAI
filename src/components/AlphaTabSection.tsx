@@ -1,4 +1,3 @@
-import { HlavickaSekce } from './ui/HlavickaSekce';
 import React, { useState, useEffect } from 'react';
 import { 
   FileUp, Disc, Music, Sliders, Play, Plus, BookOpen, Trash2, 
@@ -74,9 +73,6 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
 
   return (
     <div className="space-y-4 font-sans text-white pb-12">
-      <HlavickaSekce
-        nazev="Guitar Pro"
-      />
 
 
       {/* Hledání tabulatur.
@@ -166,10 +162,6 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
         {/* Player Rendering or Placeholder empty state */}
         {activeFile ? (
           <div className="space-y-3">
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs">
-              <span className="text-pismo-tlum font-medium">Aktivní tabulatura:</span>
-              <span className="font-bold text-znacka">{activeFile.filename}</span>
-            </div>
             <GuitarProPlayer
               dataUrl={activeFile.dataUrl}
               filename={activeFile.filename}

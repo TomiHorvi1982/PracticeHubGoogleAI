@@ -6,7 +6,6 @@
  * musel v projektu zůstat kus mrtvého rozhraní.
  */
 export type MainTabType =
-  | 'vitejte'
   | 'songbook'
   | 'podium'
   | 'playlist'
@@ -71,5 +70,4 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'výuka': 'vyuka',
   'žáci': 'vyuka',
   'nastavení': 'settings',
-  'rozcestník': 'vitejte',
 };

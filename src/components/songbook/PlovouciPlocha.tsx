@@ -178,9 +178,6 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
             >
               <LayoutGrid className="w-3.5 h-3.5" /> Srovnat
             </button>
-            <span className="text-stitek text-pismo-slaby">
-              {okna.length} {okna.length === 1 ? 'okno' : okna.length < 5 ? 'okna' : 'oken'} · rozložení se ukládá k písni
-            </span>
           </>
         )}
       </div>
