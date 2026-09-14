@@ -10,7 +10,6 @@ import { EditorStop } from './components/EditorStop';
 import { OpenDawSekce } from './components/OpenDawSekce';
 import { ZiveSekce } from './components/layout/ZiveSekce';
 import { KaraokeSekce } from './components/KaraokeSekce';
-import { BandzoneSekce } from './components/BandzoneSekce';
 import { VyukaSekce } from './components/vyuka/VyukaSekce';
 import { ZakovskaObrazovka } from './components/vyuka/ZakovskaObrazovka';
 import { Zak, vyukaService } from './services/vyukaService';
@@ -459,7 +458,6 @@ function AppContent() {
     tone3000: <Tone3000Sekce />,
     opendaw: <OpenDawSekce />,
     karaoke: <KaraokeSekce />,
-    bandzone: <BandzoneSekce />,
 
     vyuka: <VyukaSekce />,
     aikapela: <AiKapelaSection />,

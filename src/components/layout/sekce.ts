@@ -15,7 +15,6 @@ export type MainTabType =
   | 'editor'
   | 'opendaw'
   | 'karaoke'
-  | 'bandzone'
   | 'vyuka'
   | 'instruments'
   | 'youtube'
@@ -55,7 +54,6 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'open daw': 'opendaw',
   'karaoke texty': 'karaoke',
   'karaoke': 'karaoke',
-  'bandzone': 'bandzone',
   'virtual instruments': 'instruments',
   'mixážní pult': 'stemmixer',
   // Odloženo spolu s položkou v horní navigaci — viz HorniNavigace.tsx.

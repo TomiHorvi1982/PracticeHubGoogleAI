@@ -3,7 +3,7 @@ import {
   Library, Maximize2, FileCode, FileText, GraduationCap, Piano, Clock, Mic,
   Sliders, Guitar, FolderOpen, Bookmark, Settings, Compass, LayoutGrid, Globe, AudioLines,
 } from 'lucide-react';
-import { MicVocal, Users } from 'lucide-react';
+import { MicVocal } from 'lucide-react';
 import { MainTabType } from './sekce';
 import { PRIME, SKUPINY, STRANOU } from './skupiny';
 
@@ -42,7 +42,6 @@ const IKONY: Partial<Record<MainTabType, React.FC<{ className?: string }>>> = {
   tone3000: Globe,
   opendaw: Sliders,
   karaoke: MicVocal,
-  bandzone: Users,
   vyuka: GraduationCap,
   library: FolderOpen,
   zalozky: Bookmark,

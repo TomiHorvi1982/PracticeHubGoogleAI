@@ -86,8 +86,6 @@ export const SKUPINY: Skupina[] = [
     nazev: 'Archiv',
     polozky: [
       { id: 'library', nazev: 'Soubory' },
-      // Rozcestník na komunitu kapel — ve Zvuku už je pět položek.
-      { id: 'bandzone', nazev: 'Bandzone' },
       { id: 'vyuka', nazev: 'Výuka' },
       { id: 'zalozky', nazev: 'Záložky' },
     ],
