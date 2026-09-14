@@ -14,8 +14,6 @@ export type MainTabType =
   | 'tone3000'
   | 'editor'
   | 'opendaw'
-  | 'bandlab'
-  | 'musicimport'
   | 'karaoke'
   | 'bandzone'
   | 'vyuka'
@@ -55,10 +53,6 @@ export const SEKCE_HLASEM: Record<string, MainTabType> = {
   'katalog aparátů': 'tone3000',
   'editor stop': 'editor',
   'open daw': 'opendaw',
-  'bandlab': 'bandlab',
-  'music import': 'musicimport',
-  'import hudby': 'musicimport',
-  'import ze spotify': 'musicimport',
   'karaoke texty': 'karaoke',
   'karaoke': 'karaoke',
   'bandzone': 'bandzone',

@@ -12,8 +12,6 @@ import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/su
 import dotenv from 'dotenv';
 import { doplnPisen, pripojNalezy, rozeberNazev, vyresNavrh } from './enrichment';
 import { isR2Configured, signedDownloadUrl, getObjectBytes, uploadObject, deleteObject as r2Delete } from './r2';
-import { OmezovacDotazu, SpotifyKlient, konfigZProstredi, platnyTokenUzivatele } from './server/spotify';
-import { ImportChyba, KodChyby, popisChyby } from './src/services/musicImport/chyby';
 import {
   prepisSoubor, docasnySoubor, jePrepisDostupny, StavPrepisu,
 } from './prepisTextu';
@@ -5363,78 +5361,6 @@ Vrať VÝHRADNĚ platný JSON objekt v tomto formátu bez jakéhokoliv dalšího
    * takže by to bylo třináct dotazů z každé klávesnice, a Deezer má
    * omezení na počet volání.
    */
-  /* ------------------------------------------ Music Import (Spotify) */
-
-  /**
-   * Import metadat ze Spotify.
-   *
-   * Jen metadata — žádný zvuk. Klíč aplikace (`SPOTIFY_CLIENT_SECRET`)
-   * zůstává tady; prohlížeč dostane jen hotové náhledy. Token uživatele,
-   * který je potřeba na obsah jeho vlastního playlistu, přichází v hlavičce
-   * `X-Spotify-Token`, použije se na jeden dotaz a nikam se neukládá ani
-   * nezapisuje do logu.
-   *
-   * Každý uživatel má brzdu na počet dotazů: náhled playlistu jsou desítky
-   * volání Spotify a limit má celá aplikace dohromady.
-   */
-  const spotifyKonfig = konfigZProstredi();
-  const spotify = spotifyKonfig ? new SpotifyKlient(spotifyKonfig) : null;
-  const brzdaImportu = new OmezovacDotazu(30, 60_000);
-
-  const HTTP_STAV: Partial<Record<KodChyby, number>> = {
-    INVALID_URL: 400,
-    UNSUPPORTED_SOURCE: 400,
-    SPOTIFY_NOT_CONFIGURED: 503,
-    // Ne 401: to by klient vyložil jako odhlášení z aplikace.
-    SPOTIFY_LOGIN_REQUIRED: 403,
-    TRACK_NOT_FOUND: 404,
-    PLAYLIST_UNAVAILABLE: 404,
-    METADATA_UNAVAILABLE: 422,
-    RATE_LIMITED: 429,
-    CANCELLED: 499,
-  };
-
-  const chybaImportu = (res: express.Response, e: unknown) => {
-    const c = popisChyby(e, 'SPOTIFY_API_ERROR');
-    console.warn(`[music-import] ${c.kod}: ${c.technicky}`);
-    if (res.headersSent || res.writableEnded) return;
-    res.status(HTTP_STAV[c.kod] ?? 502).json({ kod: c.kod, zprava: c.zprava, technicky: c.technicky });
-  };
-
-  /** Přerušení dotazu, když prohlížeč odejde — nemá smysl pálit limit Spotify dál. */
-  const signalZOdpovedi = (res: express.Response): AbortSignal => {
-    const ctrl = new AbortController();
-    res.on('close', () => { if (!res.writableEnded) ctrl.abort(); });
-    return ctrl.signal;
-  };
-
-  app.get('/api/music-import/stav', requireAuth, (_req, res) => {
-    res.json({ nastaveno: !!spotify });
-  });
-
-  app.post('/api/music-import/nahled', requireAuth, async (req, res) => {
-    if (!spotify) return chybaImportu(res, new ImportChyba('SPOTIFY_NOT_CONFIGURED', 'chybí SPOTIFY_CLIENT_ID/SECRET'));
-    if (!brzdaImportu.povol(req.user!.id)) return chybaImportu(res, new ImportChyba('RATE_LIMITED', 'brzda aplikace'));
-    const odkaz = String(req.body?.odkaz || '').slice(0, 500);
-    try {
-      const vysledek = await spotify.nahled(odkaz, platnyTokenUzivatele(req.headers['x-spotify-token']), signalZOdpovedi(res));
-      if (!res.writableEnded) res.json(vysledek);
-    } catch (e) {
-      chybaImportu(res, e);
-    }
-  });
-
-  app.get('/api/music-import/hledat', requireAuth, async (req, res) => {
-    if (!spotify) return chybaImportu(res, new ImportChyba('SPOTIFY_NOT_CONFIGURED', 'chybí SPOTIFY_CLIENT_ID/SECRET'));
-    if (!brzdaImportu.povol(req.user!.id)) return chybaImportu(res, new ImportChyba('RATE_LIMITED', 'brzda aplikace'));
-    try {
-      const kolekce = await spotify.hledej(String(req.query.q || ''), signalZOdpovedi(res));
-      if (!res.writableEnded) res.json({ kolekce });
-    } catch (e) {
-      chybaImportu(res, e);
-    }
-  });
-
   app.get('/api/deezer/hledat', requireAuth, async (req, res) => {
     const dotaz = String(req.query.q || '').trim();
     if (!dotaz) return res.json({ skladby: [] });

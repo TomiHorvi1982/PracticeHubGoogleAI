@@ -9,8 +9,6 @@ import { Tone3000Sekce } from './components/Tone3000Sekce';
 import { EditorStop } from './components/EditorStop';
 import { OpenDawSekce } from './components/OpenDawSekce';
 import { ZiveSekce } from './components/layout/ZiveSekce';
-import { BandLabSekce } from './components/BandLabSekce';
-import { MusicImportSekce } from './components/MusicImportSekce';
 import { KaraokeSekce } from './components/KaraokeSekce';
 import { BandzoneSekce } from './components/BandzoneSekce';
 import { VyukaSekce } from './components/vyuka/VyukaSekce';
@@ -460,17 +458,9 @@ function AppContent() {
     editor: <EditorStop />,
     tone3000: <Tone3000Sekce />,
     opendaw: <OpenDawSekce />,
-    bandlab: <BandLabSekce />,
-    musicimport: (
-      <MusicImportSekce
-        onOtevritPisen={(song) => { setActiveSong(song); setActiveTab('songbook'); }}
-      />
-    ),
     karaoke: <KaraokeSekce />,
     bandzone: <BandzoneSekce />,
 
-    // Obnoveno: tyhle sekce omylem smazal výřez při náhradě BandLabu
-    // v d3f83f4 — mizely mezi `bandlab:` a `stemmixer:`. Znění je původní.
     vyuka: <VyukaSekce />,
     aikapela: <AiKapelaSection />,
 

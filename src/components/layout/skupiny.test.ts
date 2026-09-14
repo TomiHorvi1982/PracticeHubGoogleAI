@@ -10,7 +10,7 @@ import { SKUPINY, PRIME, STRANOU, skupinaSekce, dosazitelneSekce, viditelnePoloz
  */
 const OCEKAVANE = [
   'songbook', 'podium', 'alphatab', 'texty', 'practise', 'instruments',
-  'practice', 'tuner', 'stemmixer', 'editor', 'tone3000', 'opendaw', 'bandlab', 'library', 'musicimport', 'karaoke', 'bandzone',
+  'practice', 'tuner', 'stemmixer', 'editor', 'tone3000', 'opendaw', 'library', 'karaoke', 'bandzone',
   'vyuka', 'zalozky', 'vitejte', 'settings',
 ];
 

@@ -79,7 +79,6 @@ export const SKUPINY: Skupina[] = [
       { id: 'editor', nazev: 'Editor stop' },
       { id: 'tone3000', nazev: 'TONE3000' },
       { id: 'opendaw', nazev: 'openDAW' },
-      { id: 'bandlab', nazev: 'BandLab' },
     ],
   },
   {
@@ -87,8 +86,6 @@ export const SKUPINY: Skupina[] = [
     nazev: 'Archiv',
     polozky: [
       { id: 'library', nazev: 'Soubory' },
-      // Import míří do zpěvníku a knihovny, proto k archivu, ne ke zvuku.
-      { id: 'musicimport', nazev: 'Music Import', kratky: 'Import' },
       // Rozcestník na komunitu kapel — ve Zvuku už je pět položek.
       { id: 'bandzone', nazev: 'Bandzone' },
       { id: 'vyuka', nazev: 'Výuka' },
