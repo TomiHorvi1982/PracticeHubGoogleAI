@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { PitchDetector, PitchData, REFERENCE_A_RANGE } from '../services/tuner';
 import { TUNING_PRESETS } from '../data/chordsAndScales';
+import {
+  ROZSAH_CENTU, bodNaOblouku, dalsiUhel, drzenyTon, oblouk, uhelZCentu,
+} from '../services/ladickaPohyb';
 import { audioSynth } from '../services/audioSynth';
 import {
   Mic,
@@ -17,6 +20,46 @@ import {
 } from 'lucide-react';
 
 const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+/* Budík: půlkruh přes celou šířku, střed dole uprostřed. */
+const STRED_X = 180;
+const STRED_Y = 176;
+const POLOMER = 148;
+
+/**
+ * Jak líná je ručička. Za tuhle dobu ujede zhruba dvě třetiny rozdílu.
+ *
+ * Naladěná struna se v centech chvěje pořád, takže bez setrvačnosti
+ * ručička drnčí. Sto padesát milisekund je kompromis: pohyb je klidný a
+ * pořád je vidět, jak ladění dopadá.
+ */
+const SETRVACNOST_MS = 150;
+
+/** Jak dlouho po ztrátě signálu zůstane poslední tón na displeji. */
+const DRZET_TON_MS = 1200;
+
+/** Jak často se přepisují čísla na displeji. Ručička jede plynule mimo React. */
+const PREPIS_CISEL_MS = 120;
+
+/** Pásma budíku v centech: doprostřed zelená, po krajích červená. */
+const PASMA = [
+  { od: -ROZSAH_CENTU, do: -20, barva: '#E54870' },
+  { od: -20, do: -5, barva: '#FFD166' },
+  { od: -5, do: 5, barva: '#00B878' },
+  { od: 5, do: 20, barva: '#FFD166' },
+  { od: 20, do: ROZSAH_CENTU, barva: '#E54870' },
+];
+
+/** Rysky po dvou centech, každá desátá dlouhá a s číslem. */
+const RYSKY = Array.from({ length: ROZSAH_CENTU + 1 }, (_, i) => {
+  const cents = -ROZSAH_CENTU + i * 2;
+  const hlavni = cents % 10 === 0;
+  const uhel = uhelZCentu(cents);
+  const vnejsi = bodNaOblouku(STRED_X, STRED_Y, POLOMER - 12, uhel);
+  const vnitrni = bodNaOblouku(STRED_X, STRED_Y, POLOMER - (hlavni ? 30 : 22), uhel);
+  const popisek = bodNaOblouku(STRED_X, STRED_Y, POLOMER - 46, uhel);
+  return { cents, hlavni, uhel, vnejsi, vnitrni, popisek };
+});
 
 function getNoteFromMidi(midi: number): { name: string; frequency: number } {
   const noteName = NOTE_NAMES[midi % 12];
@@ -37,6 +80,17 @@ export const Tuner: React.FC = () => {
   const [micError, setMicError] = useState<string | null>(null);
   const [referenceA, setReferenceA] = useState<number>(REFERENCE_A_RANGE.default);
   const pitchDetectorRef = useRef<PitchDetector | null>(null);
+
+  /*
+   * Detekce chodí šedesátkrát za vteřinu, React tolikrát překreslovat
+   * nebude. Poslední změřený tón se odkládá sem a smyčka níž z něj hýbe
+   * ručičkou napřímo; do stavu se čísla přepisují jen občas.
+   */
+  const surovyRef = useRef<PitchData | null>(null);
+  const kdyRef = useRef(0);
+  const uhelRef = useRef(0);
+  const rucickaRef = useRef<SVGGElement | null>(null);
+  const prepisRef = useRef(0);
 
   // --- METRONOME STATE ---
   const [metroBpm, setMetroBpm] = useState(120);
@@ -134,13 +188,22 @@ export const Tuner: React.FC = () => {
       }
       setIsListening(false);
       setPitch(null);
+      surovyRef.current = null;
+      // Smyčka se zastavila, takže ručičku vrátí na nulu tohle — jinak
+      // by po vypnutí mikrofonu zůstala trčet u posledního tónu.
+      uhelRef.current = 0;
+      rucickaRef.current?.setAttribute('transform', `rotate(0 ${STRED_X} ${STRED_Y})`);
       setMicError(null);
     } else {
       setMicError(null);
       const detector = new PitchDetector();
 
       const success = await detector.start((data) => {
-        setPitch(data);
+        // Ticho se schválně nepředává dál: o tom, kdy tón z displeje
+        // zmizí, rozhoduje `drzenyTon` ve smyčce.
+        if (!data) return;
+        surovyRef.current = data;
+        kdyRef.current = performance.now();
       });
       if (success) {
         pitchDetectorRef.current = detector;
@@ -157,8 +220,71 @@ export const Tuner: React.FC = () => {
     pitchDetectorRef.current?.setReferenceA(referenceA);
   }, [referenceA]);
 
-  /** Kmitočty strun platí pro A = 440 Hz; při jiné referenci se posunou se stejným poměrem. */
-  const naReferenci = (freq440: number) => (freq440 * referenceA) / REFERENCE_A_RANGE.default;
+  /*
+   * Ručička se hýbe mimo React.
+   *
+   * Zapisuje se přímo do SVG, takže se kvůli ní nic nepřekresluje. Dřív
+   * se při každém výsledku detekce překreslila celá sekce a přechod
+   * ručičky se přerušil dřív, než doběhl — odtud to trhání.
+   */
+  useEffect(() => {
+    if (!isListening) return;
+    let id = 0;
+    let posledniSnimek = performance.now();
+
+    const krok = () => {
+      const ted = performance.now();
+      const dt = ted - posledniSnimek;
+      posledniSnimek = ted;
+
+      const ton = drzenyTon({
+        posledni: surovyRef.current,
+        kdy: kdyRef.current,
+        ted,
+        drzetMs: DRZET_TON_MS,
+      });
+
+      const uhel = dalsiUhel({
+        soucasny: uhelRef.current,
+        cil: ton ? uhelZCentu(ton.cents) : 0,
+        dtMs: dt,
+        casovaKonstanta: SETRVACNOST_MS,
+      });
+      if (uhel !== uhelRef.current) {
+        uhelRef.current = uhel;
+        rucickaRef.current?.setAttribute(
+          'transform',
+          `rotate(${uhel.toFixed(2)} ${STRED_X} ${STRED_Y})`,
+        );
+      }
+
+      if (ted - prepisRef.current >= PREPIS_CISEL_MS) {
+        prepisRef.current = ted;
+        setPitch((p) => (
+          p?.note === ton?.note && p?.octave === ton?.octave
+            && p?.cents === ton?.cents && p?.frequency === ton?.frequency
+            ? p
+            : ton
+        ));
+      }
+
+      id = requestAnimationFrame(krok);
+    };
+
+    id = requestAnimationFrame(krok);
+    return () => cancelAnimationFrame(id);
+  }, [isListening]);
+
+  /**
+   * Kmitočty strun platí pro A = 440 Hz; při jiné referenci se posunou se
+   * stejným poměrem.
+   *
+   * Zaokrouhluje se na setiny: i při nezměněné referenci se násobením a
+   * dělením vyrobí zbytek a na kartě struny se pak psalo
+   * „246.94000000000005 Hz".
+   */
+  const naReferenci = (freq440: number) =>
+    Math.round((freq440 * referenceA * 100) / REFERENCE_A_RANGE.default) / 100;
 
   const playReferencePitch = (freq: number) => {
     audioSynth.playNote(freq, 'acoustic_guitar', 2.0, 0.8);
@@ -189,8 +315,6 @@ export const Tuner: React.FC = () => {
     });
   }
 
-  const cents = pitch ? pitch.cents : 0;
-  const rotationAngle = Math.max(-50, Math.min(50, cents)) * 0.9;
   const isInTune = pitch && Math.abs(pitch.cents) <= 4;
 
   return (
@@ -338,69 +462,121 @@ export const Tuner: React.FC = () => {
           </span>
         </div>
 
-        {/* Cents Meter Gauge */}
-        <div className="relative w-80 h-36 mb-4 flex items-end justify-center border-b border-white/10 pb-2">
-          <div className="absolute inset-0 border-t-2 border-white/10 rounded-t-full"></div>
+        {/*
+          * Budík.
+          *
+          * Kreslí se do SVG s pevným `viewBox`, takže má vždycky stejný
+          * poměr stran a při detekci nemění výšku — stránka pod ním
+          * neposkakuje. Ručičkou hýbe smyčka nahoře, ne překreslení.
+          */}
+        <div className="w-full max-w-[420px] mb-4">
+          <svg viewBox="0 0 360 200" className="w-full block" role="img" aria-label="Odchylka v centech">
+            {/* Pásma: uprostřed zelené, po krajích červené. */}
+            {PASMA.map((z) => (
+              <path
+                key={z.od}
+                d={oblouk(STRED_X, STRED_Y, POLOMER, uhelZCentu(z.od), uhelZCentu(z.do))}
+                fill="none"
+                stroke={z.barva}
+                strokeWidth={8}
+                strokeOpacity={0.55}
+                strokeLinecap="butt"
+              />
+            ))}
 
-          <div className="absolute inset-x-0 top-3 flex justify-between px-6 text-drobne font-mono text-pismo-tlum">
-            <span>-50c</span>
-            <span>-25c</span>
-            <span className="text-uspech font-bold">0</span>
-            <span>+25c</span>
-            <span>+50c</span>
-          </div>
+            {RYSKY.map((r) => (
+              <line
+                key={r.cents}
+                x1={r.vnejsi.x}
+                y1={r.vnejsi.y}
+                x2={r.vnitrni.x}
+                y2={r.vnitrni.y}
+                stroke={r.cents === 0 ? '#00B878' : '#ffffff'}
+                strokeOpacity={r.cents === 0 ? 1 : r.hlavni ? 0.55 : 0.22}
+                strokeWidth={r.cents === 0 ? 3 : r.hlavni ? 2 : 1}
+                strokeLinecap="round"
+              />
+            ))}
 
-          {/* Needle */}
-          <div
-            className={`w-1 h-28 origin-bottom transition-transform duration-100 rounded-full shadow-lg ${
-              isInTune
-                ? 'bg-uspech shadow-[0_0_12px_#00B878]'
-                : pitch
-                ? 'bg-znacka shadow-[0_0_12px_#FFD166]'
-                : 'bg-white/20'
-            }`}
-            style={{
-              transform: `rotate(${rotationAngle}deg)`,
-            }}
-          >
-            <div className="w-3 h-3 bg-white rounded-full -translate-x-1/2 absolute -top-1 left-1/2 shadow-md"></div>
-          </div>
+            {RYSKY.filter((r) => r.hlavni).map((r) => (
+              <text
+                key={r.cents}
+                x={r.popisek.x}
+                y={r.popisek.y}
+                fill="#ffffff"
+                fillOpacity={r.cents === 0 ? 0.9 : 0.45}
+                fontSize={r.cents === 0 ? 14 : 12}
+                fontFamily="ui-monospace, monospace"
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                {r.cents === 0 ? '0' : r.cents > 0 ? `+${r.cents}` : r.cents}
+              </text>
+            ))}
+
+            {/* Ručička. Výchozí poloha je svisle; dál s ní hýbe smyčka. */}
+            <g ref={rucickaRef} transform={`rotate(0 ${STRED_X} ${STRED_Y})`}>
+              <polygon
+                points={`${STRED_X - 5},${STRED_Y} ${STRED_X},${STRED_Y - POLOMER + 18} ${STRED_X + 5},${STRED_Y}`}
+                fill={isInTune ? '#00B878' : pitch ? '#FFD166' : '#ffffff'}
+                fillOpacity={pitch ? 1 : 0.25}
+              />
+            </g>
+            <circle cx={STRED_X} cy={STRED_Y} r={11} fill="#0b0b0c" stroke="#ffffff" strokeOpacity={0.25} />
+            <circle
+              cx={STRED_X}
+              cy={STRED_Y}
+              r={4}
+              fill={isInTune ? '#00B878' : pitch ? '#FFD166' : '#ffffff'}
+              fillOpacity={pitch ? 1 : 0.3}
+            />
+          </svg>
         </div>
 
-        {/* Note Display Box */}
+        {/*
+          * Displej.
+          *
+          * Jedna krabice pořád stejně vysoká, ať se tón zrovna ozývá,
+          * nebo ne. Dřív se přepínala za jinak velkou výzvu a stránka
+          * pod ní poskakovala. Číslice jsou stejně široké
+          * (`tabular-nums`) a hláška o odchylce má pevnou šířku, takže
+          * se nic nepřelévá ani při změně hodnot.
+          */}
         <div className="relative mb-6 w-full max-w-sm">
-          {pitch ? (
-            <div className="flex flex-col items-center bg-black/40 border border-white/10 p-5 rounded-2xl shadow-inner">
-              <div className="flex items-baseline justify-center gap-1.5">
-                <span className={`text-6xl font-bold font-mono tracking-tight ${isInTune ? 'text-uspech' : 'text-white'}`}>
-                  {pitch.note}
-                </span>
-                <span className="text-2xl font-semibold text-znacka">{pitch.octave}</span>
-              </div>
-
-              <div className="mt-2 text-xs">
-                {isInTune ? (
-                  <span className="text-uspech bg-uspech/10 px-3 py-1 rounded-lg font-semibold border border-uspech/30">
-                    PERFEKTNĚ NALADĚNO
-                  </span>
-                ) : (
-                  <span className="text-znacka bg-znacka/10 px-3 py-1 rounded-lg font-semibold border border-znacka/30">
-                    {pitch.cents > 0 ? `+${pitch.cents} centů (vysoko)` : `${pitch.cents} centů (nízko)`}
-                  </span>
-                )}
-              </div>
-
-              <div className="mt-2 text-xs text-pismo-tlum font-mono">
-                Frekvence: <span className="text-white font-semibold">{pitch.frequency} Hz</span>
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center p-8 bg-black/30 border border-dashed border-white/10 rounded-2xl text-pismo-tlum">
-              <span className="text-xs font-medium">
-                Zahrajte tón na kytaru pro detekci výšky
+          <div className="h-[168px] flex flex-col items-center justify-center bg-black/40 border border-white/10 p-5 rounded-2xl shadow-inner">
+            <div className="flex items-baseline justify-center gap-1.5 tabular-nums">
+              <span className={`text-6xl font-bold font-mono tracking-tight leading-none ${
+                pitch ? (isInTune ? 'text-uspech' : 'text-white') : 'text-white/20'
+              }`}>
+                {pitch ? pitch.note : '--'}
+              </span>
+              <span className={`text-2xl font-semibold ${pitch ? 'text-znacka' : 'text-white/20'}`}>
+                {pitch ? pitch.octave : ''}
               </span>
             </div>
-          )}
+
+            <div className="mt-3 text-xs">
+              <span className={`block w-56 text-center px-3 py-1 rounded-lg font-semibold border tabular-nums ${
+                !pitch
+                  ? 'text-pismo-tlum bg-white/[0.03] border-white/10'
+                  : isInTune
+                  ? 'text-uspech bg-uspech/10 border-uspech/30'
+                  : 'text-znacka bg-znacka/10 border-znacka/30'
+              }`}>
+                {!pitch
+                  ? 'Zahraj tón na kytaru'
+                  : isInTune
+                  ? 'PERFEKTNĚ NALADĚNO'
+                  : pitch.cents > 0
+                  ? `+${pitch.cents} centů (vysoko)`
+                  : `${pitch.cents} centů (nízko)`}
+              </span>
+            </div>
+
+            <div className="mt-2 text-xs text-pismo-tlum font-mono tabular-nums">
+              Frekvence: <span className="text-white font-semibold">{pitch ? `${pitch.frequency} Hz` : '--- Hz'}</span>
+            </div>
+          </div>
         </div>
 
         {/* Start / Stop Microphone Button */}
