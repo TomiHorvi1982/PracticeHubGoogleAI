@@ -477,7 +477,7 @@ export const Songbook: React.FC<SongbookProps> = ({
           }`}
         >
         {levaOtevrena ? (
-        <div className="bg-plocha-2 border border-znacka/20 rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5 h-full">
+        <div className="space-y-2.5 h-full">
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4 text-znacka" />
             <h2 className="stitek-pole">
@@ -550,7 +550,7 @@ export const Songbook: React.FC<SongbookProps> = ({
         )}
 
         {pravaOtevrena ? (
-        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 sm:p-5 flex flex-col gap-3 shadow-xl h-full">
+        <div className="flex flex-col gap-3 h-full">
           {/* Search & Actions Header */}
           <div className="space-y-3 shrink-0">
             <div className="flex items-center justify-between">
@@ -666,7 +666,7 @@ export const Songbook: React.FC<SongbookProps> = ({
       {/* New Song Modal */}
       {isEditing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-          <div className="bg-plocha-3 border border-white/15 text-white max-w-2xl w-full p-6 rounded-3xl shadow-2xl">
+          <div className="text-white max-w-2xl w-full">
             <h3 className="text-base font-bold text-white mb-4 flex items-center gap-2 border-b border-white/10 pb-3">
               <Music className="w-5 h-5 text-znacka" /> Vložit novou skladbu
             </h3>

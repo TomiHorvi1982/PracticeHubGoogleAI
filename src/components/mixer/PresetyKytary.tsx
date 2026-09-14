@@ -63,7 +63,7 @@ export const PresetyKytary: React.FC<Props> = ({ presety, aktivni, onZmena, onNa
   };
 
   return (
-    <div className="rounded-prvek border border-kresba bg-plocha-1 p-2 space-y-1.5">
+    <div className="space-y-1.5">
       <div className="flex items-center gap-1.5">
         <Music2 className="w-3 h-3 text-znacka shrink-0" />
         <span className="stitek-pole flex-1">Presety</span>

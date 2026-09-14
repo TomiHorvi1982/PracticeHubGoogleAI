@@ -449,7 +449,7 @@ export const LastFmPanel: React.FC<Props> = ({ onPridat }) => {
                         className="w-24 h-24 rounded-lg object-cover border border-white/10 group-hover:border-znacka/60"
                       />
                     ) : (
-                      <div className="w-24 h-24 rounded-lg bg-white/5 border border-white/10" />
+                      <div className="w-24 h-24" />
                     )}
                     <div className="text-stitek text-pismo truncate mt-1 group-hover:text-znacka">
                       {a.nazev}

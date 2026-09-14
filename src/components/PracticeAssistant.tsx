@@ -265,7 +265,7 @@ export const PracticeAssistant: React.FC = () => {
     <div className="max-w-[1400px] mx-auto space-y-6 font-sans text-white pb-12">
       
       {/* 🥁 VISUAL METRONOME SECTION */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-5 shadow-xl">
+      <div className="space-y-5">
         
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
@@ -294,13 +294,13 @@ export const PracticeAssistant: React.FC = () => {
         />
 
         {/* Beats Per Measure Settings & Interactive Beat Cards */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">
+        <div className="min-w-0 overflow-x-auto space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div />
 
             {/* Time Signature Presets */}
-            <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+            <div className="flex flex-wrap items-center gap-1">
               <span className="stitek-pole px-1.5">Takt:</span>
               {[
                 { label: '2/4', beats: 2 },
@@ -326,7 +326,7 @@ export const PracticeAssistant: React.FC = () => {
           </div>
 
           {/* Stepper for custom beat count */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <span className="text-xs text-pismo-tlum font-medium">Počet dob v taktu:</span>
               <span className="text-base font-bold text-uspech px-2">{beatsPerBar} dob</span>
@@ -383,12 +383,12 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* BPM Tempo Controls & Tap Tempo */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">
+        <div className="min-w-0 overflow-x-auto space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-4">
             
             {/* BPM Display Box */}
-            <div className="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 min-w-[180px] text-center shadow-inner">
+            <div className="min-w-[180px] text-center">
               <div className="text-4xl font-bold font-mono text-white tracking-tight">
                 {bpm} <span className="text-xs text-pismo-tlum font-normal">BPM</span>
               </div>
@@ -502,7 +502,7 @@ export const PracticeAssistant: React.FC = () => {
       </div>
 
       {/* 🎸 VLASTNÍ AKORDY A PATERNY DOPROVODU (CHORD PROGRESSION & RHYTHM TRAINER) */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+      <div className="space-y-4">
         
         {/* Header Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
@@ -522,7 +522,7 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* 1. CHORD PROGRESSION BUILDER (VLASTNÍ AKORDY) */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-3.5">
+        <div className="min-w-0 overflow-x-auto space-y-3.5">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-2.5">
             <span className="text-xs font-bold text-white flex items-center gap-2">
               <Music className="w-4 h-4 text-uspech" /> 1. Akordová posloupnost:
@@ -616,7 +616,7 @@ export const PracticeAssistant: React.FC = () => {
         </div>
 
         {/* 2. MODE & PATTERN SELECTOR (STRUMMING VS VYDRNKÁVÁNÍ VS KLAVÍR) */}
-        <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">
+        <div className="min-w-0 overflow-x-auto space-y-4">
           
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
@@ -627,7 +627,7 @@ export const PracticeAssistant: React.FC = () => {
             </div>
 
             {/* Mode Selector Tabs */}
-            <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 onClick={() => setBackingMode('strum')}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
@@ -656,7 +656,7 @@ export const PracticeAssistant: React.FC = () => {
           </div>
 
           {/* Instrument Sound Selection */}
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs bg-white/[0.02] p-3 rounded-xl border border-white/5">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs">
             <label className="flex items-center gap-2 cursor-pointer text-white">
               <input
                 type="radio"
@@ -712,7 +712,7 @@ export const PracticeAssistant: React.FC = () => {
               </div>
 
               {/* Custom Strum Grid */}
-              <div className="bg-white/[0.02] p-3.5 rounded-xl border border-white/5 space-y-2">
+              <div className="space-y-2">
                 <div className="flex items-center gap-2 overflow-x-auto py-1">
                   {customStrum.map((stroke, sIdx) => (
                     <button
@@ -759,7 +759,7 @@ export const PracticeAssistant: React.FC = () => {
 
           {/* Mode 3: Piano Accompaniment */}
           {backingMode === 'piano' && (
-            <div className="bg-white/5 p-4 rounded-xl border border-white/10 text-xs space-y-1">
+            <div className="text-xs space-y-1">
               <span className="font-bold text-info block">
                 Klavírní doprovod (Reálné Piano Chord Voicing)
               </span>

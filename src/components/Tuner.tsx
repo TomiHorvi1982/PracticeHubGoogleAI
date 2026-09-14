@@ -247,9 +247,9 @@ export const Tuner: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       
       {/* Header & Tuning Selection */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         {/* Referenční A */}
-        <div className="flex items-center gap-2 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
+        <div className="flex items-center gap-2">
           <span className="text-xs text-pismo-tlum font-medium px-2">Referenční A:</span>
           <input
             type="range"
@@ -274,7 +274,7 @@ export const Tuner: React.FC = () => {
         </div>
 
         {/* Tuning Preset Selector */}
-        <div className="flex items-center gap-2 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
+        <div className="flex items-center gap-2">
           <span className="text-xs text-pismo-tlum font-medium px-2">Ladění:</span>
           <select
             value={isCustomMode ? 'custom' : selectedTuning.name}
@@ -300,7 +300,7 @@ export const Tuner: React.FC = () => {
       </div>
 
       {isCustomMode && (
-        <div className="bg-plocha-2 border border-znacka/30 rounded-3xl p-5 text-xs space-y-3 shadow-xl">
+        <div className="text-xs space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-white font-semibold flex items-center gap-2">
               <Zap className="w-4 h-4 text-znacka" /> Vlastní ladění jednotlivých strun (6. až 1.)
@@ -318,7 +318,7 @@ export const Tuner: React.FC = () => {
               const stringNum = 6 - idx;
               const noteInfo = getNoteFromMidi(midi);
               return (
-                <div key={idx} className="bg-black/40 border border-white/10 p-3 rounded-2xl flex flex-col items-center">
+                <div key={idx} className="flex flex-col items-center">
                   <span className="text-stitek text-pismo-tlum mb-1">{stringNum}. struna</span>
                   <span className="text-base font-bold text-znacka">{noteInfo.name}</span>
                   <span className="text-stitek text-pismo-tlum font-mono mb-2">{noteInfo.frequency} Hz</span>
@@ -360,7 +360,7 @@ export const Tuner: React.FC = () => {
       )}
 
       {/* Main Tuner Display & Gauge */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-8 shadow-xl flex flex-col items-center justify-center text-center relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center text-center relative overflow-hidden">
         
         {/* Status Tag */}
         <div className="absolute top-4 right-4 flex items-center gap-2">
@@ -454,7 +454,7 @@ export const Tuner: React.FC = () => {
           * se nic nepřelévá ani při změně hodnot.
           */}
         <div className="relative mb-6 w-full max-w-sm">
-          <div className="h-[168px] flex flex-col items-center justify-center bg-black/40 border border-white/10 p-5 rounded-2xl shadow-inner">
+          <div className="h-[168px] flex flex-col items-center justify-center">
             <div className="flex items-baseline justify-center gap-1.5 tabular-nums">
               <span className={`text-6xl font-bold font-mono tracking-tight leading-none ${
                 pitch ? (isInTune ? 'text-uspech' : 'text-white') : 'text-white/20'
@@ -515,7 +515,7 @@ export const Tuner: React.FC = () => {
       </div>
 
       {/* Target Guitar Strings Reference Panel */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl">
+      <div>
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">
           {activeTuning.notes.map((noteName, idx) => {
             const stringNum = 6 - idx;

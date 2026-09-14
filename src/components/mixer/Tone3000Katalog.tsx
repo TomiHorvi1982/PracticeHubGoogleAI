@@ -231,7 +231,7 @@ export const Tone3000Katalog: React.FC = () => {
   /* Než se uživatel přihlásí, ať ví, kam ho posíláme a proč. */
   if (!tone3000.nastaveno()) {
     return (
-      <div className="rounded-panel border border-kresba bg-plocha-1 overflow-hidden">
+      <div className="overflow-hidden">
         {hlavicka}
         <p className="text-drobne text-pismo-tlum px-3 py-4 flex items-start gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 mt-px text-pozor" />
@@ -248,7 +248,7 @@ export const Tone3000Katalog: React.FC = () => {
 
   if (!prihlasen) {
     return (
-      <div className="rounded-panel border border-kresba bg-plocha-1 overflow-hidden">
+      <div className="overflow-hidden">
         {hlavicka}
         <div className="px-3 py-4 space-y-3">
           {chyba && (
@@ -268,7 +268,7 @@ export const Tone3000Katalog: React.FC = () => {
   }
 
   return (
-    <div className="rounded-panel border border-kresba bg-plocha-1 overflow-hidden flex flex-col">
+    <div className="overflow-hidden flex flex-col">
       {hlavicka}
 
       <div className="flex items-center gap-1 px-2 pt-2">

@@ -148,7 +148,7 @@ export const RozcvickaRoom: React.FC = () => {
 
       {/* Program */}
       {ROZCVICKA.map((blok) => (
-        <div key={blok.id} className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-2">
+        <div key={blok.id} className="space-y-2">
           <div>
             <h4 className="text-sm font-bold text-white">{blok.nazev}</h4>
           </div>

@@ -471,7 +471,7 @@ export const SeznamSkladeb: React.FC<Props> = ({
 
       </div>
 
-      <div className="overflow-y-auto max-h-[52vh] rounded-2xl border border-white/[0.06] bg-black/20">
+      <div className="overflow-y-auto max-h-[52vh]">
         {/* Hlavička drží u horního okraje, aby se při rolování vědělo,
             který sloupec je který. */}
         <div

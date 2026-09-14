@@ -1007,7 +1007,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           {/* Složky knihovny. Nahradily řadu tlačítek: ta uměla jen
               plochý výběr typu, kdežto tady je vidět i druhá úroveň,
               počty a kolik co zabírá. */}
-          <div className="bg-plocha-2 p-2 rounded-2xl border border-white/[0.08] max-h-[38vh] overflow-y-auto">
+          <div className="max-h-[38vh] overflow-y-auto">
             <StromKnihovny
               uzly={uzly}
               vybrana={{ kategorie: kategorieFiltr, podkategorie: podkategorieFiltr }}
@@ -1140,7 +1140,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           </div>
 
           {/* Files List */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-3 space-y-1.5 max-h-[600px] overflow-y-auto shadow-lg">
+          <div className="space-y-1.5 max-h-[600px] overflow-y-auto">
             {filteredItems.length === 0 ? (
               <div className="p-8 text-center text-xs text-pismo-slaby">
                 Žádné soubory neodpovídají zadanému filtru
@@ -1272,7 +1272,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       />
                     )}
                     <div className="flex items-start gap-3 min-w-0">
-                      <div className="p-2 bg-white/5 rounded-xl border border-white/5 mt-0.5 shrink-0">
+                      <div className="mt-0.5 shrink-0">
                         {getItemIcon(item.type)}
                       </div>
                       <div className="min-w-0">
@@ -1341,12 +1341,12 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
         {/* Right Column: Active Item Viewer / Player & Actions (7 cols) */}
         <div className="lg:col-span-7 space-y-3">
           {activeItem ? (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4 shadow-xl">
+            <div className="space-y-4">
               
               {/* Active Item Title & Actions Header */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-white/5 rounded-2xl border border-white/10">
+                  <div>
                     {getItemIcon(activeItem.type)}
                   </div>
                   <div>
@@ -1395,7 +1395,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               {/* Proč náhled nejde. Bez tohohle vypadá nedostupný soubor
                   úplně stejně jako soubor, který se ještě načítá. */}
               {shanimOdkaz && (
-                <div className="flex items-center gap-2 text-drobne text-pismo-tlum bg-white/[0.03] border border-white/10 rounded-2xl px-3 py-2">
+                <div className="flex items-center gap-2 text-drobne text-pismo-tlum">
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-info" />
                   Sháním soubor z úložiště…
                 </div>
@@ -1471,7 +1471,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       bpm={activeItem.bpm}
                     />
                   ) : (
-                    <div className="bg-black/30 border border-white/10 rounded-2xl p-8 text-center space-y-3">
+                    <div className="text-center space-y-3">
                       <FileSpreadsheet className="w-8 h-8 text-znacka mx-auto animate-pulse" />
                     </div>
                   )}
@@ -1484,14 +1484,14 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   {activeItem.dataUrl ? (
                     <PdfNahled url={activeItem.dataUrl} nazev={activeItem.name} />
                   ) : (
-                    <div className="bg-black/30 border border-white/10 rounded-2xl p-6 text-center space-y-2">
+                    <div className="text-center space-y-2">
                       <FileText className="w-8 h-8 text-chyba mx-auto" />
                       <p className="text-xs font-bold text-white">{activeItem.name}</p>
                     </div>
                   )}
 
                   {activeItem.extractedText && (
-                    <div className="bg-black/40 border border-white/10 rounded-2xl p-4">
+                    <div>
                       <span className="text-xs font-bold text-uspech block mb-2">
                         Extrahovaný text z PDF dokumentu:
                       </span>
@@ -1506,7 +1506,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               {/* 📝 TEXT & CHORDPRO VIEWER */}
               {activeItem.type === 'txt' && (
                 <div className="space-y-3">
-                  <div className="bg-black/40 border border-white/10 rounded-2xl p-3 flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-pismo-tlum">Transpozice:</span>
                       <button
@@ -1531,7 +1531,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     </div>
                   </div>
 
-                  <div className="bg-black/40 border border-white/10 rounded-2xl p-5 max-h-[450px] overflow-y-auto">
+                  <div className="max-h-[450px] overflow-y-auto">
                     <pre className="whitespace-pre-wrap font-mono text-xs text-pismo leading-relaxed">
                       {activeItem.extractedText || 'Žádný textový obsah'}
                     </pre>
@@ -1543,7 +1543,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               {activeItem.type === 'image' && (
                 <div className="space-y-3">
                   {/* Image Toolbar */}
-                  <div className="bg-black/40 border border-white/10 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={() => setImgZoom((prev) => Math.max(0.5, prev - 0.25))}
@@ -1595,7 +1595,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                   </div>
 
                   {/* Image Canvas Box */}
-                  <div className="w-full max-h-[500px] overflow-auto bg-black/60 rounded-2xl border border-white/10 flex items-center justify-center p-4">
+                  <div className="w-full max-h-[500px] overflow-auto flex items-center justify-center">
                     <img
                       src={activeItem.dataUrl}
                       alt={activeItem.name}
@@ -1664,7 +1664,7 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
                   {/* Track names list */}
                   {activeItem.trackNames && activeItem.trackNames.length > 0 && (
-                    <div className="text-xs text-pismo bg-black/40 p-3.5 rounded-xl border border-white/5 space-y-2">
+                    <div className="text-xs text-pismo space-y-2">
                       <span className="font-semibold block text-pismo-tlum">
                         Stopy a nástroje v souboru ({activeItem.trackNames.length}):
                       </span>
@@ -1685,9 +1685,9 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
 
             </div>
           ) : (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-16 text-center text-xs space-y-4 shadow-xl">
+            <div className="text-center text-xs space-y-4">
               <div className="flex justify-center">
-                <div className="p-4 bg-white/5 rounded-3xl border border-white/10 text-pismo-slaby">
+                <div className="text-pismo-slaby">
                   <FolderArchive className="w-10 h-10" />
                 </div>
               </div>

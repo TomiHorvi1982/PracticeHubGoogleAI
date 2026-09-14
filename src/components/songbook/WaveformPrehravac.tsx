@@ -200,7 +200,7 @@ export const WaveformPrehravac: React.FC<Props> = ({ url, nazev }) => {
   useEffect(() => () => zastav(), []);
 
   return (
-    <div ref={obalRef} className="bg-black/40 border border-kresba rounded-2xl p-3 space-y-2">
+    <div ref={obalRef} className="space-y-2">
       <div className="flex items-center gap-2">
         <button
           onClick={prehraj}

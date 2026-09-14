@@ -125,7 +125,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
   return (
     <div className="flex-1 flex flex-col gap-3">
       {/* Top Selector Bar */}
-      <div className="flex items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
+      <div className="flex items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-2">
           <Radio className="w-3.5 h-3.5 text-znacka" />
           <select
@@ -155,7 +155,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
       </div>
 
       {/* Visual Needle / Pitch Display */}
-      <div className="p-4 bg-black/40 border border-white/10 rounded-2xl flex flex-col items-center justify-center relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center relative overflow-hidden">
         {pitchData ? (
           <div className="text-center space-y-1">
             <div className="text-4xl font-black font-mono text-white flex items-baseline justify-center gap-1">
@@ -215,7 +215,7 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
       </div>
 
       {/* Mini Metronome Widget */}
-      <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl flex items-center justify-between gap-3 text-xs">
+      <div className="flex items-center justify-between gap-3 text-xs">
         <div className="flex items-center gap-2">
           <Activity className="w-3.5 h-3.5 text-znacka" />
           <span className="font-semibold text-white">Metronom:</span>
@@ -292,7 +292,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
   return (
     <div className="flex-1 flex flex-col gap-3">
       {/* Quick Chord Selector Pills */}
-      <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
         <div className="flex items-center gap-1.5 flex-wrap">
           <span className="text-drobne text-pismo-tlum font-medium">Akord na hmatníku:</span>
           {songChords.map((ch) => (
@@ -340,7 +340,7 @@ export const ModularFretboardSection: React.FC<ModularFretboardProps> = ({
       </div>
 
       {/* Interactive Fretboard Graphic Box */}
-      <div className="flex-1 bg-black/50 p-3 sm:p-4 rounded-2xl border border-white/10 overflow-x-auto shadow-inner">
+      <div className="flex-1 overflow-x-auto">
         {/* Fret Numbers Header */}
         <div className="flex min-w-[650px] text-center text-stitek font-mono text-pismo-tlum font-bold mb-2">
           <span className="w-12 text-left">STRUNA</span>

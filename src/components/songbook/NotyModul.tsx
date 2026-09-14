@@ -116,7 +116,7 @@ export const NotyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) => {
       </div>
 
       {pridavam && (
-        <div className="shrink-0 bg-black/40 border border-white/[0.08] rounded-2xl p-2.5">
+        <div className="shrink-0">
           <VyberZKnihovny
             kategorie="pdf"
             vychoziDotaz={song.title}

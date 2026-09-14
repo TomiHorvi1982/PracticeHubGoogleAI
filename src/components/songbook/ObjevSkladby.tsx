@@ -106,13 +106,13 @@ export const ObjevSkladby: React.FC<Props> = ({
       {/* Media Center a YouTube Jam byly celé stránky. Uvnitř karty
           dostanou vlastní výřez s rolováním, ať karta neroste do nekonečna. */}
       {zdroj === 'mediacenter' && (
-        <div className="max-h-[62vh] overflow-y-auto -mx-4 sm:-mx-5 rounded-2xl">
+        <div className="max-h-[62vh] overflow-y-auto">
           <MediaCenterSection songs={songs} onSelectSong={onVybratSkladbu} onAddSong={onPridatSkladbu} />
         </div>
       )}
 
       {zdroj === 'youtube' && (
-        <div className="max-h-[62vh] overflow-y-auto -mx-4 sm:-mx-5 rounded-2xl">
+        <div className="max-h-[62vh] overflow-y-auto">
           <YouTubeSection
             activeSong={activeSong}
             songs={songs}

@@ -229,7 +229,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
     <div className={`w-full space-y-4 font-sans ${compact ? "" : "pb-16"}`}>
       
       {/* Control Panel: Header & Mode Selection */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-5">
+      <div className="space-y-5">
         
         <div className={`flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.06] pb-4 ${compact ? "hidden" : "flex"}`}>
           {!compact && (
@@ -246,7 +246,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
           )}
 
           {/* Mode Switcher */}
-          <div className={`items-center bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06] self-start md:self-auto ${compact ? 'hidden' : 'flex'}`}>
+          <div className={`items-center self-start md:self-auto${compact ? 'hidden' : 'flex'}`}>
             <button
               onClick={() => setExplorerMode('chord')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
@@ -349,7 +349,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       </div>
 
       {/* Main Interactive Guitar Fretboard */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div>
             <h3 className="text-sm font-bold text-white tracking-tight">
@@ -401,7 +401,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
         </div>
 
         {/* Fretboard Graphic Box */}
-        <div className="bg-black/50 p-4 rounded-2xl border border-white/10 overflow-x-auto shadow-inner">
+        <div className="overflow-x-auto">
           
           {/* Fret Numbers Header */}
           <div className="grid grid-cols-16 min-w-[700px] text-center text-stitek font-mono text-pismo-tlum font-bold mb-2">
@@ -503,7 +503,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
       </div>
 
       {/* Piano Keyboard Visualizer */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
           <div />
 
@@ -526,7 +526,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
 
 
         <div className="flex justify-center overflow-x-auto py-2 scrollbar-thin">
-          <div className="relative flex h-36 bg-black/40 p-3 rounded-2xl border border-white/10 shadow-inner">
+          <div className="relative flex h-36">
             {Array.from({ length: 24 }).map((_, keyIdx) => {
               const noteMidi = keyIdx % 12;
               const noteName = ROOT_NOTES[noteMidi];
@@ -579,7 +579,7 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
 
       {/* Scale Info & Practical Usage in Band */}
       {explorerMode === 'scale' && (
-        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl flex items-start gap-4">
+        <div className="flex items-start gap-4">
           <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl shrink-0">
             <Zap className="w-5 h-5" />
           </div>

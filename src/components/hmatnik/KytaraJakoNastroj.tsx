@@ -131,7 +131,7 @@ export const KytaraJakoNastroj: React.FC = () => {
       )}
 
       {hraje && (
-        <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
+        <div>
           <div className="stitek-pole mb-1.5">
             Co slyším
           </div>

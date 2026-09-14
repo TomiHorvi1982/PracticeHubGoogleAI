@@ -618,7 +618,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         {/* Mode Switcher */}
         {/* Tri rezimy vedle sebe se na uzkem okne nevesly a rada se
             orizla. Zalomeni je lepsi nez schovany treti rezim. */}
-        <div className="flex flex-wrap items-center gap-1 bg-black/40 p-1 rounded-2xl border border-white/10">
+        <div className="flex flex-wrap items-center gap-1">
           <button
             onClick={() => setActiveMode('native_search')}
             className={`px-4 py-2 text-xs font-semibold rounded-xl flex items-center gap-2 transition-all cursor-pointer ${
@@ -691,7 +691,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         <div className="space-y-6">
           
           {/* Search Box & Quick Tags */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div className="space-y-4">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -741,7 +741,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Type Filter & Results Count */}
           {searchResults.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between gap-3 bg-black/40 p-3 rounded-2xl border border-white/5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="text-xs text-pismo-tlum font-medium mr-1">Filtrovat typ:</span>
                 <button
@@ -812,7 +812,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Search Results Table */}
           {filteredResults.length > 0 && (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
+            <div className="overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
@@ -890,7 +890,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Initial State / Placeholder when no search executed yet */}
           {searchResults.length === 0 && !isSearching && !searchError && (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
+            <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-znacka/10 border border-znacka/20 flex items-center justify-center mx-auto text-znacka">
                 <Globe className="w-8 h-8" />
               </div>
@@ -910,7 +910,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
         <div className="space-y-4">
           
           {/* Browser Address & Control Bar */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-3.5 sm:p-4 shadow-xl flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => navigateBrowser('https://freetar.de')}
@@ -990,7 +990,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
 
           {/* Embedded Iframe */}
           <div
-            className={`bg-black/60 rounded-3xl border border-white/10 relative overflow-hidden transition-all shadow-xl ${
+            className={`relative overflow-hidden transition-all${
               isFullscreen ? 'fixed inset-0 z-50 p-4 bg-black/95 rounded-none' : ''
             }`}
             style={{ height: isFullscreen ? '100vh' : `${windowHeightPx}px` }}
@@ -1016,7 +1016,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
       {/* TAB PREVIEW / READING MODAL */}
       {previewTab && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="bg-plocha-2 border border-white/10 rounded-3xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             
             {/* Modal Header */}
             <div className="p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
@@ -1051,7 +1051,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
             <div className="p-6 overflow-y-auto flex-1 bg-black/40 space-y-4">
               {/* Chords used pills */}
               {previewTab.chordsUsed && previewTab.chordsUsed.length > 0 && (
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-pismo-tlum font-medium">Použité akordy:</span>
                   {previewTab.chordsUsed.map((ch: string) => (
                     <span
@@ -1065,7 +1065,7 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
               )}
 
               {/* Tab text body */}
-              <div className="bg-black/60 p-5 rounded-2xl border border-white/5">
+              <div>
                 <pre className="whitespace-pre-wrap font-mono text-xs text-pismo leading-relaxed select-text">
                   {previewTab.content}
                 </pre>

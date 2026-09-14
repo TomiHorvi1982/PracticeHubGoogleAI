@@ -182,11 +182,11 @@ export const SamplesStudio: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 space-y-4">
       {/* SKLÁDAČKA */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
+      <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
 
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
-            <div className="flex items-center gap-1 bg-black/50 border border-white/10 rounded-lg px-2 py-1">
+            <div className="flex items-center gap-1">
               <span className="stitek-pole">Tempo</span>
               <input
                 type="number"
@@ -342,7 +342,7 @@ export const SamplesStudio: React.FC = () => {
       </div>
 
       {/* KNIHOVNA SAMPLŮ */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl space-y-3">
+      <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {NASTROJE.map((n) => (
             <button

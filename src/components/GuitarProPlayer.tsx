@@ -832,7 +832,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
   const renderContent = () => {
     return (
-      <div className={`font-sans text-white space-y-4 bg-plocha-2 p-5 border border-white/[0.1] rounded-3xl shadow-2xl ${isMaximized ? 'shadow-znacka/10' : ''}`}>
+      <div className={`font-sans text-white space-y-4${isMaximized ? 'shadow-znacka/10' : ''}`}>
         {/* Top Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
           <div className="flex items-center gap-3">
@@ -886,7 +886,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
 
         {/* Main Interactive Controls Toolbar */}
-        <div className="bg-black/40 border border-white/5 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
           {/* Playback Transport Buttons */}
           <div className="flex items-center gap-2">
             <button
@@ -917,7 +917,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
             </button>
 
             {/* Time Display */}
-            <div className="bg-black/60 px-3 py-1.5 rounded-xl border border-white/10 font-mono text-xs font-semibold text-uspech">
+            <div className="font-mono text-xs font-semibold text-uspech">
               {formatTime(currentTime)} / {formatTime(totalTime)}
             </div>
           </div>
@@ -1008,7 +1008,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               Přeladění. Mění se jen to, co zní — čísla na tabulatuře
               zůstávají, protože prsty se nikam nestěhují.
             */}
-            <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-0.5">
+            <div className="flex items-center">
               <Guitar className="w-3.5 h-3.5 text-nastroj mx-1.5" />
               <button
                 onClick={() => zmenLadeni(posunLadeni - 1)}
@@ -1058,7 +1058,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
           {/* Display Profile & Zoom */}
           <div className="flex items-center gap-2">
-            <div className="flex bg-black/40 border border-white/10 rounded-xl p-0.5">
+            <div className="flex">
               <button
                 onClick={() => handleStaveProfileChange('default')}
                 className={`px-2 py-1 text-xs rounded-lg font-semibold transition-all cursor-pointer ${
@@ -1088,7 +1088,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-0.5">
+            <div className="flex items-center">
               <button
                 onClick={() => handleZoomChange(-0.1)}
                 className="p-1.5 hover:bg-white/10 text-pismo-tlum hover:text-white rounded-lg transition-all cursor-pointer"
@@ -1123,7 +1123,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
 
         {/* Track Mixer / Multi-Track Selector Bar */}
         {extraOtevrene && tracks.length > 0 && (
-          <div className="bg-black/30 border border-white/5 p-3 rounded-2xl space-y-2 text-xs">
+          <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between border-b border-white/5 pb-1.5">
               <span className="stitek-pole flex items-center gap-1.5">
                 <Sliders className="w-3.5 h-3.5 text-znacka" />
@@ -1242,7 +1242,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
          * by jen zabíral místo nad tabulaturou.
          */}
         {extraOtevrene && usekKeCviceni && usekKeCviceni.noty.length > 0 && (
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+          <div className="space-y-2">
             <div className="stitek-pole">
               Vybraný úsek na hmatníku
             </div>
@@ -1286,7 +1286,7 @@ export const GuitarProPlayer: React.FC<GuitarProPlayerProps> = ({
     return (
       <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[9999] p-6 overflow-y-auto flex flex-col justify-start">
         <div className="max-w-7xl mx-auto w-full space-y-4">
-          <div className="flex justify-between items-center bg-plocha-2 border border-white/10 rounded-2xl p-4 shadow-xl">
+          <div className="flex justify-between items-center">
             <span className="text-xs font-bold text-white tracking-wide flex items-center gap-2">
               <Sliders className="w-4 h-4 text-uspech" /> Pódium
             </span>

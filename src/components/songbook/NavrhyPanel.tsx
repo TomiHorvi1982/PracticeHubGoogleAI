@@ -66,7 +66,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
   };
 
   return (
-    <div className="bg-plocha-2 border border-znacka/25 rounded-3xl p-4 shadow-xl space-y-3">
+    <div className="space-y-3">
       <button
         onClick={() => setOtevreno((v) => !v)}
         className="w-full flex items-center gap-2 text-left cursor-pointer"
@@ -88,7 +88,7 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
           {navrhy.map((n, i) => (
             <div
               key={`${n.nazev}-${i}`}
-              className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-2xl px-3 py-2"
+              className="flex items-center gap-2"
             >
               <span className="odznak text-znacka bg-znacka/10 px-1.5 py-0.5 rounded shrink-0">
                 {POPIS_DRUHU[n.druh] || n.druh}

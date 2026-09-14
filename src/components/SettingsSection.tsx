@@ -132,7 +132,7 @@ export const SettingsSection: React.FC = () => {
   return (
     <div className="w-full space-y-4 font-sans pb-16">
       {/* MIDI HARDWARE */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="nadpis-panelu flex items-center gap-2">
@@ -152,7 +152,7 @@ export const SettingsSection: React.FC = () => {
           Vestavěný mikrofon slyší kytaru přes vzduch i s ozvěnou
           místnosti; externí karta ji má z kabelu. Je to rozdíl v přesnosti
           rozpoznání i ve zpoždění, takže volba patří sem. */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+      <div className="space-y-3">
         <div>
           <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-uspech" /> Zvuková karta
@@ -205,7 +205,7 @@ export const SettingsSection: React.FC = () => {
           Katalog i editor patří sem, a ne do samostatné sekce: příkazy
           se nastavují jednou za čas, kdežto mluví se z celé aplikace —
           proto je mikrofon v horní liště a nastavení až tady. */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+      <div className="space-y-3">
         <div>
           <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-znacka" /> Hlasové ovládání
@@ -219,7 +219,7 @@ export const SettingsSection: React.FC = () => {
           na ně nárok. Ukládá se session cookie, ne heslo — to by muselo
           projít naším serverem a zůstat někde v logu. */}
       {jsemSpravce && (
-        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-3">
+        <div className="space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <input
               type="password"

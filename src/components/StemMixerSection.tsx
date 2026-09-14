@@ -733,7 +733,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               return (
                 <div
                   key={stem.id}
-                  className="bg-podklad/70 border border-kresba rounded-xl p-2.5 flex items-center justify-between gap-2"
+                  className="bg-podklad/70 flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <span
@@ -801,7 +801,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           Přiřazení jde z konce názvu souboru: Neural Mix věší za název
           skladby štítek stopy (`01. Arise-harmonic.wav`). Vlastní JSON
           k exportu nepřikládá, takže rozhoduje jméno. */}
-      <div className="bg-[#121217] border border-kresba rounded-3xl p-5 sm:p-6 text-white shadow-2xl space-y-4">
+      <div className="text-white space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <FolderOpen className="w-5 h-5 text-info shrink-0" />
           <h3 className="nadpis-panelu">Složka se stopami</h3>
@@ -846,7 +846,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           const sRoli = sk.stopy.filter((t) => t.role);
           const bezRole = sk.stopy.filter((t) => !t.role);
           return (
-            <div key={sk.nazev} className="rounded-prvek border border-kresba bg-plocha-2 p-3 space-y-2">
+            <div key={sk.nazev} className="space-y-2">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-drobne font-bold text-pismo truncate flex-1 min-w-0">
                   {sk.nazev || '(bez názvu)'}
@@ -897,7 +897,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           Při cvičení je půlka informace v tom, co ruce dělají. Zvuk si
           řídíš v přehrávači YouTube — hraje vedle stop, ne místo nich. */}
       {(
-        <div className="bg-[#121217] border border-kresba rounded-3xl p-6 sm:p-8 text-white shadow-2xl space-y-6">
+        <div className="text-white space-y-6">
           {/* Kdo hraje. */}
           <div className="flex items-baseline gap-3 flex-wrap">
             <h2 className="text-xl font-bold">{selectedSong?.title || 'Mixážní pult'}</h2>
@@ -912,7 +912,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               nahrál z počítače. Co se spočítat nedá, se neukazuje —
               prázdné místo je poctivější než vymyšlená hodnota. */}
           {rozbor && (
-            <div className="rounded-2xl border border-kresba bg-podklad/40 p-3 space-y-2">
+            <div className="bg-podklad/40 space-y-2">
               <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {[
                   ['Tónina', rozbor.tonina ? rozbor.tonina.popis : null,
@@ -1086,7 +1086,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
             {/* Šest rychlostí v jedné neroztržitelné řadě mělo 310px
                 v místě širokém 269. `shrink-0` jim navíc bránilo
                 ustoupit, takže se řada ořízla místo zalomení. */}
-            <div className="flex flex-wrap items-center gap-1 bg-podklad border border-kresba rounded-xl p-1">
+            <div className="flex flex-wrap items-center gap-1">
               {RYCHLOSTI.map((rr) => (
                 <button
                   key={rr}
@@ -1100,7 +1100,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               ))}
             </div>
 
-            <div className="flex items-center gap-2 bg-podklad px-3 h-9 rounded-xl border border-kresba text-xs shrink-0">
+            <div className="flex items-center gap-2 h-9 text-xs shrink-0">
               <Music className="w-3.5 h-3.5 text-uspech" />
               <span className="text-pismo-tlum">Transpozice</span>
               <button
@@ -1124,7 +1124,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
           <div
             ref={plochaStop}
             id="stopy-vlnovky"
-            className="rounded-2xl border border-kresba overflow-hidden bg-podklad/40"
+            className="overflow-hidden bg-podklad/40"
           >
             <div className="flex items-stretch bg-plocha-1/60">
               <div
@@ -1423,7 +1423,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-mono bg-podklad px-3.5 py-2 rounded-2xl border border-kresba text-znacka">
+            <div className="flex items-center gap-2 text-xs font-mono text-znacka">
               <Sparkles className="w-4 h-4 animate-pulse" />
               <span>Automatické odemčení po dokončení</span>
             </div>
@@ -1436,7 +1436,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               return (
                 <div
                   key={stem.id}
-                  className="rounded-3xl border border-kresba/80 bg-podklad/60 p-4 flex flex-col justify-between space-y-4 relative overflow-hidden"
+                  className="bg-podklad/60 flex flex-col justify-between space-y-4 relative overflow-hidden"
                 >
                   {/* Channel Header */}
                   <div className="flex items-center justify-between gap-2 pb-2 border-b border-white/[0.05]">
@@ -1453,7 +1453,7 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
                   </div>
 
                   {/* Fader Track Shimmer Graphic */}
-                  <div className="h-44 bg-podklad rounded-2xl border border-kresba/60 flex items-center justify-center relative overflow-hidden p-3">
+                  <div className="h-44 flex items-center justify-center relative overflow-hidden">
                     <div className="w-1.5 h-full bg-plocha-2 rounded-full" />
                     {/* Pulsing Fader Cap Placeholder */}
                     <div

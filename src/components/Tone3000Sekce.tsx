@@ -87,7 +87,7 @@ export const Tone3000Sekce: React.FC = () => {
         výšku neohlásí, takže by se srazil na pár desítek pixelů. Zbývá
         mu tedy zbytek obrazovky pod lištami.
       */}
-      <div className="karta overflow-hidden h-[calc(100vh-260px)] min-h-[420px]">
+      <div className="overflow-hidden h-[calc(100vh-260px)] min-h-[420px]">
         <iframe
           // Aplikace běží cross-origin izolovaná kvůli openDAW.
           // Bez `credentialless` by prohlížeč tenhle rám zablokoval.

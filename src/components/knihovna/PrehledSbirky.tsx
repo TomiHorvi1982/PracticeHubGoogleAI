@@ -83,7 +83,7 @@ export const PrehledSbirky: React.FC<{
   };
 
   return (
-    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
+    <div className="space-y-4">
       {/* Hledá v interpretovi i v názvu skladby zároveň — to, co člověk
           zrovna má v hlavě, bývá jedno nebo druhé. */}
       <div className="relative">

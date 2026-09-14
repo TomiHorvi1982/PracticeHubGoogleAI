@@ -364,7 +364,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
         {/* Active Song Connector Pill */}
         {activeSong ? (
-          <div className="flex items-center gap-3 px-4 py-2 bg-plocha-2/80 rounded-2xl border border-kresba/80 shadow-sm">
+          <div className="flex items-center gap-3">
             <BookOpen className="w-4 h-4 text-znacka shrink-0" />
             <div className="text-left">
               <div className="stitek-pole">Aktivní skladba</div>
@@ -504,7 +504,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           </div>
 
           {/* Smart Shuffle Mini Status */}
-          <div className="p-3 bg-plocha-1/90 rounded-2xl border border-kresba/80 space-y-2">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-pismo">
                 <Sparkles className="w-3.5 h-3.5 text-znacka" />
@@ -531,7 +531,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 1: EXPLORE & YOUTUBE SEARCH */}
           {activeSubTab === 'explore' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="bg-plocha-1/60 border border-kresba rounded-3xl p-6 shadow-xl space-y-4">
+              <div className="space-y-4">
                 <div>
                   <h2 className="text-base font-bold text-white mb-1">Vyhledávač backing tracků a YouTube Music</h2>
                 </div>
@@ -738,7 +738,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 2: ACTIVE SONG ATTACHED MEDIA */}
           {activeSubTab === 'active_song' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl space-y-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-base font-bold text-white flex items-center gap-2">
@@ -763,7 +763,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {activeSongTracks.length === 0 ? (
-                <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl space-y-3">
+                <div className="text-center space-y-3">
                   <Film className="w-10 h-10 text-pismo-slaby mx-auto" />
                   <p className="text-sm font-semibold text-pismo">K této skladbě zatím nejsou přiřazena žádná média.</p>
                 </div>
@@ -835,7 +835,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 3: QUEUE & SMART SHUFFLE */}
           {activeSubTab === 'queue' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="flex items-center justify-between p-6 bg-plocha-1/70 border border-kresba rounded-3xl">
+              <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <ListMusic className="w-5 h-5 text-znacka" />
@@ -856,7 +856,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {queue.length === 0 ? (
-                <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl space-y-2">
+                <div className="text-center space-y-2">
                   <p className="text-xs text-pismo-tlum">Fronta je prázdná.</p>
                 </div>
               ) : (
@@ -905,7 +905,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 4: LIKED SONGS */}
           {activeSubTab === 'liked' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Heart className="w-5 h-5 text-rose-500 fill-current" />
@@ -925,7 +925,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               </div>
 
               {likedTracks.length === 0 ? (
-                <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl text-xs text-pismo-slaby">
+                <div className="text-center text-xs text-pismo-slaby">
                   Zatím žádné oblíbené stopy.
                 </div>
               ) : (
@@ -966,7 +966,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 5: HISTORY */}
           {activeSubTab === 'history' && (
             <div className="space-y-6 max-w-4xl mx-auto">
-              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl">
+              <div>
                 <h2 className="text-base font-bold text-white flex items-center gap-2">
                   <History className="w-5 h-5 text-znacka" />
                   <span>Historie cvičení & přehrávání</span>
@@ -977,7 +977,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 {history.map((track, idx) => (
                   <div
                     key={`${track.id}_${idx}`}
-                    className="p-3 bg-plocha-1/60 border border-kresba rounded-2xl flex items-center justify-between gap-3 group"
+                    className="flex items-center justify-between gap-3 group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <img
@@ -1011,7 +1011,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 6: PLAYLISTS */}
           {activeSubTab === 'playlists' && (
             <div className="space-y-6 max-w-5xl mx-auto">
-              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Layers className="w-5 h-5 text-znacka" />
@@ -1064,7 +1064,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                     className="p-5 bg-plocha-1/70 border border-kresba rounded-3xl flex flex-col justify-between space-y-4 hover:border-kresba transition-all group"
                   >
                     <div className="space-y-2">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-plocha-2 to-plocha-1 flex items-center justify-center text-2xl border border-kresba">
+                      <div className="w-12 h-12 bg-gradient-to-br from-plocha-2 to-plocha-1 flex items-center justify-center text-2xl">
                         {pl.icon || '🎵'}
                       </div>
                       <h3 className="text-sm font-bold text-white group-hover:text-znacka transition-colors">{pl.name}</h3>
@@ -1091,7 +1091,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
           {/* TAB 7: SYNCHRONIZED LYRICS & CHORDS (LRC) */}
           {activeSubTab === 'lyrics' && (
             <div className="space-y-6 max-w-3xl mx-auto">
-              <div className="p-6 bg-plocha-1/70 border border-kresba rounded-3xl flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white flex items-center gap-2">
                     <Mic2 className="w-5 h-5 text-znacka" />
@@ -1105,7 +1105,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
 
               <div
                 ref={lyricsContainerRef}
-                className="p-8 bg-podklad/80 border border-kresba/80 rounded-3xl max-h-[500px] overflow-y-auto space-y-4 text-center backdrop-blur-md"
+                className="bg-podklad/80 max-h-[500px] overflow-y-auto space-y-4 text-center"
               >
                 {lyrics.length === 0 ? (
                   <div className="py-12 text-pismo-slaby text-xs italic">
@@ -1142,7 +1142,7 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
         <div className="flex items-center gap-3.5 w-1/4 min-w-[200px]">
           {playbackState.currentTrack ? (
             <>
-              <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-plocha-1 border border-kresba shrink-0 group">
+              <div className="relative w-14 h-14 overflow-hidden shrink-0 group">
                 <img
                   src={
                     playbackState.currentTrack.thumbnailUrl ||

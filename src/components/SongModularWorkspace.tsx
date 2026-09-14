@@ -904,7 +904,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
         return (
           <div className="flex-1 flex flex-col gap-3">
             {/* Controls Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white/[0.03] border border-white/[0.06] rounded-2xl text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
               {/* Transposition & Capo */}
               <div className="flex items-center gap-1">
                 <span className="text-drobne text-pismo-tlum font-medium">Tónina:</span>
@@ -941,7 +941,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
 
               {/* Font Size & Scroll */}
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-xl border border-white/10">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => setFontSize((p) => Math.max(12, p - 2))}
                     className="text-white hover:text-znacka font-bold px-1"
@@ -1000,7 +1000,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             ) : (
               <div
                 ref={scrollRef}
-                className="flex-1 overflow-y-auto p-3 sm:p-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl space-y-2 scroll-smooth"
+                className="flex-1 overflow-y-auto space-y-2 scroll-smooth"
               >
                 {renderLyrics()}
               </div>
@@ -1026,7 +1026,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
                     ))}
                   </select>
                 )}
-                <div className="aspect-video w-full bg-black rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                <div className="aspect-video w-full bg-black overflow-hidden">
                   <iframe
                     // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
                     credentialless=""
@@ -1222,7 +1222,7 @@ export const SongModularWorkspace: React.FC<SongModularWorkspaceProps> = ({
             {showAddLink ? (
               <form
                 onSubmit={handleAddLink}
-                className="bg-black/50 border border-white/10 p-3 rounded-2xl space-y-2 text-xs"
+                className="space-y-2 text-xs"
               >
                 <input
                   type="text"

@@ -304,7 +304,7 @@ export const StupniceRoom: React.FC = () => {
       </div>
 
       {ladeniOtevrene && (
-        <div className="bg-plocha-2 border border-kresba rounded-2xl p-4 space-y-3">
+        <div className="space-y-3">
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="stitek-pole mr-1">hotová ladění</span>
@@ -382,7 +382,7 @@ export const StupniceRoom: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-plocha-2 border border-kresba rounded-2xl p-4 space-y-3">
+      <div className="space-y-3">
         {rezim === 'vlastni' ? (
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-1.5">
@@ -624,7 +624,7 @@ export const StupniceRoom: React.FC = () => {
       </div>
 
       {/* Tabulatura. Vysází se z tónů, takže sedí na to, co se přehrává. */}
-      <div className="bg-vhloubeni border border-kresba rounded-2xl p-3 overflow-x-auto">
+      <div className="overflow-x-auto">
         <pre className="text-stitek font-mono text-pismo-tlum leading-relaxed whitespace-pre">
 {tab}
         </pre>
@@ -632,7 +632,7 @@ export const StupniceRoom: React.FC = () => {
 
       {/* Hmatník: kde ty tóny leží. Hraný tón svítí — i na zpáteční
           cestě a ve smyčce, což dřív neplatilo. */}
-      <div className="bg-plocha-2 border border-kresba rounded-2xl p-3 overflow-x-auto">
+      <div className="overflow-x-auto">
         <div className="min-w-[520px] space-y-1">
           {[5, 4, 3, 2, 1, 0].map((struna) => (
             <div key={struna} className="flex items-center gap-0.5">

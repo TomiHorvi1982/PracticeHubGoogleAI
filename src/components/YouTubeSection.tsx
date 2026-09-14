@@ -289,7 +289,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
     <div className="space-y-6 font-sans text-white pb-12">
       
       {/* 1. DIRECT YOUTUBE SEARCH TERMINAL */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+      <div className="space-y-4">
         <div className="flex items-center justify-between border-b border-white/5 pb-3">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-chyba/10 border border-chyba/30 text-chyba rounded-2xl">
@@ -405,7 +405,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
         {/* Dynamic Video Results Row/List */}
         {directYtResults.length > 0 && (
-          <div className="space-y-3 bg-black/40 border border-white/5 rounded-2xl p-4 max-h-[440px] overflow-y-auto">
+          <div className="space-y-3 max-h-[440px] overflow-y-auto">
             <h4 className="nadpis-panelu border-b border-white/5 pb-2 flex items-center justify-between">
               <span className="text-chyba">Nalezené video výsledky ({directYtResults.length}):</span>
             </h4>
@@ -421,7 +421,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                   }}
                 >
                   {/* Thumbnail */}
-                  <div className="relative w-28 h-20 bg-black shrink-0 rounded-xl border border-white/5 overflow-hidden">
+                  <div className="relative w-28 h-20 bg-black shrink-0 overflow-hidden">
                     <img
                       src={(video as any).thumbnail || (video as any).thumbnailUrl || `https://img.youtube.com/vi/${video.id}/mqdefault.jpg`}
                       alt="thumbnail"
@@ -461,7 +461,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
       </div>
 
       {/* 2. PLAYER WORKSPACE HEADER */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div className="p-3 bg-chyba/10 border border-chyba/30 text-chyba rounded-2xl">
             <Youtube className="w-6 h-6" />
@@ -545,7 +545,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
       {/* Manual Link Input Form */}
       {isAddFormOpen && activeSong && (
-        <form onSubmit={handleAddManualVideo} className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 space-y-4 shadow-xl">
+        <form onSubmit={handleAddManualVideo} className="space-y-4">
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <span className="text-sm font-bold text-white flex items-center gap-2">
               <LinkIcon className="w-4 h-4 text-chyba" /> Vložit vlastní odkaz na YouTube
@@ -615,7 +615,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
         {/* Playback Window */}
         <div className="lg:col-span-2 space-y-4">
           {selectedVideo ? (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div className="space-y-4">
               
               <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -640,7 +640,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 </a>
               </div>
 
-              <div className="relative aspect-video bg-black rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+              <div className="relative aspect-video bg-black overflow-hidden">
                 <iframe
                   // Izolace kvůli openDAW; bez tohohle by rám zůstal prázdný.
                   credentialless=""
@@ -652,7 +652,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 ></iframe>
               </div>
 
-              <div className="bg-black/40 border border-white/5 rounded-2xl p-3 flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-xs">
                 <span className="text-pismo-tlum font-mono">ID: {selectedVideo.id}</span>
                 {activeSong && (
                   <button
@@ -666,7 +666,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
               </div>
             </div>
           ) : (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-12 text-center space-y-4 shadow-xl">
+            <div className="text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-chyba/10 border border-chyba/20 flex items-center justify-center mx-auto text-chyba">
                 <Youtube className="w-8 h-8" />
               </div>
@@ -677,7 +677,7 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
 
         {/* Playlist of Companion Backing Tracks */}
         <div className="space-y-4">
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <span className="nadpis-panelu flex items-center gap-2">
                 <Youtube className="w-4 h-4 text-chyba" />

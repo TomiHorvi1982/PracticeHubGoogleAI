@@ -62,7 +62,7 @@ export const AkordovyPrekladac: React.FC<Props> = ({ vychoziLadeni, onUlozit, si
   };
 
   return (
-    <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+    <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-1.5">
         {([
           { id: 'hmatnik', popis: 'Ťukat na hmatník', ikona: Guitar },

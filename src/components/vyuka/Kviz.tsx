@@ -116,7 +116,7 @@ export const Kviz: React.FC<Props> = ({ zakId, stupen, prizvuk, onHotovo }) => {
     const spravne = vyhodnot(otazky, odpovedi);
     const bezChyby = spravne === otazky.length;
     return (
-      <div className="rounded-3xl border border-white/15 bg-black/25 p-6 text-center space-y-3">
+      <div className="text-center space-y-3">
         <p className="text-3xl font-bold" style={{ color: prizvuk }}>
           {spravne} z {otazky.length}
         </p>
@@ -151,7 +151,7 @@ export const Kviz: React.FC<Props> = ({ zakId, stupen, prizvuk, onHotovo }) => {
   if (!otazka) return <p className="text-white/60">Pro tenhle stupeň zatím otázky nejsou.</p>;
 
   return (
-    <div className="rounded-3xl border border-white/15 bg-black/25 p-5 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center gap-2">
         <span className="text-xs text-white/50">Otázka {kde + 1} z {otazky.length}</span>
         <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden">

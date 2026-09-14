@@ -70,7 +70,7 @@ export const OpenDawSekce: React.FC = () => {
 
   return (
     <div className="space-y-3">
-      <div className="relative bg-plocha-2 border border-kresba rounded-2xl overflow-hidden">
+      <div className="relative overflow-hidden">
         {!nacteno && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 text-drobne text-pismo-tlum">
             <Loader2 className="w-4 h-4 animate-spin" />Načítám openDAW…

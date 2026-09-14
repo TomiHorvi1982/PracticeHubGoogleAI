@@ -153,7 +153,7 @@ export const HmatnikUseku: React.FC<Props> = ({ usek, bpm, nastroj = 'electric_l
       </div>
 
       {/* Hmatník. Struna 1 je nejvyšší, kreslí se proto nahoře. */}
-      <div className="bg-[#2A1F17] border border-white/10 rounded-2xl p-3 overflow-x-auto">
+      <div className="bg-[#2A1F17] overflow-x-auto">
         <div className="min-w-[560px]">
           <div className="flex mb-1 pl-8">
             {Array.from({ length: PRAZCU }, (_, p) => (

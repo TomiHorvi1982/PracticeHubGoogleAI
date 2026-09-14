@@ -305,11 +305,11 @@ export const EditorStop: React.FC = () => {
       {hlaska && <p className="text-drobne text-pozor">{hlaska}</p>}
 
       {stopy.length === 0 ? (
-        <div className="karta p-8 text-center space-y-2">
+        <div className="text-center space-y-2">
           <Upload className="w-8 h-8 text-pismo-slaby mx-auto" />
         </div>
       ) : (
-        <div className="karta p-3 space-y-2 overflow-x-auto">
+        <div className="space-y-2 overflow-x-auto">
           <WaveformPlaylistProvider
             tracks={stopy}
             theme={MOTIV}

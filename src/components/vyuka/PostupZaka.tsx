@@ -137,7 +137,7 @@ export const PostupZaka: React.FC<Props> = ({ zak, onZmena }) => {
 
       {/* Odpověď dřív než seznam: čím pokračovat. */}
       {pokracovat.length > 0 && (
-        <div className="bg-vhloubeni border border-kresba rounded-panel p-3 space-y-1">
+        <div className="space-y-1">
           <span className="stitek-pole">Čím pokračovat</span>
           <p className="text-drobne text-pismo">
             <strong>{pokracovat[0].nazev}</strong>
@@ -165,7 +165,7 @@ export const PostupZaka: React.FC<Props> = ({ zak, onZmena }) => {
         </div>
 
         {zapisuje && (
-          <div className="bg-vhloubeni border border-kresba rounded-panel p-3 space-y-2">
+          <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <input
                 type="date"

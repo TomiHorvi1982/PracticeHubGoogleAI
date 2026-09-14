@@ -141,7 +141,7 @@ export const AkordZKytary: React.FC = () => {
       )}
 
       {akord && (
-        <div className="bg-black/40 border border-white/10 rounded-2xl p-4 space-y-3">
+        <div className="space-y-3">
           <div className="flex items-baseline gap-2 flex-wrap">
             <span className="text-2xl font-bold text-white">
               {akord.nalez ? akord.nalez.nazev : 'neznámý akord'}

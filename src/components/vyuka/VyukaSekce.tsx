@@ -293,7 +293,7 @@ export const VyukaSekce: React.FC = () => {
           <UserPlus className="w-4 h-4" />Přidat žáka
         </button>
       ) : (
-        <div className="karta p-4 space-y-3">
+        <div className="space-y-3">
           <span className="nadpis-panelu">Nový žák</span>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <label className="space-y-1">
@@ -367,7 +367,7 @@ export const VyukaSekce: React.FC = () => {
       {nacitam ? (
         <p className="text-drobne text-pismo-slaby">Načítám žáky…</p>
       ) : !zaci.length ? (
-        <div className="karta p-6 text-center space-y-2">
+        <div className="text-center space-y-2">
           <GraduationCap className="w-8 h-8 text-pismo-slaby mx-auto" />
           <p className="text-drobne text-pismo-tlum">
             Zatím žádný žák.
@@ -376,7 +376,7 @@ export const VyukaSekce: React.FC = () => {
       ) : (
         <div className="space-y-2">
           {zaci.map((zak) => (
-            <div key={zak.id} className="karta p-4 space-y-3">
+            <div key={zak.id} className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="nadpis-panelu">{zak.prezdivka}</span>
                 <span className="odznak bg-znacka-tlum text-znacka px-2 py-0.5 rounded-prvek">
@@ -460,7 +460,7 @@ export const VyukaSekce: React.FC = () => {
                 </div>
 
                 {zadava === zak.id && (
-                  <div className="bg-vhloubeni border border-kresba rounded-panel p-3 space-y-2">
+                  <div className="space-y-2">
                     <div className="flex flex-wrap gap-1.5">
                       {([['text', 'Vlastními slovy'], ['cvik', 'Cvik z hmatníku']] as const).map(([id, popis]) => (
                         <button

@@ -52,7 +52,7 @@ export const SoundshedOvladani: React.FC = () => {
 
   if (!midi.podporovano) {
     return (
-      <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4">
+      <div>
         <h3 className="text-xs font-bold text-white mb-1.5">Ovládání Soundshedu</h3>
         <p className="text-drobne text-pismo-tlum">
           Web MIDI tu nefunguje — použij Chrome nebo Edge.
@@ -62,7 +62,7 @@ export const SoundshedOvladani: React.FC = () => {
   }
 
   return (
-    <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-4 space-y-3">
+    <div className="space-y-3">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-xs font-bold text-white flex items-center gap-1.5">
           <Sliders className="w-3.5 h-3.5 text-uspech" />
@@ -160,7 +160,7 @@ export const SoundshedOvladani: React.FC = () => {
                     if (o.druh === 'plynuly') {
                       const v = hodnoty[o.id] ?? 64;
                       return (
-                        <div key={o.id} className="bg-black/20 border border-white/[0.06] rounded-xl px-3 py-2">
+                        <div key={o.id}>
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <span className="text-stitek text-pismo truncate">{o.nazev}</span>
                             <span className="text-stitek text-pismo-slaby shrink-0 tabular-nums">{v}</span>

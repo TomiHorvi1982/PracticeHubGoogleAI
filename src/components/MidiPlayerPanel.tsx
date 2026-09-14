@@ -442,7 +442,7 @@ export const MidiPlayerPanel: React.FC = () => {
   const znacky = Array.from({ length: Math.ceil(stav.duration / krok) + 1 }, (_, i) => i * krok);
 
   return (
-    <div className="bg-plocha-2 border border-white/10 rounded-3xl overflow-hidden shadow-2xl">
+    <div className="overflow-hidden">
       {/* Knihovna */}
       <div className="border-b border-white/10">
         <button
@@ -720,7 +720,7 @@ export const MidiPlayerPanel: React.FC = () => {
 
             {/* Hlavní hlasitost. Bez ní se dal zvuk ztlumit jedině v systému,
                 což je při hraní s ostatními k ničemu. */}
-            <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-lg border border-white/10">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => {
                   const nova = hlasitost > 0 ? 0 : 0.85;

@@ -123,7 +123,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-3 py-1.5">
+      <div className="flex items-center gap-2">
         <button
           onClick={() => setStrana((s) => Math.max(1, s - 1))}
           disabled={strana <= 1}
@@ -170,7 +170,7 @@ export const PdfNahled: React.FC<Props> = ({ url, nazev }) => {
         </div>
       </div>
 
-      <div className="bg-black/40 rounded-2xl border border-white/10 overflow-auto max-h-[560px] flex justify-center p-3">
+      <div className="overflow-auto max-h-[560px] flex justify-center">
         {nacitam ? (
           <div className="flex items-center gap-2 text-drobne text-pismo-tlum py-16">
             <Loader2 className="w-4 h-4 animate-spin" /> Otevírám PDF…

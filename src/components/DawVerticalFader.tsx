@@ -190,7 +190,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onDoubleClick={handleResetVolume}
-          className="relative w-8 h-48 bg-podklad rounded-xl border border-kresba shadow-inner flex items-center justify-center cursor-ns-resize group"
+          className="relative w-8 h-48 flex items-center justify-center cursor-ns-resize group"
           title="Tažením nahoru/dolů měníte hlasitost (Dvojklik = 0 dB)"
         >
           {/* Center Track Slot Groove */}
@@ -286,7 +286,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
       {!compact && (
         <div className="mt-3 space-y-2.5 pt-2.5 border-t border-white/[0.08] text-xs">
           {/* Pan Rotary / Slider */}
-          <div className="bg-black/40 p-2 rounded-xl border border-white/[0.06] space-y-1">
+          <div className="space-y-1">
             <div className="flex justify-between text-stitek font-mono text-pismo-tlum">
               <span>Pan</span>
               <span className="font-bold text-uspech">
@@ -309,7 +309,7 @@ export const DawVerticalFader: React.FC<DawVerticalFaderProps> = ({
           </div>
 
           {/* Pitch Transpose */}
-          <div className="bg-black/40 p-2 rounded-xl border border-white/[0.06] space-y-1">
+          <div className="space-y-1">
             <div className="flex justify-between text-stitek font-mono text-pismo-tlum">
               <span>Pitch</span>
               <span className="font-bold text-nastroj">

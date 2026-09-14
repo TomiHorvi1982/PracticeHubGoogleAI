@@ -611,7 +611,7 @@ export const VirtualInstruments: React.FC = () => {
     <div className="w-full space-y-4 font-sans pb-16">
       
       {/* Header & Instrument Selector Tabs */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           {/* MIDI Tools Modal Trigger */}
           <button
@@ -675,7 +675,7 @@ export const VirtualInstruments: React.FC = () => {
           <MidiPlayerPanel />
 
           {/* Scale Selector & Octave Shift Panel */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div className="space-y-4">
             
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] pb-3">
               {/* Scale Title */}
@@ -732,7 +732,7 @@ export const VirtualInstruments: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 items-stretch">
               
               {/* Sound Profile Selector */}
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <span />
                   <button
@@ -807,7 +807,7 @@ export const VirtualInstruments: React.FC = () => {
               </div>
 
               {/* Root Note Picker */}
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
+              <div className="space-y-1.5">
                 <span className="stitek-pole block">Základní tón:</span>
                 <div className="flex flex-wrap gap-1">
                   {CHROMATIC_NOTES.map((note) => (
@@ -827,7 +827,7 @@ export const VirtualInstruments: React.FC = () => {
               </div>
 
               {/* Scale Type Picker */}
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-1.5">
+              <div className="space-y-1.5">
                 <span className="stitek-pole block">Typ stupnice:</span>
                 <select
                   value={selectedScaleIndex === null ? 'none' : selectedScaleIndex}
@@ -847,7 +847,7 @@ export const VirtualInstruments: React.FC = () => {
               </div>
 
               {/* Octave Shift Controls */}
-              <div className="bg-black/40 p-3 rounded-2xl border border-white/10 space-y-2">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="stitek-pole">Posun oktáv</span>
                   <span className="text-stitek font-mono font-bold text-uspech bg-uspech/10 px-2 py-0.5 rounded-md border border-uspech/30">
@@ -930,10 +930,10 @@ export const VirtualInstruments: React.FC = () => {
           </div>
 
           {/* Interactive Keyboard Canvas (2 Full Octaves - 25 Keys) */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl text-center space-y-4">
+          <div className="text-center space-y-4">
             
             {/* PC Keyboard Mapping Legend Bar */}
-            <div className="bg-black/50 border border-white/10 p-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs text-left">
+            <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-left">
               <div className="flex items-center gap-2">
                 <span className="odznak zlata-plocha px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-sm">
                   <Laptop className="w-3.5 h-3.5" /> PC Klávesnice
@@ -953,7 +953,7 @@ export const VirtualInstruments: React.FC = () => {
             </div>
 
             <div className="flex justify-center overflow-x-auto py-3 scrollbar-thin">
-              <div className="relative flex h-52 bg-black/60 p-3.5 rounded-2xl border border-white/10 shadow-2xl">
+              <div className="relative flex h-52">
                 {BASE_PIANO_LAYOUT.map((keyObj, idx) => {
                   const keyNoteOctave = baseOctaveNumber + keyObj.relOctave;
                   const fullNoteName = `${keyObj.root}${keyNoteOctave}`;
@@ -1057,7 +1057,7 @@ export const VirtualInstruments: React.FC = () => {
       {activeInstTab === 'fretboard' && (
         <div className="space-y-4">
           <AkordovyPrekladac sirka={340} />
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2.5 bg-znacka/10 border border-znacka/30 text-znacka rounded-2xl">
                 <Compass className="w-5 h-5" />
@@ -1067,7 +1067,7 @@ export const VirtualInstruments: React.FC = () => {
               </div>
             </div>
 
-            <div className="ml-auto flex items-center bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06]">
+            <div className="ml-auto flex items-center">
               {([
                 { id: 'chord', label: 'Akordy' },
                 { id: 'scale', label: 'Stupnice' },
@@ -1094,21 +1094,21 @@ export const VirtualInstruments: React.FC = () => {
 
           {/* Vzorce na procvičení stupnic. */}
           {hmatnikSekce === 'cviceni' && (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
+            <div>
               <CviceniStupnic />
             </div>
           )}
 
           {/* Kytara hrající zvoleným nástrojem. */}
           {hmatnikSekce === 'jakoNastroj' && (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
+            <div>
               <KytaraJakoNastroj />
             </div>
           )}
 
           {/* Akord sebraný z kytary a ukázaný jako hmat na klaviatuře. */}
           {hmatnikSekce === 'zKytary' && (
-            <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
+            <div>
               <AkordZKytary />
             </div>
           )}
@@ -1147,9 +1147,9 @@ export const VirtualInstruments: React.FC = () => {
         <div className="space-y-4">
           
           {/* Information & Controller bar */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
             {/* Quick Presets within All-Guitar-Chords */}
-            <div className="flex flex-wrap items-center gap-1.5 bg-white/[0.04] p-1.5 rounded-2xl border border-white/[0.06]">
+            <div className="flex flex-wrap items-center gap-1.5">
               <span className="stitek-pole px-1">Rychlé sekce:</span>
               <button
                 onClick={() => {
@@ -1233,7 +1233,7 @@ export const VirtualInstruments: React.FC = () => {
           </div>
 
           {/* Browser Address Bar & Refresh / Navigate Controls */}
-          <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-3 shadow-xl flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => {
@@ -1262,7 +1262,7 @@ export const VirtualInstruments: React.FC = () => {
           </div>
 
           {/* Embedded Web Page Iframe wrapper */}
-          <div className="border border-white/[0.08] bg-black rounded-3xl overflow-hidden shadow-2xl relative">
+          <div className="bg-black overflow-hidden relative">
             <iframe
               // Aplikace běží cross-origin izolovaná kvůli openDAW.
               // Bez `credentialless` by prohlížeč tenhle rám zablokoval.
@@ -1276,7 +1276,7 @@ export const VirtualInstruments: React.FC = () => {
             />
             {isGuitarNavigating && (
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
-                <div className="bg-plocha-3 border border-white/10 p-5 rounded-2xl text-center shadow-2xl">
+                <div className="text-center">
                   <span className="text-xs font-semibold text-uspech animate-pulse">
                     Načítání kytarové databáze...
                   </span>
@@ -1302,7 +1302,7 @@ export const VirtualInstruments: React.FC = () => {
           onClick={() => setIsSoundLibraryOpen(false)}
         >
           <div
-            className="bg-plocha-2 border border-white/10 rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden"
+            className="w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}

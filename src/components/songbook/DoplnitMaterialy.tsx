@@ -324,7 +324,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
           </div>
 
           {otevrenyModul === 'youtube' && (
-            <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+            <div className="space-y-2">
               <div className="flex gap-2">
                 <input
                   value={ytOdkaz}
@@ -362,7 +362,7 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
           )}
 
           {modul && (
-            <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2.5">
+            <div className="space-y-2.5">
               <div className="flex items-center gap-1.5">
                 {([
                   { id: 'knihovna', popis: 'Z naší knihovny', ikona: Database },

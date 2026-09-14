@@ -47,7 +47,7 @@ export const PractiseHubSection: React.FC = () => {
   return (
     <div className="space-y-4 font-sans text-white pb-12">
 
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {MISTNOSTI.map((m) => {

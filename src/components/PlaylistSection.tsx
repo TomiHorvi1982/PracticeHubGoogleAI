@@ -215,7 +215,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         ) : undefined}
       />
 
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 shadow-xl relative overflow-hidden">
+      <div className="relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -260,7 +260,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
         <div className="mt-4 pt-4 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-3 text-xs">
           
           {/* Playback Mode Selectors */}
-          <div className="flex items-center gap-1 bg-white/[0.04] p-1 rounded-2xl border border-white/[0.06]">
+          <div className="flex items-center gap-1">
             <span className="text-drobne text-pismo-tlum font-medium px-2">Režim:</span>
             
             <button
@@ -325,7 +325,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       {/* SEARCH ON YOUTUBE MODAL / DRAWER */}
       {isSearchOpen && (
-        <div className="bg-plocha-2 border border-white/15 rounded-3xl p-5 shadow-2xl space-y-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Youtube className="w-4 h-4 text-chyba" />
@@ -406,7 +406,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       {/* MANUAL URL ADD MODAL */}
       {isUrlAddOpen && (
-        <form onSubmit={handleAddManualUrl} className="bg-plocha-2 border border-white/15 rounded-3xl p-5 shadow-2xl space-y-4">
+        <form onSubmit={handleAddManualUrl} className="space-y-4">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <LinkIcon className="w-4 h-4 text-znacka" />
@@ -476,7 +476,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
 
       {/* SONGBOOK PICKER */}
       {isSongbookPickerOpen && (
-        <div className="bg-plocha-2 border border-white/15 rounded-3xl p-5 shadow-2xl space-y-3">
+        <div className="space-y-3">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <div className="flex items-center gap-2">
               <Music className="w-4 h-4 text-uspech" />
@@ -511,7 +511,7 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
       )}
 
       {/* PLAYLIST ITEMS TABLE / LIST */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl">
+      <div className="overflow-hidden">
         
         {/* Table Header */}
         <div className="bg-white/[0.02] border-b border-white/[0.06] px-5 py-3 flex items-center justify-between text-xs font-semibold text-pismo-tlum">

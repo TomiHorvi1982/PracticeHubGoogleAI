@@ -370,7 +370,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
   const initialBpm = midiData?.header?.tempos?.[0]?.bpm ? Math.round(midiData.header.tempos[0].bpm) : 120;
 
   return (
-    <div className={`bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 font-sans space-y-4 shadow-xl text-white ${className}`}>
+    <div className={`font-sans space-y-4 text-white${className}`}>
       
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
@@ -404,7 +404,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
       </div>
 
       {/* Demo Preset Buttons */}
-      <div className="flex flex-wrap items-center gap-2 bg-black/40 p-3 rounded-2xl border border-white/5">
+      <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs text-pismo-tlum font-medium mr-1">Ukázkové MIDI skladby:</span>
         <button
           onClick={() => loadDemoMidi('furelise')}
@@ -444,7 +444,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
             </div>
 
             {/* Sound Synthesizer Selector */}
-            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+            <div className="flex items-center gap-1">
               <span className="stitek-pole px-1.5">Zvuk:</span>
               <button
                 onClick={() => setSelectedSound('piano')}
@@ -474,7 +474,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
           </div>
 
           {/* Interactive Visual Piano Roll Canvas */}
-          <div className="border border-white/5 bg-black/40 rounded-2xl p-3 relative">
+          <div className="relative">
             <div className="flex items-center justify-between text-xs text-pismo-tlum mb-2">
               <span className="font-medium">Osnova Piano Roll</span>
               <span className="font-mono text-white">{currentTime.toFixed(1)}s / {totalDuration.toFixed(1)}s</span>
@@ -488,7 +488,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
           </div>
 
           {/* Playback Controls & Timeline Slider */}
-          <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-4">
+          <div className="space-y-4">
             
             {/* Seek Bar */}
             <div className="flex items-center gap-3">
@@ -543,7 +543,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
               </div>
 
               {/* Playback Speed Multiplier */}
-              <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-xl border border-white/10">
+              <div className="flex items-center gap-1">
                 <span className="text-xs text-pismo-tlum font-medium mr-1.5">Rychlost:</span>
                 {[0.5, 0.75, 1.0, 1.25, 1.5].map((rate) => (
                   <button
@@ -565,7 +565,7 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
 
           {/* MIDI Tracks Mute / Inspector Panel */}
           {midiData.tracks.length > 0 && (
-            <div className="bg-black/40 p-4 sm:p-5 rounded-2xl border border-white/5 space-y-3">
+            <div className="space-y-3">
               <span className="text-xs font-bold text-pismo block border-b border-white/5 pb-2">
                 Stopy souboru MIDI (možnost ztlumení):
               </span>

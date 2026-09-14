@@ -103,7 +103,7 @@ export const KontrolaCviku: React.FC<Props> = ({ tony, bpm, prizvuk }) => {
       {chyba && <p className="text-sm text-red-300">{chyba}</p>}
 
       {vysledek && (
-        <div className="rounded-2xl border border-white/15 bg-black/25 p-3">
+        <div>
           {vysledek.merÍtelne && (
             <p className="text-2xl font-bold" style={{ color: prizvuk }}>
               {vysledek.procenta} %

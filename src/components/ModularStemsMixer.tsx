@@ -96,7 +96,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
   return (
     <div className="flex-1 flex flex-col space-y-3.5 text-pismo">
       {/* MASTER TRANSPORT & SONG SELECTOR BAR */}
-      <div className="bg-black/60 border border-white/[0.08] rounded-2xl p-3 flex flex-wrap items-center justify-between gap-3 shadow-inner">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Play/Pause Button & Active Song Info */}
         <div className="flex items-center gap-3">
           <button
@@ -186,7 +186,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
         </div>
 
         {/* Global Pitch Transpose */}
-        <div className="flex items-center gap-1.5 bg-plocha-1/80 px-2.5 py-1 rounded-xl border border-white/10 text-xs">
+        <div className="flex items-center gap-1.5 text-xs">
           <Music className="w-3.5 h-3.5 text-uspech" />
           <span className="text-drobne text-pismo-tlum">Transpozice:</span>
           <button
@@ -208,7 +208,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
       </div>
 
       {pridavam && song && onUpdateSong && (
-        <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2">
+        <div className="space-y-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="stitek-pole">Přiřadit na fader</span>
             {ROLE_FADERU.map((r) => (
@@ -313,7 +313,7 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
           })}
         </div>
       ) : (
-        <div className="text-center py-10 bg-black/30 border border-white/[0.06] rounded-2xl p-6 space-y-3">
+        <div className="text-center space-y-3">
           <Sliders className="w-8 h-8 text-pismo-slaby mx-auto" />
           <h4 className="text-sm font-bold text-white">Žádné separované stopy pro tuto skladbu</h4>
         </div>

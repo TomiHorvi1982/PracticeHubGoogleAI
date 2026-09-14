@@ -262,7 +262,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
       )}
 
       {/* 2. CHORD ANALYSIS & PLAYBACK TOOLBAR */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-plocha-1/90 border border-kresba rounded-2xl shadow-inner">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Left: Active Chord Info & Notes */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-znacka/20 border border-znacka/40 flex items-center justify-center text-znacka font-mono font-black text-base shadow-sm">
@@ -316,7 +316,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
           </button>
 
           {/* Octave Range Selector */}
-          <div className="flex items-center gap-1 bg-black/40 px-2 py-1 rounded-xl border border-kresba text-xs">
+          <div className="flex items-center gap-1 text-xs">
             <span className="text-drobne text-pismo-tlum font-medium">Oktáva:</span>
             <button
               onClick={() => setBaseOctave((o) => Math.max(2, o - 1))}
@@ -334,7 +334,7 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
           </div>
 
           {/* Display Mode Toggle */}
-          <div className="flex items-center bg-black/40 p-0.5 rounded-xl border border-kresba text-drobne">
+          <div className="flex items-center text-drobne">
             <button
               onClick={() => setDisplayMode('both')}
               className={`px-2 py-1 rounded-lg font-semibold transition-colors cursor-pointer ${
@@ -358,8 +358,8 @@ export const ModularPianoSection: React.FC<ModularPianoSectionProps> = ({
       </div>
 
       {/* 3. INTERACTIVE PIANO KEYBOARD STAGE */}
-      <div className="bg-plocha-1 border border-kresba rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col items-center justify-center overflow-x-auto min-h-[220px] relative">
-        <div className="flex relative select-none shadow-2xl rounded-2xl overflow-hidden p-1 bg-[#151b2b] border border-kresba">
+      <div className="flex flex-col items-center justify-center overflow-x-auto min-h-[220px] relative">
+        <div className="flex relative select-none overflow-hidden">
           {octavesList.map((oct) => (
             <div key={oct} className="flex relative">
               {/* WHITE KEYS */}

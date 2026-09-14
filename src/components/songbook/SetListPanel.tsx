@@ -72,7 +72,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
   const tah = usePretahovaniPoradi(presun, 'svisle');
 
   return (
-    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 sm:p-5 shadow-xl space-y-2.5">
+    <div className="space-y-2.5">
       <div className="flex flex-wrap items-center gap-2">
         {/* Šipka je vlastní tlačítko, ne celá hlavička: ta obsahuje
             výběr setu a „Na Pódium", které se do tlačítka vnořit nedají
@@ -116,7 +116,7 @@ export const SetListPanel: React.FC<Props> = ({ songs, onNaPodium }) => {
           Set list je prázdný.
         </p>
       ) : (
-        <div className="divide-y divide-white/[0.05] rounded-2xl border border-white/[0.06] bg-black/20 overflow-hidden">
+        <div className="divide-y divide-white/[0.05] overflow-hidden">
           {vSetu.map((s, i) => (
             <div
               key={s.id}

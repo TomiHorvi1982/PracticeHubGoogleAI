@@ -92,7 +92,7 @@ export const AlbumSkladby: React.FC<Props> = ({ interpret, nazev, drobne }) => {
       </button>
 
       {otevreno && !nacitam && (
-        <div className="basis-full mt-1.5 rounded-panel border border-kresba bg-plocha-1 p-3">
+        <div className="basis-full mt-1.5">
           {chyba && <p className="text-drobne text-pismo-slaby">{chyba}</p>}
 
           {album && (

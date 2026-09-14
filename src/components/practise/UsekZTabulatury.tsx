@@ -126,7 +126,7 @@ export const UsekZTabulatury: React.FC = () => {
 
   if (!usek) {
     return (
-      <div className="bg-plocha-2 border border-dashed border-white/[0.08] rounded-3xl p-5 text-center">
+      <div className="border-dashed text-center">
         <p className="text-drobne text-pismo-slaby">
           Žádný úsek k cvičení.
         </p>
@@ -135,7 +135,7 @@ export const UsekZTabulatury: React.FC = () => {
   }
 
   return (
-    <div className="bg-plocha-2 border border-nastroj/30 rounded-3xl p-5 space-y-3">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
         <Guitar className="w-4 h-4 text-nastroj shrink-0" />
         <div className="min-w-0 flex-1">
@@ -175,7 +175,7 @@ export const UsekZTabulatury: React.FC = () => {
 
             {/* Pomaleji, dokud to prsty nestíhají. Výška tónu zůstává —
                 alphaTab mění tempo, ne ladění. */}
-            <div className="flex items-center gap-1 bg-black/40 border border-white/10 rounded-xl p-0.5">
+            <div className="flex items-center gap-1">
               {RYCHLOSTI.map((r) => (
                 <button
                   key={r}

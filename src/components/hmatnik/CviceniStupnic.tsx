@@ -174,7 +174,7 @@ export const CviceniStupnic: React.FC = () => {
 
       {/* Posloupnost tónů. Právě znějící svítí — u delších vzorců se
           jinak nedá poznat, kde v sekvenci člověk je. */}
-      <div className="bg-black/40 border border-white/10 rounded-2xl p-3">
+      <div>
         <div className="flex items-center justify-between mb-1.5">
           <span className="stitek-pole">
             Posloupnost ({tony.length} tónů)

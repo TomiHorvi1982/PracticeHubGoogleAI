@@ -152,7 +152,7 @@ export const MiniPrehravac: React.FC<Props> = ({
   };
 
   return (
-    <div className="relative bg-black/50 border border-white/[0.1] rounded-2xl p-2 space-y-1.5">
+    <div className="relative space-y-1.5">
       <div className="flex items-center gap-2">
         <button
           onClick={prepni}

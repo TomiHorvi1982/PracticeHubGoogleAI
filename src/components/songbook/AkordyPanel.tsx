@@ -160,7 +160,7 @@ export const AkordyPanel: React.FC<Props> = ({
     return (
       <div
         key={nazev}
-        className={`bg-white/[0.04] border p-2 rounded-2xl flex flex-col items-center gap-1 transition-all shadow-sm ${
+        className={`flex flex-col items-center gap-1 transition-all${
           jeVlastni ? 'border-uspech/40' : 'border-white/[0.08]'
         }`}
       >
@@ -239,7 +239,7 @@ export const AkordyPanel: React.FC<Props> = ({
       </div>
 
       {pridavam && (
-        <div className="bg-black/40 border border-white/[0.08] rounded-2xl p-3 space-y-2 shrink-0">
+        <div className="space-y-2 shrink-0">
           <div className="flex items-center gap-1.5">
             {([
               { id: 'hmatnik', popis: 'Naťukat na hmatník' },

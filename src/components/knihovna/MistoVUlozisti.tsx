@@ -75,7 +75,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
 
   if (nacitam && !stav) {
     return (
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 text-drobne text-pismo-slaby flex items-center gap-2">
+      <div className="text-drobne text-pismo-slaby flex items-center gap-2">
         <Loader2 className="w-3.5 h-3.5 animate-spin" /> Počítám místo…
       </div>
     );
@@ -86,7 +86,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
   const kusy = stav.kategorie.filter((k) => k.bajtu > 0);
 
   return (
-    <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 space-y-3">
+    <div className="space-y-3">
       <div className="flex flex-wrap items-baseline gap-2">
         <HardDrive className="w-4 h-4 text-znacka shrink-0 self-center" />
         <span className="text-lg font-bold text-white tabular-nums">{velikost(stav.celkem)}</span>
@@ -94,7 +94,7 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
       </div>
 
       <div
-        className="flex h-5 rounded-lg overflow-hidden bg-black/40 border border-white/[0.08]"
+        className="flex h-5 overflow-hidden"
         role="img"
         aria-label={`Zabráno ${velikost(stav.celkem)} z ${velikost(stav.limit)}.`}
       >

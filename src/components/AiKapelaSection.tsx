@@ -97,7 +97,7 @@ export const AiKapelaSection: React.FC = () => {
   return (
     <div className="space-y-4 font-sans text-white pb-12">
       {/* Hlavička */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
+      <div>
         <div className="flex flex-wrap items-center gap-3.5">
           <div className="p-3 bg-nastroj/10 border border-nastroj/30 text-nastroj rounded-2xl">
             <Users className="w-6 h-6" />
@@ -133,7 +133,7 @@ export const AiKapelaSection: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Akordy */}
-        <div className="lg:col-span-2 bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3">
+        <div className="lg:col-span-2 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <Music4 className="w-4 h-4 text-nastroj" />
             <h3 className="text-sm font-bold text-white">Akordy dokola</h3>
@@ -209,7 +209,7 @@ export const AiKapelaSection: React.FC = () => {
         </div>
 
         {/* Tempo a styl */}
-        <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-4">
+        <div className="space-y-4">
           <div>
             <div className="flex items-center justify-between mb-1">
               <span className="stitek-pole">Tempo</span>
@@ -291,7 +291,7 @@ export const AiKapelaSection: React.FC = () => {
       {/* AI sólista.
           Běží mimo prohlížeč, protože model potřebuje Apple Silicon.
           Když služba neběží, řekne se to a kapela hraje dál bez něj. */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 space-y-3">
+      <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#E54870]" />
           <h3 className="text-sm font-bold text-white">AI sólista</h3>
@@ -447,7 +447,7 @@ export const AiKapelaSection: React.FC = () => {
 
       </div>
 
-      <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl px-4 py-3 flex items-start gap-2.5">
+      <div className="flex items-start gap-2.5">
         <Mic className="w-4 h-4 text-pismo-slaby shrink-0 mt-0.5" />
       </div>
     </div>

@@ -87,7 +87,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
       </button>
 
       {pridavam && (
-        <div className="shrink-0 bg-black/40 border border-white/[0.08] rounded-2xl p-2.5">
+        <div className="shrink-0">
           <VyberZKnihovny
             kategorie="images"
             vychoziDotaz={song.title}
@@ -115,7 +115,7 @@ export const ObrazkyModul: React.FC<Props> = ({ song, prilohy, onUpdateSong }) =
                     className="w-full rounded-xl border border-white/10 object-cover"
                   />
                 ) : (
-                  <div className="w-full aspect-video rounded-xl border border-white/10 bg-white/[0.03] flex items-center justify-center">
+                  <div className="w-full aspect-video flex items-center justify-center">
                     {nacitam ? (
                       <Loader2 className="w-4 h-4 text-pismo-slaby animate-spin" />
                     ) : (

@@ -178,7 +178,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       {/* Nastavení rozpoznávání.
           Přísnost se hodí jinak doma a jinak v hlučné zkušebně, takže
           to nemá být zadrátované číslo. */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4 space-y-3">
+      <div className="space-y-3">
         <h3 className="text-sm font-bold text-znacka">Nastavení</h3>
 
         <div>
@@ -224,7 +224,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       </div>
 
       {/* Katalog — co appka umí a co zatím ne */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
+      <div>
         <h3 className="text-sm font-bold text-znacka mb-1">Co hlasem jde</h3>
         <div className="space-y-3">
           {skupiny.map((s) => (
@@ -255,7 +255,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       </div>
 
       {/* Vlastní příkazy */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
+      <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-bold text-znacka">Vlastní příkazy</h3>
           {!navrh && (
@@ -273,7 +273,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             <p className="text-drobne text-pismo-slaby">Zatím žádný vlastní příkaz.</p>
           )}
           {prikazy.filter((p) => p.vlastni).map((p) => (
-            <div key={p.id} className="flex items-center gap-2 bg-black/30 border border-white/[0.06] rounded-xl px-3 py-2">
+            <div key={p.id} className="flex items-center gap-2">
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-semibold truncate">{p.nazev}</div>
                 <div className="text-drobne text-pismo-slaby truncate">„{p.fraze.join('", „')}" · {p.kroky.length} krok(y)</div>
@@ -290,7 +290,7 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
         </div>
 
         {navrh && (
-          <div className="bg-black/40 border border-white/10 rounded-2xl p-3 space-y-3">
+          <div className="space-y-3">
             <input
               value={navrh.nazev}
               onChange={(e) => setNavrh({ ...navrh, nazev: e.target.value })}

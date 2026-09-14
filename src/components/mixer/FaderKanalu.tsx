@@ -49,7 +49,7 @@ export const FaderKanalu: React.FC<VlastnostiFaderu> = ({
   const maMerak = uroven !== undefined;
 
   return (
-    <div className="bg-black/30 border border-white/[0.08] rounded-2xl p-3 space-y-2.5 min-w-[168px]">
+    <div className="space-y-2.5 min-w-[168px]">
       <div className="flex items-center gap-1.5">
         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: barva }} />
         <span className="text-drobne font-bold text-white truncate flex-1">{nazev}</span>
