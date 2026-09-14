@@ -82,11 +82,6 @@ export const NavrhyPanel: React.FC<Props> = ({ song, onZmena }) => {
         </span>
       </button>
 
-      {!otevreno && (
-        <p className="text-drobne text-pismo-tlum pl-6">
-          Klikni a vyber, co k písni patří. Co odmítneš, se znovu nenabídne.
-        </p>
-      )}
 
       {otevreno && (
         <div className="space-y-1.5">

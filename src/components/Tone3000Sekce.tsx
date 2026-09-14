@@ -63,11 +63,6 @@ export const Tone3000Sekce: React.FC = () => {
     <div className="space-y-3">
       <div>
         <h2 className="nadpis-sekce">TONE3000</h2>
-        <p className="text-drobne text-pismo-tlum max-w-[70ch]">
-          Katalog nasnímaných aparátů a jejich živý přehrávač, otevřený
-          rovnou tady. Zapoj kytaru do zvukovky, vyber tón a dej Play —
-          hraje to na stejném motoru jako náš kytarový fader.
-        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">
@@ -138,12 +133,6 @@ export const Tone3000Sekce: React.FC = () => {
         />
       </div>
 
-      <p className="text-stitek text-pismo-slaby max-w-[80ch]">
-        Běží to na serveru TONE3000, ne u nás. Když se nedaří přihlásit,
-        je to blokováním souborů cookie třetích stran — otevři stránku
-        samostatně, přihlas se tam a vrať se sem. Na hraní naživo použij
-        drátová sluchátka; bezdrátová přidají i přes sto milisekund zpoždění.
-      </p>
     </div>
   );
 };

@@ -616,9 +616,6 @@ export const MidiPlayer: React.FC<MidiPlayerProps> = ({ className = '' }) => {
           <FileAudio className="w-10 h-10 text-pismo-slaby mx-auto" />
           <div>
             <h4 className="text-sm font-bold text-white">Žádný MIDI soubor není nahrán</h4>
-            <p className="text-xs text-pismo-tlum mt-1">
-              Nahrajte soubor <strong className="text-white">.mid</strong> nebo <strong className="text-white">.midi</strong>, případně zvolte jednu z ukázkových skladeb výše.
-            </p>
           </div>
         </div>
       )}

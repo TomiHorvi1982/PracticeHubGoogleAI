@@ -559,9 +559,6 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                 <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
                   Sampled Drum Engine Pro
                 </span>
-                <span className="text-xs text-pismo-tlum font-medium hidden sm:inline">
-                  Multi-Velocity Layers • Round-Robin Anti-Machine-Gun • WAV 24-bit
-                </span>
               </div>
               <h2 className="text-lg sm:text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
                 Správce Vlastních Zvuků & Audio Vzorků Bicích
@@ -764,9 +761,6 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                     <Disc className="w-4 h-4 text-znacka" />
                     Pady Bicí Soustavy (Kick, Snare, Toms, Cymbals, Percussion)
                   </h3>
-                  <p className="text-drobne text-pismo-tlum mt-0.5">
-                    Přetáhněte sem libovolný audio soubor (.wav, .mp3) nebo nahrajte z mikrofonu. Engine automaticky odvodí dynamické multi-velocity vrstvy a round-robin micro-variace.
-                  </p>
                 </div>
               </div>
 
@@ -1002,9 +996,6 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                     <h3 className="text-base font-extrabold text-white flex items-center gap-2">
                       {padDefName(selectedPadId)}
                     </h3>
-                    <p className="text-xs text-pismo-tlum">
-                      5 Dynamických Velocity vrstev (Soft..Very Hard) x 4 Round-Robin variace
-                    </p>
                   </div>
                 </div>
 
@@ -1192,9 +1183,6 @@ export const CustomDrumKitModal: React.FC<CustomDrumKitModalProps> = ({
                   <h3 className="text-sm font-extrabold text-white">
                     Přetáhněte sem více souborů WAV naráz
                   </h3>
-                  <p className="text-xs text-pismo-tlum mt-1 max-w-md">
-                    Chytrý analyzátor automaticky rozpozná název bicího nástroje (Kick, Snare, Toms, Cymbals), dynamickou vrstvu (Soft, Hard, FF...) i Round-Robin variace (RR1..RR4).
-                  </p>
                 </div>
 
                 <input

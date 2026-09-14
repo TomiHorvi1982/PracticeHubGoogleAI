@@ -327,14 +327,10 @@ export const Tuner: React.FC = () => {
             <span className="odznak zlata-plocha px-2 py-0.5 rounded-md">
               Přesná Ladička
             </span>
-            <span className="text-xs text-pismo-tlum font-medium">Autodetekce frekvence</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Chromatická Ladička & Metronom
           </h2>
-          <p className="text-xs text-pismo-tlum mt-1">
-            Spusťte mikrofon a zahrajte na libovolnou strunu pro rychlé naladění s přesností na centy.
-          </p>
         </div>
 
         {/* Referenční A */}
@@ -609,9 +605,6 @@ export const Tuner: React.FC = () => {
           <h3 className="text-xs font-semibold text-white">
             Referenční tóny strun ({activeTuning.name})
           </h3>
-          <span className="text-drobne text-pismo-tlum">
-            Kliknutím přehrajte referenční tón
-          </span>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-6 gap-2.5">

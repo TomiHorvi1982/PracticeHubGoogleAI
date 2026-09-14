@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Mic, MicOff, Target, BookOpen, Sliders } from 'lucide-react';
+import { Mic, MicOff, Target, Sliders } from 'lucide-react';
 import { Scale, Note } from 'tonal';
 import { poslechKytary, StavPoslechu } from '../../services/poslechKytary';
 import { prehravacCviceni, StavCviceni } from '../../services/prehravacCviceni';
@@ -72,10 +72,6 @@ export const SoloRoom: React.FC = () => {
           <Target className="w-5 h-5 text-uspech" />
           <div className="flex-1 min-w-[200px]">
             <h3 className="text-sm font-bold text-white">Hraju v tónině?</h3>
-            <p className="text-drobne text-pismo-tlum">
-              Mikrofon poslouchá a porovnává s vybranou stupnicí. Ucho si na vlastní chybu
-              zvykne — oko ne.
-            </p>
           </div>
           <button
             onClick={() => (stav.poslouchá ? poslechKytary.stop() : void poslechKytary.start())}
@@ -162,9 +158,6 @@ export const SoloRoom: React.FC = () => {
         <div className="flex items-center gap-2">
           <Sliders className="w-4 h-4 text-znacka" />
           <h3 className="text-sm font-bold text-white">Pult</h3>
-          <span className="text-drobne text-pismo-slaby">
-            stopa proti kytaře — a je vidět, jak silný signál ze zvukovky chodí
-          </span>
         </div>
 
         <div className="flex flex-wrap gap-3">
@@ -186,19 +179,8 @@ export const SoloRoom: React.FC = () => {
             nástrojem — na sólo se dá cvičit i proti klavíru nebo smyčcům. */}
         <KytaraJakoNastroj />
 
-        <p className="text-stitek text-pismo-slaby">
-          Nahranou kytaru si „Poslechnout" načte rovnou do přehrávače níž — dá se pak zpomalit a
-          projet ve smyčce, takže je vidět, kde to ujíždí.
-        </p>
       </div>
 
-      {/* Pilování sóla — stejný nástroj jako u riffů */}
-      <div className="flex items-center gap-2 px-1">
-        <BookOpen className="w-4 h-4 text-pismo-slaby" />
-        <span className="text-drobne text-pismo-slaby">
-          Níž si sólo ulož, zpomal a nech tempo samo růst — stejně jako u riffů.
-        </span>
-      </div>
       <RiffRoom typ="solo" />
     </div>
   );

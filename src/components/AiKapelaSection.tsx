@@ -109,10 +109,6 @@ export const AiKapelaSection: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1">
               AI Band — zkušebna, která na tebe počká
             </h2>
-            <p className="text-xs text-pismo-tlum mt-1">
-              Nastav akordy, tempo a styl. Kapela hraje pořád dokola, ty si k tomu hraj
-              na svůj nástroj — a kdo zrovna nemá čas, toho vypneš.
-            </p>
           </div>
 
           <button
@@ -304,9 +300,6 @@ export const AiKapelaSection: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Sparkles className="w-4 h-4 text-[#E54870]" />
           <h3 className="text-sm font-bold text-white">AI sólista</h3>
-          <span className="text-drobne text-pismo-slaby">
-            Magenta RealTime — běží na tomhle Macu, ne v prohlížeči
-          </span>
           <span
             className={`ml-auto text-stitek font-bold px-2 py-1 rounded-lg ${
               solista.stav === 'hraje'
@@ -457,20 +450,10 @@ export const AiKapelaSection: React.FC = () => {
           )}
         </div>
 
-        <p className="text-drobne text-pismo-slaby">
-          Styl se popisuje slovy, ne notami — model rozumí anglicky. Změna se projeví
-          za pochodu. Posuvník říká, jak moc se má držet akordů kapely: na nule si hraje
-          po svém, výš jde do harmonie.
-        </p>
       </div>
 
       <div className="bg-plocha-2 border border-white/[0.06] rounded-2xl px-4 py-3 flex items-start gap-2.5">
         <Mic className="w-4 h-4 text-pismo-slaby shrink-0 mt-0.5" />
-        <p className="text-drobne text-pismo-tlum leading-relaxed">
-          Kapela zní přes tutéž zvukovou banku jako MIDI přehrávač a tabulatury. Hraj si k ní na
-          cokoli — a v Hmatníku pod záložkou <strong className="text-pismo">Poslech kytary</strong> uvidíš, co
-          hraješ, i s akordy, které do té tóniny patří.
-        </p>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ import { GraduationCap } from 'lucide-react';
 import { vyukaService } from '../services/vyukaService';
 import { UserAccount, AuthSession } from '../types';
 import { authService, ROLE_LABELS } from '../services/authService';
-import { Shield, Key, Mail, Lock, User, CheckCircle2, AlertCircle, ArrowRight, Eye, EyeOff, Sparkles, LogIn, Music } from 'lucide-react';
+import { Shield, Key, Mail, Lock, User, CheckCircle2, AlertCircle, ArrowRight, Eye, EyeOff, LogIn, Music } from 'lucide-react';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -266,9 +266,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               >
                 {isSubmitting ? 'Přihlašuji…' : 'Jdeme cvičit'}
               </button>
-              <p className="text-stitek text-pismo-slaby text-center">
-                Přezdívku a PIN ti dal učitel. Když je zapomeneš, řekni mu o ně.
-              </p>
             </form>
           ) : mode === 'login' ? (
             <form onSubmit={handleStandardLogin} className="space-y-4">
@@ -325,16 +322,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             </form>
           ) : (
             <form onSubmit={handleSetInvitePassword} className="space-y-4">
-              <div className="bg-uspech/10 border border-uspech/20 rounded-2xl p-3.5 text-xs text-pismo space-y-1">
-                <div className="text-uspech font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Obdrželi jste pozvánku od správce?</span>
-                </div>
-                <p className="text-drobne text-pismo-tlum">
-                  Otevřete odkaz z pozvánkového e-mailu — přihlásí vás automaticky. Tady si nastavte svoje vlastní trvalé heslo.
-                </p>
-              </div>
-
               {/* New Password */}
               <div className="space-y-1.5">
                 <label className="block text-xs font-medium text-pismo flex items-center gap-1.5">

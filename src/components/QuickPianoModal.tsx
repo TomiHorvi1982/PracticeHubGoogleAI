@@ -46,7 +46,6 @@ export const QuickPianoModal: React.FC<QuickPianoModalProps> = ({ isOpen, onClos
             </div>
             <div>
               <h2 className="text-base font-bold text-white">Rychlý klavír a pomůcka</h2>
-              <p className="text-xs text-pismo-tlum">Přehrajte si melodie, tóny nebo akordy přímo z lišty</p>
             </div>
           </div>
 

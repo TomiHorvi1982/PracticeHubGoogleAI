@@ -190,9 +190,6 @@ export const OnlineSearchModal: React.FC<OnlineSearchModalProps> = ({
               <p className="stitek-pole">
                 VYHLEDEJTE PÍSNIČKU NEBO VLOŽTE URL ADRESU S AKORDY
               </p>
-              <p className="text-stitek text-[#555] mt-1">
-                Aplikace automaticky stáhne text, vytáhne akordy do [Akord] formátu a uloží přímo do vašeho zpěvníku.
-              </p>
             </div>
           )}
 

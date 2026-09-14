@@ -96,7 +96,6 @@ export const PrazdnyModul: React.FC<Props> = ({ song, modulId, onUpdateSong, nah
             {nadSebou ? 'Pusť to sem' : 'Přetáhni soubor nebo klikni'}
           </p>
           <p className="text-stitek text-pismo-slaby">{prijima.join(' · ')}</p>
-          <p className="text-stitek text-pismo-slaby">Uloží se ke skladbě — příště se načte sám.</p>
         </>
       )}
 

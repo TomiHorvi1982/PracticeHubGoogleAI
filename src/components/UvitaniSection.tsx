@@ -309,11 +309,6 @@ export const UvitaniSection: React.FC<Props> = ({ onJit, onZavrit, jmeno }) => (
       <h1 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mt-3">
         {jmeno ? `Vítej, ${jmeno}.` : 'Vítej.'}
       </h1>
-      <p className="text-sm text-pismo mt-2 max-w-2xl leading-relaxed">
-        Zkušebna pro kapelu na jednom místě: od nalezení písně přes přípravu materiálů až po
-        odehrání na pódiu. Níž je cesta, jak se to používá — sedm kroků, každý s tlačítkem
-        rovnou tam.
-      </p>
       <button
         onClick={onZavrit}
         className="mt-4 px-4 py-2 bg-white/[0.08] hover:bg-white/[0.16] border border-white/[0.12] text-white text-xs font-bold rounded-xl cursor-pointer transition-all"

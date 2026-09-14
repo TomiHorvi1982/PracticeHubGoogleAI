@@ -141,15 +141,6 @@ export const MistoVUlozisti: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravc
         ))}
       </div>
 
-      {/* Sbírka tabulatur zabírá místo, ale ve složkách níž není — leží ve
-          vlastní tabulce a slouží automatickému dohledávání, ne ručnímu
-          třídění. Bez téhle věty nesedí součet v grafu se stromem. */}
-      {kusy.some((k) => k.nazev === 'sbírka tabulatur') && (
-        <p className="text-drobne text-pismo-slaby">
-          Sbírka tabulatur se ve složkách níž neukazuje — appka v ní hledá sama a ručně
-          se netřídí.
-        </p>
-      )}
 
       {/* Kopie téhož souboru pod jiným názvem. Bez tohohle řádku by se
           na ně nepřišlo — v seznamu vypadají jako dva různé soubory. */}

@@ -186,9 +186,6 @@ export const ModularTunerSection: React.FC<ModularTunerProps> = ({
         ) : (
           <div className="text-center py-2 text-pismo-tlum text-xs">
             <p className="font-semibold text-pismo">Připraveno k ladění ({activePreset.name})</p>
-            <p className="text-drobne text-pismo-slaby mt-0.5">
-              Klikněte na strunu níže pro referenční tón nebo zapněte mikrofon.
-            </p>
           </div>
         )}
       </div>

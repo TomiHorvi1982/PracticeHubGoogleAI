@@ -4,6 +4,7 @@ import { audioBus, CoHraje } from '../../services/audioBus';
 import { posunDoToniny } from '../../services/akordy';
 import { MikrofonTlacitko } from '../hlas/MikrofonTlacitko';
 import { ZivaKytara } from './ZivaKytara';
+import { TelevizeOvladani } from './TelevizeOvladani';
 import { zaregistruj } from '../../services/hlas/vykonavac';
 import { toninaZReci } from '../../services/tonina';
 import { 
@@ -292,6 +293,8 @@ export const UnifiedTopBar: React.FC<UnifiedTopBarProps> = ({
         {/* Kytara i hlas patří do lišty ze stejného důvodu: obojí se
             používá při hraní, kdy se člověk neproklikává do sekce. */}
         <ZivaKytara />
+        {/* Televize v učebně: posílá se na ni uprostřed hodiny odkudkoli. */}
+        <TelevizeOvladani />
         {/* Hlasové příkazy — v liště, tedy dostupné ze všech sekcí. */}
         <MikrofonTlacitko />
         {/* User Profile / Admin Button */}

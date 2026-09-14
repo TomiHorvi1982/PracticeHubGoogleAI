@@ -31,11 +31,6 @@ export const VstupniStranka: React.FC<Props> = ({ proZaky, onPrihlaseno, forceIn
         <h1 className="text-3xl font-bold text-pismo [text-wrap:balance]">
           {proZaky ? 'Ahoj, jdeme cvičit' : 'Zkušebna kapely a výuka'}
         </h1>
-        <p className="text-pismo-tlum">
-          {proZaky
-            ? 'Přihlas se přezdívkou a PINem, které ti dal učitel. Pak uvidíš svoje úkoly a to, co máš na procvičení.'
-            : 'Vstup je jen pro členy kapely a žáky. Přihlas se účtem, který ti založil správce, nebo jako žák přezdívkou a PINem.'}
-        </p>
       </div>
 
       <LoginModal

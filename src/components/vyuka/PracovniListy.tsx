@@ -17,9 +17,9 @@ import { STUPNE, nazevStupne } from '../../services/osnova';
  * tmavé pozadí znamená prázdnou kazetu po třech listech.
  */
 
-type Druh = 'osmismerka' | 'spojovacka' | 'hmatnik' | 'tabulatura' | 'kruh' | 'bingo';
+export type DruhListu = 'osmismerka' | 'spojovacka' | 'hmatnik' | 'tabulatura' | 'kruh' | 'bingo';
 
-const DRUHY: { id: Druh; nazev: string; popis: string }[] = [
+export const DRUHY_LISTU: { id: DruhListu; nazev: string; popis: string }[] = [
   { id: 'osmismerka', nazev: 'Osmisměrka', popis: 'Pojmy podle stupně, zbylá písmena dají tajenku.' },
   { id: 'spojovacka', nazev: 'Spojovačka', popis: 'Akordová značka vlevo, jméno vpravo, čárou k sobě.' },
   { id: 'hmatnik', nazev: 'Prázdný hmatník', popis: 'Šest strun, dvanáct pražců. Dokresluje se, kde co leží.' },
@@ -37,21 +37,11 @@ const TONY_BINGA = ['C', 'D', 'E', 'F', 'G', 'A', 'H', 'c', 'd', 'e', 'f', 'g'];
 
 export const PracovniListy: React.FC = () => {
   const [stupen, setStupen] = useState(1);
-  const [druh, setDruh] = useState<Druh>('osmismerka');
+  const [druh, setDruh] = useState<DruhListu>('osmismerka');
   /** Semínko drží podobu listu. Změnou se vygeneruje jiný, stejným se týž. */
   const [semeno, setSemeno] = useState(1);
 
-  const nahoda = () => nahodaZeSemene(semeno * 7919 + stupen * 31);
-
-  const os = useMemo(
-    () => osmismerka(POJMY_STUPNE[stupen] || [], TAJENKY_STUPNE[stupen] || '', nahoda()),
-    [stupen, semeno],
-  );
-  const sp = useMemo(() => spojovacka(AKORDY.slice(0, 6), nahoda()), [stupen, semeno]);
-  const bingo = useMemo(() => bingoKarta(TONY_BINGA, nahoda()), [stupen, semeno]);
-  const kruh = useMemo(() => kvintovyKruh(), []);
-
-  const zvolenyDruh = DRUHY.find((d) => d.id === druh)!;
+  const zvolenyDruh = DRUHY_LISTU.find((d) => d.id === druh)!;
 
   return (
     <div className="space-y-3">
@@ -59,10 +49,6 @@ export const PracovniListy: React.FC = () => {
       <div className="netisknout space-y-3">
         <div>
           <h3 className="nadpis-panelu">Pracovní listy</h3>
-          <p className="text-drobne text-pismo-tlum max-w-[70ch]">
-            Vyber stupeň a list, pak dej Vytisknout. Pojmy se berou z osnovy,
-            takže list vždycky sedí na to, co se dítě zrovna učí.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-1.5">
@@ -83,7 +69,7 @@ export const PracovniListy: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap gap-1.5">
-          {DRUHY.map((d) => (
+          {DRUHY_LISTU.map((d) => (
             <button
               key={d.id}
               onClick={() => setDruh(d.id)}
@@ -115,130 +101,154 @@ export const PracovniListy: React.FC = () => {
         </div>
       </div>
 
-      {/* Samotný list. Bílý papír i v tmavé aplikaci — náhled má vypadat
-          jako výsledek. */}
-      <div className="list-papir">
-        <div className="list-hlavicka">
-          <strong>{zvolenyDruh.nazev}</strong>
-          <span>{stupen}. stupeň — {nazevStupne(stupen)}</span>
-          <span className="list-jmeno">Jméno: ______________________</span>
-        </div>
+      <ListPapir stupen={stupen} druh={druh} semeno={semeno} />
+    </div>
+  );
+};
 
-        {druh === 'osmismerka' && (
-          <>
-            <p className="list-zadani">
-              Najdi a škrtni všechna slova. Zbylá písmena po řádcích dají tajenku.
-            </p>
-            <table className="list-mrizka">
-              <tbody>
-                {os.mrizka.map((radek, r) => (
-                  <tr key={r}>
-                    {radek.map((p, c) => <td key={c}>{p}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="list-slova">{os.slova.join(' · ')}</p>
-            <p className="list-zadani">
-              Tajenka: {'_ '.repeat(os.tajenka.replace(/\s/g, '').length)}
-            </p>
-          </>
-        )}
+/**
+ * Samotný papír listu.
+ *
+ * Vyčleněný, aby ho uměla ukázat i televize v učebně — přesně ten list,
+ * který učitel chystá k tisku. Podoba stojí na semínku, takže týž
+ * stupeň, druh a semínko dají na obrazovce i na papíře totéž.
+ */
+export const ListPapir: React.FC<{ stupen: number; druh: DruhListu; semeno: number }> = ({
+  stupen, druh, semeno,
+}) => {
+  const nahoda = () => nahodaZeSemene(semeno * 7919 + stupen * 31);
 
-        {druh === 'spojovacka' && (
-          <>
-            <p className="list-zadani">Spoj čarou akordovou značku s jejím jménem.</p>
-            <div className="list-spojovacka">
-              <ul>{sp.vlevo.map((x) => <li key={x.klic}>{x.text}</li>)}</ul>
-              <ul>{sp.vpravo.map((x) => <li key={x.klic}>{x.text}</li>)}</ul>
-            </div>
-          </>
-        )}
+  const os = useMemo(
+    () => osmismerka(POJMY_STUPNE[stupen] || [], TAJENKY_STUPNE[stupen] || '', nahoda()),
+    [stupen, semeno],
+  );
+  const sp = useMemo(() => spojovacka(AKORDY.slice(0, 6), nahoda()), [stupen, semeno]);
+  const bingo = useMemo(() => bingoKarta(TONY_BINGA, nahoda()), [stupen, semeno]);
+  const kruh = useMemo(() => kvintovyKruh(), []);
+  const zvolenyDruh = DRUHY_LISTU.find((d) => d.id === druh) || DRUHY_LISTU[0];
 
-        {druh === 'hmatnik' && (
-          <>
-            <p className="list-zadani">
-              Zakresli, kde leží tóny zadaného akordu nebo stupnice.
-              Struny odshora: e H G D A E.
-            </p>
-            <table className="list-hmatnik">
-              <tbody>
-                {['e', 'H', 'G', 'D', 'A', 'E'].map((struna) => (
-                  <tr key={struna}>
-                    <th>{struna}</th>
-                    {Array.from({ length: 12 }, (_, i) => <td key={i} />)}
-                  </tr>
-                ))}
-                <tr className="list-prazce">
-                  <th />
-                  {Array.from({ length: 12 }, (_, i) => <td key={i}>{i + 1}</td>)}
-                </tr>
-              </tbody>
-            </table>
-          </>
-        )}
-
-        {druh === 'tabulatura' && (
-          <>
-            <p className="list-zadani">Zapiš, co sis vymyslel. Nahoře noty, dole tabulatura.</p>
-            {[0, 1, 2].map((blok) => (
-              <div key={blok} className="list-zapis">
-                <div className="list-osnova">
-                  {[0, 1, 2, 3, 4].map((l) => <span key={l} />)}
-                </div>
-                <div className="list-tab">
-                  {['e', 'H', 'G', 'D', 'A', 'E'].map((s) => (
-                    <span key={s} data-struna={s} />
-                  ))}
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-
-        {druh === 'kruh' && (
-          <>
-            <p className="list-zadani">
-              Doplň tóniny po kvintách a k nim počet křížků nebo béček.
-              C je nahoře, jde se po směru hodin.
-            </p>
-            <svg viewBox="0 0 340 340" className="list-kruh" role="img" aria-label="Kvintový kruh k doplnění">
-              <circle cx="170" cy="170" r="130" fill="none" stroke="#000" strokeWidth="1.5" />
-              {kruh.map((p) => {
-                const rad = ((p.uhel - 90) * Math.PI) / 180;
-                const x = 170 + Math.cos(rad) * 130;
-                const y = 170 + Math.sin(rad) * 130;
-                return (
-                  <g key={p.tonina}>
-                    <circle cx={x} cy={y} r="22" fill="#fff" stroke="#000" strokeWidth="1.5" />
-                    {/* Značka nahoře napovídá, kde začít; zbytek je prázdný. */}
-                    {p.uhel === 0 && (
-                      <text x={x} y={y + 5} textAnchor="middle" fontSize="15" fill="#000">C</text>
-                    )}
-                  </g>
-                );
-              })}
-            </svg>
-          </>
-        )}
-
-        {druh === 'bingo' && (
-          <>
-            <p className="list-zadani">
-              Učitel hraje tóny, ty je škrtáš. Kdo má řadu, křičí bingo.
-            </p>
-            <table className="list-bingo">
-              <tbody>
-                {bingo.map((radek, r) => (
-                  <tr key={r}>
-                    {radek.map((t, c) => <td key={c}>{t ?? '★'}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        )}
+  return (
+    <div className="list-papir">
+      <div className="list-hlavicka">
+        <strong>{zvolenyDruh.nazev}</strong>
+        <span>{stupen}. stupeň — {nazevStupne(stupen)}</span>
+        <span className="list-jmeno">Jméno: ______________________</span>
       </div>
+
+      {druh === 'osmismerka' && (
+        <>
+          <p className="list-zadani">
+            Najdi a škrtni všechna slova. Zbylá písmena po řádcích dají tajenku.
+          </p>
+          <table className="list-mrizka">
+            <tbody>
+              {os.mrizka.map((radek, r) => (
+                <tr key={r}>
+                  {radek.map((p, c) => <td key={c}>{p}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="list-slova">{os.slova.join(' · ')}</p>
+          <p className="list-zadani">
+            Tajenka: {'_ '.repeat(os.tajenka.replace(/\s/g, '').length)}
+          </p>
+        </>
+      )}
+
+      {druh === 'spojovacka' && (
+        <>
+          <p className="list-zadani">Spoj čarou akordovou značku s jejím jménem.</p>
+          <div className="list-spojovacka">
+            <ul>{sp.vlevo.map((x) => <li key={x.klic}>{x.text}</li>)}</ul>
+            <ul>{sp.vpravo.map((x) => <li key={x.klic}>{x.text}</li>)}</ul>
+          </div>
+        </>
+      )}
+
+      {druh === 'hmatnik' && (
+        <>
+          <p className="list-zadani">
+            Zakresli, kde leží tóny zadaného akordu nebo stupnice.
+            Struny odshora: e H G D A E.
+          </p>
+          <table className="list-hmatnik">
+            <tbody>
+              {['e', 'H', 'G', 'D', 'A', 'E'].map((struna) => (
+                <tr key={struna}>
+                  <th>{struna}</th>
+                  {Array.from({ length: 12 }, (_, i) => <td key={i} />)}
+                </tr>
+              ))}
+              <tr className="list-prazce">
+                <th />
+                {Array.from({ length: 12 }, (_, i) => <td key={i}>{i + 1}</td>)}
+              </tr>
+            </tbody>
+          </table>
+        </>
+      )}
+
+      {druh === 'tabulatura' && (
+        <>
+          <p className="list-zadani">Zapiš, co sis vymyslel. Nahoře noty, dole tabulatura.</p>
+          {[0, 1, 2].map((blok) => (
+            <div key={blok} className="list-zapis">
+              <div className="list-osnova">
+                {[0, 1, 2, 3, 4].map((l) => <span key={l} />)}
+              </div>
+              <div className="list-tab">
+                {['e', 'H', 'G', 'D', 'A', 'E'].map((s) => (
+                  <span key={s} data-struna={s} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {druh === 'kruh' && (
+        <>
+          <p className="list-zadani">
+            Doplň tóniny po kvintách a k nim počet křížků nebo béček.
+            C je nahoře, jde se po směru hodin.
+          </p>
+          <svg viewBox="0 0 340 340" className="list-kruh" role="img" aria-label="Kvintový kruh k doplnění">
+            <circle cx="170" cy="170" r="130" fill="none" stroke="#000" strokeWidth="1.5" />
+            {kruh.map((p) => {
+              const rad = ((p.uhel - 90) * Math.PI) / 180;
+              const x = 170 + Math.cos(rad) * 130;
+              const y = 170 + Math.sin(rad) * 130;
+              return (
+                <g key={p.tonina}>
+                  <circle cx={x} cy={y} r="22" fill="#fff" stroke="#000" strokeWidth="1.5" />
+                  {/* Značka nahoře napovídá, kde začít; zbytek je prázdný. */}
+                  {p.uhel === 0 && (
+                    <text x={x} y={y + 5} textAnchor="middle" fontSize="15" fill="#000">C</text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+        </>
+      )}
+
+      {druh === 'bingo' && (
+        <>
+          <p className="list-zadani">
+            Učitel hraje tóny, ty je škrtáš. Kdo má řadu, křičí bingo.
+          </p>
+          <table className="list-bingo">
+            <tbody>
+              {bingo.map((radek, r) => (
+                <tr key={r}>
+                  {radek.map((t, c) => <td key={c}>{t ?? '★'}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
+      )}
     </div>
   );
 };

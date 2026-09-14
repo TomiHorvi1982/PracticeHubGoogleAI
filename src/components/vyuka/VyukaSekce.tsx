@@ -152,11 +152,6 @@ export const VyukaSekce: React.FC = () => {
     <div className="space-y-4">
       <div>
         <h2 className="nadpis-sekce">Výuka</h2>
-        <p className="text-drobne text-pismo-tlum max-w-[70ch]">
-          Žáci se hlásí přezdívkou a čtyřmístným PINem — e-mail nepotřebují.
-          Po přihlášení se jim studio vůbec nesestaví; uvidí vlastní obrazovku
-          a k tomu jen to, co jim tady zaškrtneš.
-        </p>
       </div>
 
       <div className="flex items-center gap-1.5">
@@ -183,10 +178,6 @@ export const VyukaSekce: React.FC = () => {
         <div className="space-y-3">
           <div>
             <h3 className="nadpis-panelu">Ceník odměn</h3>
-            <p className="text-drobne text-pismo-tlum max-w-[70ch]">
-              Body počítá aplikace, ceník píšeš ty a výměna proběhne na hodině.
-              Aplikace nikomu nic neslibuje ani neposílá — jen ukáže stav.
-            </p>
           </div>
 
           <div className="flex flex-wrap items-end gap-2">

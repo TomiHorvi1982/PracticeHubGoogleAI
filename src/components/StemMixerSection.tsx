@@ -743,9 +743,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
               Nahrávám {nahrava.hotovo} z {nahrava.celkem}…
             </span>
           )}
-          <span className="text-stitek text-pismo-slaby">
-            Vybrat, co na kterém faderu hraje, jde pod ním.
-          </span>
         </div>
       </div>
 

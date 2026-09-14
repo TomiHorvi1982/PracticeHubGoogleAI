@@ -115,9 +115,6 @@ export const HraniTest: React.FC = () => {
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex-1 min-w-[220px]">
             <h3 className="text-sm font-bold text-white">Zahraj, co ti zadám</h3>
-            <p className="text-drobne text-pismo-tlum">
-              Trefu ověří detekce tónu — z kytary, z MIDI kláves i z klávesnice.
-            </p>
           </div>
           <div className="flex items-center gap-4 text-center">
             <div>

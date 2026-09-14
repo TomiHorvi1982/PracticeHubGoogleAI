@@ -198,10 +198,6 @@ export const PlovouciPlocha: React.FC<Props> = ({ song, vykresliObsah }) => {
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-6">
             <div className="text-3xl opacity-40">🪟</div>
             <p className="text-drobne font-semibold text-pismo-tlum">Plocha je prázdná</p>
-            <p className="text-drobne text-pismo-slaby max-w-sm">
-              Přidej si okna s tím, co k téhle písni potřebuješ — text, tabulaturu, mixážní pult.
-              Rozložení si píseň zapamatuje.
-            </p>
           </div>
         )}
 

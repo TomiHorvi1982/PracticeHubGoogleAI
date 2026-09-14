@@ -622,9 +622,6 @@ export const VirtualInstruments: React.FC = () => {
           <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Virtuální nástroje a hardware MIDI
           </h2>
-          <p className="text-xs text-pismo-tlum mt-1">
-            Zobrazte noty vybrané stupnice, posouvejte oktávy, připojte MIDI klávesy a hrajte reálné zvuky.
-          </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -1082,7 +1079,6 @@ export const VirtualInstruments: React.FC = () => {
               </div>
               <div>
                 <span className="font-bold text-white text-sm block">Hmatník</span>
-                <span className="text-drobne text-pismo-tlum">Akordy, stupnice a kytarové nástroje na jednom místě.</span>
               </div>
             </div>
 
@@ -1173,9 +1169,6 @@ export const VirtualInstruments: React.FC = () => {
               </div>
               <div>
                 <span className="font-bold text-white text-sm block">All Guitar Chords — integrovaná databáze</span>
-                <p className="text-xs text-pismo-tlum mt-0.5">
-                  Kompletní kytarová databáze akordů, stupnic a prstokladů přímo ve vaší aplikaci.
-                </p>
               </div>
             </div>
 

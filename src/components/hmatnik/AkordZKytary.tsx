@@ -125,10 +125,6 @@ export const AkordZKytary: React.FC = () => {
         )}
       </div>
 
-      <p className="text-drobne text-pismo-slaby leading-relaxed">
-        Rozeber akord po strunách. Tóny se nasbírají, akord se pojmenuje a ukáže se, jak ho vzít
-        na klavír.
-      </p>
 
       {chyba && (
         <p className="text-drobne text-chyba flex items-center gap-1.5">

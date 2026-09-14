@@ -75,10 +75,6 @@ export const AparatOvladani: React.FC = () => {
         </button>
       </div>
 
-      <p className="text-stitek text-pismo-slaby leading-relaxed">
-        Zkresluje se tady, ne ve vzorku — proto pouštěj čistý zvuk kytary a nechej aparát
-        pracovat. Klavíru a bicích se to netýká.
-      </p>
 
       <div className={zapnuty ? 'space-y-1.5' : 'space-y-1.5 opacity-40 pointer-events-none'}>
         {REGULATORY.map((r) => (

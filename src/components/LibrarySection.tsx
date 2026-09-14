@@ -1499,9 +1499,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                       <p className="text-xs font-bold text-znacka uppercase">
                         Guitar Pro tabulatura připravena
                       </p>
-                      <p className="text-xs text-pismo-tlum max-w-md mx-auto">
-                        Nahrajte svůj vlastní .gp soubor výše nebo stáhněte z Freetar.de pro spuštění plného interaktivního AlphaTab syntezátoru.
-                      </p>
                     </div>
                   )}
                 </div>
@@ -1516,9 +1513,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                     <div className="bg-black/30 border border-white/10 rounded-2xl p-6 text-center space-y-2">
                       <FileText className="w-8 h-8 text-chyba mx-auto" />
                       <p className="text-xs font-bold text-white">{activeItem.name}</p>
-                      <p className="text-xs text-pismo-tlum">
-                        Náhled PDF dokumentu nebo textového výpisu
-                      </p>
                     </div>
                   )}
 
@@ -1655,9 +1649,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
                         <span className="text-sm font-bold text-white block">
                           Interaktivní MIDI přehrávač
                         </span>
-                        <p className="text-xs text-pismo-tlum">
-                          Přehrávání tónů a doprovodu přímo přes webový syntetizér
-                        </p>
                       </div>
                     </div>
 
@@ -1729,9 +1720,6 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
               <div className="max-w-md mx-auto space-y-1.5">
                 <p className="font-bold text-white text-base">
                   Vyberte soubor pro náhled nebo přehrání
-                </p>
-                <p className="text-xs text-pismo-tlum leading-relaxed">
-                  Knihovna podporuje Guitar Pro tabulatury, PDF noty, textové akordy, obrázky a MIDI soubory.
                 </p>
               </div>
             </div>

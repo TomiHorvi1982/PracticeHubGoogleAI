@@ -204,9 +204,6 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   <div className="bg-black/40 p-4 rounded-xl border border-white/5 text-center space-y-1.5">
                     <AlertCircle className="w-6 h-6 text-znacka mx-auto" />
                     <p className="text-xs font-bold text-white">Žádný hardware MIDI kontrolér není připojen</p>
-                    <p className="text-drobne text-pismo-tlum max-w-md mx-auto">
-                      Připojte USB/MIDI klávesnici k počítači a stiskněte „Obnovit hledání“. Můžete také hrát na virtuální klávesnici v aplikaci.
-                    </p>
                   </div>
                 )}
 
@@ -335,9 +332,6 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   <h3 className="nadpis-panelu">
                     Mapování MIDI kanálů (1-16) na zvukové profily
                   </h3>
-                  <p className="text-xs text-pismo-tlum mt-0.5">
-                    Nastavte, jaký zvukový filtr se přehraje při příjmu dat na konkrétním MIDI kanálu vašeho kontroléru. (např. Kanál 10 je standardně vyhrazen pro bicí).
-                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -395,9 +389,6 @@ export const MidiToolsModal: React.FC<MidiToolsModalProps> = ({ isOpen, onClose 
                   <h3 className="nadpis-panelu">
                     Mapování zvukových profilů pro nástroje kapely
                   </h3>
-                  <p className="text-xs text-pismo-tlum mt-0.5">
-                    Přizpůsobte zvuky pro jednotlivé členy zkušebny a virtuální moduly. Změna se okamžitě projeví ve zpěvníku i interaktivních nástrojích.
-                  </p>
                 </div>
 
                 <div className="space-y-2.5">

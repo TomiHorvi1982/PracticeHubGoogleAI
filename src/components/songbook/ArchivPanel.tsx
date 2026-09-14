@@ -192,10 +192,6 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
 
   return (
     <div className="space-y-3">
-      <p className="text-drobne text-pismo-slaby leading-relaxed">
-        Koncertní nahrávky kapel, které nahrávání a nekomerční šíření samy povolily. Archiv je
-        nabízí ke stažení, takže si je můžeš uložit i do zkušebny bez signálu.
-      </p>
 
       <form onSubmit={hledej} className="flex gap-2">
         <div className="relative flex-1">
@@ -258,10 +254,6 @@ export const ArchivPanel: React.FC<{ onStazeno?: () => void }> = ({ onStazeno })
             </div>
           </div>
 
-          <p className="text-stitek text-pismo-slaby">
-            Poslechem se nic nestahuje — zvuk jde rovnou z archivu. Do knihovny se uloží až
-            tlačítkem vpravo.
-          </p>
 
           <div className="space-y-0.5 max-h-[42vh] overflow-y-auto pr-1">
             {otevrena.stopy.map((s) => (

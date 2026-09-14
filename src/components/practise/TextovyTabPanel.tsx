@@ -143,11 +143,6 @@ export const TextovyTabPanel: React.FC<{ bpm?: number }> = ({ bpm = 100 }) => {
 
       {/* Rytmus v ASCII tabulatuře není. Kdo to neví, bude se divit,
           proč mu to nesedí na nahrávku. */}
-      <p className="text-drobne text-znacka/80 flex items-start gap-1.5 leading-relaxed">
-        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-        Textový tab neobsahuje rytmus — jen to, co a kde se hraje. Tóny se proto rozestaví
-        rovnoměrně podle zvolené noty. Přesné délky má jen Guitar Pro.
-      </p>
 
       {chybaPdf && (
         <p className="text-drobne text-chyba flex items-start gap-1.5">

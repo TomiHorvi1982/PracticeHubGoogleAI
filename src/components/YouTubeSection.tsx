@@ -362,9 +362,6 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
             <h4 className="text-sm font-bold text-chyba uppercase border-b border-white/5 pb-2 flex items-center gap-2">
               <Type className="w-4 h-4" /> Pojmenujte novou skladbu v knihovně skladeb
             </h4>
-            <p className="text-xs text-pismo-tlum">
-              Tato skladba bude uložena do vaší kytarové knihovny. Později si pod ní můžete nahrát vlastní akordy a GP tabulatury.
-            </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
@@ -412,7 +409,6 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
           <div className="space-y-3 bg-black/40 border border-white/5 rounded-2xl p-4 max-h-[440px] overflow-y-auto">
             <h4 className="nadpis-panelu border-b border-white/5 pb-2 flex items-center justify-between">
               <span className="text-chyba">Nalezené video výsledky ({directYtResults.length}):</span>
-              <span className="text-drobne text-pismo-tlum font-normal lowercase">klikněte pro přehrání náhledu nebo uložte do zpěvníku</span>
             </h4>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -676,9 +672,6 @@ export const YouTubeSection: React.FC<YouTubeSectionProps> = ({
                 <Youtube className="w-8 h-8" />
               </div>
               <p className="text-sm font-bold text-white">Žádné aktivní video k přehrání</p>
-              <p className="text-xs text-pismo-tlum max-w-sm mx-auto">
-                Zadejte dotaz nahoře, spusťte náhled, uložte si píseň s videem nebo zvolte píseň ze seznamu.
-              </p>
             </div>
           )}
         </div>

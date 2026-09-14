@@ -252,11 +252,6 @@ export const Tone3000Katalog: React.FC = () => {
       <div className="rounded-panel border border-kresba bg-plocha-1 overflow-hidden">
         {hlavicka}
         <div className="px-3 py-4 space-y-3">
-          <p className="text-drobne text-pismo-tlum">
-            Neverlast Studio je propojené s TONE3000 — knihovnou nasnímaných aparátů
-            (Neural Amp Modeler) a impulzů beden ze skutečné techniky, kterou plní
-            muzikanti z celého světa.
-          </p>
           {chyba && (
             <p className="text-drobne text-chyba flex items-start gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-px" />{chyba}

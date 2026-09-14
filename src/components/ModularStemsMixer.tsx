@@ -316,9 +316,6 @@ export const ModularStemsMixer: React.FC<ModularStemsMixerProps> = ({
         <div className="text-center py-10 bg-black/30 border border-white/[0.06] rounded-2xl p-6 space-y-3">
           <Sliders className="w-8 h-8 text-pismo-slaby mx-auto" />
           <h4 className="text-sm font-bold text-white">Žádné separované stopy pro tuto skladbu</h4>
-          <p className="text-xs text-pismo-tlum max-w-md mx-auto">
-            Můžete si vybrat jinou připravenou skladbu ze seznamu nahoře nebo přejít do AI Stem Studia a oddělit stopy z YouTube.
-          </p>
         </div>
       )}
     </div>

@@ -19,24 +19,18 @@ import { ExternalLink, TriangleAlert } from 'lucide-react';
 export interface OdkazSluzby {
   nazev: string;
   adresa: string;
-  popis: string;
 }
 
 interface Props {
   nazev: string;
-  popis: string;
-  /** Proč to nejde vložit. Konkrétně, ne „z technických důvodů". */
+  /** Proč to nejde vložit — jednou větou. */
   duvod: React.ReactNode;
   odkazy: OdkazSluzby[];
-  poznamka?: React.ReactNode;
 }
 
-export const ExterniSluzba: React.FC<Props> = ({ nazev, popis, duvod, odkazy, poznamka }) => (
+export const ExterniSluzba: React.FC<Props> = ({ nazev, duvod, odkazy }) => (
   <div className="space-y-4">
-    <div>
-      <h2 className="nadpis-sekce">{nazev}</h2>
-      <p className="text-drobne text-pismo-tlum max-w-[70ch]">{popis}</p>
-    </div>
+    <h2 className="nadpis-sekce">{nazev}</h2>
 
     <p className="flex items-start gap-2 text-drobne text-pozor bg-pozor/10 border border-pozor/30 rounded-panel p-3 max-w-[74ch]">
       <TriangleAlert className="w-4 h-4 shrink-0 mt-0.5" />
@@ -55,13 +49,8 @@ export const ExterniSluzba: React.FC<Props> = ({ nazev, popis, duvod, odkazy, po
           <span className="flex items-center gap-1.5 nadpis-panelu">
             <ExternalLink className="w-3.5 h-3.5 text-znacka" />{o.nazev}
           </span>
-          <span className="text-drobne text-pismo-tlum">{o.popis}</span>
         </a>
       ))}
     </div>
-
-    {poznamka && (
-      <p className="text-stitek text-pismo-slaby max-w-[80ch]">{poznamka}</p>
-    )}
   </div>
 );

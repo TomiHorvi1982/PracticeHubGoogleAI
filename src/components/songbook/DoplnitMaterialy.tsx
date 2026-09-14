@@ -239,9 +239,6 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
             <Sparkles className="w-4 h-4 text-znacka shrink-0" />
             <div className="min-w-0 flex-1">
               <div className="text-drobne font-semibold text-white">Dohledat samo</div>
-              <div className="text-stitek text-pismo-tlum">
-                Projde tabulatury, text, akordy, MIDI a doplní tempo i tóninu. Co si nebude jisté, nabídne níž.
-              </div>
             </div>
             <button
               onClick={() => {
@@ -445,9 +442,6 @@ export const DoplnitMaterialy: React.FC<Props> = ({ song, onZavrit, onUlozit, vR
                   )}
                   <span className="text-drobne text-pismo">
                     {nahravam ? 'Nahrávám…' : 'Vyber soubory z počítače'}
-                  </span>
-                  <span className="text-stitek text-pismo-slaby">
-                    Uloží se do knihovny, ať je máš i u dalších písní.
                   </span>
                 </label>
               )}

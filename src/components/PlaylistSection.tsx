@@ -535,9 +535,6 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
             <div className="text-sm font-semibold text-pismo">
               Váš playlist je zatím prázdný
             </div>
-            <p className="text-xs text-pismo-slaby max-w-sm mx-auto">
-              Vyhledejte skladby na YouTube nebo vložte odkaz a vytvořte nepřetržitý kapelní set.
-            </p>
             <button
               onClick={() => setIsSearchOpen(true)}
               className="bg-znacka hover:bg-znacka/90 text-black font-semibold px-4 py-2 text-xs rounded-xl cursor-pointer shadow-sm"

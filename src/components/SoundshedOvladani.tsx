@@ -209,11 +209,6 @@ export const SoundshedOvladani: React.FC = () => {
         </div>
       )}
 
-      <p className="text-stitek text-pismo-slaby leading-relaxed">
-        Presety se přepínají přes setlist: v Soundshedu si do Performance Pads
-        nalož osm presetů, nauč je na tyhle zprávy a dál už se přepíná odsud.
-        Víc než osm presetů se vejde do dalších bank.
-      </p>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Settings, HardDrive, RefreshCw, Laptop, Loader2, AlertCircle, Mic, KeyRound } from 'lucide-react';
+import { Settings, RefreshCw, Laptop, Loader2, AlertCircle, Mic, KeyRound } from 'lucide-react';
 import { authService } from '../services/authService';
 import { MidiToolsModal } from './MidiToolsModal';
 import { zvukovaKarta, StavKarty } from '../services/zvukovaKarta';
@@ -142,19 +142,6 @@ export const SettingsSection: React.FC = () => {
         </h2>
       </div>
 
-      {/* Přehled místa se přestěhoval do sekce Soubory — tam se soubory
-          přidávají a mažou, takže i důsledek patří tam. Tady zůstal jen
-          odkaz, aby to nikdo nehledal na dvou místech. */}
-      <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 shadow-xl">
-        <h3 className="nadpis-panelu flex items-center gap-2">
-          <HardDrive className="w-4 h-4 text-uspech" /> Úložiště
-        </h3>
-        <p className="text-drobne text-pismo-tlum mt-1">
-          Kolik místa co zabírá, najdete v sekci <strong className="text-pismo">Soubory</strong> —
-          spolu se složkami knihovny a mazáním.
-        </p>
-      </div>
-
       {/* MIDI HARDWARE */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -162,9 +149,6 @@ export const SettingsSection: React.FC = () => {
             <h3 className="nadpis-panelu flex items-center gap-2">
               <Laptop className="w-4 h-4 text-info" /> MIDI hardware a mapování zvuků
             </h3>
-            <p className="text-drobne text-pismo-tlum">
-              Připojené klávesy, kanály a přiřazení zvuků kapele.
-            </p>
           </div>
           <button
             onClick={() => setMidiOtevrene(true)}
@@ -184,9 +168,6 @@ export const SettingsSection: React.FC = () => {
           <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-uspech" /> Zvuková karta
           </h3>
-          <p className="text-drobne text-pismo-tlum">
-            Odkud se poslouchá kytara a kam se hraje. Týká se poslechu v Hmatníku a ladičky.
-          </p>
         </div>
 
         {!karta.nazvyZname && (
@@ -229,11 +210,6 @@ export const SettingsSection: React.FC = () => {
           </label>
         </div>
 
-        <p className="text-drobne text-pismo-slaby">
-          Volba výstupu funguje jen v prohlížečích, které to umí — kde ne, hraje se do
-          systémového výstupu. Při hraní z reproduktorů slyší mikrofon i vlastní výstup;
-          do sluchátek je to čisté.
-        </p>
       </div>
 
       {/* Hlasové ovládání.
@@ -245,9 +221,6 @@ export const SettingsSection: React.FC = () => {
           <h3 className="nadpis-panelu flex items-center gap-2">
             <Mic className="w-4 h-4 text-znacka" /> Hlasové ovládání
           </h3>
-          <p className="text-drobne text-pismo-tlum">
-            Mikrofon je v horní liště, takže mluvit jde odkudkoli. Tady se nastavuje, na co appka slyší.
-          </p>
         </div>
         <HlasovyPanel jsemSpravce={jsemSpravce} />
       </div>
@@ -262,10 +235,6 @@ export const SettingsSection: React.FC = () => {
             <h3 className="nadpis-panelu flex items-center gap-2">
               <KeyRound className="w-4 h-4 text-znacka" /> Ultimate Guitar Pro
             </h3>
-            <p className="text-drobne text-pismo-tlum">
-              Když máš u nich předplatné, stahují se Guitar Pro soubory rovnou do knihovny.
-              Jen pro správce.
-            </p>
           </div>
 
           <div className="text-drobne text-pismo-tlum bg-black/30 rounded-xl px-3 py-2.5 space-y-1.5">
@@ -279,11 +248,6 @@ export const SettingsSection: React.FC = () => {
               <code className="text-znacka">cookie:</code> a zkopíruj <em>celou</em> hodnotu za dvojtečkou.
             </p>
             <p>6. Vlož ji sem a dej Uložit.</p>
-            <p className="text-pismo-slaby pt-1 border-t border-white/[0.06] mt-1.5">
-              Přes <strong>Application → Cookies</strong> to jde taky, ale musel bys skládat
-              <code className="mx-1">název=hodnota</code> ručně a na něco zapomenout je snadné.
-              Network dá celý řetězec naráz.
-            </p>
             <p className="text-pismo-slaby">
               Heslo sem nedávej — appka ho nepotřebuje a neuložila by ho. Cookie zneplatníš
               kdykoli odhlášením na UG.

@@ -889,9 +889,6 @@ export const PracticeAssistant: React.FC = () => {
               <span className="font-bold text-info block">
                 Klavírní doprovod (Reálné Piano Chord Voicing)
               </span>
-              <p className="text-pismo-tlum">
-                Automaticky přehrává harmonické klavírní akordy ve zvoleném tempu BPM s autentickým akustickým zvukem.
-              </p>
             </div>
           )}
 

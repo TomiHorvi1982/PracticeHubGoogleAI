@@ -124,9 +124,6 @@ export const FileImportModal: React.FC<FileImportModalProps> = ({
             <h2 className="text-base font-bold text-white tracking-tight">
               Import souboru do skladby
             </h2>
-            <p className="text-xs text-pismo-tlum mt-0.5">
-              Podporované formáty: Guitar Pro (.gp, .gp5), PDF, ChordPro, Obrázky &amp; MIDI
-            </p>
           </div>
         </div>
 

@@ -261,13 +261,6 @@ export const EditorStop: React.FC = () => {
     <div className="space-y-3">
       <div>
         <h2 className="nadpis-sekce">Editor stop</h2>
-        <p className="text-drobne text-pismo-tlum max-w-[74ch]">
-          Klip se chytne myší a posune po ose, za kraje se zkracuje.
-          Kliknutím do vlnovky určíš místo řezu, tlačítkem pod ní se
-          rozstřihne, a na kraje jde nasadit náběh nebo doznění. Doplněk
-          k Mixážnímu pultu — ten má fadery, EQ a kytarový řetěz, tohle
-          má práci s klipy.
-        </p>
       </div>
 
       <div className="flex flex-wrap items-center gap-1.5">

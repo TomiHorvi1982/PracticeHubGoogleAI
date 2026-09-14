@@ -305,12 +305,6 @@ export const StupniceRoom: React.FC = () => {
 
       {ladeniOtevrene && (
         <div className="bg-plocha-2 border border-kresba rounded-2xl p-4 space-y-3">
-          <p className="text-drobne text-pismo-tlum max-w-[74ch]">
-            Nalaď virtuální kytaru tak, jak máš naladěnou tu svoji. Pražce
-            zůstanou, kde jsou — změní se tón, který z nich vyjde, a s ním
-            i to, kde na krku leží stupnice a co se jmenuje jak
-            v tabulatuře.
-          </p>
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="stitek-pole mr-1">hotová ladění</span>
@@ -391,10 +385,6 @@ export const StupniceRoom: React.FC = () => {
       <div className="bg-plocha-2 border border-kresba rounded-2xl p-4 space-y-3">
         {rezim === 'vlastni' ? (
           <div className="space-y-2">
-            <p className="text-drobne text-pismo-tlum">
-              Ťukej do hmatníku dole — tón se přidá na konec, zahraje se a
-              rovnou naskočí do tabulatury. Až budeš spokojený, ulož si to.
-            </p>
             <div className="flex flex-wrap items-center gap-1.5">
               {/* Technika se nastavuje dopředu a platí na další ťuknutí.
                   Označovat ji dodatečně by chtělo vybírat tón ze zápisu,

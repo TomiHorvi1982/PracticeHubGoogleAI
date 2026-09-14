@@ -173,9 +173,6 @@ export const PostupZaka: React.FC<Props> = ({ zak, onZmena }) => {
                 onChange={(e) => setZapis((z) => ({ ...z, datum: e.target.value }))}
                 className="bg-plocha-2 border border-kresba rounded-prvek px-2 py-1.5 text-drobne text-pismo outline-none focus:border-znacka-okraj"
               />
-              <span className="text-stitek text-pismo-slaby">
-                Klikni na dovednosti, kterých se hodina týkala.
-              </span>
             </div>
 
             <div className="flex flex-wrap gap-1">

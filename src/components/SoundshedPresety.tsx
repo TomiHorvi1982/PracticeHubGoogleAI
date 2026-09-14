@@ -184,10 +184,6 @@ export const SoundshedPresety: React.FC = () => {
         ))}
       </div>
 
-      <p className="text-stitek text-pismo-slaby leading-relaxed">
-        Přehled se čte ze Soundshedu na disku. Přepnout preset jde v samotném
-        Soundshedu — jeho rozhraní běží v nativním okně a odsud se ovládat nedá.
-      </p>
     </div>
   );
 };

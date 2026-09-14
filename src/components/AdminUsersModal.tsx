@@ -738,9 +738,6 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     <UserPlus className="w-4 h-4 text-uspech" />
                     <span>Nový uživatel a vygenerování pozvánky</span>
                   </h3>
-                  <p className="text-xs text-pismo-tlum mt-1">
-                    Zadejte údaje nového člena kapely. Systém pro něj vygeneruje přístupové heslo, roli a odkaz na pozvánku.
-                  </p>
                 </div>
 
                 <form onSubmit={handleCreateUser} className="space-y-4">
@@ -1043,9 +1040,6 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     <div className="text-white font-semibold text-xs">
                       Žádná nově vygenerovaná pozvánka
                     </div>
-                    <p className="text-xs text-pismo-tlum leading-relaxed">
-                      Vyplňte formulář vlevo pro vytvoření člena kapely. Zde se okamžitě zobrazí QR kód, formátovaný text zprávy pro WhatsApp a tlačítko přímého odeslání e-mailu.
-                    </p>
                   </div>
                 )}
               </div>
@@ -1062,9 +1056,6 @@ export const AdminUsersModal: React.FC<AdminUsersModalProps> = ({
                     <Key className="w-4 h-4 text-info" />
                     <span>Přehled všech vygenerovaných pozvánek a hesel</span>
                   </h3>
-                  <p className="text-xs text-pismo-tlum mt-0.5">
-                    Seznam kódů a dočasných hesel přidělených jednotlivým členům kapely.
-                  </p>
                 </div>
               </div>
 

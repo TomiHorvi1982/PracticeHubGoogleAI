@@ -384,9 +384,6 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
                 className="w-full rounded-3xl border border-white/15 bg-black/25 hover:bg-black/40 p-5 text-left cursor-pointer"
               >
                 <p className="font-bold text-lg">Kvíz ke {zak.stupen}. stupni</p>
-                <p className="text-sm text-white/60">
-                  Šest otázek — pojmy, poslech a hmatník. Bez chyby dostaneš body.
-                </p>
               </button>
             )}
           </section>
@@ -394,9 +391,6 @@ export const ZakovskaObrazovka: React.FC<Props> = ({
           {odmeny.length > 0 && (
             <section className="space-y-3">
               <h2 className="text-2xl font-bold">Za co si můžeš vyměnit</h2>
-              <p className="text-sm text-white/60 -mt-2">
-                Vyměníš to u učitele na hodině. Aplikace ti jen počítá body.
-              </p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {seradOdmeny(odmeny, mamBodu).map((o) => {
                   const dosahne = o.cena <= mamBodu;

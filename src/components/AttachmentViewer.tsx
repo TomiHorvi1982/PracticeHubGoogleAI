@@ -259,9 +259,6 @@ export const AttachmentViewer: React.FC<AttachmentViewerProps> = ({
                     <span className="text-xs font-extrabold text-[var(--color-info)] uppercase">
                       INTERAKTIVNÍ MIDI PŘEHRÁVAČ
                     </span>
-                    <p className="text-stitek text-[#A0F5FF]">
-                      Přehrává MIDI doprovod a melodii přímo ze syntetizéru appky
-                    </p>
                   </div>
                 </div>
 

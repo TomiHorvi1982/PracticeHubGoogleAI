@@ -59,20 +59,10 @@ export const OpenDawSekce: React.FC = () => {
     return (
       <ExterniSluzba
         nazev="openDAW"
-        popis="Plnohodnotný DAW v prohlížeči — vícestopé nahrávání zvuku i MIDI, mixpult se sendy a export stopů. Zdarma, bez účtu, projekty zůstávají u tebe v prohlížeči."
-        duvod={
-          <>
-            <strong>V tomhle prohlížeči se openDAW vložit nedá.</strong>{' '}
-            Potřebuje cross-origin izolaci a tu si aplikace zapíná hlavičkou{' '}
-            <code>Cross-Origin-Embedder-Policy: credentialless</code>, kterou
-            zatím neumí Safari. V Chrome, Edge nebo Firefoxu se openDAW otevře
-            rovnou tady v sekci; odsud se zatím musí do nového okna.
-          </>
-        }
+        duvod="V tomhle prohlížeči se openDAW vložit nedá — otevři ho v Chrome, Edge nebo Firefoxu, nebo v novém okně."
         odkazy={[
-          { nazev: 'Studio', adresa: ADRESA, popis: 'Nahrávání, mixpult, editor not — vše v prohlížeči.' },
-          { nazev: 'O projektu', adresa: 'https://opendaw.org/', popis: 'Co openDAW umí a kam směřuje.' },
-          { nazev: 'Zdrojový kód', adresa: 'https://github.com/andremichelle/openDAW', popis: 'Licence AGPL v3, k tomu placená komerční varianta.' },
+          { nazev: 'Studio', adresa: ADRESA },
+          { nazev: 'O projektu', adresa: 'https://opendaw.org/' },
         ]}
       />
     );
@@ -83,11 +73,6 @@ export const OpenDawSekce: React.FC = () => {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="nadpis-sekce">openDAW</h2>
-          <p className="text-drobne text-pismo-tlum max-w-[74ch]">
-            Plnohodnotný DAW běžící tady v sekci. Projekty zůstávají u nich
-            v prohlížeči pod jejich doménou — my do nich nevidíme. Doplněk
-            k Mixážnímu pultu a Editoru stop, ne jejich náhrada.
-          </p>
         </div>
         <a
           href={ADRESA}
@@ -122,11 +107,6 @@ export const OpenDawSekce: React.FC = () => {
         />
       </div>
 
-      <p className="text-stitek text-pismo-slaby max-w-[74ch]">
-        openDAW je otevřený projekt pod licencí AGPL v3. Tady běží jejich
-        vlastní stránka, ne naše kopie — data i účet zůstávají na jejich
-        straně.
-      </p>
     </div>
   );
 };

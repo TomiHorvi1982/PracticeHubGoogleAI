@@ -196,10 +196,6 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
             onChange={(e) => zmen({ prah: Number(e.target.value) / 100 })}
             className="w-full accent-znacka cursor-pointer"
           />
-          <p className="text-stitek text-pismo-slaby leading-relaxed mt-1">
-            Níž znamená ochotnější rozpoznávání za cenu občasného omylu, výš naopak.
-            Na pódiu bývá lepší nerozumět než udělat něco jiného.
-          </p>
         </div>
 
         <label className="flex items-start gap-2 text-drobne text-pismo cursor-pointer">
@@ -211,9 +207,6 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           />
           <span>
             Potvrzovat nahlas
-            <span className="block text-stitek text-pismo-slaby">
-              Appka řekne, co spustila. Na pódiu, kde se na obrazovku nedíváš.
-            </span>
           </span>
         </label>
 
@@ -226,10 +219,6 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
           />
           <span>
             Ukazovat, co jsem slyšel
-            <span className="block text-stitek text-pismo-slaby">
-              I když příkaz nenajdu. Bez toho není poznat, jestli jsi špatně vyslovil,
-              nebo takový příkaz není.
-            </span>
           </span>
         </label>
       </div>
@@ -237,9 +226,6 @@ export const HlasovyPanel: React.FC<{ jsemSpravce?: boolean }> = ({ jsemSpravce 
       {/* Katalog — co appka umí a co zatím ne */}
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-4">
         <h3 className="text-sm font-bold text-znacka mb-1">Co hlasem jde</h3>
-        <p className="text-drobne text-pismo-tlum mb-3">
-          Nezapojené akce zná katalog, ale zatím je nikdo neobsluhuje — hlasem nic neudělají.
-        </p>
         <div className="space-y-3">
           {skupiny.map((s) => (
             <div key={s}>

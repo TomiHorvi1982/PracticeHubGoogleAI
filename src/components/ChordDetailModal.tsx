@@ -123,9 +123,6 @@ export const ChordDetailModal: React.FC<ChordDetailModalProps> = ({
                   <Zap className="w-4 h-4 text-[#FFD700]" />
                   POMŮCKA PRO KYTARISTY: VARIACE &amp; BARRE HMATY PRO {chordDef.name}
                 </h4>
-                <p className="text-stitek text-pismo-tlum mt-0.5">
-                  Vyberte si alternativní pozici na hmatníku kytary, abyste nehráli stále stejné základní akordy.
-                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -359,7 +359,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 Kaset Engine
               </span>
             </div>
-            <p className="text-xs text-pismo-tlum">YouTube Music, backing tracky, texty & Smart Shuffle</p>
           </div>
         </div>
 
@@ -524,9 +523,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 />
               </button>
             </div>
-            <p className="text-drobne text-pismo-tlum leading-tight">
-              Automaticky domíchává doporučené backing tracky dle žánru a tóniny.
-            </p>
           </div>
         </nav>
 
@@ -538,9 +534,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               <div className="bg-plocha-1/60 border border-kresba rounded-3xl p-6 shadow-xl space-y-4">
                 <div>
                   <h2 className="text-base font-bold text-white mb-1">Vyhledávač backing tracků a YouTube Music</h2>
-                  <p className="text-xs text-pismo-tlum">
-                    Najděte kytarové podklady, drumless smyčky, karaoke, originální nahrávky nebo video lekce.
-                  </p>
                 </div>
 
                 <form onSubmit={handleSearch} className="flex gap-2">
@@ -752,9 +745,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                       <Music2 className="w-5 h-5 text-znacka" />
                       <span>Backing Tracky pro: {activeSong ? activeSong.title : 'Žádná vybraná píseň'}</span>
                     </h2>
-                    <p className="text-xs text-pismo-tlum mt-1">
-                      Média a podklady navázané na právě cvičenou skladbu v Neverlast Studiu.
-                    </p>
                   </div>
                   {activeSong && (
                     <button
@@ -776,9 +766,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                 <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl space-y-3">
                   <Film className="w-10 h-10 text-pismo-slaby mx-auto" />
                   <p className="text-sm font-semibold text-pismo">K této skladbě zatím nejsou přiřazena žádná média.</p>
-                  <p className="text-xs text-pismo-slaby max-w-md mx-auto">
-                    Přejděte do sekce <b>Objevovat</b> a vyhledejte backing track, nebo klikněte na tlačítko výše pro automatické vyhledání.
-                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -871,9 +858,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
               {queue.length === 0 ? (
                 <div className="p-12 text-center bg-plocha-1/30 border border-kresba/60 rounded-3xl space-y-2">
                   <p className="text-xs text-pismo-tlum">Fronta je prázdná.</p>
-                  <p className="text-drobne text-pismo-slaby">
-                    Se zapnutým <b>Smart Shuffle</b> se automaticky načtou další vhodné skladby při dohrání.
-                  </p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -987,7 +971,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                   <History className="w-5 h-5 text-znacka" />
                   <span>Historie cvičení & přehrávání</span>
                 </h2>
-                <p className="text-xs text-pismo-tlum mt-0.5">Naposledy spuštěné podklady a písně</p>
               </div>
 
               <div className="space-y-2">
@@ -1034,7 +1017,6 @@ export const MediaCenterSection: React.FC<MediaCenterSectionProps> = ({
                     <Layers className="w-5 h-5 text-znacka" />
                     <span>Cvičné Setlisty & Playlisty</span>
                   </h2>
-                  <p className="text-xs text-pismo-tlum mt-0.5">Sady podkladů organizované podle žánru a stylu</p>
                 </div>
                 <button
                   onClick={() => setIsCreatePlaylistOpen(true)}

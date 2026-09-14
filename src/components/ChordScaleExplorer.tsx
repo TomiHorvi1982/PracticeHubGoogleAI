@@ -243,9 +243,6 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
               Knihovna Akordů & Stupnic
             </h2>
-            <p className="text-xs text-pismo-tlum mt-1">
-              Hmatník kytary, klaviatura a zvukové ukázky s podporou filtru tónin pro hardware MIDI klávesy.
-            </p>
           </div>
           )}
 
@@ -364,9 +361,6 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
                 ? `Hmatník: Akord ${selectedRoot} ${selectedChordType}`
                 : `Hmatník: Stupnice ${selectedRoot} ${currentScale.czName}`}
             </h3>
-            <p className="text-drobne text-pismo-tlum mt-0.5">
-              Pozice 0 až 14 na kytarovém krku (oranžový bod = kořenový tón)
-            </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -539,9 +533,6 @@ export const ChordScaleExplorer: React.FC<ChordScaleExplorerProps> = ({
           </div>
         </div>
 
-        <p className="text-xs text-pismo-tlum">
-          Klikněte na libovolnou klávesu pro zahrání tónu nebo použijte tlačítko vpravo pro přehrání celého akordu.
-        </p>
 
         <div className="flex justify-center overflow-x-auto py-2 scrollbar-thin">
           <div className="relative flex h-36 bg-black/40 p-3 rounded-2xl border border-white/10 shadow-inner">

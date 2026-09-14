@@ -924,11 +924,6 @@ export const MidiPlayerPanel: React.FC = () => {
                 </div>
               </div>
 
-              <div className="px-4 pb-2 text-stitek text-pismo-slaby">
-                Klik do prázdna přidá notu · tažení notu posune · tažení za pravý okraj změní délku ·
-                Shift přidá do výběru · tažení po ploše označí rámečkem · Delete smaže · Cmd+Z vrátí
-              </div>
-
               <div className="overflow-auto max-h-64 bg-black/50">
                 <div
                   ref={rollRef}

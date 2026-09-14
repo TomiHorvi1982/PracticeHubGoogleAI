@@ -34,10 +34,6 @@ export const KaraokeSekce: React.FC = () => {
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="nadpis-sekce">Karaoke texty</h2>
-          <p className="text-drobne text-pismo-tlum max-w-[74ch]">
-            Playlisty a texty z karaoketexty.cz přímo tady. Běží jejich stránka — texty
-            patří jim a do aplikace se nic neukládá.
-          </p>
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -79,10 +75,6 @@ export const KaraokeSekce: React.FC = () => {
         />
       </div>
 
-      <p className="text-stitek text-pismo-slaby max-w-[74ch]">
-        Přihlášení k účtu na karaoketexty.cz v rámu nedrží — kvůli izolaci aplikace dostává
-        stránka rám bez cookies. Vlastní playlisty otevři přes „Vlastní okno".
-      </p>
     </div>
   );
 };

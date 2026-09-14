@@ -216,10 +216,6 @@ export const ZivaKytara: React.FC = () => {
                 </button>
               </div>
 
-              <p className="text-stitek text-pismo-slaby leading-relaxed">
-                Aparáty, presety a efekty se vybírají na kytarovém faderu
-                v Mixážním pultu.
-              </p>
             </>
           ) : (
             <>
@@ -232,10 +228,6 @@ export const ZivaKytara: React.FC = () => {
               </button>
               {/* Obojí je z praxe, ne z opatrnosti: přes Bluetooth je
                   zpoždění tak velké, že se do rytmu hrát nedá. */}
-              <p className="text-stitek text-pismo-slaby leading-relaxed">
-                Hraj do drátových sluchátek — bezdrátová přidají i přes sto
-                milisekund zpoždění. Na zvukovce nastav co nejmenší buffer.
-              </p>
             </>
           )}
         </div>

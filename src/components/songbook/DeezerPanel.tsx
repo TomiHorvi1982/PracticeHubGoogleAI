@@ -174,12 +174,6 @@ export const DeezerPanel: React.FC<{
         </p>
       )}
 
-      {nalezene.length === 0 && !hledam && (
-        <p className="text-drobne text-pismo-slaby">
-          Najde název, interpreta, album, délku a u části skladeb i tempo. Poslechnout jde
-          třicetivteřinová ukázka, kterou Deezer nabízí veřejně.
-        </p>
-      )}
 
       {album && (
         <div className="bg-black/40 border border-znacka/30 rounded-2xl p-3 space-y-2">

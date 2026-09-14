@@ -98,8 +98,7 @@ export const RozcvickaRoom: React.FC = () => {
         <div className="flex-1 min-w-[200px]">
           <h3 className="text-sm font-bold text-white">Rozcvička před hraním</h3>
           <p className="text-drobne text-pismo-tlum">
-            {delkaProgramu()} minut, {celkem} cviků. Jde se odshora — přesnost levé ruky
-            nemá cenu cvičit, dokud pravá nedrží tempo sama.
+            {delkaProgramu()} minut, {celkem} cviků
           </p>
         </div>
         <div className="text-right">

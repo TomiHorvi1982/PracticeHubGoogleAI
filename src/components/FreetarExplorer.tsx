@@ -916,9 +916,6 @@ export const FreetarExplorer: React.FC<FreetarExplorerProps> = ({
                 <h3 className="text-lg font-bold text-white tracking-tight">
                   Vyhledávejte z desítek tisíc tabů a akordů na Freetar.de
                 </h3>
-                <p className="text-xs text-pismo-tlum max-w-md mx-auto mt-1.5">
-                  Zadejte název oblíbené písně výše. Výsledky můžete okamžitě číst, transponovat nebo jedním kliknutím uložit do svého zpěvníku.
-                </p>
               </div>
             </div>
           )}

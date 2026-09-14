@@ -109,11 +109,6 @@ export const EditorTextu: React.FC<{
           />
         </div>
 
-        <p className="text-stitek text-pismo-slaby">
-          Písmeno vlevo je rýmová dvojice, číslo počet slabik. Sekce piš do hranatých závorek —
-          <span className="text-pismo-slaby"> [Sloka]</span>,
-          <span className="text-pismo-slaby"> [Refrén]</span> — do slabik se nepočítají.
-        </p>
       </div>
 
       <div className="bg-plocha-2 border border-white/[0.08] rounded-2xl p-4 space-y-3 self-start">
@@ -144,8 +139,7 @@ export const EditorTextu: React.FC<{
               </div>
             ) : (
               <p className="text-drobne text-pismo-slaby">
-                Ve vašich textech se na tohle slovo nic nerýmuje. Čím víc písní v knihovně, tím víc
-                slovník umí.
+                Na tohle slovo se nic nerýmuje.
               </p>
             )}
           </>

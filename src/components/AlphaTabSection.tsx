@@ -95,9 +95,6 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             : <ChevronRight className="w-4 h-4 text-pismo-tlum" />}
           <Search className="w-4 h-4 text-znacka" />
           <span className="text-sm font-bold text-white">Najít tabulaturu</span>
-          <span className="text-drobne text-pismo-slaby">
-            naše sbírka, Ultimate Guitar a Freetar — nález se otevře rovnou tady
-          </span>
         </button>
         {/**
          * Vyhledávač zůstává připojený i po sbalení.
@@ -193,9 +190,6 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
             <div className="max-w-md mx-auto space-y-1.5">
               <p className="font-bold text-white text-base">
                 Žádný Guitar Pro soubor nebyl načten
-              </p>
-              <p className="text-xs text-pismo-tlum leading-relaxed">
-                Chcete-li zobrazit interaktivní tabulaturu a spustit doprovod, nahrajte soubor s příponou <strong className="text-znacka">.gp</strong>, <strong className="text-znacka">.gp5</strong>, nebo vyberte z existujících souborů ve vaší knihovně.
               </p>
             </div>
             <div className="pt-2">

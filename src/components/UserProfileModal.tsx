@@ -76,7 +76,6 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               <span className="text-white font-bold text-base tracking-tight">
                 Uživatelský profil &amp; Nastavení
               </span>
-              <p className="text-xs text-pismo-tlum">Správa osobního účtu a oprávnění</p>
             </div>
           </div>
           <button

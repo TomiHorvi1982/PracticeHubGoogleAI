@@ -99,6 +99,9 @@ class MetronomService {
   /** Tempo, ve kterém běží (nebo poslední nastavené). */
   public tempo(): number { return stav().bpm; }
 
+  /** Kolik dob má takt. Potřebuje ho televize, aby svítila první dobu. */
+  public dobVTaktu(): number { return stav().dobVTaktu; }
+
   public stop(): void {
     const s = stav();
     if (s.casovac !== null) {
