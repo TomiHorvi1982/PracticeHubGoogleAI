@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { MetronomJezdec } from './metronom/MetronomJezdec';
+import { metronomService } from '../services/metronomService';
 import { useZastavPriSkryti } from '../hooks/useSekceVidet';
 import { audioSynth } from '../services/audioSynth';
 import { findOrGenerateChord } from '../utils/chordUtils';
@@ -64,7 +66,6 @@ export const PracticeAssistant: React.FC = () => {
   const [beatsPerBar, setBeatsPerBar] = useState(4);
   const [currentBeat, setCurrentBeat] = useState(0);
   const [isMetroMuted, setIsMetroMuted] = useState(false);
-  const [flashTick, setFlashTick] = useState(false);
   const [accentBeats, setAccentBeats] = useState<boolean[]>([true, false, false, false]);
 
   // Tap Tempo State
@@ -101,30 +102,18 @@ export const PracticeAssistant: React.FC = () => {
     });
   }, [beatsPerBar]);
 
-  // Metronome Loop
-  useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-    if (isPlayingMetro) {
-      const ms = (60 / bpm) * 1000;
-      interval = setInterval(() => {
-        setCurrentBeat((prev) => {
-          const next = (prev + 1) % beatsPerBar;
-          // Zvuk obstarává metronomová služba — ta běží i mimo tuhle
-          // sekci. Klepat i tady by znamenalo dvě klepnutí na dobu.
-          // Zdejší smyčka zůstává kvůli blikání a počítání dob.
-          setFlashTick(true);
-          setTimeout(() => setFlashTick(false), 120);
-          return next;
-        });
-      }, ms);
-    } else {
-      setCurrentBeat(0);
-      setFlashTick(false);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [isPlayingMetro, bpm, beatsPerBar, isMetroMuted, accentBeats]);
+  /*
+   * Doby se nepočítají vlastním časovačem.
+   *
+   * Dřív tu běžel `setInterval` vedle toho, podle kterého kliká
+   * metronomová služba — dvoje hodiny, které se po chvíli rozešly, takže
+   * blikání nesedělo se zvukem. Kolikátá doba běží, teď hlásí jezdec,
+   * který čte čas přímo ze služby. Takt a ztlumení se službě předávají:
+   * dřív byly jen na obrazovce a klepalo se pořád ve čtyřech a nahlas.
+   */
+  useEffect(() => { if (!isPlayingMetro) setCurrentBeat(0); }, [isPlayingMetro]);
+  useEffect(() => { metronomService.nastavTakt(beatsPerBar); }, [beatsPerBar]);
+  useEffect(() => { metronomService.ztlumit(isMetroMuted); }, [isMetroMuted]);
 
   // Update preset chord sequences
   useEffect(() => {
@@ -285,6 +274,7 @@ export const PracticeAssistant: React.FC = () => {
           {/* Sound / Visual Only Toggle */}
           <button
             onClick={() => setIsMetroMuted(!isMetroMuted)}
+            title={isMetroMuted ? 'Zapnout zvuk' : 'Ztlumit'}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
               isMetroMuted
                 ? 'bg-chyba/10 text-chyba border-chyba/30 hover:bg-chyba/20'
@@ -292,85 +282,16 @@ export const PracticeAssistant: React.FC = () => {
             }`}
           >
             {isMetroMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-            <span>{isMetroMuted ? 'Tichý režim (pouze blikání)' : 'Zvuk metronomu: Zapnuto'}</span>
           </button>
         </div>
 
-        {/* Central Visual Metronome Stage: Pendulum + Flashing Beacon Light */}
-        <div className="bg-black/40 border border-white/5 rounded-2xl p-6 relative overflow-hidden flex flex-col items-center justify-center space-y-6">
-          
-          {/* Pendulum Swinging Arm Visual */}
-          <div className="relative w-full max-w-md h-24 flex items-center justify-center border-b border-white/10">
-            {/* Arc Scale Markers */}
-            <div className="absolute top-2 left-0 right-0 flex justify-between px-6 text-stitek text-pismo-slaby font-semibold">
-              <span>◄ 1. Doba</span>
-              <span>Střed</span>
-              <span>{beatsPerBar}. Doba ►</span>
-            </div>
-
-            {/* Pendulum Pivot Point */}
-            <div className="absolute bottom-0 w-3 h-3 bg-plocha-nad rounded-full z-10" />
-
-            {/* Pendulum Needle Arm */}
-            <div
-              className="absolute bottom-0 w-1 bg-znacka origin-bottom transition-all duration-100 ease-out z-20 flex flex-col items-center"
-              style={{
-                height: '80px',
-                transform: `rotate(${isPlayingMetro ? (-35 + (currentBeat / Math.max(1, beatsPerBar - 1)) * 70) : 0}deg)`,
-              }}
-            >
-              {/* Pendulum Weight Ball */}
-              <div
-                className={`w-5 h-5 -mt-2 rounded-full border border-black shadow-lg transition-all ${
-                  flashTick
-                    ? accentBeats[currentBeat]
-                      ? 'bg-chyba shadow-[0_0_15px_#E54870]'
-                      : 'bg-uspech shadow-[0_0_12px_#00B878]'
-                    : 'bg-white'
-                }`}
-              />
-            </div>
-          </div>
-
-          {/* Central Flashing Light Beacon Display */}
-          <div className="flex flex-col items-center space-y-3">
-            <div
-              className={`w-32 h-32 rounded-3xl border-2 flex flex-col items-center justify-center transition-all duration-100 ${
-                isPlayingMetro && flashTick
-                  ? accentBeats[currentBeat]
-                    ? 'bg-chyba border-white text-white scale-105 shadow-[0_0_40px_rgba(229,72,112,0.8)]'
-                    : 'bg-uspech border-white text-black scale-105 shadow-[0_0_35px_rgba(0,184,120,0.8)]'
-                  : isPlayingMetro
-                  ? 'bg-white/10 border-white/20 text-white'
-                  : 'bg-white/[0.02] border-white/10 text-pismo-slaby'
-              }`}
-            >
-              <span className="text-5xl font-bold font-mono tracking-tighter">
-                {isPlayingMetro ? currentBeat + 1 : '-'}
-              </span>
-              <span className="stitek-pole mt-1">
-                {isPlayingMetro
-                  ? accentBeats[currentBeat]
-                    ? '⚡ Akcent'
-                    : 'Doba'
-                  : 'Připraveno'}
-              </span>
-            </div>
-
-            {/* Status description text */}
-            <div className="text-center">
-              <span className="text-xs font-semibold text-white block">
-                {isPlayingMetro
-                  ? `Doba ${currentBeat + 1} z ${beatsPerBar} (${accentBeats[currentBeat] ? 'Přízvuk / Akcent' : 'Běžná doba'})`
-                  : ''}
-              </span>
-              <span className="text-xs text-pismo-tlum block mt-0.5">
-                Tempo: <strong className="text-uspech">{bpm} BPM</strong> | Takt: <strong className="text-white">{beatsPerBar}/4</strong>
-              </span>
-            </div>
-          </div>
-
-        </div>
+        <MetronomJezdec
+          bezi={isPlayingMetro}
+          bpm={bpm}
+          dobVTaktu={beatsPerBar}
+          akcenty={accentBeats}
+          onDoba={setCurrentBeat}
+        />
 
         {/* Beats Per Measure Settings & Interactive Beat Cards */}
         <div className="bg-black/40 p-3 sm:p-5 rounded-2xl border border-white/5 min-w-0 overflow-x-auto space-y-4">

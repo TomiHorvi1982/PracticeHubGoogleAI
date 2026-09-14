@@ -24,6 +24,8 @@ interface OknoSMetronomem extends Window {
     casovac: number | null; doba: number; bpm: number; dobVTaktu: number;
     /** Kdy padla první doba. Podle toho se dopočítá pozice mezi tiky. */
     zacatek: number;
+    /** Klepat potichu — metronom běží dál a jezdec jezdí, jen není slyšet. */
+    ticho?: boolean;
   };
 }
 
@@ -48,7 +50,7 @@ class MetronomService {
    * to dělal, protože efekt v Reactu se pouští znovu při každé změně
    * závislostí, i když se výsledek nemění.
    */
-  public start(bpm: number, dobVTaktu = 4): void {
+  public start(bpm: number, dobVTaktu = stav().dobVTaktu): void {
     const s = stav();
     // Strop 300 na čtvrtky: šestnáctky pak jdou dvacet za vteřinu, což
     // je rychleji, než se dá zahrát. Níž než třicet už se ztrácí pocit
@@ -64,7 +66,7 @@ class MetronomService {
     const tik = () => {
       // Důraz na první dobu: bez něj se v taktu nedá poznat, kde je
       // začátek, a metronom je pak jen tikot.
-      audioSynth.playMetronomeClick(s.doba % s.dobVTaktu === 0);
+      if (!s.ticho) audioSynth.playMetronomeClick(s.doba % s.dobVTaktu === 0);
       s.doba++;
     };
 
@@ -94,6 +96,22 @@ class MetronomService {
     const s = stav();
     if (s.casovac === null) return 0;
     return ((performance.now() - s.zacatek) / 60000) * s.bpm;
+  }
+
+  /**
+   * Počet dob v taktu za chodu.
+   *
+   * Bez restartu: ten by klepl navíc a posunul takt. Důraz se přepočítá
+   * od nejbližší doby. Dřív si takt měnila jen sekce Metronom na
+   * obrazovce a služba klepala dál ve čtyřech.
+   */
+  public nastavTakt(dobVTaktu: number): void {
+    stav().dobVTaktu = Math.max(1, Math.floor(dobVTaktu) || 1);
+  }
+
+  /** Ztlumit klepání, metronom přitom běží dál. */
+  public ztlumit(ticho: boolean): void {
+    stav().ticho = ticho;
   }
 
   /** Tempo, ve kterém běží (nebo poslední nastavené). */
