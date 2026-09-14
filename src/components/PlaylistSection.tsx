@@ -204,8 +204,6 @@ export const PlaylistSection: React.FC<PlaylistSectionProps> = ({
           řádkem seznamu. */}
       <HlavickaSekce
         nazev="Playlist"
-        klic="playlist"
-        napoveda="Hraje dál i při přepínání sekcí. Sdílený pro celou kapelu."
         akce={onZavrit ? (
           <button
             onClick={onZavrit}

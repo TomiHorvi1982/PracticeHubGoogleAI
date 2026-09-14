@@ -76,8 +76,6 @@ export const AlphaTabSection: React.FC<AlphaTabSectionProps> = ({
     <div className="space-y-4 font-sans text-white pb-12">
       <HlavickaSekce
         nazev="Guitar Pro"
-        klic="alphatab"
-        napoveda="Otevři soubor GP3/GP4/GP5/GPX, přehraj si ho, přepínej nástroje a trénuj."
       />
 
 

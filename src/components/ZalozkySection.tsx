@@ -48,11 +48,9 @@ export const ZalozkySection: React.FC = () => {
           před chvílí klikl v navigaci. Počet zůstává, ten je užitečný. */}
       <HlavickaSekce
         nazev="Kam kapela chodí"
-        klic="zalozky"
         akce={zalozky.length > 0 ? (
           <span className="text-drobne text-pismo-tlum tabular-nums">{zalozky.length} záložek</span>
         ) : undefined}
-        napoveda="Sdílené odkazy — co si jeden najde, mají ostatní hned taky."
       />
 
       {chyba && (

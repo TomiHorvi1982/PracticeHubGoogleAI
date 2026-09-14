@@ -708,15 +708,6 @@ export const StemMixerSection: React.FC<StemMixerSectionProps> = ({ currentUser,
       {!vOkne && (
       <HlavickaSekce
         nazev="Mixážní pult"
-        klic="stemmixer"
-        napoveda={(
-          <>
-            Osm stop pod sebou na jedné ose — Zpěv, Kytara, Sólo, Basa, Bicí,
-            Piano, Metronom, Ostatní — takže je vidět, kde sloka končí i kde
-            vypadnou bicí. Kliknutím do vlnovky se skočí kamkoli. Soubory se
-            berou z knihovny, nebo z počítače — a rovnou se uloží do knihovny.
-          </>
-        )}
       />
       )}
 

@@ -45,6 +45,11 @@ import { VstupniStranka } from './components/VstupniStranka';
 import { playlistService } from './services/playlistService';
 import { songDatabaseService } from './services/songDatabaseService';
 
+/* Označování zbytečných textů — jen ve vývoji; do nasazené verze se nedostane. */
+const OznacovaciRezim = import.meta.env.DEV
+  ? React.lazy(() => import('./components/dev/OznacovaciRezim'))
+  : null;
+
 function AppContent() {
   const {
     activeSong,
@@ -614,6 +619,11 @@ function AppContent() {
           onClose={() => setIsAdminModalOpen(false)}
           currentUser={currentUser}
         />
+      )}
+      {OznacovaciRezim && (
+        <React.Suspense fallback={null}>
+          <OznacovaciRezim sekce={rezimPlochy ? 'plocha' : activeTab} />
+        </React.Suspense>
       )}
     </MainLayout>
   );

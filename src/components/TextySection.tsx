@@ -80,8 +80,6 @@ export const TextySection: React.FC = () => {
           používá. Odznak nad nadpisem opakoval název sekce z navigace. */}
       <HlavickaSekce
         nazev="Psaní a přepis"
-        klic="texty"
-        napoveda="Přepis vytáhne text z nahrávky i s časy; editor hlídá slabiky a rýmy. Obojí se ukládá rovnou do písně ve zpěvníku."
       />
 
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">

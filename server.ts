@@ -22,6 +22,7 @@ import {
   kategorieVyberu, strankovani, vzorHledani, ZVUKOVE_MIME,
 } from './server/vyberSamplu';
 import { udajeSouboru } from './src/services/udajeZNazvu';
+import { jeZeStroje } from './src/services/oznaceni';
 import {
   postavDotaz as postavDotazTipu,
   zpracujOdpoved as zpracujTipy,
@@ -5899,6 +5900,25 @@ export async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
     // Imported lazily: `vite` is a devDependency, absent in serverless
     // production installs. Only the local dev path ever reaches this.
+    /*
+     * Označené zbytečné texty z aplikace (viz OznacovaciRezim).
+     *
+     * Jen tady ve vývojové větvi — Vercel volá createApp() a sem nedojde.
+     * Zapisuje se jen z tohohle počítače, protože server poslouchá na
+     * všech rozhraních.
+     */
+    app.post('/api/dev/oznaceni', (req, res) => {
+      if (!jeZeStroje(req.socket.remoteAddress)) {
+        return res.status(403).json({ error: 'Jen z tohohle počítače.' });
+      }
+      const seznam = Array.isArray(req.body?.seznam) ? req.body.seznam.slice(0, 2000) : null;
+      if (!seznam) return res.status(400).json({ error: 'Chybí seznam.' });
+      const slozka = path.join(process.cwd(), '.oznaceni');
+      fs.mkdirSync(slozka, { recursive: true });
+      fs.writeFileSync(path.join(slozka, 'oznaceni.json'), JSON.stringify(seznam, null, 2));
+      res.json({ ulozeno: seznam.length });
+    });
+
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },

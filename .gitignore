@@ -38,3 +38,4 @@ modely/
 # Vznikají při každém běhu a do repa nepatří.
 .playwright-mcp/
 /*.png
+.oznaceni/

@@ -51,8 +51,6 @@ export const PractiseHubSection: React.FC = () => {
           používá. Odznak nad nadpisem opakoval název sekce z navigace. */}
       <HlavickaSekce
         nazev="Zkušebna pro jednoho"
-        klic="practise"
-        napoveda="Čtyři místnosti podle toho, co zrovna děláš — od rozehřátí po zkoušení teorie."
       />
 
       <div className="bg-plocha-2 border border-white/[0.08] rounded-3xl p-5 sm:p-6 shadow-xl">

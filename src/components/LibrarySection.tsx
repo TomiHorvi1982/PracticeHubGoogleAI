@@ -974,20 +974,10 @@ export const LibrarySection: React.FC<LibrarySectionProps> = ({
           vysvětlení. */}
       <HlavickaSekce
         nazev="Knihovna souborů"
-        klic="library"
         akce={(
           <span className="text-drobne text-pismo-tlum tabular-nums">
             {celkemVKnihovne.toLocaleString('cs')} souborů
           </span>
-        )}
-        napoveda={(
-          <>
-            Guitar Pro, PDF noty, textové akordy, obrázky, MIDI a samply — všechno,
-            co appka nabízí k písním.{' '}
-            {!kategorieFiltr && !podkategorieFiltr
-              ? `Zobrazeno ${allCombinedItems.length} z ${celkemVKnihovne.toLocaleString('cs')}.`
-              : `V této kategorii je ${celkemVKnihovne.toLocaleString('cs')} souborů, zobrazeno ${filteredItems.length}.`}
-          </>
         )}
       />
 
